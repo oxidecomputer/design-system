@@ -1,0 +1,15 @@
+{
+  "plugins": ["jsx-a11y"],
+  "extends": [
+    "@remix-run/eslint-config",
+    "@remix-run/eslint-config/node",
+    "plugin:jsx-a11y/recommended"
+  ],
+  "ignorePatterns": ["**/*.js", "**/**/*.js"],
+  "rules": {
+    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "eqeqeq": "error",
+    "no-param-reassign": "error",
+    "no-return-assign": "error"
+  }
+}

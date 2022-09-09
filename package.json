@@ -1,0 +1,29 @@
+{
+  "name": "design-system",
+  "version": "0.0.1",
+  "description": "Home of reusable design assets and token for oxide internal sites",
+  "main": "index.js",
+  "scripts": {
+    "build:themes": "./scripts/build_themes.sh",
+    "build": "run-s build:*",
+    "prebuild:tokens": "token-transformer --preserveRawValue ./styles/tokens.json ./styles/main.json global,colors,core,main",
+    "build:tokens": "ts-node ./scripts/build-tokens.ts && prettier -w ./styles"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "style-dictionary": "^3.7.1",
+    "token-transformer": "^0.0.26",
+    "ts-node": "^10.9.1"
+  },
+  "devDependencies": {
+    "@trivago/prettier-plugin-sort-imports": "^3.3.0",
+    "@types/react": "^18.0.18",
+    "esbuild-register": "^3.3.3",
+    "eslint": "^8.23.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.7.1",
+    "react": "^18.2.0",
+    "ts-dedent": "^2.2.0"
+  }
+}
