@@ -2,7 +2,7 @@
 set -e
 set -o pipefail
 
-STYLES_PATH=styles
+STYLES_PATH=styles/src
 TOKENS_PATH=$STYLES_PATH/.tokens
 
 npx token-transformer --preserveRawValue $STYLES_PATH/tokens.json $TOKENS_PATH/main.json global,colors,core,main

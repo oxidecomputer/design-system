@@ -1,9 +1,8 @@
 # `main` Theme
 
-This document shows the relationship of colors within the `main` theme.
+This document shows the relationship of colors within the `main` theme. 
 
 ## base-green-100
-
 ```mermaid
 graph RL
   base-green-100 --> #131A1C:::base-green-100
@@ -12,9 +11,7 @@ graph RL
 
 	classDef base-green-100 stroke-width:5,stroke:#131A1C
 ```
-
 ## base-green-200
-
 ```mermaid
 graph RL
   base-green-200 --> #162322:::base-green-200
@@ -25,9 +22,7 @@ graph RL
 
 	classDef base-green-200 stroke-width:5,stroke:#162322
 ```
-
 ## base-green-300
-
 ```mermaid
 graph RL
   base-green-300 --> #1C372E:::base-green-300
@@ -37,9 +32,7 @@ graph RL
 
 	classDef base-green-300 stroke-width:5,stroke:#1C372E
 ```
-
 ## base-green-400
-
 ```mermaid
 graph RL
   base-green-400 --> #204D3B:::base-green-400
@@ -51,9 +44,7 @@ graph RL
 
 	classDef base-green-400 stroke-width:5,stroke:#204D3B
 ```
-
 ## base-green-500
-
 ```mermaid
 graph RL
   base-green-500 --> #236A4C:::base-green-500
@@ -65,9 +56,7 @@ graph RL
 
 	classDef base-green-500 stroke-width:5,stroke:#236A4C
 ```
-
 ## base-green-600
-
 ```mermaid
 graph RL
   base-green-600 --> #238A5E:::base-green-600
@@ -81,9 +70,7 @@ graph RL
 
 	classDef base-green-600 stroke-width:5,stroke:#238A5E
 ```
-
 ## base-green-700
-
 ```mermaid
 graph RL
   base-green-700 --> #20A36C:::base-green-700
@@ -97,9 +84,7 @@ graph RL
 
 	classDef base-green-700 stroke-width:5,stroke:#20A36C
 ```
-
 ## base-green-800
-
 ```mermaid
 graph RL
   base-green-800 --> #48d597:::base-green-800
@@ -114,9 +99,7 @@ graph RL
 
 	classDef base-green-800 stroke-width:5,stroke:#48d597
 ```
-
 ## base-yellow-100
-
 ```mermaid
 graph RL
   base-yellow-100 --> #20190F:::base-yellow-100
@@ -124,9 +107,7 @@ graph RL
 
 	classDef base-yellow-100 stroke-width:5,stroke:#20190F
 ```
-
 ## base-yellow-200
-
 ```mermaid
 graph RL
   base-yellow-200 --> #292013:::base-yellow-200
@@ -135,9 +116,7 @@ graph RL
 
 	classDef base-yellow-200 stroke-width:5,stroke:#292013
 ```
-
 ## base-yellow-300
-
 ```mermaid
 graph RL
   base-yellow-300 --> #3D3019:::base-yellow-300
@@ -146,9 +125,7 @@ graph RL
 
 	classDef base-yellow-300 stroke-width:5,stroke:#3D3019
 ```
-
 ## base-yellow-400
-
 ```mermaid
 graph RL
   base-yellow-400 --> #55421F:::base-yellow-400
@@ -157,9 +134,7 @@ graph RL
 
 	classDef base-yellow-400 stroke-width:5,stroke:#55421F
 ```
-
 ## base-yellow-500
-
 ```mermaid
 graph RL
   base-yellow-500 --> #765A27:::base-yellow-500
@@ -168,9 +143,7 @@ graph RL
 
 	classDef base-yellow-500 stroke-width:5,stroke:#765A27
 ```
-
 ## base-yellow-600
-
 ```mermaid
 graph RL
   base-yellow-600 --> #997430:::base-yellow-600
@@ -181,9 +154,7 @@ graph RL
 
 	classDef base-yellow-600 stroke-width:5,stroke:#997430
 ```
-
 ## base-yellow-700
-
 ```mermaid
 graph RL
   base-yellow-700 --> #CA993B:::base-yellow-700
@@ -193,9 +164,7 @@ graph RL
 
 	classDef base-yellow-700 stroke-width:5,stroke:#CA993B
 ```
-
 ## base-yellow-800
-
 ```mermaid
 graph RL
   base-yellow-800 --> #F5B944:::base-yellow-800
@@ -206,9 +175,7 @@ graph RL
 
 	classDef base-yellow-800 stroke-width:5,stroke:#F5B944
 ```
-
 ## base-red-100
-
 ```mermaid
 graph RL
   base-red-100 --> #1E1314:::base-red-100
@@ -217,9 +184,7 @@ graph RL
 
 	classDef base-red-100 stroke-width:5,stroke:#1E1314
 ```
-
 ## base-red-200
-
 ```mermaid
 graph RL
   base-red-200 --> #231517:::base-red-200
@@ -230,9 +195,7 @@ graph RL
 
 	classDef base-red-200 stroke-width:5,stroke:#231517
 ```
-
 ## base-red-300
-
 ```mermaid
 graph RL
   base-red-300 --> #301B1D:::base-red-300
@@ -242,9 +205,7 @@ graph RL
 
 	classDef base-red-300 stroke-width:5,stroke:#301B1D
 ```
-
 ## base-red-400
-
 ```mermaid
 graph RL
   base-red-400 --> #6A343C:::base-red-400
@@ -256,9 +217,7 @@ graph RL
 
 	classDef base-red-400 stroke-width:5,stroke:#6A343C
 ```
-
 ## base-red-500
-
 ```mermaid
 graph RL
   base-red-500 --> #954553:::base-red-500
@@ -270,9 +229,7 @@ graph RL
 
 	classDef base-red-500 stroke-width:5,stroke:#954553
 ```
-
 ## base-red-600
-
 ```mermaid
 graph RL
   base-red-600 --> #C3576A:::base-red-600
@@ -287,9 +244,7 @@ graph RL
 
 	classDef base-red-600 stroke-width:5,stroke:#C3576A
 ```
-
 ## base-red-700
-
 ```mermaid
 graph RL
   base-red-700 --> #DA6177:::base-red-700
@@ -302,9 +257,7 @@ graph RL
 
 	classDef base-red-700 stroke-width:5,stroke:#DA6177
 ```
-
 ## base-red-800
-
 ```mermaid
 graph RL
   base-red-800 --> #FB6E88:::base-red-800
@@ -319,126 +272,98 @@ graph RL
 
 	classDef base-red-800 stroke-width:5,stroke:#FB6E88
 ```
-
 ## base-purple-100
-
 ```mermaid
 graph RL
   base-purple-100 --> #1E1822:::base-purple-100
 
 	classDef base-purple-100 stroke-width:5,stroke:#1E1822
 ```
-
 ## base-purple-200
-
 ```mermaid
 graph RL
   base-purple-200 --> #251F2B:::base-purple-200
 
 	classDef base-purple-200 stroke-width:5,stroke:#251F2B
 ```
-
 ## base-purple-300
-
 ```mermaid
 graph RL
   base-purple-300 --> #382D43:::base-purple-300
 
 	classDef base-purple-300 stroke-width:5,stroke:#382D43
 ```
-
 ## base-purple-400
-
 ```mermaid
 graph RL
   base-purple-400 --> #4D3E5E:::base-purple-400
 
 	classDef base-purple-400 stroke-width:5,stroke:#4D3E5E
 ```
-
 ## base-purple-500
-
 ```mermaid
 graph RL
   base-purple-500 --> #6C5584:::base-purple-500
 
 	classDef base-purple-500 stroke-width:5,stroke:#6C5584
 ```
-
 ## base-purple-600
-
 ```mermaid
 graph RL
   base-purple-600 --> #8B6DAC:::base-purple-600
 
 	classDef base-purple-600 stroke-width:5,stroke:#8B6DAC
 ```
-
 ## base-purple-700
-
 ```mermaid
 graph RL
   base-purple-700 --> #A380CB:::base-purple-700
 
 	classDef base-purple-700 stroke-width:5,stroke:#A380CB
 ```
-
 ## base-purple-800
-
 ```mermaid
 graph RL
   base-purple-800 --> #BE95EB:::base-purple-800
 
 	classDef base-purple-800 stroke-width:5,stroke:#BE95EB
 ```
-
 ## base-blue-100
-
 ```mermaid
 graph RL
   base-blue-100 --> #171821:::base-blue-100
 
 	classDef base-blue-100 stroke-width:5,stroke:#171821
 ```
-
 ## base-blue-200
-
 ```mermaid
 graph RL
   base-blue-200 --> #1E202D:::base-blue-200
 
 	classDef base-blue-200 stroke-width:5,stroke:#1E202D
 ```
-
 ## base-blue-300
-
 ```mermaid
 graph RL
   base-blue-300 --> #2D3048:::base-blue-300
 
 	classDef base-blue-300 stroke-width:5,stroke:#2D3048
 ```
-
 ## base-blue-400
-
 ```mermaid
 graph RL
   base-blue-400 --> #3C4366:::base-blue-400
 
 	classDef base-blue-400 stroke-width:5,stroke:#3C4366
 ```
-
 ## base-blue-500
-
 ```mermaid
 graph RL
   base-blue-500 --> #515B8F:::base-blue-500
 
 	classDef base-blue-500 stroke-width:5,stroke:#515B8F
 ```
-
 ## base-blue-600
-
 ```mermaid
 graph RL
   base-blue-600 --> #6776BB:::base-blue-600
@@ -446,27 +371,21 @@ graph RL
 
 	classDef base-blue-600 stroke-width:5,stroke:#6776BB
 ```
-
 ## base-blue-700
-
 ```mermaid
 graph RL
   base-blue-700 --> #788ADD:::base-blue-700
 
 	classDef base-blue-700 stroke-width:5,stroke:#788ADD
 ```
-
 ## base-blue-800
-
 ```mermaid
 graph RL
   base-blue-800 --> #8BA1FF:::base-blue-800
 
 	classDef base-blue-800 stroke-width:5,stroke:#8BA1FF
 ```
-
 ## base-neutral-0
-
 ```mermaid
 graph RL
   base-neutral-0 --> #080F11:::base-neutral-0
@@ -476,9 +395,7 @@ graph RL
 
 	classDef base-neutral-0 stroke-width:5,stroke:#080F11
 ```
-
 ## base-neutral-50
-
 ```mermaid
 graph RL
   base-neutral-50 --> #101618:::base-neutral-50
@@ -489,9 +406,7 @@ graph RL
 
 	classDef base-neutral-50 stroke-width:5,stroke:#101618
 ```
-
 ## base-neutral-100
-
 ```mermaid
 graph RL
   base-neutral-100 --> #141B1D:::base-neutral-100
@@ -503,9 +418,7 @@ graph RL
 
 	classDef base-neutral-100 stroke-width:5,stroke:#141B1D
 ```
-
 ## base-neutral-200
-
 ```mermaid
 graph RL
   base-neutral-200 --> #1C2225:::base-neutral-200
@@ -516,9 +429,7 @@ graph RL
 
 	classDef base-neutral-200 stroke-width:5,stroke:#1C2225
 ```
-
 ## base-neutral-300
-
 ```mermaid
 graph RL
   base-neutral-300 --> #2D3335:::base-neutral-300
@@ -526,18 +437,14 @@ graph RL
 
 	classDef base-neutral-300 stroke-width:5,stroke:#2D3335
 ```
-
 ## base-neutral-400
-
 ```mermaid
 graph RL
   base-neutral-400 --> #404647:::base-neutral-400
 
 	classDef base-neutral-400 stroke-width:5,stroke:#404647
 ```
-
 ## base-neutral-500
-
 ```mermaid
 graph RL
   base-neutral-500 --> #5B5F61:::base-neutral-500
@@ -547,9 +454,7 @@ graph RL
 
 	classDef base-neutral-500 stroke-width:5,stroke:#5B5F61
 ```
-
 ## base-neutral-600
-
 ```mermaid
 graph RL
   base-neutral-600 --> #7e8385:::base-neutral-600
@@ -557,9 +462,7 @@ graph RL
 
 	classDef base-neutral-600 stroke-width:5,stroke:#7e8385
 ```
-
 ## base-neutral-700
-
 ```mermaid
 graph RL
   base-neutral-700 --> #A1A4A5:::base-neutral-700
@@ -568,9 +471,7 @@ graph RL
 
 	classDef base-neutral-700 stroke-width:5,stroke:#A1A4A5
 ```
-
 ## base-neutral-800
-
 ```mermaid
 graph RL
   base-neutral-800 --> #B8BBBC:::base-neutral-800
@@ -579,9 +480,7 @@ graph RL
 
 	classDef base-neutral-800 stroke-width:5,stroke:#B8BBBC
 ```
-
 ## base-neutral-900
-
 ```mermaid
 graph RL
   base-neutral-900 --> #F6F6F7:::base-neutral-900
