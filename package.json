@@ -6,8 +6,7 @@
   "scripts": {
     "build:themes": "./scripts/build_themes.sh",
     "build": "run-s build:*",
-    "prebuild:tokens": "token-transformer --preserveRawValue ./styles/tokens.json ./styles/main.json global,colors,core,main",
-    "build:tokens": "ts-node ./scripts/build-tokens.ts && prettier -w ./styles"
+    "prebuild:tokens": "token-transformer --preserveRawValue ./styles/tokens.json ./styles/main.json global,colors,core,main"
   },
   "author": "",
   "license": "ISC",
