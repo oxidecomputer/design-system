@@ -27,7 +27,8 @@ const valueToRem = (value: string | number) =>
   typeof value === 'string' && value.includes('%') ? percentToRem(value) : pxToRem(value)
 
 const formatFontClass = (name: string) => {
-  return name.replace('-light', '').replace('-regular', '').replace('-book', '-semi')
+  //return name.replace('-light', '').replace('-regular', '').replace('-semi', '')
+  return name
 }
 
 const camelCase = (s: string) =>
