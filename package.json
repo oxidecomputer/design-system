@@ -1,12 +1,12 @@
 {
-  "name": "design-system",
+  "name": "@oxide/design-system",
   "version": "0.0.1",
   "description": "Home of reusable design assets and token for oxide internal sites",
   "main": "index.js",
   "scripts": {
     "build:themes": "./scripts/build_themes.sh",
     "build": "run-s build:*",
-    "prebuild:tokens": "token-transformer --preserveRawValue ./styles/tokens.json ./styles/main.json global,colors,core,main"
+    "prebuild:tokens": "token-transformer --preserveRawValue ./styles/src/tokens.json ./styles/src/.tokens/main.json global,colors,core,main"
   },
   "author": "",
   "license": "ISC",
@@ -28,5 +28,13 @@
   "files": [
     "styles/dist/*.css",
     "styles/dist/tailwind-tokens.js"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oxidecomputer/design-system.git"
+  },
+  "bugs": {
+    "url": "https://github.com/oxidecomputer/design-system/issues"
+  },
+  "homepage": "https://github.com/oxidecomputer/design-system#readme"
 }

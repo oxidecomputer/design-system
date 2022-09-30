@@ -6,27 +6,23 @@
 					'.text-mono-xs': {
 						'font-family': "\"GT America Mono\", monospace",
 'font-weight': 400,
-'font-size': "0.625rem",
+'line-height': "1rem",
+'font-size': "0.6875rem",
 'letter-spacing': "0.04rem",
 'text-transform': "uppercase",
 					},
 					'.text-mono-sm': {
 						'font-family': "\"GT America Mono\", monospace",
 'font-weight': 400,
-'font-size': "0.6875rem",
+'line-height': "1rem",
+'font-size': "0.75rem",
 'letter-spacing': "0.04rem",
 'text-transform': "uppercase",
 					},
 					'.text-mono-md': {
 						'font-family': "\"GT America Mono\", monospace",
 'font-weight': 400,
-'font-size': "0.75rem",
-'letter-spacing': "0.04rem",
-'text-transform': "uppercase",
-					},
-					'.text-mono-lg': {
-						'font-family': "\"GT America Mono\", monospace",
-'font-weight': 400,
+'line-height': "1.25rem",
 'font-size': "0.875rem",
 'letter-spacing': "0.04rem",
 'text-transform': "uppercase",
@@ -34,16 +30,23 @@
 					'.text-sans-light-3xl': {
 						'font-family': "SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif",
 'font-weight': 300,
-'line-height': "3.125rem",
+'line-height': "3rem",
 'font-size': "2.5rem",
+'letter-spacing': "0.015rem",
+					},
+					'.text-sans-light-2xl': {
+						'font-family': "SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif",
+'font-weight': 300,
+'line-height': "2rem",
+'font-size': "1.5625rem",
 'letter-spacing': "0.015rem",
 					},
 					'.text-sans-sm': {
 						'font-family': "SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif",
 'font-weight': 400,
-'line-height': "1.125rem",
-'font-size': "0.8125rem",
-'letter-spacing': "0.05rem",
+'line-height': "1rem",
+'font-size': "0.75rem",
+'letter-spacing': "0.04rem",
 					},
 					'.text-sans-md': {
 						'font-family': "SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif",
@@ -55,9 +58,16 @@
 					'.text-sans-lg': {
 						'font-family': "SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif",
 'font-weight': 400,
-'line-height': "1.25rem",
+'line-height': "1.5rem",
 'font-size': "1rem",
 'letter-spacing': "0.03rem",
+					},
+					'.text-sans-xl': {
+						'font-family': "SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif",
+'font-weight': 400,
+'line-height': "1.75rem",
+'font-size': "1.125rem",
+'letter-spacing': "0.02rem",
 					},
 					'.text-sans-2xl': {
 						'font-family': "SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif",
@@ -69,9 +79,9 @@
 					'.text-sans-semi-sm': {
 						'font-family': "SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif",
 'font-weight': 400,
-'line-height': "1.125rem",
-'font-size': "0.8125rem",
-'letter-spacing': "0.05rem",
+'line-height': "1rem",
+'font-size': "0.75rem",
+'letter-spacing': "0.04rem",
 					},
 					'.text-sans-semi-md': {
 						'font-family': "SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif",
@@ -83,16 +93,9 @@
 					'.text-sans-semi-lg': {
 						'font-family': "SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif",
 'font-weight': 400,
-'line-height': "1.25rem",
+'line-height': "1.5rem",
 'font-size': "1rem",
 'letter-spacing': "0.03rem",
-					},
-					'.text-sans-semi-xl': {
-						'font-family': "SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif",
-'font-weight': 400,
-'line-height': "1.5rem",
-'font-size': "1.1875rem",
-'letter-spacing': "0.02rem",
 					}
 			}
 
@@ -875,6 +878,6 @@
 			}
 
 			module.exports.borderRadiusTokens = {
-				'DEFAULT': 'var(--border-radius)','lg': 'var(--border-radius-lg)','full': 'var(--border-radius-full)'
+				'sm': 'var(--border-radius-sm)','DEFAULT': 'var(--border-radius)','full': 'var(--border-radius-full)'
 			}
 		
