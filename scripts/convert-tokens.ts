@@ -65,7 +65,6 @@ const formatTypographyStyles = (name: string, value: any) => {
   if (value === 'none') return null
   switch (name) {
     case 'font-family':
-      // @ts-expect-error
       return [name, FONT_FAMILIES[value]]
     case 'line-height':
       return value === 'AUTO' ? null : [name, valueToRem(value)]
