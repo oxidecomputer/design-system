@@ -6,10 +6,11 @@
   "scripts": {
     "build:themes": "./scripts/build_themes.sh",
     "build": "run-s build:*",
-    "prebuild:tokens": "token-transformer --preserveRawValue ./styles/src/tokens.json ./styles/src/.tokens/main.json global,colors,core,main"
+    "prebuild:tokens": "token-transformer --preserveRawValue ./styles/src/tokens.json ./styles/src/.tokens/main.json global,colors,core,main",
+    "release": "auto shipit"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Oxide Computer Company <bots@oxidecomputer.com>",
+  "license": "MPL 2.0",
   "dependencies": {
     "style-dictionary": "^3.7.1",
     "token-transformer": "^0.0.26",
@@ -37,5 +38,15 @@
   "bugs": {
     "url": "https://github.com/oxidecomputer/design-system/issues"
   },
-  "homepage": "https://github.com/oxidecomputer/design-system#readme"
+  "homepage": "https://github.com/oxidecomputer/design-system#readme",
+  "auto": {
+    "plugins": [
+      "npm",
+      "released"
+    ]
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  }
 }
