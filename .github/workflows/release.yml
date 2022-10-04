@@ -22,6 +22,13 @@ jobs:
       - name: Install dependencies
         uses: bahmutov/npm-install@v1
 
+      - name: PR Check
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run:
+          npx auto pr-check --pr=${{ github.event.number }}
+          --url=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+
       - name: build
         run: npm run build
 
