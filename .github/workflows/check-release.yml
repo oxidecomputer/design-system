@@ -1,4 +1,4 @@
-name: Release
+name: Check Release
 
 on: [push]
 
@@ -22,12 +22,9 @@ jobs:
       - name: Install dependencies
         uses: bahmutov/npm-install@v1
 
-      - name: build
-        run: npm run build
-
-      - name: Create Release
+      - name: Verify Release
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          npm run release
+        run:
+          npx auto pr-check
+          --url=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
