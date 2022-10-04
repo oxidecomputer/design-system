@@ -16,4 +16,4 @@ npx token-transformer --preserveRawValue $STYLES_PATH/tokens.json $TOKENS_PATH/b
 # npx token-transformer $STYLES_PATH/tokens.json $TOKENS_PATH/<theme>.json colors,<theme>
 
 node -r esbuild-register scripts/convert-tokens
-prettier -w $STYLES_PATH
+prettier -w styles
