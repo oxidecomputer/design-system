@@ -1,4 +1,4 @@
-@import './asciidoc.css';
+@import './highlight.css';
 
 .asciidoc-body {
   .quoteblock {
@@ -214,12 +214,6 @@
 
   ol p {
     @apply text-secondary normal-case;
-  }
-
-  .text-mono-code {
-    @apply text-mono-sm !normal-case;
-    font-feature-settings: 'calt' 0;
-    letter-spacing: 0;
   }
 
   p code,

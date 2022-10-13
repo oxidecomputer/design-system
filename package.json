@@ -8,7 +8,7 @@
   "scripts": {
     "build:js": "tsc",
     "build:themes": "./scripts/build_themes.sh",
-    "build:css:asciidoc": "postcss ./src/css/asciidoc.css --dir ./dist/css",
+    "build:asciidoc-css": "postcss ./src/css/asciidoc.css --dir ./dist/css",
     "build": "run-s build:*",
     "prebuild:tokens": "token-transformer --preserveRawValue ./styles/src/tokens.json ./styles/src/.tokens/main.json global,colors,core,main",
     "release": "auto shipit"
