@@ -1,0 +1,21 @@
+{
+  "include": ["src/*.ts", "src/*.tsx"],
+  "compilerOptions": {
+    "outDir": "./dist",
+    "incremental": true,
+    "lib": ["DOM", "DOM.Iterable", "ES2019"],
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "jsx": "react-jsx",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "target": "ES2019",
+    "module": "commonjs",
+    "strict": true,
+    "allowJs": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "declaration": true
+  },
+  "include": ["./types/*", "./src"]
+}

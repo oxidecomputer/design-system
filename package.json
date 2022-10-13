@@ -2,8 +2,11 @@
   "name": "@oxide/design-system",
   "version": "0.0.3",
   "description": "Home of reusable design assets and token for oxide internal sites",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "type": "commonjs",
   "scripts": {
+    "build:js": "tsc",
     "build:themes": "./scripts/build_themes.sh",
     "build": "run-s build:*",
     "prebuild:tokens": "token-transformer --preserveRawValue ./styles/src/tokens.json ./styles/src/.tokens/main.json global,colors,core,main",
@@ -12,6 +15,9 @@
   "author": "Oxide Computer Company <bots@oxidecomputer.com>",
   "license": "MPL 2.0",
   "dependencies": {
+    "@djencks/asciidoctor-mathjax": "^0.0.8",
+    "asciidoctor": "^2.2.6",
+    "highlight.js": "^11.6.0",
     "style-dictionary": "^3.7.1",
     "token-transformer": "^0.0.26",
     "ts-node": "^10.9.1"
@@ -29,7 +35,9 @@
   },
   "files": [
     "styles/dist/*.css",
-    "styles/dist/tailwind-tokens.js"
+    "styles/dist/tailwind-tokens.js",
+    "dist/index.js",
+    "dist/index.d.ts"
   ],
   "repository": {
     "type": "git",
