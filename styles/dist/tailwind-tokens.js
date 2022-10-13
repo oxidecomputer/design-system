@@ -17,6 +17,13 @@ module.exports.textUtilities = {
     'letter-spacing': '0.04rem',
     'text-transform': 'uppercase',
   },
+  '.text-mono-code': {
+    'font-family': '"GT America Mono", monospace',
+    'font-weight': 400,
+    'line-height': '1rem',
+    'font-size': '0.75rem',
+    'letter-spacing': '0rem',
+  },
   '.text-mono-md': {
     'font-family': '"GT America Mono", monospace',
     'font-weight': 400,
