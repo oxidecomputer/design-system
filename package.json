@@ -34,10 +34,9 @@
     "ts-dedent": "^2.2.0"
   },
   "files": [
-    "styles/dist/*.css",
-    "styles/dist/tailwind-tokens.js",
-    "dist/index.js",
-    "dist/index.d.ts"
+    "styles/dist/*",
+    "dist/**/*",
+    "dist/*"
   ],
   "repository": {
     "type": "git",
