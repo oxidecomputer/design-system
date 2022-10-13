@@ -1,0 +1,515 @@
+@import './asciidoc.css';
+
+.asciidoc-body {
+  .quoteblock {
+    @apply pl-[1.6rem] border-l border-default mt-8 mb-8 text-tertiary;
+  }
+
+  .quoteblock p {
+    @apply text-tertiary;
+  }
+
+  .quoteblock .attribution {
+    @apply text-default mt-8;
+  }
+
+  .admonitionblock .quoteblock {
+    @apply mt-2 mb-2 border-accent-secondary pl-[0.75rem];
+  }
+
+  .admonitionblock p,
+  .admonitionblock blockquote {
+    @apply text-accent;
+  }
+
+  img {
+    @apply rounded w-full h-auto w-auto mx-auto;
+    max-height: max(500px, 75vh);
+  }
+
+  p a {
+    @apply text-accent-tertiary hover:text-accent-secondary;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+
+  strong {
+    @apply font-[600];
+  }
+
+  a strong {
+    @apply text-accent-secondary;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
+    @apply text-default mt-10 mb-3 relative;
+  }
+
+  /* Removes top spacing from header if it is the first element */
+  #content > .sect1:first-of-type > h1:nth-child(2),
+  #content > .sect1:first-of-type > h2:nth-child(2),
+  #content > .sect1:first-of-type > h3:nth-child(2),
+  #content > .sect1:first-of-type > h4:nth-child(2),
+  #content > .sect1:first-of-type > h5:nth-child(2) {
+    @apply mt-0;
+  }
+
+  h1 a,
+  h2 a,
+  h3 a,
+  h4 a,
+  h5 a {
+    @apply text-default;
+  }
+
+  h1[data-sectnum]:before,
+  h2[data-sectnum]:before,
+  h3[data-sectnum]:before,
+  h4[data-sectnum]:before,
+  h5[data-sectnum]:before {
+    @apply 800:absolute text-sans-lg 800:-left-[72px] 800:w-[60px] bottom-0 800:text-right text-quaternary inline-block mr-2 800:mr-0;
+    content: attr(data-sectnum);
+  }
+
+  h3[data-sectnum]:before {
+    bottom: 2px;
+  }
+
+  h2[data-sectnum]:before {
+    bottom: 4px;
+  }
+
+  h1 a:hover::after,
+  h2 a:hover::after,
+  h3 a:hover::after,
+  h4 a:hover::after,
+  h5 a:hover::after {
+    content: ' ';
+    @apply w-[12px] h-[12px] ml-3 min-w-[12px] inline-block;
+    background: url(/svgs/link.svg) no-repeat top left;
+    background-size: contain;
+  }
+
+  h2 {
+    @apply text-sans-2xl;
+  }
+
+  h3 {
+    @apply text-sans-xl;
+  }
+
+  h4,
+  h5 {
+    @apply text-sans-lg text-default mb-2 mt-8;
+  }
+
+  .sectionanchor[id] {
+    position: absolute;
+    margin-top: calc(var(--header-height) * -1 - 20px);
+    visibility: hidden;
+    user-select: none;
+  }
+
+  .dlist dt {
+    @apply text-sans-lg text-default;
+  }
+
+  .dlist dt:after {
+    content: ':';
+    @apply text-sans-lg text-quaternary;
+  }
+
+   {
+    @apply text-sans-lg;
+  }
+
+  p {
+    @apply mb-[1.25rem] text-sans-lg 800:mb-4 !leading-[1.5];
+  }
+
+  li p {
+    @apply mb-[0.5rem];
+  }
+
+  ul {
+    @apply text-tertiary list-disc mb-4;
+  }
+
+  ul ul li {
+    list-style-type: circle;
+  }
+
+  ul ul ul li {
+    list-style-type: square;
+  }
+
+  ul ul ul ul li {
+    list-style-type: disc;
+  }
+
+  ol {
+    @apply text-tertiary text-mono-sm mb-4;
+    list-style-type: decimal;
+  }
+
+  ul,
+  ol {
+    @apply list-inside 800:list-outside;
+  }
+
+  .tableblock ul,
+  .tableblock ol {
+    @apply list-inside;
+  }
+
+  .quoteblock ul,
+  .quoteblock ol {
+    @apply list-inside;
+  }
+
+  .ulist .ulist,
+  .ulist .olist,
+  .olist .ulist,
+  .olist .olist {
+    @apply ml-[2rem];
+  }
+
+  .exampleblock ul,
+  .exampleblock ol {
+    @apply list-inside;
+  }
+
+  ul p,
+  ol p {
+    @apply inline;
+  }
+
+  p {
+    @apply text-secondary;
+  }
+
+  .arabic {
+    list-style-type: decimal;
+  }
+
+  .loweralpha {
+    list-style-type: lower-alpha;
+  }
+
+  .lowerroman {
+    list-style-type: lower-roman;
+  }
+
+  .upperalpha {
+    list-style-type: upper-alpha;
+  }
+
+  .upperroman {
+    list-style-type: upper-roman;
+  }
+
+  ol p {
+    @apply text-secondary normal-case;
+  }
+
+  .text-mono-code {
+    @apply text-mono-sm !normal-case;
+    font-feature-settings: 'calt' 0;
+    letter-spacing: 0;
+  }
+
+  p code,
+  table code {
+    @apply text-secondary;
+    @apply border rounded border-secondary bg-raise px-[4px] py-[1px] ml-[1px] mr-[1px] align-[1px];
+  }
+
+  table p code {
+    @apply break-normal;
+  }
+
+  .admonitionblock p code {
+    @apply bg-accent text-inverse border-none;
+  }
+
+  pre {
+    @apply border border-secondary rounded px-[1.25rem] py-[1rem] 800:px-[1.75rem] 800:py-[1.5rem];
+    @apply text-mono-code overflow-x-auto;
+  }
+
+  code {
+    @apply text-mono-code;
+    font-feature-settings: 'calt' 0;
+  }
+
+  pre {
+    @apply flex items-center;
+  }
+
+  .listingblock .content {
+    @apply relative;
+  }
+
+  .listingblock code[data-lang]:before {
+    @apply absolute top-2 right-2 text-mono-xs text-tertiary block;
+    content: attr(data-lang);
+  }
+
+  pre .conum[data-value] {
+    @apply -top-[0.125rem] relative inline-block text-tertiary bg-raise rounded-full text-mono-xs min-w-[1rem] h-[1rem] text-center not-italic;
+  }
+
+  pre .conum[data-value]:after {
+    @apply pl-[1px];
+    content: attr(data-value);
+  }
+
+  pre .conum[data-value] + b {
+    @apply hidden;
+  }
+
+  .exampleblock {
+    @apply bg-raise rounded px-[1.5rem] py-[1.25rem] overflow-x-auto;
+  }
+
+  .exampleblock p {
+    @apply text-sans-lg mb-2;
+  }
+
+  .exampleblock .content,
+  .exampleblock .paragraph:last-of-type p {
+    @apply m-0;
+  }
+
+  .exampleblock > .content {
+    @apply my-[1rem];
+  }
+
+  .admonitionblock {
+    @apply border bg-accent-secondary text-accent border-accent-tertiary rounded;
+    @apply py-3 px-4 flex my-[1.5rem];
+  }
+
+  .admonitionblock strong {
+    @apply text-accent;
+  }
+
+  .admonitionblock.caution strong {
+    @apply text-notice;
+  }
+
+  .admonitionblock.warning strong {
+    @apply text-destructive;
+  }
+
+  .admonitionblock.tip strong {
+    color: var(--base-purple-800);
+  }
+
+  .admonitionblock.tip,
+  .admonitionblock.tip blockquote {
+    background-color: var(--base-purple-200);
+    color: var(--base-purple-800);
+    border-color: var(--base-purple-400);
+  }
+
+  .admonitionblock.caution,
+  .admonitionblock.caution blockquote {
+    @apply bg-notice-secondary text-notice border-notice-tertiary;
+  }
+
+  .admonitionblock.warning,
+  .admonitionblock.warning blockquote {
+    @apply bg-destructive-secondary text-destructive border-destructive-tertiary;
+  }
+
+  .admonitionblock.caution p {
+    @apply text-notice;
+  }
+
+  .admonitionblock.warning p {
+    @apply text-destructive;
+  }
+
+  .admonitionblock.tip p {
+    color: var(--base-purple-800);
+  }
+
+  .admonitionblock.caution p code {
+    @apply bg-notice;
+  }
+
+  .admonitionblock.warning p code {
+    @apply bg-error;
+  }
+
+  .admonitionblock.tip p code {
+    background-color: var(--base-purple-200);
+  }
+
+  .admonitionblock a {
+    @apply underline;
+  }
+
+  .admonitionblock a {
+    @apply text-accent;
+  }
+
+  .admonitionblock.caution a {
+    @apply text-notice;
+  }
+
+  .admonitionblock.warning a {
+    @apply text-destructive;
+  }
+
+  .admonitionblock.tip a {
+    color: var(--base-purple-800);
+  }
+
+  .admonition-icon {
+    @apply w-[16px] h-[16px] mr-2 min-w-[16px];
+    background: url(/svgs/info.svg) no-repeat top left;
+    background-size: contain;
+  }
+
+  .admonitionblock.warning .admonition-icon {
+    background: url(/svgs/warning.svg) no-repeat top left;
+  }
+
+  .admonitionblock.caution .admonition-icon {
+    background: url(/svgs/caution.svg) no-repeat top left;
+  }
+
+  .admonitionblock.tip .admonition-icon {
+    background: url(/svgs/tip.svg) no-repeat top left;
+  }
+
+  .admonition-icon:before {
+    content: '\200B';
+  }
+
+  .admonition-content {
+    @apply text-sans-md 800:mr-[1.25rem];
+  }
+
+  .admonition-content p {
+    @apply mb-0 text-sans-md;
+  }
+
+  .imageblock,
+  table {
+    @apply my-[3rem];
+  }
+
+  .imageblock .title {
+    @apply text-center text-mono-xs text-tertiary mt-3 not-italic max-w-full;
+  }
+
+  img.wide {
+    max-width: none;
+    width: calc(100% / 8 * 10);
+    margin-left: calc(100% / 8 * -1);
+  }
+
+  sup.footnote {
+    @apply text-mono-xs text-tertiary;
+  }
+
+  sup.footnote a {
+    padding-top: calc(var(--header-height) + 20px);
+    margin-top: calc(var(--header-height) * -1 - 20px);
+  }
+
+  .imageblock,
+  .literalblock,
+  .listingblock,
+  .stemblock,
+  .videoblock,
+  .exampleblock {
+    @apply my-[2rem];
+  }
+
+  .title {
+    @apply italic text-left text-tertiary mb-2 max-w-[40rem] text-sans-lg;
+  }
+
+  .conum {
+    @apply inline-block;
+  }
+
+  table {
+    @apply rounded border border-secondary p-0 border-separate w-full;
+    border-spacing: 0;
+  }
+
+  table p {
+    @apply text-sans-md text-left;
+  }
+
+  table td,
+  table th {
+    @apply border-secondary border-r border-b py-[0.625rem] px-[0.75rem] align-top;
+  }
+
+  tbody tr:last-child td {
+    @apply border-b-0;
+  }
+
+  tbody tr td:last-child {
+    @apply border-r-0;
+  }
+
+  table thead th {
+    @apply text-mono-xs text-tertiary text-left bg-raise;
+  }
+
+  table td {
+    @apply py-[0.75rem];
+  }
+
+  table pre {
+    @apply border-0 p-0;
+  }
+
+  table p {
+    @apply p-0 m-0;
+  }
+
+  .colist table {
+    @apply mt-[1.5rem];
+  }
+
+  .colist table td {
+    @apply text-sans-lg;
+  }
+
+  .colist table tr td:first-of-type {
+    @apply whitespace-nowrap w-[1%] text-quaternary;
+  }
+
+  .colist table b {
+    @apply text-mono-sm;
+  }
+
+  div.bibliography ~ h2 {
+    @apply mt-12 800:mt-16;
+  }
+
+  .bibliography ul,
+  .bibliography ol {
+    @apply space-y-2;
+  }
+
+  mark {
+    @apply bg-notice-secondary text-notice rounded px-[2px];
+  }
+
+  .steminline svg {
+    @apply inline;
+  }
+}
