@@ -22,9 +22,6 @@ jobs:
       - name: Install dependencies
         uses: bahmutov/npm-install@v1
 
-      - name: build
-        run: npm run build
-
       - name: Create Release
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
