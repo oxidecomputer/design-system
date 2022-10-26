@@ -584,9 +584,9 @@ graph RL
 
 ```mermaid
 graph RL
-  base-neutral-900 --> #F6F6F7:::base-neutral-900
+  base-neutral-900 --> #E7E7E8:::base-neutral-900
   surface-inverse --> content-default
   content-default --> base-neutral-900
 
-	classDef base-neutral-900 stroke-width:5,stroke:#F6F6F7
+	classDef base-neutral-900 stroke-width:5,stroke:#E7E7E8
 ```
