@@ -1,3 +1,25 @@
+# v0.1.0 (Wed Oct 26 2022)
+
+#### 🚀 Enhancement
+
+- Autogenerate themes from new tokens [#7](https://github.com/oxidecomputer/design-system/pull/7) ([@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### 🐛 Bug Fix
+
+- Autogenerate themes from new tokens [#5](https://github.com/oxidecomputer/design-system/pull/5) ([@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### 🏠 Internal
+
+- Update tokens; Fix release process [#8](https://github.com/oxidecomputer/design-system/pull/8) ([@zephraph](https://github.com/zephraph))
+
+#### Authors: 3
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
 # v0.0.3 (Tue Oct 04 2022)
 
 #### 🐛 Bug Fix
