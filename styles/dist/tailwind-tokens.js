@@ -938,7 +938,7 @@ module.exports.borderRadiusTokens = {
   full: 'var(--border-radius-full)',
 }
 
-module.exports.boxShadowTokens = {
+module.exports.elevationTokens = {
   '.elevation-0': {
     'box-shadow': 'none',
   },
