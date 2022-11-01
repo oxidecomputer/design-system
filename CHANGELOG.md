@@ -1,3 +1,15 @@
+# v0.3.1 (Tue Nov 01 2022)
+
+#### 🐛 Bug Fix
+
+- Fix elevation tokens name [#12](https://github.com/oxidecomputer/design-system/pull/12) ([@zephraph](https://github.com/zephraph))
+
+#### Authors: 1
+
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
 # v0.3.0 (Tue Nov 01 2022)
 
 #### 🚀 Enhancement
