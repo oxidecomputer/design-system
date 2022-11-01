@@ -1,3 +1,22 @@
+# v0.2.0 (Tue Nov 01 2022)
+
+#### 🚀 Enhancement
+
+- Autogenerate themes from new tokens [#9](https://github.com/oxidecomputer/design-system/pull/9) ([@paryhin](https://github.com/paryhin) [@zephraph](https://github.com/zephraph) [@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### 🐛 Bug Fix
+
+- Reformat elevation tokens [#10](https://github.com/oxidecomputer/design-system/pull/10) ([@zephraph](https://github.com/zephraph) [@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 4
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- Eugene Paryhin ([@paryhin](https://github.com/paryhin))
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
 # v0.1.0 (Wed Oct 26 2022)
 
 #### 🚀 Enhancement
