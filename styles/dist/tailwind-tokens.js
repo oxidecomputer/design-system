@@ -939,6 +939,9 @@ module.exports.borderRadiusTokens = {
 }
 
 module.exports.boxShadowTokens = {
+  '.elevation-0': {
+    'box-shadow': 'none',
+  },
   '.elevation-1': {
     'box-shadow':
       '0px 0.656px 4.625px #00000021, 0px 3px 13px #00000033, 0px 7.594px 34.875px #00000045, 0px 15px 80px #00000066',

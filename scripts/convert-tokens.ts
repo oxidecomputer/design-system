@@ -247,8 +247,11 @@ StyleDictionary.registerFormat({
         ${boxShadow.map(
           ({ name, value }) =>
             `'.${name}': {
-                'box-shadow': '${value
-                  .map((v) => `${v.x}px ${v.y}px ${v.blur}px ${v.color}`)
+                'box-shadow': '${[value]
+                  .flat()
+                  .map((v) =>
+                    typeof v === 'object' ? `${v.x}px ${v.y}px ${v.blur}px ${v.color}` : v,
+                  )
                   .join(', ')}'}`,
         )}
       }
