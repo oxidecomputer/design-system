@@ -243,7 +243,7 @@ StyleDictionary.registerFormat({
           .join(',')}
 			}
 
-      module.exports.boxShadowTokens = {
+      module.exports.elevationTokens = {
         ${boxShadow.map(
           ({ name, value }) =>
             `'.${name}': {
