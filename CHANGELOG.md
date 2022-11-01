@@ -1,3 +1,15 @@
+# v0.3.0 (Tue Nov 01 2022)
+
+#### 🚀 Enhancement
+
+- Add elevation utility tokens [#11](https://github.com/oxidecomputer/design-system/pull/11) ([@zephraph](https://github.com/zephraph))
+
+#### Authors: 1
+
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
 # v0.2.0 (Tue Nov 01 2022)
 
 #### 🚀 Enhancement
