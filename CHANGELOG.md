@@ -1,3 +1,15 @@
+# v0.3.2 (Wed Nov 02 2022)
+
+#### 🐛 Bug Fix
+
+- Rename `elevationTokens` to `elevationUtilities` [#13](https://github.com/oxidecomputer/design-system/pull/13) ([@zephraph](https://github.com/zephraph))
+
+#### Authors: 1
+
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
 # v0.3.1 (Tue Nov 01 2022)
 
 #### 🐛 Bug Fix
