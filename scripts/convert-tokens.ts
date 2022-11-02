@@ -234,16 +234,7 @@ StyleDictionary.registerFormat({
         ].map((make) => make(colors))}
 			}
 
-			module.exports.borderRadiusTokens = {
-				${borderRadius
-          .map(
-            ({ name }) =>
-              `'${name.replace(/border-radius-?/, '') || 'DEFAULT'}': 'var(--${name})'`,
-          )
-          .join(',')}
-			}
-
-      module.exports.elevationTokens = {
+      module.exports.elevationUtilities = {
         ${boxShadow.map(
           ({ name, value }) =>
             `'.${name}': {
@@ -255,6 +246,15 @@ StyleDictionary.registerFormat({
                   .join(', ')}'}`,
         )}
       }
+
+			module.exports.borderRadiusTokens = {
+				${borderRadius
+          .map(
+            ({ name }) =>
+              `'${name.replace(/border-radius-?/, '') || 'DEFAULT'}': 'var(--${name})'`,
+          )
+          .join(',')}
+			}
 		`
   },
 })

@@ -932,13 +932,7 @@ module.exports.colorUtilities = {
   },
 }
 
-module.exports.borderRadiusTokens = {
-  sm: 'var(--border-radius-sm)',
-  DEFAULT: 'var(--border-radius)',
-  full: 'var(--border-radius-full)',
-}
-
-module.exports.elevationTokens = {
+module.exports.elevationUtilities = {
   '.elevation-0': {
     'box-shadow': 'none',
   },
@@ -954,4 +948,10 @@ module.exports.elevationTokens = {
     'box-shadow':
       '0px 4.375px 4.625px #00000021, 0px 20px 13px #00000033, 0px 50.625px 34.875px #00000045, 0px 100px 80px #00000066',
   },
+}
+
+module.exports.borderRadiusTokens = {
+  sm: 'var(--border-radius-sm)',
+  DEFAULT: 'var(--border-radius)',
+  full: 'var(--border-radius-full)',
 }
