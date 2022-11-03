@@ -404,8 +404,4 @@
 
   --theme-notice-800-rgb: var(--base-yellow-800-rgb);
   --theme-notice-800: rgb(var(--theme-notice-800-rgb));
-
-  --border-radius-sm: 0.125rem;
-  --border-radius: 0.1875rem;
-  --border-radius-full: 624.9375rem;
 }
