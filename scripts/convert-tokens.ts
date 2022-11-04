@@ -259,7 +259,7 @@ StyleDictionary.registerFormat({
         ${boxShadow
           .map(
             ({ name }, index) =>
-              `'elevation-${index}': {
+              `'.elevation-${index}': {
             'box-shadow': 'var(--${name})',
             'background-color': 'var(--surface-${
               index === 0
