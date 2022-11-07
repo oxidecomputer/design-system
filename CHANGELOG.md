@@ -1,3 +1,16 @@
+# v0.4.0 (Mon Nov 07 2022)
+
+#### 🚀 Enhancement
+
+- Introduce `boxShadow` tokens [#14](https://github.com/oxidecomputer/design-system/pull/14) ([@zephraph](https://github.com/zephraph) [@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 2
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
 # v0.3.2 (Wed Nov 02 2022)
 
 #### 🐛 Bug Fix
