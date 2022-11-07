@@ -934,19 +934,20 @@ module.exports.colorUtilities = {
 
 module.exports.elevationUtilities = {
   '.elevation-0': {
-    'box-shadow': 'none',
+    'box-shadow': 'var(--box-shadow-0)',
+    'background-color': 'var(--surface-default)',
   },
   '.elevation-1': {
-    'box-shadow':
-      '0px 0.656px 4.625px #00000021, 0px 3px 13px #00000033, 0px 7.594px 34.875px #00000045, 0px 15px 80px #00000066',
+    'box-shadow': 'var(--box-shadow-1)',
+    'background-color': 'var(--surface-hover)',
   },
   '.elevation-2': {
-    'box-shadow':
-      '0px 2.188px 4.625px #00000021, 0px 10px 13px #00000033, 0px 25.313px 34.875px #00000045, 0px 50px 80px #00000066',
+    'box-shadow': 'var(--box-shadow-2)',
+    'background-color': 'var(--surface-secondary)',
   },
   '.elevation-3': {
-    'box-shadow':
-      '0px 4.375px 4.625px #00000021, 0px 20px 13px #00000033, 0px 50.625px 34.875px #00000045, 0px 100px 80px #00000066',
+    'box-shadow': 'var(--box-shadow-3)',
+    'background-color': 'var(--surface-tertiary)',
   },
 }
 
