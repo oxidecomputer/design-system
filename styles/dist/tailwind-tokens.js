@@ -32,22 +32,6 @@ module.exports.textUtilities = {
     'letter-spacing': '0.04rem',
     'text-transform': 'uppercase',
   },
-  '.text-sans-light-3xl': {
-    'font-family':
-      'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
-    'font-weight': 300,
-    'line-height': '3rem',
-    'font-size': '2.5rem',
-    'letter-spacing': '0.015rem',
-  },
-  '.text-sans-light-2xl': {
-    'font-family':
-      'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
-    'font-weight': 300,
-    'line-height': '2rem',
-    'font-size': '1.5625rem',
-    'letter-spacing': '0.015rem',
-  },
   '.text-sans-sm': {
     'font-family':
       'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
@@ -87,6 +71,14 @@ module.exports.textUtilities = {
     'line-height': '2rem',
     'font-size': '1.5625rem',
     'letter-spacing': '0.015rem',
+  },
+  '.text-sans-3xl': {
+    'font-family':
+      'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
+    'font-weight': 400,
+    'line-height': '3rem',
+    'font-size': '2.5rem',
+    'letter-spacing': '0.005rem',
   },
   '.text-sans-semi-sm': {
     'font-family':
@@ -935,5 +927,6 @@ module.exports.colorUtilities = {
 module.exports.borderRadiusTokens = {
   sm: 'var(--border-radius-sm)',
   DEFAULT: 'var(--border-radius)',
+  lg: 'var(--border-radius-lg)',
   full: 'var(--border-radius-full)',
 }
