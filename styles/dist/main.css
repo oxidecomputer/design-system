@@ -564,8 +564,7 @@
   --border-radius-full: 624.9375rem;
 
   --elevation-0: none;
-  --elevation-1: 0px 0.656px 4.625px #00000021, 0px 3px 13px #00000033,
-    0px 7.594px 34.875px #00000045, 0px 15px 80px #00000066;
+  --elevation-1: 0px 1px 2px #00000099;
   --elevation-2: 0px 2.188px 4.625px #00000021, 0px 10px 13px #00000033,
     0px 25.313px 34.875px #00000045, 0px 50px 80px #00000066;
   --elevation-3: 0px 4.375px 4.625px #00000021, 0px 20px 13px #00000033,
