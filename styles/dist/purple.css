@@ -25,7 +25,7 @@
   --surface-disabled-rgb: var(--base-neutral-100-rgb);
   --surface-disabled: rgb(var(--surface-disabled-rgb));
 
-  --surface-scrim: rgba(var(--base-neutral-0-rgb), 0.6);
+  --surface-scrim: rgba(var(--base-neutral-0-rgb), 0.4);
 
   --surface-accent-rgb: var(--theme-accent-800-rgb);
   --surface-accent: rgb(var(--surface-accent-rgb));
