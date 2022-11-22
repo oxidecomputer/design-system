@@ -1,3 +1,16 @@
+# v0.5.0 (Tue Nov 22 2022)
+
+#### 🚀 Enhancement
+
+- Tweak type weight and adding larger border radius token [#15](https://github.com/oxidecomputer/design-system/pull/15) ([@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### Authors: 2
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v0.4.0 (Mon Nov 07 2022)
 
 #### 🚀 Enhancement
