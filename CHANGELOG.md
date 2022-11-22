@@ -1,3 +1,15 @@
+# v0.6.1 (Tue Nov 22 2022)
+
+#### 🐛 Bug Fix
+
+- Elevation token for elements directly on the surface (e.g. buttons) [#17](https://github.com/oxidecomputer/design-system/pull/17) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v0.6.0 (Tue Nov 22 2022)
 
 #### 🚀 Enhancement
