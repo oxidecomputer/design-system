@@ -1,3 +1,16 @@
+# v0.6.0 (Tue Nov 22 2022)
+
+#### 🚀 Enhancement
+
+- Reduce opacity of scrim [#16](https://github.com/oxidecomputer/design-system/pull/16) ([@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### Authors: 2
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v0.5.0 (Tue Nov 22 2022)
 
 #### 🚀 Enhancement
