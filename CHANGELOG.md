@@ -1,3 +1,71 @@
+# v0.4.0 (Mon Nov 07 2022)
+
+#### 🚀 Enhancement
+
+- Introduce `boxShadow` tokens [#14](https://github.com/oxidecomputer/design-system/pull/14) ([@zephraph](https://github.com/zephraph) [@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 2
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
+# v0.3.2 (Wed Nov 02 2022)
+
+#### 🐛 Bug Fix
+
+- Rename `elevationTokens` to `elevationUtilities` [#13](https://github.com/oxidecomputer/design-system/pull/13) ([@zephraph](https://github.com/zephraph))
+
+#### Authors: 1
+
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
+# v0.3.1 (Tue Nov 01 2022)
+
+#### 🐛 Bug Fix
+
+- Fix elevation tokens name [#12](https://github.com/oxidecomputer/design-system/pull/12) ([@zephraph](https://github.com/zephraph))
+
+#### Authors: 1
+
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
+# v0.3.0 (Tue Nov 01 2022)
+
+#### 🚀 Enhancement
+
+- Add elevation utility tokens [#11](https://github.com/oxidecomputer/design-system/pull/11) ([@zephraph](https://github.com/zephraph))
+
+#### Authors: 1
+
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
+# v0.2.0 (Tue Nov 01 2022)
+
+#### 🚀 Enhancement
+
+- Autogenerate themes from new tokens [#9](https://github.com/oxidecomputer/design-system/pull/9) ([@paryhin](https://github.com/paryhin) [@zephraph](https://github.com/zephraph) [@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### 🐛 Bug Fix
+
+- Reformat elevation tokens [#10](https://github.com/oxidecomputer/design-system/pull/10) ([@zephraph](https://github.com/zephraph) [@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 4
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- Eugene Paryhin ([@paryhin](https://github.com/paryhin))
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
 # v0.1.0 (Wed Oct 26 2022)
 
 #### 🚀 Enhancement
