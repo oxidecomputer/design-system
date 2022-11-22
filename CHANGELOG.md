@@ -1,3 +1,16 @@
+# v0.6.2 (Tue Nov 22 2022)
+
+#### 🐛 Bug Fix
+
+- Shrink 3xl now that font weight is greater [#18](https://github.com/oxidecomputer/design-system/pull/18) ([@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### Authors: 2
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v0.6.1 (Tue Nov 22 2022)
 
 #### 🐛 Bug Fix
