@@ -254,22 +254,22 @@ StyleDictionary.registerFormat({
           makeColorUtility('chart-stroke', 'chart-stroke', 'stroke'),
         ].map((make) => make(colors))}
 			}
-
+      
       module.exports.elevationUtilities = {
         ${boxShadow
           .map(
             ({ name }, index) =>
               `'.elevation-${index}': {
             'box-shadow': 'var(--${name})',
-            'background-color': 'var(--surface-${
+            'background-color': '${
               index === 0
-                ? 'default'
+                ? 'var(--surface-default)'
                 : index === 1
-                ? 'hover'
+                ? '' // Elements like buttons that sit right on top of a surface that have their own background color
                 : index === 2
-                ? 'secondary'
-                : 'tertiary'
-            })',
+                ? 'var(--surface-raise)'
+                : 'var(--surface-secondary)'
+            }',
           }`,
           )
           .join(',\n')}
