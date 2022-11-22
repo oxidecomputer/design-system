@@ -931,15 +931,15 @@ module.exports.elevationUtilities = {
   },
   '.elevation-1': {
     'box-shadow': 'var(--elevation-1)',
-    'background-color': 'var(--surface-hover)',
+    'background-color': '',
   },
   '.elevation-2': {
     'box-shadow': 'var(--elevation-2)',
-    'background-color': 'var(--surface-secondary)',
+    'background-color': 'var(--surface-raise)',
   },
   '.elevation-3': {
     'box-shadow': 'var(--elevation-3)',
-    'background-color': 'var(--surface-tertiary)',
+    'background-color': 'var(--surface-secondary)',
   },
 }
 
