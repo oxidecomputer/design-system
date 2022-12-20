@@ -7,7 +7,8 @@
     "build:themes": "./scripts/build_themes.sh",
     "build": "run-s build:*",
     "prebuild:tokens": "token-transformer --preserveRawValue ./styles/src/tokens.json ./styles/src/.tokens/main.json global,colors,core,main",
-    "release": "auto shipit"
+    "release": "auto shipit",
+    "fmt": "prettier --cache --write . && npm run lint -- --fix"
   },
   "author": "Oxide Computer Company <bots@oxidecomputer.com>",
   "license": "MPL 2.0",
