@@ -1,14 +1,19 @@
 {
-  "plugins": ["jsx-a11y"],
-  "extends": [
-    "@remix-run/eslint-config",
-    "@remix-run/eslint-config/node",
-    "plugin:jsx-a11y/recommended"
-  ],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "prettier"],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
+  "env": {
+    "node": true
+  },
+  "extends": ["plugin:@typescript-eslint/recommended", "prettier"],
   "ignorePatterns": ["**/*.js", "**/**/*.js"],
   "rules": {
     "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
-    "eqeqeq": "error",
+    "eqeqeq": ["error", "always", { "null": "ignore" }],
     "no-param-reassign": "error",
     "no-return-assign": "error"
   }

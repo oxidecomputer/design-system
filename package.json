@@ -8,6 +8,7 @@
     "build": "run-s build:*",
     "prebuild:tokens": "token-transformer --preserveRawValue ./styles/src/tokens.json ./styles/src/.tokens/main.json global,colors,core,main",
     "release": "auto shipit",
+    "lint": "eslint --ext .js,.ts,.tsx,.json .",
     "fmt": "prettier --cache --write . && npm run lint -- --fix"
   },
   "author": "Oxide Computer Company <bots@oxidecomputer.com>",
@@ -16,6 +17,7 @@
     "@figma-export/cli": "^4.5.0",
     "@figma-export/output-components-as-svgr": "^4.5.0",
     "@figma-export/transform-svg-with-svgo": "^4.5.0",
+    "@typescript-eslint/eslint-plugin": "^5.47.0",
     "style-dictionary": "^3.7.1",
     "token-transformer": "^0.0.26",
     "ts-node": "^10.9.1"
@@ -26,6 +28,8 @@
     "auto": "^10.37.6",
     "esbuild-register": "^3.3.3",
     "eslint": "^8.23.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.7.1",
     "react": "^18.2.0",
@@ -33,7 +37,8 @@
   },
   "files": [
     "styles/dist/*.css",
-    "styles/dist/tailwind-tokens.js"
+    "styles/dist/tailwind-tokens.js",
+    "icons/**.tsx"
   ],
   "repository": {
     "type": "git",
