@@ -13,6 +13,9 @@
   "author": "Oxide Computer Company <bots@oxidecomputer.com>",
   "license": "MPL 2.0",
   "dependencies": {
+    "@figma-export/cli": "^4.5.0",
+    "@figma-export/output-components-as-svgr": "^4.5.0",
+    "@figma-export/transform-svg-with-svgo": "^4.5.0",
     "style-dictionary": "^3.7.1",
     "token-transformer": "^0.0.26",
     "ts-node": "^10.9.1"
