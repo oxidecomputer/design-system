@@ -6,8 +6,7 @@
   "scripts": {
     "build:themes": "./scripts/build_themes.sh",
     "build": "run-s build:*",
-    "tsc": "tsc -p tsconfig.json",
-    "prebuild:tokens": "token-transformer --preserveRawValue ./src/styles/tokens.json ./src/styles/.tokens/main.json global,colors,core,main",
+    "prebuild:tokens": "token-transformer --preserveRawValue ./styles/src/tokens.json ./styles/src/.tokens/main.json global,colors,core,main",
     "release": "auto shipit",
     "lint": "eslint --ext .js,.ts,.tsx,.json .",
     "fmt": "prettier --cache --write . && npm run lint -- --fix"
@@ -37,9 +36,9 @@
     "ts-dedent": "^2.2.0"
   },
   "files": [
-    "styles/*.css",
-    "styles/tailwind-tokens.js",
-    "icons/*.js"
+    "styles/dist/*.css",
+    "styles/dist/tailwind-tokens.js",
+    "icons/**.tsx"
   ],
   "repository": {
     "type": "git",

@@ -16,7 +16,7 @@ module.exports = {
         ],
         outputters: [
           require('@figma-export/output-components-as-svgr')({
-            output: './src/icons',
+            output: './icons',
             getFileExtension: () => '.tsx',
             getDirname: () => '',
             getComponentName: ({ componentName }) =>

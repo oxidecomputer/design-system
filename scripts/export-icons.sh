@@ -4,7 +4,7 @@ set -e
 set -o pipefail
 shopt -s nullglob
 
-ICONS_DIR="src/icons"
+ICONS_DIR="icons"
 CODEMOD_DIR="codemods"
 
 # Parse .dotenv if it exists

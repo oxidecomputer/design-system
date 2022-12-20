@@ -1,3 +1,0 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-const Compatibility24Icon = ({ title, titleId, ...props }) => (_jsxs("svg", { width: 24, height: 24, viewBox: "0 0 24 24", xmlns: "http://www.w3.org/2000/svg", role: "img", "aria-labelledby": titleId, ...props, children: [title ? _jsx("title", { id: titleId, children: title }) : null, _jsx("g", { id: "24/compatibility", children: _jsx("path", { id: "Union", fillRule: "evenodd", clipRule: "evenodd", d: "M2 3C2 2.44772 2.44772 2 3 2H21C21.5523 2 22 2.44772 22 3V11H16V7H8V11H2V3ZM16 13V17H22V21C22 21.5523 21.5523 22 21 22H3C2.44772 22 2 21.5523 2 21V17H8V13H16Z", fill: "currentColor" }) })] }));
-export default Compatibility24Icon;

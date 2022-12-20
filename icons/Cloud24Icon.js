@@ -1,3 +1,0 @@
-import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-const Cloud24Icon = ({ title, titleId, ...props }) => (_jsxs("svg", { width: 24, height: 24, viewBox: "0 0 24 24", xmlns: "http://www.w3.org/2000/svg", role: "img", "aria-labelledby": titleId, ...props, children: [title ? _jsx("title", { id: titleId, children: title }) : null, _jsx("g", { id: "24/cloud", children: _jsx("path", { id: "Union", fillRule: "evenodd", clipRule: "evenodd", d: "M20 11C20 11.138 19.9965 11.2752 19.9896 11.4115C21.7611 12.1807 23 13.9457 23 16C23 18.7614 20.7614 21 18 21H7C3.68629 21 1 18.3137 1 15C1 12.7392 2.25045 10.7704 4.09747 9.74752C4.69862 5.9242 8.00782 3 12 3C16.4183 3 20 6.58172 20 11Z", fill: "currentColor" }) })] }));
-export default Cloud24Icon;

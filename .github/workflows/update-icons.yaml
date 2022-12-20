@@ -38,7 +38,7 @@ jobs:
       - name: Commit icon file updates (if any)
         uses: EndBug/add-and-commit@v9
         with:
-          add: ./src/icons
+          add: ./libs/ui/lib/icons
           message: 'Pull icon updates from figma'
           default_author: github_actions
           new_branch: update-icons
@@ -48,7 +48,7 @@ jobs:
         uses: tj-actions/changed-files@v18.1
         with:
           files: |
-            src/icons
+            libs/ui/lib/icons
 
       - name: Create PR if it doesn't exist
         if: steps.icon-files-changed.outputs.any_changed == 'true'
