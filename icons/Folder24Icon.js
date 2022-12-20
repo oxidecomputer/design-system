@@ -1,0 +1,3 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+const Folder24Icon = ({ title, titleId, ...props }) => (_jsxs("svg", { width: 24, height: 24, viewBox: "0 0 24 24", xmlns: "http://www.w3.org/2000/svg", role: "img", "aria-labelledby": titleId, ...props, children: [title ? _jsx("title", { id: titleId, children: title }) : null, _jsx("g", { id: "24/folder", children: _jsx("path", { id: "Union", fillRule: "evenodd", clipRule: "evenodd", d: "M2 3H12C12.5523 3 13 3.44772 13 4V6H1V4C1 3.44772 1.44772 3 2 3ZM1 8H22C22.5523 8 23 8.44772 23 9V20C23 20.5523 22.5523 21 22 21H2C1.44772 21 1 20.5523 1 20V8Z", fill: "currentColor" }) })] }));
+export default Folder24Icon;

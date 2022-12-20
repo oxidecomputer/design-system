@@ -6,7 +6,7 @@ on:
     branches:
       - 'figma-tokens'
     paths:
-      - 'styles/src/tokens.json'
+      - 'src/styles/tokens.json'
 
 jobs:
   build-themes:

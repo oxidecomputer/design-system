@@ -1,0 +1,3 @@
+import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
+const Calendar24Icon = ({ title, titleId, ...props }) => (_jsxs("svg", { width: 24, height: 24, viewBox: "0 0 24 24", xmlns: "http://www.w3.org/2000/svg", role: "img", "aria-labelledby": titleId, ...props, children: [title ? _jsx("title", { id: titleId, children: title }) : null, _jsx("g", { id: "24/calendar", children: _jsx("path", { id: "Union", fillRule: "evenodd", clipRule: "evenodd", d: "M3 5C2.44772 5 2 5.44772 2 6V9H22V6C22 5.44772 21.5523 5 21 5H19V2H16V5H8V2H5V5H3ZM2 11H22V21C22 21.5523 21.5523 22 21 22H3C2.44772 22 2 21.5523 2 21V11ZM5 14H10V19H5V14Z", fill: "currentColor" }) })] }));
+export default Calendar24Icon;

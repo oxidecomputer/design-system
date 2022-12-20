@@ -406,7 +406,7 @@ StyleDictionary.registerTransform({
 
 const makeConfig = (theme: typeof THEMES[number]) => {
   const config: Config = {
-    source: [`styles/src/.tokens/${theme}.json`],
+    source: [`src/styles/.tokens/${theme}.json`],
     platforms: {
       web: {
         transforms: [
@@ -418,7 +418,7 @@ const makeConfig = (theme: typeof THEMES[number]) => {
           'attribute/alpha',
           'pxToRem',
         ],
-        buildPath: 'styles/dist/',
+        buildPath: 'styles/',
         files: [
           {
             filter: 'unused-theme-tokens',
