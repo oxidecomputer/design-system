@@ -32,15 +32,21 @@ module.exports = {
             output: './icons',
             getDirname: () => '',
             getBasename: ({ basename, dirname }) => {
+              // Special handing for the directional arrows which have an odd export naming convention
               if (basename.includes('Direction=')) {
                 basename = `carat-${basename.split('=')[1].toLowerCase()}`
               }
+
+              // Update distro icon names to match what's in figma
               if (dirname === 'distro') {
                 return `distro-${basename}.svg`
               }
+
+              // Add the icon's size category as a postfix, if present
               if (!isNaN(parseInt(dirname))) {
                 return `${basename}-${dirname}.svg`
               }
+
               return `${basename}.svg`
             },
           }),
