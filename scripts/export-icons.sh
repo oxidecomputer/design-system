@@ -17,4 +17,13 @@ npx figma-export use-config
 # Replace fills with current color
 sed -i 's/fill=".*"/fill="currentColor"/g' icons/*
 
+# Export icons type file
+touch icons/icons.ts
+echo "export type IconName =" > icons/icons.ts
+for icon in icons/*.svg; do
+  echo "| \"${icon}\"" >> icons/icons.ts
+done
+
+sed -E -i 's|icons/(..*)\.svg|\1|g' icons/icons.ts
+
 npm run fmt .
