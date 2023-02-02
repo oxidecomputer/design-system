@@ -1,3 +1,16 @@
+# v0.7.0 (Thu Feb 02 2023)
+
+#### 🚀 Enhancement
+
+- Export icons [#21](https://github.com/oxidecomputer/design-system/pull/21) ([@benjaminleonard](https://github.com/benjaminleonard) [@zephraph](https://github.com/zephraph))
+
+#### Authors: 2
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
 # v0.6.2 (Tue Nov 22 2022)
 
 #### 🐛 Bug Fix
