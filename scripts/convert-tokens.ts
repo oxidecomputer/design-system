@@ -181,7 +181,7 @@ type CSSProperty = KebabCase<keyof CSSProperties> | `--${string}`
  * @param cssProperties  The css property name to be output in the generated class
  */
 const makeColorUtility = (
-  tokenPrefix: 'surface' | 'content' | 'stroke' | 'chart-fill' | 'chart-stroke',
+  tokenPrefix: 'surface' | 'content' | 'stroke' | 'chart-fill' | 'chart-stroke' | 'theme',
   classPrefix: string,
   cssProperties: CSSProperty | CSSProperty[],
 ) => {
@@ -234,7 +234,9 @@ StyleDictionary.registerFormat({
 			module.exports.colorUtilities = {
 				${[
           makeColorUtility('content', 'text', 'color'),
+          makeColorUtility('theme', 'text', 'color'),
           makeColorUtility('surface', 'bg', 'background-color'),
+          makeColorUtility('theme', 'bg', 'background-color'),
           makeColorUtility('stroke', 'border', 'border-color'),
           makeColorUtility('stroke', 'border-l', 'border-left-color'),
           makeColorUtility('stroke', 'border-r', 'border-right-color'),
