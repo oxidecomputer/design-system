@@ -1,3 +1,15 @@
+# v0.7.1 (Thu Feb 02 2023)
+
+#### 🐛 Bug Fix
+
+- Fix icon publishing [#24](https://github.com/oxidecomputer/design-system/pull/24) ([@zephraph](https://github.com/zephraph))
+
+#### Authors: 1
+
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
 # v0.7.0 (Thu Feb 02 2023)
 
 #### 🚀 Enhancement
