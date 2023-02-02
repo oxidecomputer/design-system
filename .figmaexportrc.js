@@ -1,7 +1,5 @@
 // @ts-check
 
-const { pascalCase } = require('@figma-export/utils')
-
 module.exports = {
   commands: [
     [
@@ -15,28 +13,9 @@ module.exports = {
           }),
         ],
         outputters: [
-          require('@figma-export/output-components-as-svgr')({
+          require('@figma-export/output-components-as-svg')({
             output: './icons',
-            getFileExtension: () => '.tsx',
             getDirname: () => '',
-            getComponentName: ({ componentName }) =>
-              pascalCase(
-                componentName
-                  .split('/')
-                  .map((n) => `${n[0].toUpperCase()}${n.slice(1)}`)
-                  .reverse()
-                  .join('') + 'Icon',
-              ),
-            getSvgrConfig: () => {
-              return {
-                jsxRuntime: 'automatic',
-                typescript: true,
-                titleProp: true,
-                svgProps: {
-                  role: 'img',
-                },
-              }
-            },
           }),
         ],
       },
