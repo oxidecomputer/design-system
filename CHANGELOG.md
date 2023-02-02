@@ -1,3 +1,15 @@
+# v0.8.0 (Thu Feb 02 2023)
+
+#### 🚀 Enhancement
+
+- Add type export of all icon names [#25](https://github.com/oxidecomputer/design-system/pull/25) ([@zephraph](https://github.com/zephraph))
+
+#### Authors: 1
+
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
 # v0.7.1 (Thu Feb 02 2023)
 
 #### 🐛 Bug Fix
