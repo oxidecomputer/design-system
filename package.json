@@ -4,7 +4,7 @@
   "description": "Home of reusable design assets and token for oxide internal sites",
   "main": "index.js",
   "scripts": {
-    "export-icons": "./scripts/export-icons.sh",
+    "export-icons": "npx zx ./scripts/export-icons.md",
     "build:themes": "./scripts/build_themes.sh",
     "build": "run-s build:*",
     "prebuild:tokens": "token-transformer --preserveRawValue ./styles/src/tokens.json ./styles/src/.tokens/main.json global,colors,core,main",
@@ -31,7 +31,8 @@
     "style-dictionary": "^3.7.1",
     "token-transformer": "^0.0.26",
     "ts-dedent": "^2.2.0",
-    "ts-node": "^10.9.1"
+    "ts-node": "^10.9.1",
+    "zx": "^7.2.0"
   },
   "files": [
     "styles/dist/*.css",
