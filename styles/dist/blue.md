@@ -28,6 +28,7 @@ graph RL
 ```mermaid
 graph RL
   base-green-300 --> #1C372E:::base-green-300
+  stroke-success-quaternary --> theme-success-300
   theme-success-300 --> base-green-300
 
 	classDef base-green-300 stroke-width:5,stroke:#1C372E
@@ -118,6 +119,7 @@ graph RL
 graph RL
   base-yellow-300 --> #3D3019:::base-yellow-300
   surface-notice-secondary-hover --> theme-notice-300
+  stroke-notice-quaternary --> theme-notice-300
   theme-notice-300 --> base-yellow-300
 
 	classDef base-yellow-300 stroke-width:5,stroke:#3D3019
@@ -213,6 +215,8 @@ graph RL
 graph RL
   base-red-300 --> #301B1D:::base-red-300
   surface-destructive-secondary-hover --> theme-destructive-300
+  stroke-destructive-quaternary --> theme-destructive-300
+  stroke-error-quaternary --> theme-error-300
   theme-destructive-300 --> base-red-300
   theme-error-300 --> base-red-300
 
@@ -395,6 +399,7 @@ graph RL
 graph RL
   base-blue-300 --> #2D3048:::base-blue-300
   surface-accent-secondary-hover --> theme-accent-300
+  stroke-accent-quaternary --> theme-accent-300
   theme-accent-300 --> base-blue-300
 
 	classDef base-blue-300 stroke-width:5,stroke:#2D3048
