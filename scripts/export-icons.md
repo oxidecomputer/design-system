@@ -35,7 +35,7 @@ such that the fill color of the icons can be controlled in its calling code.
 const icons = await glob('./icons/*.svg')
 for (let icon of icons) {
   await $`cat ${icon}`
-    .then((i) => i.stdout.replace(/fill=".*"/g, 'fill="currentColor"'))
+    .then((i) => i.stdout.replace(/fill="[^"]*"/g, 'fill="currentColor"'))
     .then((r) => fs.writeFile(icon, r))
 }
 ```
