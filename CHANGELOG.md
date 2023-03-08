@@ -1,3 +1,16 @@
+# v0.8.1 (Wed Mar 08 2023)
+
+#### 🐛 Bug Fix
+
+- Use zx over a shell script for the export icons process [#26](https://github.com/oxidecomputer/design-system/pull/26) ([@zephraph](https://github.com/zephraph) [@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 2
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
 # v0.8.0 (Thu Feb 02 2023)
 
 #### 🚀 Enhancement
