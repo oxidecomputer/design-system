@@ -22,6 +22,9 @@ export $(egrep -v '^#' .env | xargs)
 
 # This command requires a FIGMA_TOKEN env var with read access to Oxide's DS to be set
 npx figma-export use-config
+
+# Rename the svg spritesheet to all
+mv ./icons/Icons.svg ./icons/all.svg
 ```
 
 ## Cleanup fill color

@@ -17,6 +17,7 @@
   "devDependencies": {
     "@figma-export/cli": "^4.5.0",
     "@figma-export/output-components-as-svg": "^4.5.0",
+    "@figma-export/output-components-as-svgstore": "^4.5.0",
     "@figma-export/transform-svg-with-svgo": "^4.5.0",
     "@trivago/prettier-plugin-sort-imports": "^3.3.0",
     "@types/react": "^18.0.18",
