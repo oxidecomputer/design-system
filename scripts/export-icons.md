@@ -71,16 +71,15 @@ for (let icon of icons) {
 
   // The actual component text
   const componentWrapper = `
-    import { React } from 'react'
     import icon from './${iconFileName}.svg?raw'
     export const ${iconComponentName} = ({ className = '' }: { className?: string }) =>
-      /*#__PURE__*/React.createElement("span", {
-        className: \`ox-icon \${className}\`,
-         dangerouslySetInnerHTML: {__html: icon}
-      }) 
+      <span
+        className={\`ox-icon \${className}\`}
+        dangerouslySetInnerHTML={{__html: icon}}
+      />
   `
 
-  await fs.writeFile(icon.replace('.svg', '.ts'), componentWrapper)
+  await fs.writeFile(icon.replace('.svg', '.tsx'), componentWrapper)
   await fs.appendFile(
     './icons/index.ts',
     `export { ${iconComponentName} } from './${iconFileName}'\n`,
