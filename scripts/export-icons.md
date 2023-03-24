@@ -63,10 +63,11 @@ for (let icon of icons) {
   const iconFileName = icon.split('/').reverse()[0].replace('.svg', '')
 
   // Turns access-16 into Access16
-  const iconComponentName = iconFileName
-    .match(/[A-Za-z0-9]+/g)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join('')
+  const iconComponentName =
+    iconFileName
+      .match(/[A-Za-z0-9]+/g)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join('') + 'Icon'
 
   // The actual component text
   const componentWrapper = `

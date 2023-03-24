@@ -1,5 +1,5 @@
 import icon from './subnet-16.svg'
 
-export const Subnet16 = ({ className = '' }: { className: string }) => (
+export const Subnet16Icon = ({ className = '' }: { className: string }) => (
   <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
 )
