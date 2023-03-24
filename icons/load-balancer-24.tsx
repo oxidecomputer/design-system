@@ -1,5 +1,5 @@
 import icon from './load-balancer-24.svg'
 
-export const LoadBalancer24 = () => (
-  <span className="ox-icon" dangerouslySetInnerHTML={{ __html: icon }} />
+export const LoadBalancer24 = ({ className = '' }: { className: string }) => (
+  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
 )

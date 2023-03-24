@@ -1,5 +1,5 @@
 import icon from './snapshots-16.svg'
 
-export const Snapshots16 = () => (
-  <span className="ox-icon" dangerouslySetInnerHTML={{ __html: icon }} />
+export const Snapshots16 = ({ className = '' }: { className: string }) => (
+  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
 )

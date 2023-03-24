@@ -1,5 +1,5 @@
 import icon from './heart-24.svg'
 
-export const Heart24 = () => (
-  <span className="ox-icon" dangerouslySetInnerHTML={{ __html: icon }} />
+export const Heart24 = ({ className = '' }: { className: string }) => (
+  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
 )

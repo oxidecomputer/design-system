@@ -1,5 +1,5 @@
 import icon from './distro-debian.svg'
 
-export const DistroDebian = () => (
-  <span className="ox-icon" dangerouslySetInnerHTML={{ __html: icon }} />
+export const DistroDebian = ({ className = '' }: { className: string }) => (
+  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
 )

@@ -1,5 +1,5 @@
 import icon from './disk-small.svg'
 
-export const DiskSmall = () => (
-  <span className="ox-icon" dangerouslySetInnerHTML={{ __html: icon }} />
+export const DiskSmall = ({ className = '' }: { className: string }) => (
+  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
 )

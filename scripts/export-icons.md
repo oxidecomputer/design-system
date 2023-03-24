@@ -71,9 +71,9 @@ for (let icon of icons) {
   // The actual component text
   const componentWrapper = `
     import icon from './${iconFileName}.svg'
-    export const ${iconComponentName} = () =>
+    export const ${iconComponentName} = ({ className = '' }: { className: string }) =>
       <span
-        className="ox-icon"
+        className={\`ox-icon \${className}\`}
         dangerouslySetInnerHTML={{__html: icon}}
       />
   `

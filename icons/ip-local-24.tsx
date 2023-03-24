@@ -1,5 +1,5 @@
 import icon from './ip-local-24.svg'
 
-export const IpLocal24 = () => (
-  <span className="ox-icon" dangerouslySetInnerHTML={{ __html: icon }} />
+export const IpLocal24 = ({ className = '' }: { className: string }) => (
+  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
 )
