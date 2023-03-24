@@ -40,6 +40,52 @@ for (let icon of icons) {
 }
 ```
 
+## Generate component wrappers
+
+Given that all our projects use react its helpful to still be able to import the icons like
+normal components. This section generates small wrappers for every component that simply
+injects the contents of the svg inside a span.
+
+First let's create a
+[barrel export file](https://blog.logrocket.com/using-barrel-exports-organize-react-components/)
+to make importing easier.
+
+```sh
+touch ./icons/index.ts
+```
+
+Next let's generate the wrappers
+
+```js
+// icons is re-used from the section above
+for (let icon of icons) {
+  // Turns ./icons/access-16.svg into access-16
+  const iconFileName = icon.split('/').reverse()[0].replace('.svg', '')
+
+  // Turns access-16 into Access16
+  const iconComponentName = iconFileName
+    .match(/[A-Za-z0-9]+/g)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join('')
+
+  // The actual component text
+  const componentWrapper = `
+    import icon from './${iconFileName}.svg'
+    export const ${iconComponentName} = () =>
+      <span
+        className="ox-icon"
+        dangerouslySetInnerHTML={{__html: icon}}
+      />
+  `
+
+  await fs.writeFile(icon.replace('.svg', '.tsx'), componentWrapper)
+  await fs.appendFile(
+    './icons/index.ts',
+    `export { ${iconComponentName} } from './${iconFileName}'\n`,
+  )
+}
+```
+
 ## Format the output
 
 ```sh
