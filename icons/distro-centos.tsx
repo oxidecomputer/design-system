@@ -1,5 +1,15 @@
 import icon from './distro-centos.svg?raw'
 
-export const DistroCentosIcon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface DistroCentosIconProps {
+  className?: string
+  title: string
+}
+
+export const DistroCentosIcon = ({ className = '', title }: DistroCentosIconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

@@ -1,5 +1,15 @@
 import icon from './folder-16.svg?raw'
 
-export const Folder16Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Folder16IconProps {
+  className?: string
+  title: string
+}
+
+export const Folder16Icon = ({ className = '', title }: Folder16IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

@@ -1,5 +1,15 @@
 import icon from './distro-arch.svg?raw'
 
-export const DistroArchIcon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface DistroArchIconProps {
+  className?: string
+  title: string
+}
+
+export const DistroArchIcon = ({ className = '', title }: DistroArchIconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

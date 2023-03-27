@@ -1,5 +1,15 @@
 import icon from './ip-global-16.svg?raw'
 
-export const IpGlobal16Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface IpGlobal16IconProps {
+  className?: string
+  title: string
+}
+
+export const IpGlobal16Icon = ({ className = '', title }: IpGlobal16IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

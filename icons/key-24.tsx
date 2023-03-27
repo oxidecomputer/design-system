@@ -1,5 +1,15 @@
 import icon from './key-24.svg?raw'
 
-export const Key24Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Key24IconProps {
+  className?: string
+  title: string
+}
+
+export const Key24Icon = ({ className = '', title }: Key24IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

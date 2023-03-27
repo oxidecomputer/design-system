@@ -1,5 +1,15 @@
 import icon from './add-12.svg?raw'
 
-export const Add12Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Add12IconProps {
+  className?: string
+  title: string
+}
+
+export const Add12Icon = ({ className = '', title }: Add12IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

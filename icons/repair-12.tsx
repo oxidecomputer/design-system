@@ -1,5 +1,15 @@
 import icon from './repair-12.svg?raw'
 
-export const Repair12Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Repair12IconProps {
+  className?: string
+  title: string
+}
+
+export const Repair12Icon = ({ className = '', title }: Repair12IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

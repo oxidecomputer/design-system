@@ -72,8 +72,16 @@ for (let icon of icons) {
   // The actual component text
   const componentWrapper = `
     import icon from './${iconFileName}.svg?raw'
-    export const ${iconComponentName} = ({ className = '' }: { className?: string }) =>
+
+    interface ${iconComponentName}Props {
+      className?: string
+      title: string
+    }
+
+    export const ${iconComponentName} = ({ className = '', title }: ${iconComponentName}Props) =>
       <span
+        role="img"
+        aria-label={title}
         className={\`ox-icon \${className}\`}
         dangerouslySetInnerHTML={{__html: icon}}
       />

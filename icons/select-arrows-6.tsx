@@ -1,5 +1,15 @@
 import icon from './select-arrows-6.svg?raw'
 
-export const SelectArrows6Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface SelectArrows6IconProps {
+  className?: string
+  title: string
+}
+
+export const SelectArrows6Icon = ({ className = '', title }: SelectArrows6IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

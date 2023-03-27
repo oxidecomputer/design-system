@@ -1,5 +1,15 @@
 import icon from './next-arrow-12.svg?raw'
 
-export const NextArrow12Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface NextArrow12IconProps {
+  className?: string
+  title: string
+}
+
+export const NextArrow12Icon = ({ className = '', title }: NextArrow12IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

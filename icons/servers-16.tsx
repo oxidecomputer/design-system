@@ -1,5 +1,15 @@
 import icon from './servers-16.svg?raw'
 
-export const Servers16Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Servers16IconProps {
+  className?: string
+  title: string
+}
+
+export const Servers16Icon = ({ className = '', title }: Servers16IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

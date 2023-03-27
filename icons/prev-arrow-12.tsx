@@ -1,5 +1,15 @@
 import icon from './prev-arrow-12.svg?raw'
 
-export const PrevArrow12Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface PrevArrow12IconProps {
+  className?: string
+  title: string
+}
+
+export const PrevArrow12Icon = ({ className = '', title }: PrevArrow12IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

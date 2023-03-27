@@ -1,5 +1,15 @@
 import icon from './error-16.svg?raw'
 
-export const Error16Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Error16IconProps {
+  className?: string
+  title: string
+}
+
+export const Error16Icon = ({ className = '', title }: Error16IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

@@ -1,5 +1,15 @@
 import icon from './load-balancer-16.svg?raw'
 
-export const LoadBalancer16Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface LoadBalancer16IconProps {
+  className?: string
+  title: string
+}
+
+export const LoadBalancer16Icon = ({ className = '', title }: LoadBalancer16IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

@@ -1,5 +1,15 @@
 import icon from './chat-24.svg?raw'
 
-export const Chat24Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Chat24IconProps {
+  className?: string
+  title: string
+}
+
+export const Chat24Icon = ({ className = '', title }: Chat24IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

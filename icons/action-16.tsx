@@ -1,5 +1,15 @@
 import icon from './action-16.svg?raw'
 
-export const Action16Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Action16IconProps {
+  className?: string
+  title: string
+}
+
+export const Action16Icon = ({ className = '', title }: Action16IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

@@ -1,5 +1,15 @@
 import icon from './distro-ubuntu.svg?raw'
 
-export const DistroUbuntuIcon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface DistroUbuntuIconProps {
+  className?: string
+  title: string
+}
+
+export const DistroUbuntuIcon = ({ className = '', title }: DistroUbuntuIconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

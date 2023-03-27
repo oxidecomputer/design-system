@@ -1,5 +1,15 @@
 import icon from './contrast-24.svg?raw'
 
-export const Contrast24Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Contrast24IconProps {
+  className?: string
+  title: string
+}
+
+export const Contrast24Icon = ({ className = '', title }: Contrast24IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

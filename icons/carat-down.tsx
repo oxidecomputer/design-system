@@ -1,5 +1,15 @@
 import icon from './carat-down.svg?raw'
 
-export const CaratDownIcon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface CaratDownIconProps {
+  className?: string
+  title: string
+}
+
+export const CaratDownIcon = ({ className = '', title }: CaratDownIconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

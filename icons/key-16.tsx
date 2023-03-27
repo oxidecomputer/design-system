@@ -1,5 +1,15 @@
 import icon from './key-16.svg?raw'
 
-export const Key16Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Key16IconProps {
+  className?: string
+  title: string
+}
+
+export const Key16Icon = ({ className = '', title }: Key16IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

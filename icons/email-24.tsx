@@ -1,5 +1,15 @@
 import icon from './email-24.svg?raw'
 
-export const Email24Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Email24IconProps {
+  className?: string
+  title: string
+}
+
+export const Email24Icon = ({ className = '', title }: Email24IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

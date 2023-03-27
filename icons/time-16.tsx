@@ -1,5 +1,15 @@
 import icon from './time-16.svg?raw'
 
-export const Time16Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Time16IconProps {
+  className?: string
+  title: string
+}
+
+export const Time16Icon = ({ className = '', title }: Time16IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

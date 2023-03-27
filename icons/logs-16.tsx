@@ -1,5 +1,15 @@
 import icon from './logs-16.svg?raw'
 
-export const Logs16Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Logs16IconProps {
+  className?: string
+  title: string
+}
+
+export const Logs16Icon = ({ className = '', title }: Logs16IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

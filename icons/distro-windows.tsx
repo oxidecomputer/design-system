@@ -1,5 +1,15 @@
 import icon from './distro-windows.svg?raw'
 
-export const DistroWindowsIcon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface DistroWindowsIconProps {
+  className?: string
+  title: string
+}
+
+export const DistroWindowsIcon = ({ className = '', title }: DistroWindowsIconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

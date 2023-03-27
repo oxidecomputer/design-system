@@ -1,5 +1,15 @@
 import icon from './cpu-24.svg?raw'
 
-export const Cpu24Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Cpu24IconProps {
+  className?: string
+  title: string
+}
+
+export const Cpu24Icon = ({ className = '', title }: Cpu24IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

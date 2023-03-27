@@ -1,5 +1,15 @@
 import icon from './metrics-16.svg?raw'
 
-export const Metrics16Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Metrics16IconProps {
+  className?: string
+  title: string
+}
+
+export const Metrics16Icon = ({ className = '', title }: Metrics16IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

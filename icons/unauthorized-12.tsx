@@ -1,5 +1,15 @@
 import icon from './unauthorized-12.svg?raw'
 
-export const Unauthorized12Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Unauthorized12IconProps {
+  className?: string
+  title: string
+}
+
+export const Unauthorized12Icon = ({ className = '', title }: Unauthorized12IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

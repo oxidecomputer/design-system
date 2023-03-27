@@ -1,5 +1,15 @@
 import icon from './firewall-16.svg?raw'
 
-export const Firewall16Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Firewall16IconProps {
+  className?: string
+  title: string
+}
+
+export const Firewall16Icon = ({ className = '', title }: Firewall16IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

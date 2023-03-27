@@ -1,5 +1,15 @@
 import icon from './carat-up.svg?raw'
 
-export const CaratUpIcon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface CaratUpIconProps {
+  className?: string
+  title: string
+}
+
+export const CaratUpIcon = ({ className = '', title }: CaratUpIconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

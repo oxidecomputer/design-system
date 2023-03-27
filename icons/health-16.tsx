@@ -1,5 +1,15 @@
 import icon from './health-16.svg?raw'
 
-export const Health16Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Health16IconProps {
+  className?: string
+  title: string
+}
+
+export const Health16Icon = ({ className = '', title }: Health16IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )

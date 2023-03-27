@@ -1,5 +1,15 @@
 import icon from './terminal-16.svg?raw'
 
-export const Terminal16Icon = ({ className = '' }: { className?: string }) => (
-  <span className={`ox-icon ${className}`} dangerouslySetInnerHTML={{ __html: icon }} />
+interface Terminal16IconProps {
+  className?: string
+  title: string
+}
+
+export const Terminal16Icon = ({ className = '', title }: Terminal16IconProps) => (
+  <span
+    role="img"
+    aria-label={title}
+    className={`ox-icon ${className}`}
+    dangerouslySetInnerHTML={{ __html: icon }}
+  />
 )
