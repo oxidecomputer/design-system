@@ -1,15 +1,22 @@
-import icon from './search-16.svg?raw'
-
 interface Search16IconProps {
   className?: string
   title: string
 }
 
 export const Search16Icon = ({ className = '', title }: Search16IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M11 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Zm-.524 4.89a6 6 0 1 1 1.414-1.414l2.287 2.287a.75.75 0 0 1 0 1.06l-.354.354a.75.75 0 0 1-1.06 0l-2.287-2.286Z"
+      fill="currentColor"
+    />
+  </svg>
 )

@@ -1,15 +1,22 @@
-import icon from './terminal-16.svg?raw'
-
 interface Terminal16IconProps {
   className?: string
   title: string
 }
 
 export const Terminal16Icon = ({ className = '', title }: Terminal16IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M.75 1a.75.75 0 0 0-.75.75v12.5c0 .414.336.75.75.75h14.5a.75.75 0 0 0 .75-.75V1.75a.75.75 0 0 0-.75-.75H.75Zm2.335 9.457A.75.75 0 0 1 2 9.787v-.323a.75.75 0 0 1 .415-.671L6 7 2.415 5.207A.75.75 0 0 1 2 4.537v-.323a.75.75 0 0 1 1.085-.671l4.5 2.25a.75.75 0 0 1 .415.67v1.073a.75.75 0 0 1-.415.671l-4.5 2.25ZM8 11.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v.5a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1-.75-.75v-.5Z"
+      fill="currentColor"
+    />
+  </svg>
 )

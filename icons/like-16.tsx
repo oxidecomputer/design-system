@@ -1,15 +1,22 @@
-import icon from './like-16.svg?raw'
-
 interface Like16IconProps {
   className?: string
   title: string
 }
 
 export const Like16Icon = ({ className = '', title }: Like16IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M7.621 1.473 4 6v9h7.536a.75.75 0 0 0 .671-.415L15 9V8a2 2 0 0 0-2-2H9l.61-2.444a2 2 0 0 0-1.045-2.273l-.023-.012a.75.75 0 0 0-.92.202ZM1.75 6a.75.75 0 0 0-.75.75v7.5c0 .414.336.75.75.75H3V6H1.75Z"
+      fill="currentColor"
+    />
+  </svg>
 )

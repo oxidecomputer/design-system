@@ -1,15 +1,22 @@
-import icon from './key-16.svg?raw'
-
 interface Key16IconProps {
   className?: string
   title: string
 }
 
 export const Key16Icon = ({ className = '', title }: Key16IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="m14.53.53.94.94a.75.75 0 0 1 0 1.06L15 3l.5.5a.707.707 0 0 1-1 1L14 4l-1 1 .47.47a.75.75 0 0 1 0 1.06l-.94.94a.75.75 0 0 1-1.06 0L11 7 9.392 8.608a5 5 0 1 1-2-2L13.47.53a.75.75 0 0 1 1.06 0ZM5 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"
+      fill="currentColor"
+    />
+  </svg>
 )

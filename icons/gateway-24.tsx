@@ -1,15 +1,22 @@
-import icon from './gateway-24.svg?raw'
-
 interface Gateway24IconProps {
   className?: string
   title: string
 }
 
 export const Gateway24Icon = ({ className = '', title }: Gateway24IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M4 1h16a1 1 0 0 1 1 1v20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1Zm6.306 5.246a.5.5 0 0 0-.306.46v10.32a.5.5 0 0 0 .292.454l7 3.197a.5.5 0 0 0 .708-.455V3.754a.5.5 0 0 0-.694-.461l-7 2.953Z"
+      fill="currentColor"
+    />
+  </svg>
 )

@@ -1,15 +1,22 @@
-import icon from './instances-16.svg?raw'
-
 interface Instances16IconProps {
   className?: string
   title: string
 }
 
 export const Instances16Icon = ({ className = '', title }: Instances16IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M6 1.75A.75.75 0 0 1 6.75 1h7.5a.75.75 0 0 1 .75.75v7.5a.75.75 0 0 1-.75.75H13V3.75a.75.75 0 0 0-.75-.75H6V1.75Zm-5 4A.75.75 0 0 1 1.75 5h8.5a.75.75 0 0 1 .75.75v8.5a.75.75 0 0 1-.75.75h-8.5a.75.75 0 0 1-.75-.75v-8.5Z"
+      fill="currentColor"
+    />
+  </svg>
 )

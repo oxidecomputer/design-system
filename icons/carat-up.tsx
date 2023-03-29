@@ -1,15 +1,20 @@
-import icon from './carat-up.svg?raw'
-
 interface CaratUpIconProps {
   className?: string
   title: string
 }
 
 export const CaratUpIcon = ({ className = '', title }: CaratUpIconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="12"
+    height="12"
+    viewBox="0 0 12 12"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M6.597 3.193a.667.667 0 0 0-1.194 0l-2.92 5.842c-.222.443.1.965.596.965h5.842a.667.667 0 0 0 .596-.965l-2.92-5.842Z"
+      fill="currentColor"
+    />
+  </svg>
 )

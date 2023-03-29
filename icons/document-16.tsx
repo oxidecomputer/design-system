@@ -1,15 +1,20 @@
-import icon from './document-16.svg?raw'
-
 interface Document16IconProps {
   className?: string
   title: string
 }
 
 export const Document16Icon = ({ className = '', title }: Document16IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M11.72.224A.75.75 0 0 0 11.185 0H2.75A.75.75 0 0 0 2 .75v14.5c0 .414.336.75.75.75h10.5a.75.75 0 0 0 .75-.75V2.852a.75.75 0 0 0-.215-.525L11.72.224ZM4 8.75A.75.75 0 0 1 4.75 8h3.5a.75.75 0 0 1 .75.75v.5a.75.75 0 0 1-.75.75h-3.5A.75.75 0 0 1 4 9.25v-.5Zm6 3.5a.75.75 0 0 1-.75.75h-4.5a.75.75 0 0 1-.75-.75v-.5a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v.5Zm1-5.91a.75.75 0 0 1-.75.75h-5.5A.75.75 0 0 1 4 6.34v-.59A.75.75 0 0 1 4.75 5h5.5a.75.75 0 0 1 .75.75v.59Z"
+      fill="currentColor"
+    />
+  </svg>
 )

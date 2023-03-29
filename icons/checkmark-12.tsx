@@ -1,15 +1,22 @@
-import icon from './checkmark-12.svg?raw'
-
 interface Checkmark12IconProps {
   className?: string
   title: string
 }
 
 export const Checkmark12Icon = ({ className = '', title }: Checkmark12IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="12"
+    height="12"
+    viewBox="0 0 12 12"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M10.492 2.651c.28.242.31.665.067.944L5.447 9.463a.667.667 0 0 1-.974.035L1.475 6.516a.667.667 0 0 1 0-.946l.237-.235a.667.667 0 0 1 .94 0l2.24 2.226L9.3 2.501a.667.667 0 0 1 .938-.068l.253.218Z"
+      fill="currentColor"
+    />
+  </svg>
 )

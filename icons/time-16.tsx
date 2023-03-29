@@ -1,15 +1,22 @@
-import icon from './time-16.svg?raw'
-
 interface Time16IconProps {
   className?: string
   title: string
 }
 
 export const Time16Icon = ({ className = '', title }: Time16IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14ZM7 3.75A.75.75 0 0 1 7.75 3h.5a.75.75 0 0 1 .75.75V7h2.25a.75.75 0 0 1 .75.75v.5a.75.75 0 0 1-.75.75h-3.5A.75.75 0 0 1 7 8.25v-4.5Z"
+      fill="currentColor"
+    />
+  </svg>
 )

@@ -1,15 +1,22 @@
-import icon from './person-16.svg?raw'
-
 interface Person16IconProps {
   className?: string
   title: string
 }
 
 export const Person16Icon = ({ className = '', title }: Person16IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M12 5a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM1 14.368A3.368 3.368 0 0 1 4.368 11h7.264A3.368 3.368 0 0 1 15 14.368a.632.632 0 0 1-.632.632H1.632A.632.632 0 0 1 1 14.368Z"
+      fill="currentColor"
+    />
+  </svg>
 )

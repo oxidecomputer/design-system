@@ -1,15 +1,22 @@
-import icon from './close-16.svg?raw'
-
 interface Close16IconProps {
   className?: string
   title: string
 }
 
 export const Close16Icon = ({ className = '', title }: Close16IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M2.22 2.644a.75.75 0 0 0 0 1.06L6.514 8 2.22 12.295a.75.75 0 0 0 0 1.06l.424.425a.75.75 0 0 0 1.06 0L8 9.483l4.295 4.296a.75.75 0 0 0 1.06 0l.425-.425a.75.75 0 0 0 0-1.06L9.484 8l4.295-4.296a.75.75 0 0 0 0-1.06l-.424-.424a.75.75 0 0 0-1.061 0L7.999 6.515 3.704 2.22a.75.75 0 0 0-1.06 0l-.424.424Z"
+      fill="currentColor"
+    />
+  </svg>
 )

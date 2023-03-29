@@ -1,15 +1,22 @@
-import icon from './select-arrows-6.svg?raw'
-
 interface SelectArrows6IconProps {
   className?: string
   title: string
 }
 
 export const SelectArrows6Icon = ({ className = '', title }: SelectArrows6IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="6"
+    height="14"
+    viewBox="0 0 6 14"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M3.322.536a.375.375 0 0 0-.644 0L.341 4.432C.19 4.682.37 5 .662 5h4.676a.375.375 0 0 0 .321-.568L3.322.536Zm-.644 12.928a.375.375 0 0 0 .644 0l2.337-3.896A.375.375 0 0 0 5.338 9H.662a.375.375 0 0 0-.321.568l2.337 3.896Z"
+      fill="currentColor"
+    />
+  </svg>
 )

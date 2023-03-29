@@ -1,15 +1,22 @@
-import icon from './dislike-16.svg?raw'
-
 interface Dislike16IconProps {
   className?: string
   title: string
 }
 
 export const Dislike16Icon = ({ className = '', title }: Dislike16IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M8.379 14.527 12 10V1H4.464a.75.75 0 0 0-.671.415L1 7v1a2 2 0 0 0 2 2h4l-.61 2.444a2 2 0 0 0 1.045 2.273l.023.012a.75.75 0 0 0 .92-.202ZM14.25 10a.75.75 0 0 0 .75-.75v-7.5a.75.75 0 0 0-.75-.75H13v9h1.25Z"
+      fill="currentColor"
+    />
+  </svg>
 )

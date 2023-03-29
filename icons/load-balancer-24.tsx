@@ -1,15 +1,22 @@
-import icon from './load-balancer-24.svg?raw'
-
 interface LoadBalancer24IconProps {
   className?: string
   title: string
 }
 
 export const LoadBalancer24Icon = ({ className = '', title }: LoadBalancer24IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M10 2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h1v4H4a1 1 0 0 0-1 1v5a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1v-4h6v4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1v-4h6v4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1v-5a1 1 0 0 0-1-1h-7V8h1a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1h-4Z"
+      fill="currentColor"
+    />
+  </svg>
 )

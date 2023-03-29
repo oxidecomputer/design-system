@@ -1,15 +1,20 @@
-import icon from './prev-arrow-12.svg?raw'
-
 interface PrevArrow12IconProps {
   className?: string
   title: string
 }
 
 export const PrevArrow12Icon = ({ className = '', title }: PrevArrow12IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="12"
+    height="12"
+    viewBox="0 0 12 12"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M8.53 1.47a.75.75 0 0 0-1.06 0l-4 4a.75.75 0 0 0 0 1.06l4 4a.75.75 0 0 0 1.06-1.06L5.06 6l3.47-3.47a.75.75 0 0 0 0-1.06Z"
+      fill="currentColor"
+    />
+  </svg>
 )

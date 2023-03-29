@@ -1,15 +1,20 @@
-import icon from './carat-left.svg?raw'
-
 interface CaratLeftIconProps {
   className?: string
   title: string
 }
 
 export const CaratLeftIcon = ({ className = '', title }: CaratLeftIconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="12"
+    height="12"
+    viewBox="0 0 12 12"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M3.193 5.403a.667.667 0 0 0 0 1.194l5.842 2.92c.443.222.965-.1.965-.596V3.079a.667.667 0 0 0-.965-.596l-5.842 2.92Z"
+      fill="currentColor"
+    />
+  </svg>
 )

@@ -1,15 +1,22 @@
-import icon from './cpu-large.svg?raw'
-
 interface CpuLargeIconProps {
   className?: string
   title: string
 }
 
 export const CpuLargeIcon = ({ className = '', title }: CpuLargeIconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="19"
+    height="19"
+    viewBox="0 0 19 19"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M10 4h1V1h-1v3Zm4 1H5v9h9V5Zm-3 13h-1v-3h1v3ZM8 4h1V1H8v3Zm1 14H8v-3h1v3ZM6 4h1V1H6v3Zm1 14H6v-3h1v3Zm5-14h1V1h-1v3Zm1 14h-1v-3h1v3Zm2-8v1h3v-1h-3ZM1 11v-1h3v1H1Zm14-3v1h3V8h-3ZM1 9V8h3v1H1Zm14-3v1h3V6h-3ZM1 7V6h3v1H1Zm14 5v1h3v-1h-3ZM1 13v-1h3v1H1Z"
+      fill="currentColor"
+    />
+  </svg>
 )

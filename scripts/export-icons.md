@@ -15,13 +15,13 @@ for more information on creating an access token.
 
 ```sh
 # Remove all the icons so any icon that was removed from figma won't linger
-rm -rf icons
+# rm -rf icons
 
 # Export the FIGMA_TOKEN
-export $(egrep -v '^#' .env | xargs)
+# export $(egrep -v '^#' .env | xargs)
 
 # This command requires a FIGMA_TOKEN env var with read access to Oxide's DS to be set
-npx figma-export use-config
+# npx figma-export use-config
 ```
 
 ## Cleanup fill color
@@ -51,6 +51,7 @@ First let's create a
 to make importing easier.
 
 ```sh
+rm ./icons/index.ts
 touch ./icons/index.ts
 ```
 
@@ -62,6 +63,11 @@ for (let icon of icons) {
   // Turns ./icons/access-16.svg into access-16
   const iconFileName = icon.split('/').reverse()[0].replace('.svg', '')
 
+  const svgContents = fs
+    .readFileSync(icon)
+    .toString()
+    .replace('<svg ', '<svg className={`ox-icon ${className}`} aria-label={title} ')
+
   // Turns access-16 into Access16
   const iconComponentName =
     iconFileName
@@ -71,20 +77,13 @@ for (let icon of icons) {
 
   // The actual component text
   const componentWrapper = `
-    import icon from './${iconFileName}.svg?raw'
-
     interface ${iconComponentName}Props {
       className?: string
       title: string
     }
 
     export const ${iconComponentName} = ({ className = '', title }: ${iconComponentName}Props) =>
-      <span
-        role="img"
-        aria-label={title}
-        className={\`ox-icon \${className}\`}
-        dangerouslySetInnerHTML={{__html: icon}}
-      />
+      ${svgContents}
   `
 
   await fs.writeFile(icon.replace('.svg', '.tsx'), componentWrapper)

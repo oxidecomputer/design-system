@@ -1,15 +1,23 @@
-import icon from './loader-12.svg?raw'
-
 interface Loader12IconProps {
   className?: string
   title: string
 }
 
 export const Loader12Icon = ({ className = '', title }: Loader12IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="12"
+    height="12"
+    viewBox="0 0 12 12"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <circle cx="6" cy="6" r="5.25" stroke="#1C2225" stroke-width="1.5" />
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M8.25 2.103a4.5 4.5 0 0 0-1.585-.554C6.3 1.495 6 1.201 6 .833V.667c0-.368.3-.67.666-.63a6 6 0 0 1 4.831 8.367c-.147.337-.559.446-.878.262l-.144-.083c-.319-.185-.423-.591-.288-.934A4.5 4.5 0 0 0 8.25 2.103Z"
+      fill="currentColor"
+    />
+  </svg>
 )

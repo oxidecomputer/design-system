@@ -1,15 +1,22 @@
-import icon from './contrast-16.svg?raw'
-
 interface Contrast16IconProps {
   className?: string
   title: string
 }
 
 export const Contrast16Icon = ({ className = '', title }: Contrast16IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16Zm2.296-2.457A6 6 0 0 1 8 14V2a6 6 0 0 1 2.296 11.543Z"
+      fill="currentColor"
+    />
+  </svg>
 )

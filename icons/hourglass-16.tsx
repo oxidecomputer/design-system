@@ -1,15 +1,22 @@
-import icon from './hourglass-16.svg?raw'
-
 interface Hourglass16IconProps {
   className?: string
   title: string
 }
 
 export const Hourglass16Icon = ({ className = '', title }: Hourglass16IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M4 0h-.25A.75.75 0 0 0 3 .75v.5c0 .414.336.75.75.75H4v2.625a.75.75 0 0 0 .3.6L8 8l-3.7 2.775a.75.75 0 0 0-.3.6V14h-.25a.75.75 0 0 0-.75.75v.5c0 .414.336.75.75.75h8.5a.75.75 0 0 0 .75-.75v-.5a.75.75 0 0 0-.75-.75H12v-2.625a.75.75 0 0 0-.3-.6L8 8l3.7-2.775a.75.75 0 0 0 .3-.6V2h.25a.75.75 0 0 0 .75-.75v-.5a.75.75 0 0 0-.75-.75H4Zm6 12v2H6v-2l2-1.5 2 1.5Z"
+      fill="currentColor"
+    />
+  </svg>
 )

@@ -1,15 +1,20 @@
-import icon from './carat-right.svg?raw'
-
 interface CaratRightIconProps {
   className?: string
   title: string
 }
 
 export const CaratRightIcon = ({ className = '', title }: CaratRightIconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="12"
+    height="12"
+    viewBox="0 0 12 12"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M8.807 6.597a.667.667 0 0 0 0-1.194l-5.842-2.92A.667.667 0 0 0 2 3.079v5.842c0 .496.522.818.965.596l5.842-2.92Z"
+      fill="currentColor"
+    />
+  </svg>
 )

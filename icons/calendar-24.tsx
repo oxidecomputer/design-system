@@ -1,15 +1,22 @@
-import icon from './calendar-24.svg?raw'
-
 interface Calendar24IconProps {
   className?: string
   title: string
 }
 
 export const Calendar24Icon = ({ className = '', title }: Calendar24IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M3 5a1 1 0 0 0-1 1v3h20V6a1 1 0 0 0-1-1h-2V2h-3v3H8V2H5v3H3Zm-1 6h20v10a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V11Zm3 3h5v5H5v-5Z"
+      fill="currentColor"
+    />
+  </svg>
 )

@@ -1,15 +1,22 @@
-import icon from './compability-16.svg?raw'
-
 interface Compability16IconProps {
   className?: string
   title: string
 }
 
 export const Compability16Icon = ({ className = '', title }: Compability16IconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M1 1.75A.75.75 0 0 1 1.75 1h12.5a.75.75 0 0 1 .75.75V7h-4V4H5v3H1V1.75ZM11 9v3h4v2.25a.75.75 0 0 1-.75.75H1.75a.75.75 0 0 1-.75-.75V12h4V9h6Z"
+      fill="currentColor"
+    />
+  </svg>
 )

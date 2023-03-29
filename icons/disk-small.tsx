@@ -1,15 +1,22 @@
-import icon from './disk-small.svg?raw'
-
 interface DiskSmallIconProps {
   className?: string
   title: string
 }
 
 export const DiskSmallIcon = ({ className = '', title }: DiskSmallIconProps) => (
-  <span
-    role="img"
-    aria-label={title}
+  <svg
     className={`ox-icon ${className}`}
-    dangerouslySetInnerHTML={{ __html: icon }}
-  />
+    aria-label={title}
+    width="15"
+    height="15"
+    viewBox="0 0 15 15"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M15 5H2v5h13V8h-1V7h1V5ZM7 7H6V6h1v1Zm1 2h2V6H8v3Zm3 0h2V6h-2v3ZM1 8H0V7h1v1ZM0 6h1V5H0v1Zm1 4H0V9h1v1Z"
+      fill="currentColor"
+    />
+  </svg>
 )
