@@ -206,9 +206,6 @@ module.exports.colorUtilities = {
   '.bg-secondary': {
     'background-color': 'var(--surface-secondary)',
   },
-  '.bg-secondary-hover': {
-    'background-color': 'var(--surface-secondary-hover)',
-  },
   '.bg-tertiary': {
     'background-color': 'var(--surface-tertiary)',
   },
