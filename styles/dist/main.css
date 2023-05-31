@@ -160,6 +160,9 @@
   --surface-hover-rgb: var(--base-neutral-300-rgb);
   --surface-hover: rgb(var(--surface-hover-rgb));
 
+  --surface-hover-secondary-rgb: var(--base-neutral-200-rgb);
+  --surface-hover-secondary: rgb(var(--surface-hover-secondary-rgb));
+
   --surface-raise-rgb: var(--base-neutral-50-rgb);
   --surface-raise: rgb(var(--surface-raise-rgb));
 

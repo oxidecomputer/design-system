@@ -200,6 +200,9 @@ module.exports.colorUtilities = {
   '.bg-hover': {
     'background-color': 'var(--surface-hover)',
   },
+  '.bg-hover-secondary': {
+    'background-color': 'var(--surface-hover-secondary)',
+  },
   '.bg-raise': {
     'background-color': 'var(--surface-raise)',
   },
