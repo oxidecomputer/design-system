@@ -203,9 +203,6 @@ module.exports.colorUtilities = {
   '.bg-raise': {
     'background-color': 'var(--surface-raise)',
   },
-  '.bg-raise-hover': {
-    'background-color': 'var(--surface-raise-hover)',
-  },
   '.bg-secondary': {
     'background-color': 'var(--surface-secondary)',
   },

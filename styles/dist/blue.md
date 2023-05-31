@@ -487,7 +487,6 @@ graph RL
 ```mermaid
 graph RL
   base-neutral-50 --> #101618:::base-neutral-50
-  surface-hover --> base-neutral-50
   surface-raise --> base-neutral-50
   content-inverse-raise --> surface-raise
   chart-fill-inactive --> base-neutral-50
@@ -500,7 +499,6 @@ graph RL
 ```mermaid
 graph RL
   base-neutral-100 --> #141B1D:::base-neutral-100
-  surface-raise-hover --> base-neutral-100
   surface-secondary --> base-neutral-100
   surface-disabled --> base-neutral-100
   content-inverse-secondary --> surface-secondary
@@ -514,7 +512,7 @@ graph RL
 ```mermaid
 graph RL
   base-neutral-200 --> #1C2225:::base-neutral-200
-  surface-secondary-hover --> base-neutral-200
+  surface-hover --> base-neutral-200
   surface-tertiary --> base-neutral-200
   stroke-secondary --> base-neutral-200
   chart-stroke-item-inactive --> base-neutral-200
@@ -527,6 +525,7 @@ graph RL
 ```mermaid
 graph RL
   base-neutral-300 --> #2D3335:::base-neutral-300
+  surface-secondary-hover --> base-neutral-300
   stroke-default --> base-neutral-300
 
 	classDef base-neutral-300 stroke-width:5,stroke:#2D3335
