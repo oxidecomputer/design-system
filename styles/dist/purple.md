@@ -512,7 +512,7 @@ graph RL
 ```mermaid
 graph RL
   base-neutral-200 --> #1C2225:::base-neutral-200
-  surface-hover-secondary --> base-neutral-200
+  surface-hover --> base-neutral-200
   surface-tertiary --> base-neutral-200
   stroke-secondary --> base-neutral-200
   chart-stroke-item-inactive --> base-neutral-200
@@ -525,7 +525,6 @@ graph RL
 ```mermaid
 graph RL
   base-neutral-300 --> #2D3335:::base-neutral-300
-  surface-hover --> base-neutral-300
   stroke-default --> base-neutral-300
 
 	classDef base-neutral-300 stroke-width:5,stroke:#2D3335
