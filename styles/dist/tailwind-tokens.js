@@ -275,6 +275,9 @@ module.exports.colorUtilities = {
   '.border-default': {
     'border-color': 'var(--stroke-default)',
   },
+  '.border-hover': {
+    'border-color': 'var(--stroke-hover)',
+  },
   '.border-secondary': {
     'border-color': 'var(--stroke-secondary)',
   },
@@ -349,6 +352,9 @@ module.exports.colorUtilities = {
   },
   '.border-l-default': {
     'border-left-color': 'var(--stroke-default)',
+  },
+  '.border-l-hover': {
+    'border-left-color': 'var(--stroke-hover)',
   },
   '.border-l-secondary': {
     'border-left-color': 'var(--stroke-secondary)',
@@ -425,6 +431,9 @@ module.exports.colorUtilities = {
   '.border-r-default': {
     'border-right-color': 'var(--stroke-default)',
   },
+  '.border-r-hover': {
+    'border-right-color': 'var(--stroke-hover)',
+  },
   '.border-r-secondary': {
     'border-right-color': 'var(--stroke-secondary)',
   },
@@ -499,6 +508,9 @@ module.exports.colorUtilities = {
   },
   '.border-t-default': {
     'border-top-color': 'var(--stroke-default)',
+  },
+  '.border-t-hover': {
+    'border-top-color': 'var(--stroke-hover)',
   },
   '.border-t-secondary': {
     'border-top-color': 'var(--stroke-secondary)',
@@ -575,6 +587,9 @@ module.exports.colorUtilities = {
   '.border-b-default': {
     'border-bottom-color': 'var(--stroke-default)',
   },
+  '.border-b-hover': {
+    'border-bottom-color': 'var(--stroke-hover)',
+  },
   '.border-b-secondary': {
     'border-bottom-color': 'var(--stroke-secondary)',
   },
@@ -650,6 +665,10 @@ module.exports.colorUtilities = {
   '.border-x-default': {
     'border-left-color': 'var(--stroke-default)',
     'border-right-color': 'var(--stroke-default)',
+  },
+  '.border-x-hover': {
+    'border-left-color': 'var(--stroke-hover)',
+    'border-right-color': 'var(--stroke-hover)',
   },
   '.border-x-secondary': {
     'border-left-color': 'var(--stroke-secondary)',
@@ -751,6 +770,10 @@ module.exports.colorUtilities = {
     'border-top-color': 'var(--stroke-default)',
     'border-bottom-color': 'var(--stroke-default)',
   },
+  '.border-y-hover': {
+    'border-top-color': 'var(--stroke-hover)',
+    'border-bottom-color': 'var(--stroke-hover)',
+  },
   '.border-y-secondary': {
     'border-top-color': 'var(--stroke-secondary)',
     'border-bottom-color': 'var(--stroke-secondary)',
@@ -850,6 +873,9 @@ module.exports.colorUtilities = {
   '.ring-default': {
     '--tw-ring-color': 'var(--stroke-default)',
   },
+  '.ring-hover': {
+    '--tw-ring-color': 'var(--stroke-hover)',
+  },
   '.ring-secondary': {
     '--tw-ring-color': 'var(--stroke-secondary)',
   },
@@ -924,6 +950,9 @@ module.exports.colorUtilities = {
   },
   '.outline-default': {
     'outline-color': 'var(--stroke-default)',
+  },
+  '.outline-hover': {
+    'outline-color': 'var(--stroke-hover)',
   },
   '.outline-secondary': {
     'outline-color': 'var(--stroke-secondary)',
