@@ -170,6 +170,9 @@
   --stroke-default-rgb: var(--base-neutral-300-rgb);
   --stroke-default: rgb(var(--stroke-default-rgb));
 
+  --stroke-hover-rgb: var(--base-neutral-400-rgb);
+  --stroke-hover: rgb(var(--stroke-hover-rgb));
+
   --stroke-secondary-rgb: var(--base-neutral-200-rgb);
   --stroke-secondary: rgb(var(--stroke-secondary-rgb));
 

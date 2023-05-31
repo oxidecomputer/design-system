@@ -535,6 +535,7 @@ graph RL
 ```mermaid
 graph RL
   base-neutral-400 --> #404647:::base-neutral-400
+  stroke-hover --> base-neutral-400
 
 	classDef base-neutral-400 stroke-width:5,stroke:#404647
 ```
