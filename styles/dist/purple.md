@@ -28,6 +28,7 @@ graph RL
 ```mermaid
 graph RL
   base-green-300 --> #1C372E:::base-green-300
+  stroke-success-quaternary --> theme-success-300
   theme-success-300 --> base-green-300
 
 	classDef base-green-300 stroke-width:5,stroke:#1C372E
@@ -118,6 +119,7 @@ graph RL
 graph RL
   base-yellow-300 --> #3D3019:::base-yellow-300
   surface-notice-secondary-hover --> theme-notice-300
+  stroke-notice-quaternary --> theme-notice-300
   theme-notice-300 --> base-yellow-300
 
 	classDef base-yellow-300 stroke-width:5,stroke:#3D3019
@@ -213,6 +215,8 @@ graph RL
 graph RL
   base-red-300 --> #301B1D:::base-red-300
   surface-destructive-secondary-hover --> theme-destructive-300
+  stroke-destructive-quaternary --> theme-destructive-300
+  stroke-error-quaternary --> theme-error-300
   theme-destructive-300 --> base-red-300
   theme-error-300 --> base-red-300
 
@@ -323,6 +327,7 @@ graph RL
 graph RL
   base-purple-300 --> #382D43:::base-purple-300
   surface-accent-secondary-hover --> theme-accent-300
+  stroke-accent-quaternary --> theme-accent-300
   theme-accent-300 --> base-purple-300
 
 	classDef base-purple-300 stroke-width:5,stroke:#382D43
@@ -482,7 +487,6 @@ graph RL
 ```mermaid
 graph RL
   base-neutral-50 --> #101618:::base-neutral-50
-  surface-hover --> base-neutral-50
   surface-raise --> base-neutral-50
   content-inverse-raise --> surface-raise
   chart-fill-inactive --> base-neutral-50
@@ -495,7 +499,6 @@ graph RL
 ```mermaid
 graph RL
   base-neutral-100 --> #141B1D:::base-neutral-100
-  surface-raise-hover --> base-neutral-100
   surface-secondary --> base-neutral-100
   surface-disabled --> base-neutral-100
   content-inverse-secondary --> surface-secondary
@@ -509,7 +512,7 @@ graph RL
 ```mermaid
 graph RL
   base-neutral-200 --> #1C2225:::base-neutral-200
-  surface-secondary-hover --> base-neutral-200
+  surface-hover --> base-neutral-200
   surface-tertiary --> base-neutral-200
   stroke-secondary --> base-neutral-200
   chart-stroke-item-inactive --> base-neutral-200

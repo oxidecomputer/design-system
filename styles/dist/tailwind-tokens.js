@@ -76,8 +76,8 @@ module.exports.textUtilities = {
     'font-family':
       'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
     'font-weight': 400,
-    'line-height': '2.375rem',
-    'font-size': '2rem',
+    'line-height': '2.625rem',
+    'font-size': '2.25rem',
     'letter-spacing': '0.005rem',
   },
   '.text-sans-semi-sm': {
@@ -203,14 +203,8 @@ module.exports.colorUtilities = {
   '.bg-raise': {
     'background-color': 'var(--surface-raise)',
   },
-  '.bg-raise-hover': {
-    'background-color': 'var(--surface-raise-hover)',
-  },
   '.bg-secondary': {
     'background-color': 'var(--surface-secondary)',
-  },
-  '.bg-secondary-hover': {
-    'background-color': 'var(--surface-secondary-hover)',
   },
   '.bg-tertiary': {
     'background-color': 'var(--surface-tertiary)',
@@ -302,6 +296,9 @@ module.exports.colorUtilities = {
   '.border-accent-tertiary': {
     'border-color': 'var(--stroke-accent-tertiary)',
   },
+  '.border-accent-quaternary': {
+    'border-color': 'var(--stroke-accent-quaternary)',
+  },
   '.border-destructive': {
     'border-color': 'var(--stroke-destructive)',
   },
@@ -310,6 +307,9 @@ module.exports.colorUtilities = {
   },
   '.border-destructive-tertiary': {
     'border-color': 'var(--stroke-destructive-tertiary)',
+  },
+  '.border-destructive-quaternary': {
+    'border-color': 'var(--stroke-destructive-quaternary)',
   },
   '.border-success': {
     'border-color': 'var(--stroke-success)',
@@ -320,6 +320,9 @@ module.exports.colorUtilities = {
   '.border-success-tertiary': {
     'border-color': 'var(--stroke-success-tertiary)',
   },
+  '.border-success-quaternary': {
+    'border-color': 'var(--stroke-success-quaternary)',
+  },
   '.border-error': {
     'border-color': 'var(--stroke-error)',
   },
@@ -329,6 +332,9 @@ module.exports.colorUtilities = {
   '.border-error-tertiary': {
     'border-color': 'var(--stroke-error-tertiary)',
   },
+  '.border-error-quaternary': {
+    'border-color': 'var(--stroke-error-quaternary)',
+  },
   '.border-notice': {
     'border-color': 'var(--stroke-notice)',
   },
@@ -337,6 +343,9 @@ module.exports.colorUtilities = {
   },
   '.border-notice-tertiary': {
     'border-color': 'var(--stroke-notice-tertiary)',
+  },
+  '.border-notice-quaternary': {
+    'border-color': 'var(--stroke-notice-quaternary)',
   },
   '.border-l-default': {
     'border-left-color': 'var(--stroke-default)',
@@ -362,6 +371,9 @@ module.exports.colorUtilities = {
   '.border-l-accent-tertiary': {
     'border-left-color': 'var(--stroke-accent-tertiary)',
   },
+  '.border-l-accent-quaternary': {
+    'border-left-color': 'var(--stroke-accent-quaternary)',
+  },
   '.border-l-destructive': {
     'border-left-color': 'var(--stroke-destructive)',
   },
@@ -370,6 +382,9 @@ module.exports.colorUtilities = {
   },
   '.border-l-destructive-tertiary': {
     'border-left-color': 'var(--stroke-destructive-tertiary)',
+  },
+  '.border-l-destructive-quaternary': {
+    'border-left-color': 'var(--stroke-destructive-quaternary)',
   },
   '.border-l-success': {
     'border-left-color': 'var(--stroke-success)',
@@ -380,6 +395,9 @@ module.exports.colorUtilities = {
   '.border-l-success-tertiary': {
     'border-left-color': 'var(--stroke-success-tertiary)',
   },
+  '.border-l-success-quaternary': {
+    'border-left-color': 'var(--stroke-success-quaternary)',
+  },
   '.border-l-error': {
     'border-left-color': 'var(--stroke-error)',
   },
@@ -389,6 +407,9 @@ module.exports.colorUtilities = {
   '.border-l-error-tertiary': {
     'border-left-color': 'var(--stroke-error-tertiary)',
   },
+  '.border-l-error-quaternary': {
+    'border-left-color': 'var(--stroke-error-quaternary)',
+  },
   '.border-l-notice': {
     'border-left-color': 'var(--stroke-notice)',
   },
@@ -397,6 +418,9 @@ module.exports.colorUtilities = {
   },
   '.border-l-notice-tertiary': {
     'border-left-color': 'var(--stroke-notice-tertiary)',
+  },
+  '.border-l-notice-quaternary': {
+    'border-left-color': 'var(--stroke-notice-quaternary)',
   },
   '.border-r-default': {
     'border-right-color': 'var(--stroke-default)',
@@ -422,6 +446,9 @@ module.exports.colorUtilities = {
   '.border-r-accent-tertiary': {
     'border-right-color': 'var(--stroke-accent-tertiary)',
   },
+  '.border-r-accent-quaternary': {
+    'border-right-color': 'var(--stroke-accent-quaternary)',
+  },
   '.border-r-destructive': {
     'border-right-color': 'var(--stroke-destructive)',
   },
@@ -430,6 +457,9 @@ module.exports.colorUtilities = {
   },
   '.border-r-destructive-tertiary': {
     'border-right-color': 'var(--stroke-destructive-tertiary)',
+  },
+  '.border-r-destructive-quaternary': {
+    'border-right-color': 'var(--stroke-destructive-quaternary)',
   },
   '.border-r-success': {
     'border-right-color': 'var(--stroke-success)',
@@ -440,6 +470,9 @@ module.exports.colorUtilities = {
   '.border-r-success-tertiary': {
     'border-right-color': 'var(--stroke-success-tertiary)',
   },
+  '.border-r-success-quaternary': {
+    'border-right-color': 'var(--stroke-success-quaternary)',
+  },
   '.border-r-error': {
     'border-right-color': 'var(--stroke-error)',
   },
@@ -449,6 +482,9 @@ module.exports.colorUtilities = {
   '.border-r-error-tertiary': {
     'border-right-color': 'var(--stroke-error-tertiary)',
   },
+  '.border-r-error-quaternary': {
+    'border-right-color': 'var(--stroke-error-quaternary)',
+  },
   '.border-r-notice': {
     'border-right-color': 'var(--stroke-notice)',
   },
@@ -457,6 +493,9 @@ module.exports.colorUtilities = {
   },
   '.border-r-notice-tertiary': {
     'border-right-color': 'var(--stroke-notice-tertiary)',
+  },
+  '.border-r-notice-quaternary': {
+    'border-right-color': 'var(--stroke-notice-quaternary)',
   },
   '.border-t-default': {
     'border-top-color': 'var(--stroke-default)',
@@ -482,6 +521,9 @@ module.exports.colorUtilities = {
   '.border-t-accent-tertiary': {
     'border-top-color': 'var(--stroke-accent-tertiary)',
   },
+  '.border-t-accent-quaternary': {
+    'border-top-color': 'var(--stroke-accent-quaternary)',
+  },
   '.border-t-destructive': {
     'border-top-color': 'var(--stroke-destructive)',
   },
@@ -490,6 +532,9 @@ module.exports.colorUtilities = {
   },
   '.border-t-destructive-tertiary': {
     'border-top-color': 'var(--stroke-destructive-tertiary)',
+  },
+  '.border-t-destructive-quaternary': {
+    'border-top-color': 'var(--stroke-destructive-quaternary)',
   },
   '.border-t-success': {
     'border-top-color': 'var(--stroke-success)',
@@ -500,6 +545,9 @@ module.exports.colorUtilities = {
   '.border-t-success-tertiary': {
     'border-top-color': 'var(--stroke-success-tertiary)',
   },
+  '.border-t-success-quaternary': {
+    'border-top-color': 'var(--stroke-success-quaternary)',
+  },
   '.border-t-error': {
     'border-top-color': 'var(--stroke-error)',
   },
@@ -509,6 +557,9 @@ module.exports.colorUtilities = {
   '.border-t-error-tertiary': {
     'border-top-color': 'var(--stroke-error-tertiary)',
   },
+  '.border-t-error-quaternary': {
+    'border-top-color': 'var(--stroke-error-quaternary)',
+  },
   '.border-t-notice': {
     'border-top-color': 'var(--stroke-notice)',
   },
@@ -517,6 +568,9 @@ module.exports.colorUtilities = {
   },
   '.border-t-notice-tertiary': {
     'border-top-color': 'var(--stroke-notice-tertiary)',
+  },
+  '.border-t-notice-quaternary': {
+    'border-top-color': 'var(--stroke-notice-quaternary)',
   },
   '.border-b-default': {
     'border-bottom-color': 'var(--stroke-default)',
@@ -542,6 +596,9 @@ module.exports.colorUtilities = {
   '.border-b-accent-tertiary': {
     'border-bottom-color': 'var(--stroke-accent-tertiary)',
   },
+  '.border-b-accent-quaternary': {
+    'border-bottom-color': 'var(--stroke-accent-quaternary)',
+  },
   '.border-b-destructive': {
     'border-bottom-color': 'var(--stroke-destructive)',
   },
@@ -550,6 +607,9 @@ module.exports.colorUtilities = {
   },
   '.border-b-destructive-tertiary': {
     'border-bottom-color': 'var(--stroke-destructive-tertiary)',
+  },
+  '.border-b-destructive-quaternary': {
+    'border-bottom-color': 'var(--stroke-destructive-quaternary)',
   },
   '.border-b-success': {
     'border-bottom-color': 'var(--stroke-success)',
@@ -560,6 +620,9 @@ module.exports.colorUtilities = {
   '.border-b-success-tertiary': {
     'border-bottom-color': 'var(--stroke-success-tertiary)',
   },
+  '.border-b-success-quaternary': {
+    'border-bottom-color': 'var(--stroke-success-quaternary)',
+  },
   '.border-b-error': {
     'border-bottom-color': 'var(--stroke-error)',
   },
@@ -569,6 +632,9 @@ module.exports.colorUtilities = {
   '.border-b-error-tertiary': {
     'border-bottom-color': 'var(--stroke-error-tertiary)',
   },
+  '.border-b-error-quaternary': {
+    'border-bottom-color': 'var(--stroke-error-quaternary)',
+  },
   '.border-b-notice': {
     'border-bottom-color': 'var(--stroke-notice)',
   },
@@ -577,6 +643,9 @@ module.exports.colorUtilities = {
   },
   '.border-b-notice-tertiary': {
     'border-bottom-color': 'var(--stroke-notice-tertiary)',
+  },
+  '.border-b-notice-quaternary': {
+    'border-bottom-color': 'var(--stroke-notice-quaternary)',
   },
   '.border-x-default': {
     'border-left-color': 'var(--stroke-default)',
@@ -610,6 +679,10 @@ module.exports.colorUtilities = {
     'border-left-color': 'var(--stroke-accent-tertiary)',
     'border-right-color': 'var(--stroke-accent-tertiary)',
   },
+  '.border-x-accent-quaternary': {
+    'border-left-color': 'var(--stroke-accent-quaternary)',
+    'border-right-color': 'var(--stroke-accent-quaternary)',
+  },
   '.border-x-destructive': {
     'border-left-color': 'var(--stroke-destructive)',
     'border-right-color': 'var(--stroke-destructive)',
@@ -621,6 +694,10 @@ module.exports.colorUtilities = {
   '.border-x-destructive-tertiary': {
     'border-left-color': 'var(--stroke-destructive-tertiary)',
     'border-right-color': 'var(--stroke-destructive-tertiary)',
+  },
+  '.border-x-destructive-quaternary': {
+    'border-left-color': 'var(--stroke-destructive-quaternary)',
+    'border-right-color': 'var(--stroke-destructive-quaternary)',
   },
   '.border-x-success': {
     'border-left-color': 'var(--stroke-success)',
@@ -634,6 +711,10 @@ module.exports.colorUtilities = {
     'border-left-color': 'var(--stroke-success-tertiary)',
     'border-right-color': 'var(--stroke-success-tertiary)',
   },
+  '.border-x-success-quaternary': {
+    'border-left-color': 'var(--stroke-success-quaternary)',
+    'border-right-color': 'var(--stroke-success-quaternary)',
+  },
   '.border-x-error': {
     'border-left-color': 'var(--stroke-error)',
     'border-right-color': 'var(--stroke-error)',
@@ -646,6 +727,10 @@ module.exports.colorUtilities = {
     'border-left-color': 'var(--stroke-error-tertiary)',
     'border-right-color': 'var(--stroke-error-tertiary)',
   },
+  '.border-x-error-quaternary': {
+    'border-left-color': 'var(--stroke-error-quaternary)',
+    'border-right-color': 'var(--stroke-error-quaternary)',
+  },
   '.border-x-notice': {
     'border-left-color': 'var(--stroke-notice)',
     'border-right-color': 'var(--stroke-notice)',
@@ -657,6 +742,10 @@ module.exports.colorUtilities = {
   '.border-x-notice-tertiary': {
     'border-left-color': 'var(--stroke-notice-tertiary)',
     'border-right-color': 'var(--stroke-notice-tertiary)',
+  },
+  '.border-x-notice-quaternary': {
+    'border-left-color': 'var(--stroke-notice-quaternary)',
+    'border-right-color': 'var(--stroke-notice-quaternary)',
   },
   '.border-y-default': {
     'border-top-color': 'var(--stroke-default)',
@@ -690,6 +779,10 @@ module.exports.colorUtilities = {
     'border-top-color': 'var(--stroke-accent-tertiary)',
     'border-bottom-color': 'var(--stroke-accent-tertiary)',
   },
+  '.border-y-accent-quaternary': {
+    'border-top-color': 'var(--stroke-accent-quaternary)',
+    'border-bottom-color': 'var(--stroke-accent-quaternary)',
+  },
   '.border-y-destructive': {
     'border-top-color': 'var(--stroke-destructive)',
     'border-bottom-color': 'var(--stroke-destructive)',
@@ -701,6 +794,10 @@ module.exports.colorUtilities = {
   '.border-y-destructive-tertiary': {
     'border-top-color': 'var(--stroke-destructive-tertiary)',
     'border-bottom-color': 'var(--stroke-destructive-tertiary)',
+  },
+  '.border-y-destructive-quaternary': {
+    'border-top-color': 'var(--stroke-destructive-quaternary)',
+    'border-bottom-color': 'var(--stroke-destructive-quaternary)',
   },
   '.border-y-success': {
     'border-top-color': 'var(--stroke-success)',
@@ -714,6 +811,10 @@ module.exports.colorUtilities = {
     'border-top-color': 'var(--stroke-success-tertiary)',
     'border-bottom-color': 'var(--stroke-success-tertiary)',
   },
+  '.border-y-success-quaternary': {
+    'border-top-color': 'var(--stroke-success-quaternary)',
+    'border-bottom-color': 'var(--stroke-success-quaternary)',
+  },
   '.border-y-error': {
     'border-top-color': 'var(--stroke-error)',
     'border-bottom-color': 'var(--stroke-error)',
@@ -726,6 +827,10 @@ module.exports.colorUtilities = {
     'border-top-color': 'var(--stroke-error-tertiary)',
     'border-bottom-color': 'var(--stroke-error-tertiary)',
   },
+  '.border-y-error-quaternary': {
+    'border-top-color': 'var(--stroke-error-quaternary)',
+    'border-bottom-color': 'var(--stroke-error-quaternary)',
+  },
   '.border-y-notice': {
     'border-top-color': 'var(--stroke-notice)',
     'border-bottom-color': 'var(--stroke-notice)',
@@ -737,6 +842,10 @@ module.exports.colorUtilities = {
   '.border-y-notice-tertiary': {
     'border-top-color': 'var(--stroke-notice-tertiary)',
     'border-bottom-color': 'var(--stroke-notice-tertiary)',
+  },
+  '.border-y-notice-quaternary': {
+    'border-top-color': 'var(--stroke-notice-quaternary)',
+    'border-bottom-color': 'var(--stroke-notice-quaternary)',
   },
   '.ring-default': {
     '--tw-ring-color': 'var(--stroke-default)',
@@ -762,6 +871,9 @@ module.exports.colorUtilities = {
   '.ring-accent-tertiary': {
     '--tw-ring-color': 'var(--stroke-accent-tertiary)',
   },
+  '.ring-accent-quaternary': {
+    '--tw-ring-color': 'var(--stroke-accent-quaternary)',
+  },
   '.ring-destructive': {
     '--tw-ring-color': 'var(--stroke-destructive)',
   },
@@ -770,6 +882,9 @@ module.exports.colorUtilities = {
   },
   '.ring-destructive-tertiary': {
     '--tw-ring-color': 'var(--stroke-destructive-tertiary)',
+  },
+  '.ring-destructive-quaternary': {
+    '--tw-ring-color': 'var(--stroke-destructive-quaternary)',
   },
   '.ring-success': {
     '--tw-ring-color': 'var(--stroke-success)',
@@ -780,6 +895,9 @@ module.exports.colorUtilities = {
   '.ring-success-tertiary': {
     '--tw-ring-color': 'var(--stroke-success-tertiary)',
   },
+  '.ring-success-quaternary': {
+    '--tw-ring-color': 'var(--stroke-success-quaternary)',
+  },
   '.ring-error': {
     '--tw-ring-color': 'var(--stroke-error)',
   },
@@ -789,6 +907,9 @@ module.exports.colorUtilities = {
   '.ring-error-tertiary': {
     '--tw-ring-color': 'var(--stroke-error-tertiary)',
   },
+  '.ring-error-quaternary': {
+    '--tw-ring-color': 'var(--stroke-error-quaternary)',
+  },
   '.ring-notice': {
     '--tw-ring-color': 'var(--stroke-notice)',
   },
@@ -797,6 +918,9 @@ module.exports.colorUtilities = {
   },
   '.ring-notice-tertiary': {
     '--tw-ring-color': 'var(--stroke-notice-tertiary)',
+  },
+  '.ring-notice-quaternary': {
+    '--tw-ring-color': 'var(--stroke-notice-quaternary)',
   },
   '.outline-default': {
     'outline-color': 'var(--stroke-default)',
@@ -822,6 +946,9 @@ module.exports.colorUtilities = {
   '.outline-accent-tertiary': {
     'outline-color': 'var(--stroke-accent-tertiary)',
   },
+  '.outline-accent-quaternary': {
+    'outline-color': 'var(--stroke-accent-quaternary)',
+  },
   '.outline-destructive': {
     'outline-color': 'var(--stroke-destructive)',
   },
@@ -830,6 +957,9 @@ module.exports.colorUtilities = {
   },
   '.outline-destructive-tertiary': {
     'outline-color': 'var(--stroke-destructive-tertiary)',
+  },
+  '.outline-destructive-quaternary': {
+    'outline-color': 'var(--stroke-destructive-quaternary)',
   },
   '.outline-success': {
     'outline-color': 'var(--stroke-success)',
@@ -840,6 +970,9 @@ module.exports.colorUtilities = {
   '.outline-success-tertiary': {
     'outline-color': 'var(--stroke-success-tertiary)',
   },
+  '.outline-success-quaternary': {
+    'outline-color': 'var(--stroke-success-quaternary)',
+  },
   '.outline-error': {
     'outline-color': 'var(--stroke-error)',
   },
@@ -849,6 +982,9 @@ module.exports.colorUtilities = {
   '.outline-error-tertiary': {
     'outline-color': 'var(--stroke-error-tertiary)',
   },
+  '.outline-error-quaternary': {
+    'outline-color': 'var(--stroke-error-quaternary)',
+  },
   '.outline-notice': {
     'outline-color': 'var(--stroke-notice)',
   },
@@ -857,6 +993,9 @@ module.exports.colorUtilities = {
   },
   '.outline-notice-tertiary': {
     'outline-color': 'var(--stroke-notice-tertiary)',
+  },
+  '.outline-notice-quaternary': {
+    'outline-color': 'var(--stroke-notice-quaternary)',
   },
   '.chart-fill-area-primary': {
     fill: 'var(--chart-fill-area-primary)',
