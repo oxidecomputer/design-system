@@ -80,6 +80,18 @@
   --surface-inverse-tertiary-rgb: var(--content-tertiary-rgb);
   --surface-inverse-tertiary: rgb(var(--surface-inverse-tertiary-rgb));
 
+  --surface-info-rgb: var(--theme-info-800-rgb);
+  --surface-info: rgb(var(--surface-info-rgb));
+
+  --surface-info-hover-rgb: var(--theme-info-700-rgb);
+  --surface-info-hover: rgb(var(--surface-info-hover-rgb));
+
+  --surface-info-secondary-rgb: var(--theme-info-200-rgb);
+  --surface-info-secondary: rgb(var(--surface-info-secondary-rgb));
+
+  --surface-info-secondary-hover-rgb: var(--theme-info-300-rgb);
+  --surface-info-secondary-hover: rgb(var(--surface-info-secondary-hover-rgb));
+
   --content-default-rgb: var(--base-neutral-900-rgb);
   --content-default: rgb(var(--content-default-rgb));
 
@@ -167,6 +179,18 @@
   --content-inverse-secondary-rgb: var(--surface-secondary-rgb);
   --content-inverse-secondary: rgb(var(--content-inverse-secondary-rgb));
 
+  --content-info-rgb: var(--theme-info-800-rgb);
+  --content-info: rgb(var(--content-info-rgb));
+
+  --content-info-secondary-rgb: var(--theme-info-700-rgb);
+  --content-info-secondary: rgb(var(--content-info-secondary-rgb));
+
+  --content-info-tertiary-rgb: var(--theme-info-600-rgb);
+  --content-info-tertiary: rgb(var(--content-info-tertiary-rgb));
+
+  --content-info-disabled-rgb: var(--theme-info-500-rgb);
+  --content-info-disabled: rgb(var(--content-info-disabled-rgb));
+
   --stroke-default-rgb: var(--base-neutral-300-rgb);
   --stroke-default: rgb(var(--stroke-default-rgb));
 
@@ -244,6 +268,18 @@
 
   --stroke-notice-quaternary-rgb: var(--theme-notice-300-rgb);
   --stroke-notice-quaternary: rgb(var(--stroke-notice-quaternary-rgb));
+
+  --stroke-info-rgb: var(--theme-info-800-rgb);
+  --stroke-info: rgb(var(--stroke-info-rgb));
+
+  --stroke-info-secondary-rgb: var(--theme-info-600-rgb);
+  --stroke-info-secondary: rgb(var(--stroke-info-secondary-rgb));
+
+  --stroke-info-tertiary-rgb: var(--theme-info-400-rgb);
+  --stroke-info-tertiary: rgb(var(--stroke-info-tertiary-rgb));
+
+  --stroke-info-quaternary-rgb: var(--theme-info-300-rgb);
+  --stroke-info-quaternary: rgb(var(--stroke-info-quaternary-rgb));
 
   --chart-fill-area-primary: rgba(var(--theme-accent-700-rgb), 0.7019607843137254);
   --chart-fill-area-secondary: rgba(var(--theme-accent-600-rgb), 0.7019607843137254);
@@ -416,4 +452,28 @@
 
   --theme-notice-800-rgb: var(--base-yellow-800-rgb);
   --theme-notice-800: rgb(var(--theme-notice-800-rgb));
+
+  --theme-info-100-rgb: var(--base-blue-100-rgb);
+  --theme-info-100: rgb(var(--theme-info-100-rgb));
+
+  --theme-info-200-rgb: var(--base-blue-200-rgb);
+  --theme-info-200: rgb(var(--theme-info-200-rgb));
+
+  --theme-info-300-rgb: var(--base-blue-300-rgb);
+  --theme-info-300: rgb(var(--theme-info-300-rgb));
+
+  --theme-info-400-rgb: var(--base-blue-400-rgb);
+  --theme-info-400: rgb(var(--theme-info-400-rgb));
+
+  --theme-info-500-rgb: var(--base-blue-500-rgb);
+  --theme-info-500: rgb(var(--theme-info-500-rgb));
+
+  --theme-info-600-rgb: var(--base-blue-600-rgb);
+  --theme-info-600: rgb(var(--theme-info-600-rgb));
+
+  --theme-info-700-rgb: var(--base-blue-700-rgb);
+  --theme-info-700: rgb(var(--theme-info-700-rgb));
+
+  --theme-info-800-rgb: var(--base-blue-800-rgb);
+  --theme-info-800: rgb(var(--theme-info-800-rgb));
 }

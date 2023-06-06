@@ -402,6 +402,7 @@ graph RL
 ```mermaid
 graph RL
   base-blue-100 --> #171821:::base-blue-100
+  theme-info-100 --> base-blue-100
 
 	classDef base-blue-100 stroke-width:5,stroke:#171821
 ```
@@ -411,6 +412,8 @@ graph RL
 ```mermaid
 graph RL
   base-blue-200 --> #1E202D:::base-blue-200
+  surface-info-secondary --> theme-info-200
+  theme-info-200 --> base-blue-200
 
 	classDef base-blue-200 stroke-width:5,stroke:#1E202D
 ```
@@ -420,6 +423,9 @@ graph RL
 ```mermaid
 graph RL
   base-blue-300 --> #2D3048:::base-blue-300
+  surface-info-secondary-hover --> theme-info-300
+  stroke-info-quaternary --> theme-info-300
+  theme-info-300 --> base-blue-300
 
 	classDef base-blue-300 stroke-width:5,stroke:#2D3048
 ```
@@ -429,6 +435,8 @@ graph RL
 ```mermaid
 graph RL
   base-blue-400 --> #3C4366:::base-blue-400
+  stroke-info-tertiary --> theme-info-400
+  theme-info-400 --> base-blue-400
 
 	classDef base-blue-400 stroke-width:5,stroke:#3C4366
 ```
@@ -438,6 +446,8 @@ graph RL
 ```mermaid
 graph RL
   base-blue-500 --> #515B8F:::base-blue-500
+  content-info-disabled --> theme-info-500
+  theme-info-500 --> base-blue-500
 
 	classDef base-blue-500 stroke-width:5,stroke:#515B8F
 ```
@@ -447,7 +457,10 @@ graph RL
 ```mermaid
 graph RL
   base-blue-600 --> #6776BB:::base-blue-600
+  content-info-tertiary --> theme-info-600
+  stroke-info-secondary --> theme-info-600
   chart-stroke-line-quaternary --> base-blue-600
+  theme-info-600 --> base-blue-600
 
 	classDef base-blue-600 stroke-width:5,stroke:#6776BB
 ```
@@ -457,6 +470,9 @@ graph RL
 ```mermaid
 graph RL
   base-blue-700 --> #788ADD:::base-blue-700
+  surface-info-hover --> theme-info-700
+  content-info-secondary --> theme-info-700
+  theme-info-700 --> base-blue-700
 
 	classDef base-blue-700 stroke-width:5,stroke:#788ADD
 ```
@@ -466,6 +482,10 @@ graph RL
 ```mermaid
 graph RL
   base-blue-800 --> #8BA1FF:::base-blue-800
+  surface-info --> theme-info-800
+  content-info --> theme-info-800
+  stroke-info --> theme-info-800
+  theme-info-800 --> base-blue-800
 
 	classDef base-blue-800 stroke-width:5,stroke:#8BA1FF
 ```
