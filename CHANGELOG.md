@@ -1,3 +1,16 @@
+# v0.10.0 (Tue Jun 06 2023)
+
+#### 🚀 Enhancement
+
+- Autogenerate themes from new tokens [#30](https://github.com/oxidecomputer/design-system/pull/30) ([@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### Authors: 2
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v0.9.1 (Wed May 31 2023)
 
 #### 🐛 Bug Fix
