@@ -194,6 +194,18 @@ module.exports.colorUtilities = {
   '.text-inverse-secondary': {
     color: 'var(--content-inverse-secondary)',
   },
+  '.text-info': {
+    color: 'var(--content-info)',
+  },
+  '.text-info-secondary': {
+    color: 'var(--content-info-secondary)',
+  },
+  '.text-info-tertiary': {
+    color: 'var(--content-info-tertiary)',
+  },
+  '.text-info-disabled': {
+    color: 'var(--content-info-disabled)',
+  },
   '.bg-default': {
     'background-color': 'var(--surface-default)',
   },
@@ -271,6 +283,18 @@ module.exports.colorUtilities = {
   },
   '.bg-inverse-tertiary': {
     'background-color': 'var(--surface-inverse-tertiary)',
+  },
+  '.bg-info': {
+    'background-color': 'var(--surface-info)',
+  },
+  '.bg-info-hover': {
+    'background-color': 'var(--surface-info-hover)',
+  },
+  '.bg-info-secondary': {
+    'background-color': 'var(--surface-info-secondary)',
+  },
+  '.bg-info-secondary-hover': {
+    'background-color': 'var(--surface-info-secondary-hover)',
   },
   '.border-default': {
     'border-color': 'var(--stroke-default)',
@@ -350,6 +374,18 @@ module.exports.colorUtilities = {
   '.border-notice-quaternary': {
     'border-color': 'var(--stroke-notice-quaternary)',
   },
+  '.border-info': {
+    'border-color': 'var(--stroke-info)',
+  },
+  '.border-info-secondary': {
+    'border-color': 'var(--stroke-info-secondary)',
+  },
+  '.border-info-tertiary': {
+    'border-color': 'var(--stroke-info-tertiary)',
+  },
+  '.border-info-quaternary': {
+    'border-color': 'var(--stroke-info-quaternary)',
+  },
   '.border-l-default': {
     'border-left-color': 'var(--stroke-default)',
   },
@@ -427,6 +463,18 @@ module.exports.colorUtilities = {
   },
   '.border-l-notice-quaternary': {
     'border-left-color': 'var(--stroke-notice-quaternary)',
+  },
+  '.border-l-info': {
+    'border-left-color': 'var(--stroke-info)',
+  },
+  '.border-l-info-secondary': {
+    'border-left-color': 'var(--stroke-info-secondary)',
+  },
+  '.border-l-info-tertiary': {
+    'border-left-color': 'var(--stroke-info-tertiary)',
+  },
+  '.border-l-info-quaternary': {
+    'border-left-color': 'var(--stroke-info-quaternary)',
   },
   '.border-r-default': {
     'border-right-color': 'var(--stroke-default)',
@@ -506,6 +554,18 @@ module.exports.colorUtilities = {
   '.border-r-notice-quaternary': {
     'border-right-color': 'var(--stroke-notice-quaternary)',
   },
+  '.border-r-info': {
+    'border-right-color': 'var(--stroke-info)',
+  },
+  '.border-r-info-secondary': {
+    'border-right-color': 'var(--stroke-info-secondary)',
+  },
+  '.border-r-info-tertiary': {
+    'border-right-color': 'var(--stroke-info-tertiary)',
+  },
+  '.border-r-info-quaternary': {
+    'border-right-color': 'var(--stroke-info-quaternary)',
+  },
   '.border-t-default': {
     'border-top-color': 'var(--stroke-default)',
   },
@@ -584,6 +644,18 @@ module.exports.colorUtilities = {
   '.border-t-notice-quaternary': {
     'border-top-color': 'var(--stroke-notice-quaternary)',
   },
+  '.border-t-info': {
+    'border-top-color': 'var(--stroke-info)',
+  },
+  '.border-t-info-secondary': {
+    'border-top-color': 'var(--stroke-info-secondary)',
+  },
+  '.border-t-info-tertiary': {
+    'border-top-color': 'var(--stroke-info-tertiary)',
+  },
+  '.border-t-info-quaternary': {
+    'border-top-color': 'var(--stroke-info-quaternary)',
+  },
   '.border-b-default': {
     'border-bottom-color': 'var(--stroke-default)',
   },
@@ -661,6 +733,18 @@ module.exports.colorUtilities = {
   },
   '.border-b-notice-quaternary': {
     'border-bottom-color': 'var(--stroke-notice-quaternary)',
+  },
+  '.border-b-info': {
+    'border-bottom-color': 'var(--stroke-info)',
+  },
+  '.border-b-info-secondary': {
+    'border-bottom-color': 'var(--stroke-info-secondary)',
+  },
+  '.border-b-info-tertiary': {
+    'border-bottom-color': 'var(--stroke-info-tertiary)',
+  },
+  '.border-b-info-quaternary': {
+    'border-bottom-color': 'var(--stroke-info-quaternary)',
   },
   '.border-x-default': {
     'border-left-color': 'var(--stroke-default)',
@@ -766,6 +850,22 @@ module.exports.colorUtilities = {
     'border-left-color': 'var(--stroke-notice-quaternary)',
     'border-right-color': 'var(--stroke-notice-quaternary)',
   },
+  '.border-x-info': {
+    'border-left-color': 'var(--stroke-info)',
+    'border-right-color': 'var(--stroke-info)',
+  },
+  '.border-x-info-secondary': {
+    'border-left-color': 'var(--stroke-info-secondary)',
+    'border-right-color': 'var(--stroke-info-secondary)',
+  },
+  '.border-x-info-tertiary': {
+    'border-left-color': 'var(--stroke-info-tertiary)',
+    'border-right-color': 'var(--stroke-info-tertiary)',
+  },
+  '.border-x-info-quaternary': {
+    'border-left-color': 'var(--stroke-info-quaternary)',
+    'border-right-color': 'var(--stroke-info-quaternary)',
+  },
   '.border-y-default': {
     'border-top-color': 'var(--stroke-default)',
     'border-bottom-color': 'var(--stroke-default)',
@@ -870,6 +970,22 @@ module.exports.colorUtilities = {
     'border-top-color': 'var(--stroke-notice-quaternary)',
     'border-bottom-color': 'var(--stroke-notice-quaternary)',
   },
+  '.border-y-info': {
+    'border-top-color': 'var(--stroke-info)',
+    'border-bottom-color': 'var(--stroke-info)',
+  },
+  '.border-y-info-secondary': {
+    'border-top-color': 'var(--stroke-info-secondary)',
+    'border-bottom-color': 'var(--stroke-info-secondary)',
+  },
+  '.border-y-info-tertiary': {
+    'border-top-color': 'var(--stroke-info-tertiary)',
+    'border-bottom-color': 'var(--stroke-info-tertiary)',
+  },
+  '.border-y-info-quaternary': {
+    'border-top-color': 'var(--stroke-info-quaternary)',
+    'border-bottom-color': 'var(--stroke-info-quaternary)',
+  },
   '.ring-default': {
     '--tw-ring-color': 'var(--stroke-default)',
   },
@@ -948,6 +1064,18 @@ module.exports.colorUtilities = {
   '.ring-notice-quaternary': {
     '--tw-ring-color': 'var(--stroke-notice-quaternary)',
   },
+  '.ring-info': {
+    '--tw-ring-color': 'var(--stroke-info)',
+  },
+  '.ring-info-secondary': {
+    '--tw-ring-color': 'var(--stroke-info-secondary)',
+  },
+  '.ring-info-tertiary': {
+    '--tw-ring-color': 'var(--stroke-info-tertiary)',
+  },
+  '.ring-info-quaternary': {
+    '--tw-ring-color': 'var(--stroke-info-quaternary)',
+  },
   '.outline-default': {
     'outline-color': 'var(--stroke-default)',
   },
@@ -1025,6 +1153,18 @@ module.exports.colorUtilities = {
   },
   '.outline-notice-quaternary': {
     'outline-color': 'var(--stroke-notice-quaternary)',
+  },
+  '.outline-info': {
+    'outline-color': 'var(--stroke-info)',
+  },
+  '.outline-info-secondary': {
+    'outline-color': 'var(--stroke-info-secondary)',
+  },
+  '.outline-info-tertiary': {
+    'outline-color': 'var(--stroke-info-tertiary)',
+  },
+  '.outline-info-quaternary': {
+    'outline-color': 'var(--stroke-info-quaternary)',
   },
   '.chart-fill-area-primary': {
     fill: 'var(--chart-fill-area-primary)',
