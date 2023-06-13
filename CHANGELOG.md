@@ -1,3 +1,15 @@
+# v0.10.1 (Tue Jun 13 2023)
+
+#### 🐛 Bug Fix
+
+- Fix comments breaking a class [#31](https://github.com/oxidecomputer/design-system/pull/31) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v0.10.0 (Tue Jun 06 2023)
 
 #### 🚀 Enhancement
