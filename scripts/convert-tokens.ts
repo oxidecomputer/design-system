@@ -190,13 +190,14 @@ const makeColorUtility = (
     colors
       .filter((color) => color.name.startsWith(tokenPrefix))
       .map(
-        (color) => `
-				'${
+        (color) => `${
           (color.original.description &&
             // FIXME: Remove replace once https://github.com/tailwindlabs/tailwindcss/issues/7420 is fixed
-            `/* ${color.original.description.trim()} */ \\n`.replace(/,/g, ';')) ||
+            `
+            /* ${color.original.description.trim()} */
+            `.replace(/,/g, ';')) ||
           ''
-        }.${color.name.replace(tokenPrefix, classPrefix)}': {
+        }'.${color.name.replace(tokenPrefix, classPrefix)}': {
 					${properties.map((prop) => `'${prop}': 'var(--${color.name})'`)}
 				}`,
       )
