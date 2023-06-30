@@ -60,7 +60,7 @@ module.exports.textUtilities = {
     'font-family':
       'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
     'font-weight': 400,
-    'line-height': '1.75rem',
+    'line-height': '1.625rem',
     'font-size': '1.125rem',
     'letter-spacing': '0.02rem',
   },
@@ -103,6 +103,14 @@ module.exports.textUtilities = {
     'line-height': '1.5rem',
     'font-size': '1rem',
     'letter-spacing': '0.03rem',
+  },
+  '.text-sans-semi-xl': {
+    'font-family':
+      'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
+    'font-weight': 400,
+    'line-height': '1.625rem',
+    'font-size': '1.125rem',
+    'letter-spacing': '0.02rem',
   },
 }
 
