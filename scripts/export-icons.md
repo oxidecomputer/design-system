@@ -42,6 +42,9 @@ for (let icon of icons) {
 
 ## Create the icons type file
 
+Making a type which is a union of all the icon names and sizes. That way we can check
+whether the user is specifying a valid combination in the icon component
+
 ```js
 const iconMap = {}
 
@@ -70,45 +73,9 @@ fs.writeFileSync('./icons/index.ts', contents)
 
 ## Create the SVG sprite
 
+Create the SVG sprite. It's a combination of all the SVGs. In the future we might consider
+splitting this up if the file gets too large.
+
 ```sh
 svg-sprite --symbol --symbol-dest=icons --symbol-sprite=sprite.svg icons/*.svg
-```
-
-```js
-const SVGSpriter = require('svg-sprite')
-
-// Create spriter instance (see below for `config` examples)
-const spriter = new SVGSpriter({
-  mode: {
-    symbol: true,
-  },
-})
-
-// Define the folder path that contains your SVGs
-const svgFolderPath = 'icons'
-
-// Use fs.readdirSync to get an array of filenames in the folder
-const svgFiles = fs.readdirSync(svgFolderPath)
-
-// Loop through each file and add it to the spriter
-for (const svgFile of svgFiles) {
-  // Ensure that we only process SVG files
-  if (path.extname(svgFile) === '.svg') {
-    const svgPath = path.join(svgFolderPath, svgFile)
-    const svg = fs.readFileSync(svgPath, 'utf-8')
-    spriter.add(svgPath, null, svg)
-  }
-}
-
-// Compile the sprite
-spriter.compile((error, result) => {
-  if (error) {
-    console.error('Compilation error:', error)
-    return
-  }
-
-  const moduleContents = `export default \`${result.symbol.sprite.contents.toString()}\`;`
-
-  fs.writeFileSync(path.join(svgFolderPath, 'sprite.ts'), moduleContents)
-})
 ```
