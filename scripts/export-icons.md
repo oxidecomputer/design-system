@@ -40,8 +40,75 @@ for (let icon of icons) {
 }
 ```
 
-## Format the output
+## Create the icons type file
+
+```js
+const iconMap = {}
+
+for (let icon of icons) {
+  let iconName = path.basename(icon, '.svg')
+  let nameParts = iconName.split('-')
+  let size = parseInt(nameParts.pop())
+
+  if (iconMap[nameParts.join('-')]) {
+    iconMap[nameParts.join('-')].push(size)
+  } else {
+    iconMap[nameParts.join('-')] = [size]
+  }
+}
+
+let contents = 'export type Icon = \n'
+
+for (let icon in iconMap) {
+  for (let size of iconMap[icon]) {
+    contents += `| { name: '${icon}', size: ${size} }\n`
+  }
+}
+
+fs.writeFileSync('./icons/index.ts', contents)
+```
+
+## Create the SVG sprite
 
 ```sh
-npm run fmt .
+svg-sprite --symbol --symbol-dest=icons --symbol-sprite=sprite.svg icons/*.svg
+```
+
+```js
+const SVGSpriter = require('svg-sprite')
+
+// Create spriter instance (see below for `config` examples)
+const spriter = new SVGSpriter({
+  mode: {
+    symbol: true,
+  },
+})
+
+// Define the folder path that contains your SVGs
+const svgFolderPath = 'icons'
+
+// Use fs.readdirSync to get an array of filenames in the folder
+const svgFiles = fs.readdirSync(svgFolderPath)
+
+// Loop through each file and add it to the spriter
+for (const svgFile of svgFiles) {
+  // Ensure that we only process SVG files
+  if (path.extname(svgFile) === '.svg') {
+    const svgPath = path.join(svgFolderPath, svgFile)
+    const svg = fs.readFileSync(svgPath, 'utf-8')
+    spriter.add(svgPath, null, svg)
+  }
+}
+
+// Compile the sprite
+spriter.compile((error, result) => {
+  if (error) {
+    console.error('Compilation error:', error)
+    return
+  }
+
+  const moduleContents = `export default \`${result.symbol.sprite.contents.toString()}\`;`
+
+  fs.writeFileSync(path.join(svgFolderPath, 'sprite.ts'), moduleContents)
+})
 ```
