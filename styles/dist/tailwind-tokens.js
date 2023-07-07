@@ -80,6 +80,14 @@ module.exports.textUtilities = {
     'font-size': '2.25rem',
     'letter-spacing': '0.005rem',
   },
+  '.text-sans-4xl': {
+    'font-family':
+      'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
+    'font-weight': 400,
+    'line-height': '3.25rem',
+    'font-size': '3.625rem',
+    'letter-spacing': '-0.01rem',
+  },
   '.text-sans-semi-sm': {
     'font-family':
       'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
@@ -1263,5 +1271,6 @@ module.exports.borderRadiusTokens = {
   sm: 'var(--border-radius-sm)',
   DEFAULT: 'var(--border-radius)',
   lg: 'var(--border-radius-lg)',
+  xl: 'var(--border-radius-xl)',
   full: 'var(--border-radius-full)',
 }
