@@ -60,7 +60,7 @@ module.exports.textUtilities = {
     'font-family':
       'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
     'font-weight': 400,
-    'line-height': '1.75rem',
+    'line-height': '1.625rem',
     'font-size': '1.125rem',
     'letter-spacing': '0.02rem',
   },
@@ -79,6 +79,14 @@ module.exports.textUtilities = {
     'line-height': '2.625rem',
     'font-size': '2.25rem',
     'letter-spacing': '0.005rem',
+  },
+  '.text-sans-4xl': {
+    'font-family':
+      'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
+    'font-weight': 400,
+    'line-height': '3.25rem',
+    'font-size': '3.625rem',
+    'letter-spacing': '-0.01rem',
   },
   '.text-sans-semi-sm': {
     'font-family':
@@ -103,6 +111,14 @@ module.exports.textUtilities = {
     'line-height': '1.5rem',
     'font-size': '1rem',
     'letter-spacing': '0.03rem',
+  },
+  '.text-sans-semi-xl': {
+    'font-family':
+      'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
+    'font-weight': 400,
+    'line-height': '1.625rem',
+    'font-size': '1.125rem',
+    'letter-spacing': '0.02rem',
   },
 }
 
@@ -1265,5 +1281,6 @@ module.exports.borderRadiusTokens = {
   sm: 'var(--border-radius-sm)',
   DEFAULT: 'var(--border-radius)',
   lg: 'var(--border-radius-lg)',
+  xl: 'var(--border-radius-xl)',
   full: 'var(--border-radius-full)',
 }
