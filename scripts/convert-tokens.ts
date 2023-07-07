@@ -261,17 +261,8 @@ StyleDictionary.registerFormat({
           .map(
             ({ name }, index) =>
               `'.elevation-${index}': {
-            'box-shadow': 'var(--${name})',
-            'background-color': '${
-              index === 0
-                ? 'var(--surface-default)'
-                : index === 1
-                ? '' // Elements like buttons that sit right on top of a surface that have their own background color
-                : index === 2
-                ? 'var(--surface-raise)'
-                : 'var(--surface-secondary)'
-            }',
-          }`,
+                'box-shadow': 'var(--${name})',
+              }`,
           )
           .join(',\n')}
       }

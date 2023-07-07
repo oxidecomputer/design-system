@@ -1261,19 +1261,15 @@ module.exports.colorUtilities = {
 module.exports.elevationUtilities = {
   '.elevation-0': {
     'box-shadow': 'var(--elevation-0)',
-    'background-color': 'var(--surface-default)',
   },
   '.elevation-1': {
     'box-shadow': 'var(--elevation-1)',
-    'background-color': '',
   },
   '.elevation-2': {
     'box-shadow': 'var(--elevation-2)',
-    'background-color': 'var(--surface-raise)',
   },
   '.elevation-3': {
     'box-shadow': 'var(--elevation-3)',
-    'background-color': 'var(--surface-secondary)',
   },
 }
 
