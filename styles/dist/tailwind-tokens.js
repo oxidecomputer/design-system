@@ -91,7 +91,7 @@ module.exports.textUtilities = {
   '.text-sans-semi-sm': {
     'font-family':
       'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
-    'font-weight': 400,
+    'font-weight': 500,
     'line-height': '1rem',
     'font-size': '0.75rem',
     'letter-spacing': '0.04rem',
@@ -99,7 +99,7 @@ module.exports.textUtilities = {
   '.text-sans-semi-md': {
     'font-family':
       'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
-    'font-weight': 400,
+    'font-weight': 500,
     'line-height': '1.125rem',
     'font-size': '0.875rem',
     'letter-spacing': '0.04rem',
@@ -107,7 +107,7 @@ module.exports.textUtilities = {
   '.text-sans-semi-lg': {
     'font-family':
       'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
-    'font-weight': 400,
+    'font-weight': 500,
     'line-height': '1.5rem',
     'font-size': '1rem',
     'letter-spacing': '0.03rem',
@@ -115,7 +115,7 @@ module.exports.textUtilities = {
   '.text-sans-semi-xl': {
     'font-family':
       'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
-    'font-weight': 400,
+    'font-weight': 500,
     'line-height': '1.625rem',
     'font-size': '1.125rem',
     'letter-spacing': '0.02rem',

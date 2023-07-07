@@ -72,7 +72,7 @@ const formatTypographyStyles = (name: string, value: any) => {
       const weight = value.toLowerCase()
       if (weight.includes('light')) {
         return [name, 300]
-      } else if (weight.includes('book')) {
+      } else if (weight.includes('medium')) {
         return [name, 500]
       } else {
         return [name, 400]
@@ -368,14 +368,6 @@ StyleDictionary.registerTransform({
 })
 
 StyleDictionary.registerTransform({
-  name: 'name/size-convert',
-  type: 'name',
-  transformer(token) {
-    return token.name.replace('large', 'lg').replace('small', 'sm').replace('medium', 'md')
-  },
-})
-
-StyleDictionary.registerTransform({
   name: 'attribute/reference',
   type: 'attribute',
   matcher: (token) => token.original.type === 'color',
@@ -414,7 +406,6 @@ const makeConfig = (theme: typeof THEMES[number]) => {
           'attribute/cti',
           'name/cti/kebab',
           'name/strip-default',
-          'name/size-convert',
           'attribute/reference',
           'attribute/alpha',
           'pxToRem',
