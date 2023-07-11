@@ -84,8 +84,8 @@ module.exports.textUtilities = {
     'font-family':
       'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
     'font-weight': 400,
-    'line-height': '3.25rem',
-    'font-size': '3.625rem',
+    'line-height': '3.625rem',
+    'font-size': '3.25rem',
     'letter-spacing': '-0.01rem',
   },
   '.text-sans-semi-sm': {
