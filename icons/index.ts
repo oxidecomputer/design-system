@@ -141,6 +141,7 @@ export type Icon =
 | { name: 'terminal', size: 16 }
 | { name: 'terminal', size: 24 }
 | { name: 'time', size: 16 }
+| { name: 'transmit', size: 16 }
 | { name: 'transmit', size: 24 }
 | { name: 'unauthorized', size: 12 }
 | { name: 'warning', size: 12 }
