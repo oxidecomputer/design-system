@@ -58740,7 +58740,7 @@ var require_lib10 = __commonJS({
 // components/src/index.ts
 var src_exports = {};
 __export(src_exports, {
-  AsciiDoc: () => AsciiDoc,
+  AsciiDocBlocks: () => AsciiDocBlocks,
   Icon: () => Icon
 });
 module.exports = __toCommonJS(src_exports);
@@ -58754,10 +58754,6 @@ var Icon = ({ name, size, ...props }) => {
 };
 
 // components/src/AsciiDoc/Admonition.tsx
-var Admonition_exports = {};
-__export(Admonition_exports, {
-  default: () => Admonition_default
-});
 var import_react_asciidoc = require("@oxide/react-asciidoc");
 
 // node_modules/html-react-parser/index.mjs
@@ -58843,10 +58839,6 @@ var Warning12 = ({ className }) => /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
 var Admonition_default = Admonition;
 
 // components/src/AsciiDoc/Listing.tsx
-var Listing_exports = {};
-__export(Listing_exports, {
-  default: () => Listing_default
-});
 var import_react_asciidoc2 = require("@oxide/react-asciidoc");
 var import_classnames = __toESM(require_classnames());
 
@@ -58886,35 +58878,27 @@ var Listing = ({ node }) => {
 var Listing_default = Listing;
 
 // components/src/AsciiDoc/MinimalDocument.tsx
-var MinimalDocument_exports = {};
-__export(MinimalDocument_exports, {
-  default: () => MinimalDocument_default
-});
 var import_react_asciidoc3 = require("@oxide/react-asciidoc");
 var import_jsx_runtime4 = require("react/jsx-runtime");
 var MinimalDocument = ({ document: document2 }) => /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { id: "content", className: "asciidoc-body w-full", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(import_react_asciidoc3.Content, { blocks: document2.getBlocks() }) });
 var MinimalDocument_default = MinimalDocument;
 
 // components/src/AsciiDoc/Table.tsx
-var Table_exports = {};
-__export(Table_exports, {
-  default: () => Table_default
-});
 var import_react_asciidoc4 = require("@oxide/react-asciidoc");
 var import_jsx_runtime5 = require("react/jsx-runtime");
 var Table = ({ node }) => /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("div", { className: "table-wrapper", children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(import_react_asciidoc4.Table, { node }) });
 var Table_default = Table;
 
 // components/src/AsciiDoc/index.ts
-var AsciiDoc = {
-  Admonition: Admonition_exports,
-  Listing: Listing_exports,
-  Table: Table_exports,
-  MinimalDocument: MinimalDocument_exports
+var AsciiDocBlocks = {
+  Admonition: Admonition_default,
+  Listing: Listing_default,
+  Table: Table_default,
+  MinimalDocument: MinimalDocument_default
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
-  AsciiDoc,
+  AsciiDocBlocks,
   Icon
 });
 /*! Bundled license information:

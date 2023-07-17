@@ -1,5 +1,5 @@
 import * as react_jsx_runtime from 'react/jsx-runtime';
-import { AdocTypes } from '@oxide/react-asciidoc';
+import * as _asciidoctor_core_types from '@asciidoctor/core/types';
 
 type Icon$1 = {
     name: 'access';
@@ -449,51 +449,19 @@ type IconProps = Icon$1 & {
 };
 declare const Icon: ({ name, size, ...props }: IconProps) => react_jsx_runtime.JSX.Element;
 
-declare const Admonition: ({ node }: {
-    node: AdocTypes.Block;
-}) => react_jsx_runtime.JSX.Element;
-
-declare namespace Admonition$1 {
-  export {
-    Admonition as default,
-  };
-}
-
-declare const Listing: ({ node }: {
-    node: AdocTypes.Block;
-}) => react_jsx_runtime.JSX.Element;
-
-declare namespace Listing$1 {
-  export {
-    Listing as default,
-  };
-}
-
-declare const MinimalDocument: ({ document }: {
-    document: AdocTypes.Document;
-}) => react_jsx_runtime.JSX.Element;
-
-declare namespace MinimalDocument$1 {
-  export {
-    MinimalDocument as default,
-  };
-}
-
-declare const Table: ({ node }: {
-    node: AdocTypes.Table;
-}) => react_jsx_runtime.JSX.Element;
-
-declare namespace Table$1 {
-  export {
-    Table as default,
-  };
-}
-
-declare const AsciiDoc: {
-    Admonition: typeof Admonition$1;
-    Listing: typeof Listing$1;
-    Table: typeof Table$1;
-    MinimalDocument: typeof MinimalDocument$1;
+declare const AsciiDocBlocks: {
+    Admonition: ({ node }: {
+        node: _asciidoctor_core_types.Block;
+    }) => react_jsx_runtime.JSX.Element;
+    Listing: ({ node }: {
+        node: _asciidoctor_core_types.Block;
+    }) => react_jsx_runtime.JSX.Element;
+    Table: ({ node }: {
+        node: _asciidoctor_core_types.Table;
+    }) => react_jsx_runtime.JSX.Element;
+    MinimalDocument: ({ document }: {
+        document: _asciidoctor_core_types.Document;
+    }) => react_jsx_runtime.JSX.Element;
 };
 
-export { AsciiDoc, Icon };
+export { AsciiDocBlocks, Icon };

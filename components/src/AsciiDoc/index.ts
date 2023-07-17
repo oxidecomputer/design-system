@@ -1,9 +1,9 @@
-import * as Admonition from './Admonition'
-import * as Listing from './Listing'
-import * as MinimalDocument from './MinimalDocument'
-import * as Table from './Table'
+import Admonition from './Admonition'
+import Listing from './Listing'
+import MinimalDocument from './MinimalDocument'
+import Table from './Table'
 
-export const AsciiDoc = {
+export const AsciiDocBlocks = {
   Admonition,
   Listing,
   Table,
