@@ -68,5 +68,8 @@
   },
   "peerDependencies": {
     "@oxide/react-asciidoc": "^0.1.0"
+  },
+  "dependencies": {
+    "@radix-ui/react-tabs": "^1.0.4"
   }
 }
