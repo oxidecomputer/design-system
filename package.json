@@ -11,8 +11,7 @@
     "build:components": "tsup --dts",
     "release": "auto shipit",
     "lint": "eslint --ext .js,.ts,.tsx,.json .",
-    "fmt": "prettier --cache --write . && npm run lint -- --fix",
-    "prepublish": "npm run build"
+    "fmt": "prettier --cache --write . && npm run lint -- --fix"
   },
   "author": "Oxide Computer Company <bots@oxidecomputer.com>",
   "license": "MPL 2.0",
