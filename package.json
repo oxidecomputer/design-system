@@ -66,5 +66,7 @@
     "registry": "https://registry.npmjs.org/",
     "access": "public"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@oxide/react-asciidoc": "^0.1.0"
+  }
 }
