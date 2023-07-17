@@ -2,7 +2,7 @@
   "name": "@oxide/design-system",
   "version": "0.11.0",
   "description": "Home of reusable design assets and token for oxide internal sites",
-  "main": "index.js",
+  "main": "components/dist/index.js",
   "scripts": {
     "export-icons": "npx zx ./scripts/export-icons.md",
     "build": "run-s build:*",
@@ -11,7 +11,8 @@
     "build:components": "tsup --dts",
     "release": "auto shipit",
     "lint": "eslint --ext .js,.ts,.tsx,.json .",
-    "fmt": "prettier --cache --write . && npm run lint -- --fix"
+    "fmt": "prettier --cache --write . && npm run lint -- --fix",
+    "prepublish": "npm run build"
   },
   "author": "Oxide Computer Company <bots@oxidecomputer.com>",
   "license": "MPL 2.0",
