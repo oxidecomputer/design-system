@@ -11,9 +11,6 @@ const Listing = ({ node }: { node: AdocTypes.Block }) => {
   if (node.getStyle() === 'source') {
     const lang = attrs.language
 
-    // console.log(node.applySubstitutions(node.getSource(), ['callouts']))
-    // console.log(node.getSource())
-
     return (
       <div className="listingblock">
         <CaptionedTitle node={node} />

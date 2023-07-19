@@ -15,9 +15,6 @@ declare const AsciiDocBlocks: {
     Table: ({ node }: {
         node: _asciidoctor_core_types.Table;
     }) => react_jsx_runtime.JSX.Element;
-    MinimalDocument: ({ document }: {
-        document: _asciidoctor_core_types.Document;
-    }) => react_jsx_runtime.JSX.Element;
 };
 
 type BadgeColor = 'default' | 'destructive' | 'notice' | 'neutral' | 'purple' | 'blue';

@@ -58879,29 +58879,22 @@ var Listing = ({ node }) => {
 };
 var Listing_default = Listing;
 
-// components/src/asciidoc/MinimalDocument.tsx
+// components/src/asciidoc/Table.tsx
 var import_react_asciidoc3 = require("@oxide/react-asciidoc");
 var import_jsx_runtime3 = require("react/jsx-runtime");
-var MinimalDocument = ({ document: document2 }) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { id: "content", className: "asciidoc-body w-full", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_react_asciidoc3.Content, { blocks: document2.getBlocks() }) });
-var MinimalDocument_default = MinimalDocument;
-
-// components/src/asciidoc/Table.tsx
-var import_react_asciidoc4 = require("@oxide/react-asciidoc");
-var import_jsx_runtime4 = require("react/jsx-runtime");
-var Table = ({ node }) => /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("div", { className: "table-wrapper", children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(import_react_asciidoc4.Table, { node }) });
+var Table = ({ node }) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "table-wrapper", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_react_asciidoc3.Table, { node }) });
 var Table_default = Table;
 
 // components/src/asciidoc/index.ts
 var AsciiDocBlocks = {
   Admonition: Admonition_default,
   Listing: Listing_default,
-  Table: Table_default,
-  MinimalDocument: MinimalDocument_default
+  Table: Table_default
 };
 
 // components/src/ui/badge/Badge.tsx
 var import_classnames2 = __toESM(require_classnames());
-var import_jsx_runtime5 = require("react/jsx-runtime");
+var import_jsx_runtime4 = require("react/jsx-runtime");
 var badgeColors = {
   default: {
     default: `ring-1 ring-inset bg-accent-secondary text-accent ring-[rgba(var(--base-green-800-rgb),0.15)]`,
@@ -58926,7 +58919,7 @@ var Badge = ({
   color = "default",
   variant = "default"
 }) => {
-  return /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
     "span",
     {
       className: (0, import_classnames2.default)(
@@ -58936,7 +58929,7 @@ var Badge = ({
         badgeColors[variant][color],
         className
       ),
-      children: /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { children })
+      children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children })
     }
   );
 };
@@ -58944,7 +58937,7 @@ var Badge = ({
 // components/src/ui/button/Button.tsx
 var import_classnames3 = __toESM(require_classnames());
 var import_react = __toESM(require_react());
-var import_jsx_runtime6 = require("react/jsx-runtime");
+var import_jsx_runtime5 = require("react/jsx-runtime");
 var buttonSizes = ["sm", "icon", "base"];
 var variants = ["primary", "secondary", "ghost", "danger"];
 var sizeStyle = {
@@ -58984,7 +58977,7 @@ var Button = (0, import_react.forwardRef)(
     ...rest
   }, ref) => {
     const isDisabled = disabled || loading;
-    return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(
       "button",
       {
         className: (0, import_classnames3.default)(buttonStyle({ size, variant }), className, {
@@ -58997,8 +58990,8 @@ var Button = (0, import_react.forwardRef)(
         "aria-disabled": isDisabled,
         ...rest,
         children: [
-          loading && /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Spinner, { className: "absolute", variant }),
-          /* @__PURE__ */ (0, import_jsx_runtime6.jsx)("span", { className: (0, import_classnames3.default)("flex items-center", innerClassName, { invisible: loading }), children })
+          loading && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Spinner, { className: "absolute", variant }),
+          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { className: (0, import_classnames3.default)("flex items-center", innerClassName, { invisible: loading }), children })
         ]
       }
     );
@@ -59008,7 +59001,7 @@ var Button = (0, import_react.forwardRef)(
 // components/src/ui/spinner/Spinner.tsx
 var import_classnames4 = __toESM(require_classnames());
 var import_react2 = __toESM(require_react());
-var import_jsx_runtime7 = require("react/jsx-runtime");
+var import_jsx_runtime6 = require("react/jsx-runtime");
 var spinnerSizes = ["base", "lg"];
 var spinnerVariants = ["primary", "secondary", "ghost", "danger"];
 var Spinner = ({
@@ -59020,7 +59013,7 @@ var Spinner = ({
   const center = size === "lg" ? 18 : 6;
   const radius = size === "lg" ? 16 : 5;
   const strokeWidth = size === "lg" ? 3 : 2;
-  return /* @__PURE__ */ (0, import_jsx_runtime7.jsxs)(
+  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(
     "svg",
     {
       width: frameSize,
@@ -59031,7 +59024,7 @@ var Spinner = ({
       "aria-labelledby": "Spinner",
       className: (0, import_classnames4.default)("spinner", `spinner-${variant}`, `spinner-${size}`, className),
       children: [
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
           "circle",
           {
             fill: "none",
@@ -59044,7 +59037,7 @@ var Spinner = ({
             strokeOpacity: 0.2
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
           "circle",
           {
             className: "path",
@@ -59085,18 +59078,18 @@ var SpinnerLoader = ({ isLoading, children = null, minTime = 500 }) => {
         clearTimeout(hideTimeout.current);
     };
   }, [isLoading, minTime]);
-  return isVisible ? /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(Spinner, {}) : /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(import_jsx_runtime7.Fragment, { children });
+  return isVisible ? /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Spinner, {}) : /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(import_jsx_runtime6.Fragment, { children });
 };
 
 // components/src/ui/tabs/Tabs.tsx
 var import_react_tabs = require("@radix-ui/react-tabs");
 var import_classnames5 = __toESM(require_classnames());
-var import_jsx_runtime8 = require("react/jsx-runtime");
+var import_jsx_runtime7 = require("react/jsx-runtime");
 var Tabs = {
-  Root: ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(import_react_tabs.Root, { ...props, className: (0, import_classnames5.default)("ox-tabs", className) }),
-  Trigger: ({ children, className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(import_react_tabs.Trigger, { ...props, className: (0, import_classnames5.default)("ox-tab", className), children: /* @__PURE__ */ (0, import_jsx_runtime8.jsx)("div", { children }) }),
-  List: ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(import_react_tabs.List, { ...props, className: (0, import_classnames5.default)("ox-tabs-list", className) }),
-  Content: ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime8.jsx)(import_react_tabs.Content, { ...props, className: (0, import_classnames5.default)("ox-tabs-panel", className) })
+  Root: ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(import_react_tabs.Root, { ...props, className: (0, import_classnames5.default)("ox-tabs", className) }),
+  Trigger: ({ children, className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(import_react_tabs.Trigger, { ...props, className: (0, import_classnames5.default)("ox-tab", className), children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { children }) }),
+  List: ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(import_react_tabs.List, { ...props, className: (0, import_classnames5.default)("ox-tabs-list", className) }),
+  Content: ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(import_react_tabs.Content, { ...props, className: (0, import_classnames5.default)("ox-tabs-panel", className) })
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
