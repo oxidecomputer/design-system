@@ -333,28 +333,28 @@
 
   --chart-stroke-error: rgba(var(--theme-destructive-700-rgb), 0.4);
 
-  --theme-accent-100-rgb: var(--base-green-100-rgb);
+  --theme-accent-100-rgb: var(--base-red-100-rgb);
   --theme-accent-100: rgb(var(--theme-accent-100-rgb));
 
-  --theme-accent-200-rgb: var(--base-green-200-rgb);
+  --theme-accent-200-rgb: var(--base-red-200-rgb);
   --theme-accent-200: rgb(var(--theme-accent-200-rgb));
 
-  --theme-accent-300-rgb: var(--base-green-300-rgb);
+  --theme-accent-300-rgb: var(--base-red-300-rgb);
   --theme-accent-300: rgb(var(--theme-accent-300-rgb));
 
-  --theme-accent-400-rgb: var(--base-green-400-rgb);
+  --theme-accent-400-rgb: var(--base-red-400-rgb);
   --theme-accent-400: rgb(var(--theme-accent-400-rgb));
 
-  --theme-accent-500-rgb: var(--base-green-500-rgb);
+  --theme-accent-500-rgb: var(--base-red-500-rgb);
   --theme-accent-500: rgb(var(--theme-accent-500-rgb));
 
-  --theme-accent-600-rgb: var(--base-green-600-rgb);
+  --theme-accent-600-rgb: var(--base-red-600-rgb);
   --theme-accent-600: rgb(var(--theme-accent-600-rgb));
 
-  --theme-accent-700-rgb: var(--base-green-700-rgb);
+  --theme-accent-700-rgb: var(--base-red-700-rgb);
   --theme-accent-700: rgb(var(--theme-accent-700-rgb));
 
-  --theme-accent-800-rgb: var(--base-green-800-rgb);
+  --theme-accent-800-rgb: var(--base-red-800-rgb);
   --theme-accent-800: rgb(var(--theme-accent-800-rgb));
 
   --theme-destructive-100-rgb: var(--base-red-100-rgb);

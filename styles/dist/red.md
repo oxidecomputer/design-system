@@ -7,7 +7,6 @@ This document shows the relationship of colors within the `red` theme.
 ```mermaid
 graph RL
   base-green-100 --> #131A1C:::base-green-100
-  theme-accent-100 --> base-green-100
   theme-success-100 --> base-green-100
 
 	classDef base-green-100 stroke-width:5,stroke:#131A1C
@@ -18,9 +17,7 @@ graph RL
 ```mermaid
 graph RL
   base-green-200 --> #162322:::base-green-200
-  surface-accent-secondary --> theme-accent-200
   surface-success-secondary --> theme-success-200
-  theme-accent-200 --> base-green-200
   theme-success-200 --> base-green-200
 
 	classDef base-green-200 stroke-width:5,stroke:#162322
@@ -31,10 +28,7 @@ graph RL
 ```mermaid
 graph RL
   base-green-300 --> #1C372E:::base-green-300
-  surface-accent-secondary-hover --> theme-accent-300
-  stroke-accent-quaternary --> theme-accent-300
   stroke-success-quaternary --> theme-success-300
-  theme-accent-300 --> base-green-300
   theme-success-300 --> base-green-300
 
 	classDef base-green-300 stroke-width:5,stroke:#1C372E
@@ -45,10 +39,7 @@ graph RL
 ```mermaid
 graph RL
   base-green-400 --> #204D3B:::base-green-400
-  stroke-accent-tertiary --> theme-accent-400
   stroke-success-tertiary --> theme-success-400
-  chart-fill-item-quaternary --> theme-accent-400
-  theme-accent-400 --> base-green-400
   theme-success-400 --> base-green-400
 
 	classDef base-green-400 stroke-width:5,stroke:#204D3B
@@ -59,10 +50,7 @@ graph RL
 ```mermaid
 graph RL
   base-green-500 --> #236A4C:::base-green-500
-  content-accent-disabled --> theme-accent-500
   content-success-disabled --> theme-success-500
-  chart-fill-item-tertiary --> theme-accent-500
-  theme-accent-500 --> base-green-500
   theme-success-500 --> base-green-500
 
 	classDef base-green-500 stroke-width:5,stroke:#236A4C
@@ -73,12 +61,8 @@ graph RL
 ```mermaid
 graph RL
   base-green-600 --> #238A5E:::base-green-600
-  content-accent-tertiary --> theme-accent-600
   content-success-tertiary --> theme-success-600
-  stroke-accent-secondary --> theme-accent-600
   stroke-success-secondary --> theme-success-600
-  chart-fill-item-secondary --> theme-accent-600
-  theme-accent-600 --> base-green-600
   theme-success-600 --> base-green-600
 
 	classDef base-green-600 stroke-width:5,stroke:#238A5E
@@ -89,12 +73,7 @@ graph RL
 ```mermaid
 graph RL
   base-green-700 --> #20A36C:::base-green-700
-  surface-accent-hover --> theme-accent-700
-  content-accent-secondary --> theme-accent-700
   content-success-secondary --> theme-success-700
-  chart-fill-item-primary --> theme-accent-700
-  chart-stroke-line --> theme-accent-700
-  theme-accent-700 --> base-green-700
   theme-success-700 --> base-green-700
 
 	classDef base-green-700 stroke-width:5,stroke:#20A36C
@@ -105,13 +84,9 @@ graph RL
 ```mermaid
 graph RL
   base-green-800 --> #48d597:::base-green-800
-  surface-accent --> theme-accent-800
   surface-success --> theme-success-800
-  content-accent --> theme-accent-800
   content-success --> theme-success-800
-  stroke-accent --> theme-accent-800
   stroke-success --> theme-success-800
-  theme-accent-800 --> base-green-800
   theme-success-800 --> base-green-800
 
 	classDef base-green-800 stroke-width:5,stroke:#48d597
@@ -215,6 +190,7 @@ graph RL
 ```mermaid
 graph RL
   base-red-100 --> #1E1314:::base-red-100
+  theme-accent-100 --> base-red-100
   theme-destructive-100 --> base-red-100
   theme-error-100 --> base-red-100
 
@@ -226,8 +202,10 @@ graph RL
 ```mermaid
 graph RL
   base-red-200 --> #231517:::base-red-200
+  surface-accent-secondary --> theme-accent-200
   surface-destructive-secondary --> theme-destructive-200
   surface-error-secondary --> theme-error-200
+  theme-accent-200 --> base-red-200
   theme-destructive-200 --> base-red-200
   theme-error-200 --> base-red-200
 
@@ -239,9 +217,12 @@ graph RL
 ```mermaid
 graph RL
   base-red-300 --> #301B1D:::base-red-300
+  surface-accent-secondary-hover --> theme-accent-300
   surface-destructive-secondary-hover --> theme-destructive-300
+  stroke-accent-quaternary --> theme-accent-300
   stroke-destructive-quaternary --> theme-destructive-300
   stroke-error-quaternary --> theme-error-300
+  theme-accent-300 --> base-red-300
   theme-destructive-300 --> base-red-300
   theme-error-300 --> base-red-300
 
@@ -253,9 +234,12 @@ graph RL
 ```mermaid
 graph RL
   base-red-400 --> #6A343C:::base-red-400
+  stroke-accent-tertiary --> theme-accent-400
   stroke-destructive-tertiary --> theme-destructive-400
   stroke-error-tertiary --> theme-error-400
+  chart-fill-item-quaternary --> theme-accent-400
   chart-fill-error-quaternary --> theme-destructive-400
+  theme-accent-400 --> base-red-400
   theme-destructive-400 --> base-red-400
   theme-error-400 --> base-red-400
 
@@ -267,9 +251,12 @@ graph RL
 ```mermaid
 graph RL
   base-red-500 --> #954553:::base-red-500
+  content-accent-disabled --> theme-accent-500
   content-destructive-disabled --> theme-destructive-500
   content-error-disabled --> theme-error-500
+  chart-fill-item-tertiary --> theme-accent-500
   chart-fill-error-tertiary --> theme-destructive-500
+  theme-accent-500 --> base-red-500
   theme-destructive-500 --> base-red-500
   theme-error-500 --> base-red-500
 
@@ -281,12 +268,16 @@ graph RL
 ```mermaid
 graph RL
   base-red-600 --> #C3576A:::base-red-600
+  content-accent-tertiary --> theme-accent-600
   content-destructive-tertiary --> theme-destructive-600
   content-error-tertiary --> theme-error-600
+  stroke-accent-secondary --> theme-accent-600
   stroke-destructive-secondary --> theme-destructive-600
   stroke-error-secondary --> theme-error-600
+  chart-fill-item-secondary --> theme-accent-600
   chart-fill-error-secondary --> theme-destructive-600
   chart-stroke-line-tertiary --> base-red-600
+  theme-accent-600 --> base-red-600
   theme-destructive-600 --> base-red-600
   theme-error-600 --> base-red-600
 
@@ -298,10 +289,15 @@ graph RL
 ```mermaid
 graph RL
   base-red-700 --> #DA6177:::base-red-700
+  surface-accent-hover --> theme-accent-700
   surface-destructive-hover --> theme-destructive-700
+  content-accent-secondary --> theme-accent-700
   content-destructive-secondary --> theme-destructive-700
   content-error-secondary --> theme-error-700
+  chart-fill-item-primary --> theme-accent-700
   chart-fill-error-primary --> theme-destructive-700
+  chart-stroke-line --> theme-accent-700
+  theme-accent-700 --> base-red-700
   theme-destructive-700 --> base-red-700
   theme-error-700 --> base-red-700
 
@@ -313,12 +309,16 @@ graph RL
 ```mermaid
 graph RL
   base-red-800 --> #FB6E88:::base-red-800
+  surface-accent --> theme-accent-800
   surface-destructive --> theme-destructive-800
   surface-error --> theme-error-800
+  content-accent --> theme-accent-800
   content-destructive --> theme-destructive-800
   content-error --> theme-error-800
+  stroke-accent --> theme-accent-800
   stroke-destructive --> theme-destructive-800
   stroke-error --> theme-error-800
+  theme-accent-800 --> base-red-800
   theme-destructive-800 --> base-red-800
   theme-error-800 --> base-red-800
 
