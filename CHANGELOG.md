@@ -1,3 +1,16 @@
+# v0.11.0 (Fri Jul 21 2023)
+
+#### 🚀 Enhancement
+
+- SVG sprites and reusable AsciiDoc components [#33](https://github.com/oxidecomputer/design-system/pull/33) ([@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### Authors: 2
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v0.10.1 (Tue Jun 13 2023)
 
 #### 🐛 Bug Fix
