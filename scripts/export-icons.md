@@ -40,8 +40,42 @@ for (let icon of icons) {
 }
 ```
 
-## Format the output
+## Create the icons type file
+
+Making a type which is a union of all the icon names and sizes. That way we can check
+whether the user is specifying a valid combination in the icon component
+
+```js
+const iconMap = {}
+
+for (let icon of icons) {
+  let iconName = path.basename(icon, '.svg')
+  let nameParts = iconName.split('-')
+  let size = parseInt(nameParts.pop())
+
+  if (iconMap[nameParts.join('-')]) {
+    iconMap[nameParts.join('-')].push(size)
+  } else {
+    iconMap[nameParts.join('-')] = [size]
+  }
+}
+
+let contents = 'export type Icon = \n'
+
+for (let icon in iconMap) {
+  for (let size of iconMap[icon]) {
+    contents += `| { name: '${icon}', size: ${size} }\n`
+  }
+}
+
+fs.writeFileSync('./icons/index.ts', contents)
+```
+
+## Create the SVG sprite
+
+Create the SVG sprite. It's a combination of all the SVGs. In the future we might consider
+splitting this up if the file gets too large.
 
 ```sh
-npm run fmt .
+svg-sprite --symbol --symbol-dest=icons --symbol-sprite=sprite.svg icons/*.svg
 ```

@@ -7,7 +7,7 @@ import StyleDictionary from 'style-dictionary'
 import dedent from 'ts-dedent'
 import type { KebabCase } from 'type-fest'
 
-const THEMES = ['main', 'blue', 'yellow', 'purple'] as const
+const THEMES = ['main', 'blue', 'yellow', 'purple', 'red'] as const
 
 const FONT_FAMILIES = {
   'GT America Mono': '"GT America Mono", monospace',
@@ -72,7 +72,7 @@ const formatTypographyStyles = (name: string, value: any) => {
       const weight = value.toLowerCase()
       if (weight.includes('light')) {
         return [name, 300]
-      } else if (weight.includes('book')) {
+      } else if (weight.includes('medium')) {
         return [name, 500]
       } else {
         return [name, 400]
@@ -261,17 +261,8 @@ StyleDictionary.registerFormat({
           .map(
             ({ name }, index) =>
               `'.elevation-${index}': {
-            'box-shadow': 'var(--${name})',
-            'background-color': '${
-              index === 0
-                ? 'var(--surface-default)'
-                : index === 1
-                ? '' // Elements like buttons that sit right on top of a surface that have their own background color
-                : index === 2
-                ? 'var(--surface-raise)'
-                : 'var(--surface-secondary)'
-            }',
-          }`,
+                'box-shadow': 'var(--${name})',
+              }`,
           )
           .join(',\n')}
       }
@@ -368,14 +359,6 @@ StyleDictionary.registerTransform({
 })
 
 StyleDictionary.registerTransform({
-  name: 'name/size-convert',
-  type: 'name',
-  transformer(token) {
-    return token.name.replace('large', 'lg').replace('small', 'sm').replace('medium', 'md')
-  },
-})
-
-StyleDictionary.registerTransform({
   name: 'attribute/reference',
   type: 'attribute',
   matcher: (token) => token.original.type === 'color',
@@ -414,7 +397,6 @@ const makeConfig = (theme: typeof THEMES[number]) => {
           'attribute/cti',
           'name/cti/kebab',
           'name/strip-default',
-          'name/size-convert',
           'attribute/reference',
           'attribute/alpha',
           'pxToRem',

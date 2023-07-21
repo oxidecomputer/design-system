@@ -60,7 +60,7 @@ module.exports.textUtilities = {
     'font-family':
       'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
     'font-weight': 400,
-    'line-height': '1.75rem',
+    'line-height': '1.625rem',
     'font-size': '1.125rem',
     'letter-spacing': '0.02rem',
   },
@@ -80,10 +80,18 @@ module.exports.textUtilities = {
     'font-size': '2.25rem',
     'letter-spacing': '0.005rem',
   },
-  '.text-sans-semi-sm': {
+  '.text-sans-4xl': {
     'font-family':
       'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
     'font-weight': 400,
+    'line-height': '3.625rem',
+    'font-size': '3.25rem',
+    'letter-spacing': '-0.01rem',
+  },
+  '.text-sans-semi-sm': {
+    'font-family':
+      'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
+    'font-weight': 500,
     'line-height': '1rem',
     'font-size': '0.75rem',
     'letter-spacing': '0.04rem',
@@ -91,7 +99,7 @@ module.exports.textUtilities = {
   '.text-sans-semi-md': {
     'font-family':
       'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
-    'font-weight': 400,
+    'font-weight': 500,
     'line-height': '1.125rem',
     'font-size': '0.875rem',
     'letter-spacing': '0.04rem',
@@ -99,10 +107,18 @@ module.exports.textUtilities = {
   '.text-sans-semi-lg': {
     'font-family':
       'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
-    'font-weight': 400,
+    'font-weight': 500,
     'line-height': '1.5rem',
     'font-size': '1rem',
     'letter-spacing': '0.03rem',
+  },
+  '.text-sans-semi-xl': {
+    'font-family':
+      'SuisseIntl, -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif',
+    'font-weight': 500,
+    'line-height': '1.625rem',
+    'font-size': '1.125rem',
+    'letter-spacing': '0.02rem',
   },
 }
 
@@ -1245,19 +1261,15 @@ module.exports.colorUtilities = {
 module.exports.elevationUtilities = {
   '.elevation-0': {
     'box-shadow': 'var(--elevation-0)',
-    'background-color': 'var(--surface-default)',
   },
   '.elevation-1': {
     'box-shadow': 'var(--elevation-1)',
-    'background-color': '',
   },
   '.elevation-2': {
     'box-shadow': 'var(--elevation-2)',
-    'background-color': 'var(--surface-raise)',
   },
   '.elevation-3': {
     'box-shadow': 'var(--elevation-3)',
-    'background-color': 'var(--surface-secondary)',
   },
 }
 
@@ -1265,5 +1277,6 @@ module.exports.borderRadiusTokens = {
   sm: 'var(--border-radius-sm)',
   DEFAULT: 'var(--border-radius)',
   lg: 'var(--border-radius-lg)',
+  xl: 'var(--border-radius-xl)',
   full: 'var(--border-radius-full)',
 }
