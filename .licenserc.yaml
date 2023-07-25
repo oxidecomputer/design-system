@@ -15,9 +15,5 @@ header:
     - '**/dist/*'
     - '**/*.md'
     - 'LICENSE'
-    - 'OMICRON_VERSION'
-    - '.ladle'
-    - '.husky'
-    - 'mockServiceWorker.js'
 
   comment: on-failure
