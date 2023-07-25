@@ -26,6 +26,7 @@
   --surface-disabled: rgb(var(--surface-disabled-rgb));
 
   --surface-scrim: rgba(var(--base-neutral-0-rgb), 0.4);
+  --surface-scrim-p3: color(display-p3 0.0314 0.0588 0.0667 / 0.4);
 
   --surface-accent-rgb: var(--theme-accent-800-rgb);
   --surface-accent-p3: var(--theme-accent-800-p3);
@@ -374,9 +375,17 @@
   --stroke-info-quaternary: rgb(var(--stroke-info-quaternary-rgb));
 
   --chart-fill-area-primary: rgba(var(--theme-accent-700-rgb), 0.7019607843137254);
+  --chart-fill-area-primary-p3: color(display-p3 0.6392 0.502 0.7961 / 0.7019607843137254);
   --chart-fill-area-secondary: rgba(var(--theme-accent-600-rgb), 0.7019607843137254);
+  --chart-fill-area-secondary-p3: color(
+    display-p3 0.5451 0.4275 0.6745 / 0.7019607843137254
+  );
   --chart-fill-area-tertiary: rgba(var(--theme-accent-500-rgb), 0.7019607843137254);
+  --chart-fill-area-tertiary-p3: color(
+    display-p3 0.4235 0.3333 0.5176 / 0.7019607843137254
+  );
   --chart-fill-area-quaternary: rgba(var(--theme-accent-400-rgb), 0.2);
+  --chart-fill-area-quaternary-p3: color(display-p3 0.302 0.2431 0.3686 / 0.2);
 
   --chart-fill-item-primary-rgb: var(--theme-accent-700-rgb);
   --chart-fill-item-primary-p3: var(--theme-accent-700-p3);
@@ -431,13 +440,16 @@
   --chart-stroke-line-quaternary: rgb(var(--chart-stroke-line-quaternary-rgb));
 
   --chart-stroke-y-axis: rgba(var(--stroke-default-rgb), 0.4);
+  --chart-stroke-y-axis-p3: color(display-p3 0.1765 0.2 0.2078 / 0.4);
   --chart-stroke-item: rgba(var(--theme-accent-700-rgb), 0.4);
+  --chart-stroke-item-p3: color(display-p3 0.6392 0.502 0.7961 / 0.4);
 
   --chart-stroke-item-inactive-rgb: var(--base-neutral-200-rgb);
   --chart-stroke-item-inactive-p3: var(--base-neutral-200-p3);
   --chart-stroke-item-inactive: rgb(var(--chart-stroke-item-inactive-rgb));
 
   --chart-stroke-error: rgba(var(--theme-destructive-700-rgb), 0.4);
+  --chart-stroke-error-p3: color(display-p3 0.8549 0.3804 0.4667 / 0.4);
 
   --theme-accent-100-rgb: var(--base-purple-100-rgb);
   --theme-accent-100-p3: var(--base-purple-100-p3);
