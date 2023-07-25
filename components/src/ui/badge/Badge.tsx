@@ -48,7 +48,7 @@ export const Badge = ({
         `variant-${variant}`,
         'inline-flex h-4 items-center whitespace-nowrap rounded-sm px-[3px] py-[1px] uppercase text-mono-sm',
         badgeColors[variant][color],
-        className
+        className,
       )}
     >
       <span>{children}</span>

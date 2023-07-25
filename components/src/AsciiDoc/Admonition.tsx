@@ -9,8 +9,7 @@ const Admonition = ({ node }: { node: AdocTypes.Block }) => {
 
   // Undocumented asciidoc attribute
   // Use this to check if we should render the content as is, or use a <Content /> block
-  // @ts-ignore
-  const contentModel = node.content_model
+  const contentModel = node.getContentModel()
 
   let icon
   if (attrs.name === 'caution') {
