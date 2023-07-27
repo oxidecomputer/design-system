@@ -34,7 +34,7 @@ module.exports = {
             getBasename: ({ basename, dirname }) => {
               // Special handing for the directional arrows which have an odd export naming convention
               if (basename.includes('Direction=')) {
-                basename = `carat-${basename.split('=')[1].toLowerCase()}`
+                basename = `carat-${basename.split('=')[1].toLowerCase()}-12`
               }
 
               // Update distro icon names to match what's in figma

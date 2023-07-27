@@ -1,3 +1,104 @@
+# v0.11.0 (Fri Jul 21 2023)
+
+#### 🚀 Enhancement
+
+- SVG sprites and reusable AsciiDoc components [#33](https://github.com/oxidecomputer/design-system/pull/33) ([@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### Authors: 2
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v0.10.1 (Tue Jun 13 2023)
+
+#### 🐛 Bug Fix
+
+- Fix comments breaking a class [#31](https://github.com/oxidecomputer/design-system/pull/31) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v0.10.0 (Tue Jun 06 2023)
+
+#### 🚀 Enhancement
+
+- Autogenerate themes from new tokens [#30](https://github.com/oxidecomputer/design-system/pull/30) ([@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### Authors: 2
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v0.9.1 (Wed May 31 2023)
+
+#### 🐛 Bug Fix
+
+- Autogenerate themes from new tokens [#29](https://github.com/oxidecomputer/design-system/pull/29) ([@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### Authors: 2
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v0.9.0 (Wed May 31 2023)
+
+#### 🚀 Enhancement
+
+- Autogenerate themes from new tokens [#19](https://github.com/oxidecomputer/design-system/pull/19) ([@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### Authors: 2
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v0.8.1 (Wed Mar 08 2023)
+
+#### 🐛 Bug Fix
+
+- Use zx over a shell script for the export icons process [#26](https://github.com/oxidecomputer/design-system/pull/26) ([@zephraph](https://github.com/zephraph) [@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 2
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
+# v0.8.0 (Thu Feb 02 2023)
+
+#### 🚀 Enhancement
+
+- Add type export of all icon names [#25](https://github.com/oxidecomputer/design-system/pull/25) ([@zephraph](https://github.com/zephraph))
+
+#### Authors: 1
+
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
+# v0.7.1 (Thu Feb 02 2023)
+
+#### 🐛 Bug Fix
+
+- Fix icon publishing [#24](https://github.com/oxidecomputer/design-system/pull/24) ([@zephraph](https://github.com/zephraph))
+
+#### Authors: 1
+
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
 # v0.7.0 (Thu Feb 02 2023)
 
 #### 🚀 Enhancement
