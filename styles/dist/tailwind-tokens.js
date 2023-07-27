@@ -210,6 +210,125 @@ module.exports.colorUtilities = {
   '.text-inverse-secondary': {
     color: 'var(--content-inverse-secondary)',
   },
+  '.text-accent-100': {
+    color: 'var(--theme-accent-100)',
+  },
+  '.text-accent-200': {
+    color: 'var(--theme-accent-200)',
+  },
+  '.text-accent-300': {
+    color: 'var(--theme-accent-300)',
+  },
+  '.text-accent-400': {
+    color: 'var(--theme-accent-400)',
+  },
+  '.text-accent-500': {
+    color: 'var(--theme-accent-500)',
+  },
+  '.text-accent-600': {
+    color: 'var(--theme-accent-600)',
+  },
+  '.text-accent-700': {
+    color: 'var(--theme-accent-700)',
+  },
+  '.text-accent-800': {
+    color: 'var(--theme-accent-800)',
+  },
+  '.text-destructive-100': {
+    color: 'var(--theme-destructive-100)',
+  },
+  '.text-destructive-200': {
+    color: 'var(--theme-destructive-200)',
+  },
+  '.text-destructive-300': {
+    color: 'var(--theme-destructive-300)',
+  },
+  '.text-destructive-400': {
+    color: 'var(--theme-destructive-400)',
+  },
+  '.text-destructive-500': {
+    color: 'var(--theme-destructive-500)',
+  },
+  '.text-destructive-600': {
+    color: 'var(--theme-destructive-600)',
+  },
+  '.text-destructive-700': {
+    color: 'var(--theme-destructive-700)',
+  },
+  '.text-destructive-800': {
+    color: 'var(--theme-destructive-800)',
+  },
+  '.text-success-100': {
+    color: 'var(--theme-success-100)',
+  },
+  '.text-success-200': {
+    color: 'var(--theme-success-200)',
+  },
+  '.text-success-300': {
+    color: 'var(--theme-success-300)',
+  },
+  '.text-success-400': {
+    color: 'var(--theme-success-400)',
+  },
+  '.text-success-500': {
+    color: 'var(--theme-success-500)',
+  },
+  '.text-success-600': {
+    color: 'var(--theme-success-600)',
+  },
+  '.text-success-700': {
+    color: 'var(--theme-success-700)',
+  },
+  '.text-success-800': {
+    color: 'var(--theme-success-800)',
+  },
+  '.text-error-100': {
+    color: 'var(--theme-error-100)',
+  },
+  '.text-error-200': {
+    color: 'var(--theme-error-200)',
+  },
+  '.text-error-300': {
+    color: 'var(--theme-error-300)',
+  },
+  '.text-error-400': {
+    color: 'var(--theme-error-400)',
+  },
+  '.text-error-500': {
+    color: 'var(--theme-error-500)',
+  },
+  '.text-error-600': {
+    color: 'var(--theme-error-600)',
+  },
+  '.text-error-700': {
+    color: 'var(--theme-error-700)',
+  },
+  '.text-error-800': {
+    color: 'var(--theme-error-800)',
+  },
+  '.text-notice-100': {
+    color: 'var(--theme-notice-100)',
+  },
+  '.text-notice-200': {
+    color: 'var(--theme-notice-200)',
+  },
+  '.text-notice-300': {
+    color: 'var(--theme-notice-300)',
+  },
+  '.text-notice-400': {
+    color: 'var(--theme-notice-400)',
+  },
+  '.text-notice-500': {
+    color: 'var(--theme-notice-500)',
+  },
+  '.text-notice-600': {
+    color: 'var(--theme-notice-600)',
+  },
+  '.text-notice-700': {
+    color: 'var(--theme-notice-700)',
+  },
+  '.text-notice-800': {
+    color: 'var(--theme-notice-800)',
   '.text-info': {
     color: 'var(--content-info)',
   },
@@ -301,6 +420,125 @@ module.exports.colorUtilities = {
   '.bg-inverse-tertiary': {
     'background-color': 'var(--surface-inverse-tertiary)',
   },
+  '.bg-accent-100': {
+    'background-color': 'var(--theme-accent-100)',
+  },
+  '.bg-accent-200': {
+    'background-color': 'var(--theme-accent-200)',
+  },
+  '.bg-accent-300': {
+    'background-color': 'var(--theme-accent-300)',
+  },
+  '.bg-accent-400': {
+    'background-color': 'var(--theme-accent-400)',
+  },
+  '.bg-accent-500': {
+    'background-color': 'var(--theme-accent-500)',
+  },
+  '.bg-accent-600': {
+    'background-color': 'var(--theme-accent-600)',
+  },
+  '.bg-accent-700': {
+    'background-color': 'var(--theme-accent-700)',
+  },
+  '.bg-accent-800': {
+    'background-color': 'var(--theme-accent-800)',
+  },
+  '.bg-destructive-100': {
+    'background-color': 'var(--theme-destructive-100)',
+  },
+  '.bg-destructive-200': {
+    'background-color': 'var(--theme-destructive-200)',
+  },
+  '.bg-destructive-300': {
+    'background-color': 'var(--theme-destructive-300)',
+  },
+  '.bg-destructive-400': {
+    'background-color': 'var(--theme-destructive-400)',
+  },
+  '.bg-destructive-500': {
+    'background-color': 'var(--theme-destructive-500)',
+  },
+  '.bg-destructive-600': {
+    'background-color': 'var(--theme-destructive-600)',
+  },
+  '.bg-destructive-700': {
+    'background-color': 'var(--theme-destructive-700)',
+  },
+  '.bg-destructive-800': {
+    'background-color': 'var(--theme-destructive-800)',
+  },
+  '.bg-success-100': {
+    'background-color': 'var(--theme-success-100)',
+  },
+  '.bg-success-200': {
+    'background-color': 'var(--theme-success-200)',
+  },
+  '.bg-success-300': {
+    'background-color': 'var(--theme-success-300)',
+  },
+  '.bg-success-400': {
+    'background-color': 'var(--theme-success-400)',
+  },
+  '.bg-success-500': {
+    'background-color': 'var(--theme-success-500)',
+  },
+  '.bg-success-600': {
+    'background-color': 'var(--theme-success-600)',
+  },
+  '.bg-success-700': {
+    'background-color': 'var(--theme-success-700)',
+  },
+  '.bg-success-800': {
+    'background-color': 'var(--theme-success-800)',
+  },
+  '.bg-error-100': {
+    'background-color': 'var(--theme-error-100)',
+  },
+  '.bg-error-200': {
+    'background-color': 'var(--theme-error-200)',
+  },
+  '.bg-error-300': {
+    'background-color': 'var(--theme-error-300)',
+  },
+  '.bg-error-400': {
+    'background-color': 'var(--theme-error-400)',
+  },
+  '.bg-error-500': {
+    'background-color': 'var(--theme-error-500)',
+  },
+  '.bg-error-600': {
+    'background-color': 'var(--theme-error-600)',
+  },
+  '.bg-error-700': {
+    'background-color': 'var(--theme-error-700)',
+  },
+  '.bg-error-800': {
+    'background-color': 'var(--theme-error-800)',
+  },
+  '.bg-notice-100': {
+    'background-color': 'var(--theme-notice-100)',
+  },
+  '.bg-notice-200': {
+    'background-color': 'var(--theme-notice-200)',
+  },
+  '.bg-notice-300': {
+    'background-color': 'var(--theme-notice-300)',
+  },
+  '.bg-notice-400': {
+    'background-color': 'var(--theme-notice-400)',
+  },
+  '.bg-notice-500': {
+    'background-color': 'var(--theme-notice-500)',
+  },
+  '.bg-notice-600': {
+    'background-color': 'var(--theme-notice-600)',
+  },
+  '.bg-notice-700': {
+    'background-color': 'var(--theme-notice-700)',
+  },
+  '.bg-notice-800': {
+    'background-color': 'var(--theme-notice-800)',
   '.bg-info': {
     'background-color': 'var(--surface-info)',
   },

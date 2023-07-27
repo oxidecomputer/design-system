@@ -193,7 +193,7 @@ type CSSProperty = KebabCase<keyof CSSProperties> | `--${string}`
  * @param isP3  Adds `-p3` to the token (optional)
  */
 const makeColorUtility = (
-  tokenPrefix: 'surface' | 'content' | 'stroke' | 'chart-fill' | 'chart-stroke',
+  tokenPrefix: 'surface' | 'content' | 'stroke' | 'chart-fill' | 'chart-stroke' | 'theme',
   classPrefix: string,
   cssProperties: CSSProperty | CSSProperty[],
   isP3: boolean,
@@ -232,7 +232,9 @@ StyleDictionary.registerFormat({
     const makeColors = (isP3: boolean) =>
       `${[
         makeColorUtility('content', 'text', 'color', isP3),
+        makeColorUtility('theme', 'text', 'color', isP3),
         makeColorUtility('surface', 'bg', 'background-color', isP3),
+        makeColorUtility('theme', 'bg', 'background-color', isP3),
         makeColorUtility('stroke', 'border', 'border-color', isP3),
         makeColorUtility('stroke', 'border-l', 'border-left-color', isP3),
         makeColorUtility('stroke', 'border-r', 'border-right-color', isP3),
