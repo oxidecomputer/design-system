@@ -18,7 +18,7 @@ indicate that a version bump shouldn't happen. If you want to indiciate a versio
 don't want the release to happen yet you can use `major`, `minor`, or `patch` in conjunction
 with `skip-release`.
 
-For more information checkout [auto's docs](https://intuit.github.io/auto/docs)
+For more information checkout [auto's docs](https://intuit.github.io/auto/docs).
 
 ## Syncing with Figma
 
