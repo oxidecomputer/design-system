@@ -12,8 +12,8 @@ import { useEffect, useRef, useState } from 'react'
 
 export const spinnerSizes = ['base', 'lg'] as const
 export const spinnerVariants = ['primary', 'secondary', 'ghost', 'danger'] as const
-export type SpinnerSize = (typeof spinnerSizes)[number]
-export type SpinnerVariant = (typeof spinnerVariants)[number]
+export type SpinnerSize = typeof spinnerSizes[number]
+export type SpinnerVariant = typeof spinnerVariants[number]
 
 interface SpinnerProps {
   className?: string

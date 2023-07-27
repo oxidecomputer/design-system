@@ -30,8 +30,8 @@ declare const Badge: ({ className, children, color, variant, }: BadgeProps) => r
 
 declare const buttonSizes: readonly ["sm", "icon", "base"];
 declare const variants: readonly ["primary", "secondary", "ghost", "danger"];
-type ButtonSize = (typeof buttonSizes)[number];
-type Variant = (typeof variants)[number];
+type ButtonSize = typeof buttonSizes[number];
+type Variant = typeof variants[number];
 type ButtonStyleProps = {
     size?: ButtonSize;
     variant?: Variant;
@@ -45,8 +45,8 @@ declare const Button: react.ForwardRefExoticComponent<Omit<ButtonProps, "ref"> &
 
 declare const spinnerSizes: readonly ["base", "lg"];
 declare const spinnerVariants: readonly ["primary", "secondary", "ghost", "danger"];
-type SpinnerSize = (typeof spinnerSizes)[number];
-type SpinnerVariant = (typeof spinnerVariants)[number];
+type SpinnerSize = typeof spinnerSizes[number];
+type SpinnerVariant = typeof spinnerVariants[number];
 interface SpinnerProps {
     className?: string;
     size?: SpinnerSize;

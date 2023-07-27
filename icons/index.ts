@@ -62,7 +62,7 @@ export type Icon =
 | { name: 'folder', size: 24 }
 | { name: 'gateway', size: 16 }
 | { name: 'gateway', size: 24 }
-| { name: 'health', size: 16 }
+| { name: 'heart', size: 16 }
 | { name: 'heart', size: 24 }
 | { name: 'hide', size: 12 }
 | { name: 'hide', size: 16 }

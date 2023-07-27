@@ -45,11 +45,6 @@ module.exports = {
                 basename = `carat-${basename.split('=')[1].toLowerCase()}-12`
               }
 
-              // Update distro icon names to match what's in figma
-              if (dirname === 'distro') {
-                return `distro-${basename}.svg`
-              }
-
               // Add the icon's size category as a postfix, if present
               if (!isNaN(parseInt(dirname))) {
                 return `${basename}-${dirname}.svg`

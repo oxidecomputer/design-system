@@ -15,8 +15,8 @@ import { Spinner } from '../'
 export const buttonSizes = ['sm', 'icon', 'base'] as const
 export const variants = ['primary', 'secondary', 'ghost', 'danger'] as const
 
-export type ButtonSize = (typeof buttonSizes)[number]
-export type Variant = (typeof variants)[number]
+export type ButtonSize = typeof buttonSizes[number]
+export type Variant = typeof variants[number]
 
 const sizeStyle: Record<ButtonSize, string> = {
   sm: 'h-8 px-3 text-mono-sm svg:w-4',
@@ -40,7 +40,7 @@ export const buttonStyle = ({
     sizeStyle[size],
     variant === 'danger'
       ? 'focus:outline-destructive-secondary'
-      : 'focus:outline-accent-secondary'
+      : 'focus:outline-accent-secondary',
   )
 }
 
@@ -79,7 +79,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       // props by the parent
       ...rest
     },
-    ref
+    ref,
   ) => {
     const isDisabled = disabled || loading
     return (
@@ -100,5 +100,5 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         </span>
       </button>
     )
-  }
+  },
 )

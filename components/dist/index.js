@@ -58782,7 +58782,7 @@ var import_jsx_runtime = require("react/jsx-runtime");
 var Admonition = ({ node }) => {
   const attrs = node.getAttributes();
   const content = (0, import_react_asciidoc.useGetContent)(node);
-  const contentModel = node.content_model;
+  const contentModel = node.getContentModel();
   let icon;
   if (attrs.name === "caution") {
     icon = /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Error12, {});
