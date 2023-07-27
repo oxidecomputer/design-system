@@ -258,7 +258,9 @@ StyleDictionary.registerFormat({
 			module.exports.colorUtilities = {
         ${[
           makeColorUtility('content', 'text', 'color'),
+          makeColorUtility('theme', 'text', 'color'),
           makeColorUtility('surface', 'bg', 'background-color'),
+          makeColorUtility('theme', 'bg', 'background-color'),
           makeColorUtility('stroke', 'border', 'border-color'),
           makeColorUtility('stroke', 'border-l', 'border-left-color'),
           makeColorUtility('stroke', 'border-r', 'border-right-color'),
