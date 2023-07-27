@@ -210,6 +210,18 @@ module.exports.colorUtilities = {
   '.text-inverse-secondary': {
     color: 'var(--content-inverse-secondary)',
   },
+  '.text-info': {
+    color: 'var(--content-info)',
+  },
+  '.text-info-secondary': {
+    color: 'var(--content-info-secondary)',
+  },
+  '.text-info-tertiary': {
+    color: 'var(--content-info-tertiary)',
+  },
+  '.text-info-disabled': {
+    color: 'var(--content-info-disabled)',
+  },
   '.text-accent-100': {
     color: 'var(--theme-accent-100)',
   },
@@ -329,17 +341,30 @@ module.exports.colorUtilities = {
   },
   '.text-notice-800': {
     color: 'var(--theme-notice-800)',
-  '.text-info': {
-    color: 'var(--content-info)',
   },
-  '.text-info-secondary': {
-    color: 'var(--content-info-secondary)',
+  '.text-info-100': {
+    color: 'var(--theme-info-100)',
   },
-  '.text-info-tertiary': {
-    color: 'var(--content-info-tertiary)',
+  '.text-info-200': {
+    color: 'var(--theme-info-200)',
   },
-  '.text-info-disabled': {
-    color: 'var(--content-info-disabled)',
+  '.text-info-300': {
+    color: 'var(--theme-info-300)',
+  },
+  '.text-info-400': {
+    color: 'var(--theme-info-400)',
+  },
+  '.text-info-500': {
+    color: 'var(--theme-info-500)',
+  },
+  '.text-info-600': {
+    color: 'var(--theme-info-600)',
+  },
+  '.text-info-700': {
+    color: 'var(--theme-info-700)',
+  },
+  '.text-info-800': {
+    color: 'var(--theme-info-800)',
   },
   '.bg-default': {
     'background-color': 'var(--surface-default)',
@@ -419,6 +444,18 @@ module.exports.colorUtilities = {
   },
   '.bg-inverse-tertiary': {
     'background-color': 'var(--surface-inverse-tertiary)',
+  },
+  '.bg-info': {
+    'background-color': 'var(--surface-info)',
+  },
+  '.bg-info-hover': {
+    'background-color': 'var(--surface-info-hover)',
+  },
+  '.bg-info-secondary': {
+    'background-color': 'var(--surface-info-secondary)',
+  },
+  '.bg-info-secondary-hover': {
+    'background-color': 'var(--surface-info-secondary-hover)',
   },
   '.bg-accent-100': {
     'background-color': 'var(--theme-accent-100)',
@@ -539,17 +576,30 @@ module.exports.colorUtilities = {
   },
   '.bg-notice-800': {
     'background-color': 'var(--theme-notice-800)',
-  '.bg-info': {
-    'background-color': 'var(--surface-info)',
   },
-  '.bg-info-hover': {
-    'background-color': 'var(--surface-info-hover)',
+  '.bg-info-100': {
+    'background-color': 'var(--theme-info-100)',
   },
-  '.bg-info-secondary': {
-    'background-color': 'var(--surface-info-secondary)',
+  '.bg-info-200': {
+    'background-color': 'var(--theme-info-200)',
   },
-  '.bg-info-secondary-hover': {
-    'background-color': 'var(--surface-info-secondary-hover)',
+  '.bg-info-300': {
+    'background-color': 'var(--theme-info-300)',
+  },
+  '.bg-info-400': {
+    'background-color': 'var(--theme-info-400)',
+  },
+  '.bg-info-500': {
+    'background-color': 'var(--theme-info-500)',
+  },
+  '.bg-info-600': {
+    'background-color': 'var(--theme-info-600)',
+  },
+  '.bg-info-700': {
+    'background-color': 'var(--theme-info-700)',
+  },
+  '.bg-info-800': {
+    'background-color': 'var(--theme-info-800)',
   },
   '.border-default': {
     'border-color': 'var(--stroke-default)',
@@ -1596,6 +1646,150 @@ module.exports.colorUtilities = {
     '.text-info-disabled': {
       color: 'var(--content-info-disabled-p3)',
     },
+    '.text-accent-100': {
+      color: 'var(--theme-accent-100-p3)',
+    },
+    '.text-accent-200': {
+      color: 'var(--theme-accent-200-p3)',
+    },
+    '.text-accent-300': {
+      color: 'var(--theme-accent-300-p3)',
+    },
+    '.text-accent-400': {
+      color: 'var(--theme-accent-400-p3)',
+    },
+    '.text-accent-500': {
+      color: 'var(--theme-accent-500-p3)',
+    },
+    '.text-accent-600': {
+      color: 'var(--theme-accent-600-p3)',
+    },
+    '.text-accent-700': {
+      color: 'var(--theme-accent-700-p3)',
+    },
+    '.text-accent-800': {
+      color: 'var(--theme-accent-800-p3)',
+    },
+    '.text-destructive-100': {
+      color: 'var(--theme-destructive-100-p3)',
+    },
+    '.text-destructive-200': {
+      color: 'var(--theme-destructive-200-p3)',
+    },
+    '.text-destructive-300': {
+      color: 'var(--theme-destructive-300-p3)',
+    },
+    '.text-destructive-400': {
+      color: 'var(--theme-destructive-400-p3)',
+    },
+    '.text-destructive-500': {
+      color: 'var(--theme-destructive-500-p3)',
+    },
+    '.text-destructive-600': {
+      color: 'var(--theme-destructive-600-p3)',
+    },
+    '.text-destructive-700': {
+      color: 'var(--theme-destructive-700-p3)',
+    },
+    '.text-destructive-800': {
+      color: 'var(--theme-destructive-800-p3)',
+    },
+    '.text-success-100': {
+      color: 'var(--theme-success-100-p3)',
+    },
+    '.text-success-200': {
+      color: 'var(--theme-success-200-p3)',
+    },
+    '.text-success-300': {
+      color: 'var(--theme-success-300-p3)',
+    },
+    '.text-success-400': {
+      color: 'var(--theme-success-400-p3)',
+    },
+    '.text-success-500': {
+      color: 'var(--theme-success-500-p3)',
+    },
+    '.text-success-600': {
+      color: 'var(--theme-success-600-p3)',
+    },
+    '.text-success-700': {
+      color: 'var(--theme-success-700-p3)',
+    },
+    '.text-success-800': {
+      color: 'var(--theme-success-800-p3)',
+    },
+    '.text-error-100': {
+      color: 'var(--theme-error-100-p3)',
+    },
+    '.text-error-200': {
+      color: 'var(--theme-error-200-p3)',
+    },
+    '.text-error-300': {
+      color: 'var(--theme-error-300-p3)',
+    },
+    '.text-error-400': {
+      color: 'var(--theme-error-400-p3)',
+    },
+    '.text-error-500': {
+      color: 'var(--theme-error-500-p3)',
+    },
+    '.text-error-600': {
+      color: 'var(--theme-error-600-p3)',
+    },
+    '.text-error-700': {
+      color: 'var(--theme-error-700-p3)',
+    },
+    '.text-error-800': {
+      color: 'var(--theme-error-800-p3)',
+    },
+    '.text-notice-100': {
+      color: 'var(--theme-notice-100-p3)',
+    },
+    '.text-notice-200': {
+      color: 'var(--theme-notice-200-p3)',
+    },
+    '.text-notice-300': {
+      color: 'var(--theme-notice-300-p3)',
+    },
+    '.text-notice-400': {
+      color: 'var(--theme-notice-400-p3)',
+    },
+    '.text-notice-500': {
+      color: 'var(--theme-notice-500-p3)',
+    },
+    '.text-notice-600': {
+      color: 'var(--theme-notice-600-p3)',
+    },
+    '.text-notice-700': {
+      color: 'var(--theme-notice-700-p3)',
+    },
+    '.text-notice-800': {
+      color: 'var(--theme-notice-800-p3)',
+    },
+    '.text-info-100': {
+      color: 'var(--theme-info-100-p3)',
+    },
+    '.text-info-200': {
+      color: 'var(--theme-info-200-p3)',
+    },
+    '.text-info-300': {
+      color: 'var(--theme-info-300-p3)',
+    },
+    '.text-info-400': {
+      color: 'var(--theme-info-400-p3)',
+    },
+    '.text-info-500': {
+      color: 'var(--theme-info-500-p3)',
+    },
+    '.text-info-600': {
+      color: 'var(--theme-info-600-p3)',
+    },
+    '.text-info-700': {
+      color: 'var(--theme-info-700-p3)',
+    },
+    '.text-info-800': {
+      color: 'var(--theme-info-800-p3)',
+    },
     '.bg-default': {
       'background-color': 'var(--surface-default-p3)',
     },
@@ -1686,6 +1880,150 @@ module.exports.colorUtilities = {
     },
     '.bg-info-secondary-hover': {
       'background-color': 'var(--surface-info-secondary-hover-p3)',
+    },
+    '.bg-accent-100': {
+      'background-color': 'var(--theme-accent-100-p3)',
+    },
+    '.bg-accent-200': {
+      'background-color': 'var(--theme-accent-200-p3)',
+    },
+    '.bg-accent-300': {
+      'background-color': 'var(--theme-accent-300-p3)',
+    },
+    '.bg-accent-400': {
+      'background-color': 'var(--theme-accent-400-p3)',
+    },
+    '.bg-accent-500': {
+      'background-color': 'var(--theme-accent-500-p3)',
+    },
+    '.bg-accent-600': {
+      'background-color': 'var(--theme-accent-600-p3)',
+    },
+    '.bg-accent-700': {
+      'background-color': 'var(--theme-accent-700-p3)',
+    },
+    '.bg-accent-800': {
+      'background-color': 'var(--theme-accent-800-p3)',
+    },
+    '.bg-destructive-100': {
+      'background-color': 'var(--theme-destructive-100-p3)',
+    },
+    '.bg-destructive-200': {
+      'background-color': 'var(--theme-destructive-200-p3)',
+    },
+    '.bg-destructive-300': {
+      'background-color': 'var(--theme-destructive-300-p3)',
+    },
+    '.bg-destructive-400': {
+      'background-color': 'var(--theme-destructive-400-p3)',
+    },
+    '.bg-destructive-500': {
+      'background-color': 'var(--theme-destructive-500-p3)',
+    },
+    '.bg-destructive-600': {
+      'background-color': 'var(--theme-destructive-600-p3)',
+    },
+    '.bg-destructive-700': {
+      'background-color': 'var(--theme-destructive-700-p3)',
+    },
+    '.bg-destructive-800': {
+      'background-color': 'var(--theme-destructive-800-p3)',
+    },
+    '.bg-success-100': {
+      'background-color': 'var(--theme-success-100-p3)',
+    },
+    '.bg-success-200': {
+      'background-color': 'var(--theme-success-200-p3)',
+    },
+    '.bg-success-300': {
+      'background-color': 'var(--theme-success-300-p3)',
+    },
+    '.bg-success-400': {
+      'background-color': 'var(--theme-success-400-p3)',
+    },
+    '.bg-success-500': {
+      'background-color': 'var(--theme-success-500-p3)',
+    },
+    '.bg-success-600': {
+      'background-color': 'var(--theme-success-600-p3)',
+    },
+    '.bg-success-700': {
+      'background-color': 'var(--theme-success-700-p3)',
+    },
+    '.bg-success-800': {
+      'background-color': 'var(--theme-success-800-p3)',
+    },
+    '.bg-error-100': {
+      'background-color': 'var(--theme-error-100-p3)',
+    },
+    '.bg-error-200': {
+      'background-color': 'var(--theme-error-200-p3)',
+    },
+    '.bg-error-300': {
+      'background-color': 'var(--theme-error-300-p3)',
+    },
+    '.bg-error-400': {
+      'background-color': 'var(--theme-error-400-p3)',
+    },
+    '.bg-error-500': {
+      'background-color': 'var(--theme-error-500-p3)',
+    },
+    '.bg-error-600': {
+      'background-color': 'var(--theme-error-600-p3)',
+    },
+    '.bg-error-700': {
+      'background-color': 'var(--theme-error-700-p3)',
+    },
+    '.bg-error-800': {
+      'background-color': 'var(--theme-error-800-p3)',
+    },
+    '.bg-notice-100': {
+      'background-color': 'var(--theme-notice-100-p3)',
+    },
+    '.bg-notice-200': {
+      'background-color': 'var(--theme-notice-200-p3)',
+    },
+    '.bg-notice-300': {
+      'background-color': 'var(--theme-notice-300-p3)',
+    },
+    '.bg-notice-400': {
+      'background-color': 'var(--theme-notice-400-p3)',
+    },
+    '.bg-notice-500': {
+      'background-color': 'var(--theme-notice-500-p3)',
+    },
+    '.bg-notice-600': {
+      'background-color': 'var(--theme-notice-600-p3)',
+    },
+    '.bg-notice-700': {
+      'background-color': 'var(--theme-notice-700-p3)',
+    },
+    '.bg-notice-800': {
+      'background-color': 'var(--theme-notice-800-p3)',
+    },
+    '.bg-info-100': {
+      'background-color': 'var(--theme-info-100-p3)',
+    },
+    '.bg-info-200': {
+      'background-color': 'var(--theme-info-200-p3)',
+    },
+    '.bg-info-300': {
+      'background-color': 'var(--theme-info-300-p3)',
+    },
+    '.bg-info-400': {
+      'background-color': 'var(--theme-info-400-p3)',
+    },
+    '.bg-info-500': {
+      'background-color': 'var(--theme-info-500-p3)',
+    },
+    '.bg-info-600': {
+      'background-color': 'var(--theme-info-600-p3)',
+    },
+    '.bg-info-700': {
+      'background-color': 'var(--theme-info-700-p3)',
+    },
+    '.bg-info-800': {
+      'background-color': 'var(--theme-info-800-p3)',
     },
     '.border-default': {
       'border-color': 'var(--stroke-default-p3)',
