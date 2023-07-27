@@ -1,3 +1,31 @@
+# v1.0.0 (Thu Jul 27 2023)
+
+#### 💥 Breaking Change
+
+- New approach to wide gamut colour [#38](https://github.com/oxidecomputer/design-system/pull/38) ([@benjaminleonard](https://github.com/benjaminleonard) [@dependabot[bot]](https://github.com/dependabot[bot]))
+
+#### 🚀 Enhancement
+
+- Provides more flexibility for color edge cases [#23](https://github.com/oxidecomputer/design-system/pull/23) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### 📝 Documentation
+
+- Add header licenses [#37](https://github.com/oxidecomputer/design-system/pull/37) ([@zephraph](https://github.com/zephraph))
+
+#### 🔩 Dependency Updates
+
+- Bump word-wrap from 1.2.3 to 1.2.4 [#36](https://github.com/oxidecomputer/design-system/pull/36) ([@dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump semver from 5.7.1 to 5.7.2 [#34](https://github.com/oxidecomputer/design-system/pull/34) ([@dependabot[bot]](https://github.com/dependabot[bot]))
+- Bump json5 from 2.2.1 to 2.2.3 [#22](https://github.com/oxidecomputer/design-system/pull/22) ([@dependabot[bot]](https://github.com/dependabot[bot]) [@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 3
+
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
 # v0.11.0 (Fri Jul 21 2023)
 
 #### 🚀 Enhancement
