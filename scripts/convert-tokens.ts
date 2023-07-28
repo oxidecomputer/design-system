@@ -209,21 +209,20 @@ const makeColorUtility = (
   return (colors: TransformedToken[]) =>
     colors
       .filter((color) => color.name.startsWith(tokenPrefix))
-      .map(
-        (color) => `${
-          (color.original.description &&
-            // FIXME: Remove replace once https://github.com/tailwindlabs/tailwindcss/issues/7420 is fixed
-            `
-            /* ${color.original.description.trim()} */
-            `.replace(/,/g, ';')) ||
-          ''
-        }'.${color.name.replace(tokenPrefix, classPrefix)}': {
-					${properties.map((prop) => `'${prop}': 'var(--${color.name})'`)},
-          '@supports (color: color(display-p3 1 1 1))': {
-            ${properties.map((prop) => `'${prop}': 'var(--${color.name}-p3)'`)},
-          }
-				}`,
-      )
+      .map((color) => {
+        // FIXME: Remove replace once https://github.com/tailwindlabs/tailwindcss/issues/7420 is fixed
+        const description = color.original.description
+          ? `/* ${color.original.description.trim()} */`.replace(/,/g, ';')
+          : ''
+
+        return `
+          ${description}
+          '.${color.name.replace(tokenPrefix, classPrefix)}': [
+            { ${properties.map((prop) => `'${prop}': 'var(--${color.name})'`)} },
+            { ${properties.map((prop) => `'${prop}': 'var(--${color.name}-p3)'`)} },
+          ]
+        `
+      })
 }
 
 StyleDictionary.registerFormat({
