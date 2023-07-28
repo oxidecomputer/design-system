@@ -1,3 +1,18 @@
+# v1.0.1 (Fri Jul 28 2023)
+
+#### 🐛 Bug Fix
+
+- Use multiple values instead of @supports query for p3 colors [#41](https://github.com/oxidecomputer/design-system/pull/41) ([@benjaminleonard](https://github.com/benjaminleonard) [@david-crespo](https://github.com/david-crespo))
+- Add readme [#39](https://github.com/oxidecomputer/design-system/pull/39) ([@zephraph](https://github.com/zephraph) [@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 3
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+- Justin Bennett ([@zephraph](https://github.com/zephraph))
+
+---
+
 # v1.0.0 (Thu Jul 27 2023)
 
 #### 💥 Breaking Change
