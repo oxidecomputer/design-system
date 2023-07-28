@@ -108,3 +108,14 @@ export const opts: Options = {
 The full UI library is housed within the web console repo. The components included in this
 package are those reused across other Oxide sites. When using them, remember to also import
 their associated stylesheets.
+
+Be sure to add the components path to the `tailwind.config.js` to ensure the appropriate
+styles are included. For example:
+
+```ts
+content: [
+  './libs/**/*.{ts,tsx,mdx}',
+  './app/**/*.{ts,tsx}',
+  'node_modules/@oxide/design-system/components/**/*.{ts,tsx,jsx,js}',
+],
+```
