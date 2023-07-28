@@ -217,10 +217,11 @@ const makeColorUtility = (
 
         return `
           ${description}
-          '.${color.name.replace(tokenPrefix, classPrefix)}': [
-            { ${properties.map((prop) => `'${prop}': 'var(--${color.name})'`)} },
-            { ${properties.map((prop) => `'${prop}': 'var(--${color.name}-p3)'`)} },
-          ]
+          '.${color.name.replace(tokenPrefix, classPrefix)}': { 
+            ${properties.map(
+              (prop) => `'${prop}': ['var(--${color.name})', 'var(--${color.name}-p3)']`,
+            )},
+          }
         `
       })
 }
