@@ -1,3 +1,15 @@
+# v1.0.2 (Fri Jul 28 2023)
+
+#### ⚠️ Pushed to `master`
+
+- Update README.md ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.0.1 (Fri Jul 28 2023)
 
 #### 🐛 Bug Fix
