@@ -127,9 +127,8 @@ StyleDictionary.registerFormat({
           }
           if (prop.name.startsWith('base-')) {
             return options.selector === ':root'
-              ? `--${prop.name}-rgb: ${rgbColor}; /* ${prop.value} */
-              ${p3Var(prop.name, rgbColor)};
-              --${prop.name}: rgb(var(--${prop.name}-rgb));
+              ? `${p3Var(prop.name, rgbColor)};
+              --${prop.name}: rgb(rgbColor); /* ${prop.value} */
               `
               : ''
           }
@@ -141,7 +140,7 @@ StyleDictionary.registerFormat({
 						`
           }
           if (hasAlpha && prop.attributes?.ref) {
-            return `--${prop.name}: rgba(var(--${prop.attributes?.ref}-rgb), ${alpha});
+            return `--${prop.name}: rgba(var(--${prop.attributes?.ref}), ${alpha});
             ${p3Var(prop.name, rgbColor, alpha)};`
           }
           if (prop.attributes?.ref) {
