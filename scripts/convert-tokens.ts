@@ -128,36 +128,33 @@ StyleDictionary.registerFormat({
           if (prop.name.startsWith('base-')) {
             return options.selector === ':root'
               ? `${p3Var(prop.name, rgbColor)};
-              --${prop.name}: rgb(rgbColor); /* ${prop.value} */
+              --${prop.name}: ${prop.value};
               `
               : ''
           }
           if (prop.name.startsWith('theme-')) {
             return `
-							--${prop.name}-rgb: var(--${prop.attributes?.ref}-rgb);
               --${prop.name}-p3: var(--${prop.attributes?.ref}-p3);
-							--${prop.name}: rgb(var(--${prop.name}-rgb));
+							--${prop.name}: ${prop.value}; 
 						`
           }
           if (hasAlpha && prop.attributes?.ref) {
-            return `--${prop.name}: rgba(var(--${prop.attributes?.ref}), ${alpha});
+            return `--${prop.name}: rgba(${rgbColor}, ${alpha});
             ${p3Var(prop.name, rgbColor, alpha)};`
           }
           if (prop.attributes?.ref) {
             return `
-							--${prop.name}-rgb: var(--${prop.attributes?.ref}-rgb);
               --${prop.name}-p3: var(--${prop.attributes?.ref}-p3);
-							--${prop.name}: rgb(var(--${prop.name}-rgb));
+							--${prop.name}: ${prop.value};
 						`
           }
           if (hasAlpha) {
-            return `--${prop.name}: rgba(${rgbColor}-rgb, ${alpha});
+            return `--${prop.name}: rgba(${rgbColor}, ${alpha}); /* ${prop.value} */
             ${p3Var(prop.name, rgbColor, alpha)};`
           }
           return `
-						--${prop.name}-rgb: ${rgbColor};
             ${p3Var(prop.name, rgbColor)};
-						--${prop.name}: rgb(var(--${prop.name}-rgb));
+						--${prop.name}: ${prop.value};
 					`
         })
         .join('\n')}
