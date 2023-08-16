@@ -1,3 +1,15 @@
+# v1.0.3 (Wed Aug 16 2023)
+
+#### 🐛 Bug Fix
+
+- Fix incorrect frame around close icon [#43](https://github.com/oxidecomputer/design-system/pull/43) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.0.2 (Fri Jul 28 2023)
 
 #### ⚠️ Pushed to `master`
