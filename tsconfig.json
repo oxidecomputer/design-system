@@ -16,7 +16,8 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "paths": {
-      "~/*": ["./components/*"]
+      "~/*": ["./components/*"],
+      "@/*": ["./*"]
     }
   },
   "include": ["components/**/*.ts", "components/**/*.tsx"],
