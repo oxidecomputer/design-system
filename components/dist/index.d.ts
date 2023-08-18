@@ -1,7 +1,7 @@
 import * as react_jsx_runtime from 'react/jsx-runtime';
 import * as _asciidoctor_core_types from '@asciidoctor/core/types';
 import * as react from 'react';
-import { ReactNode } from 'react';
+import { ReactNode, ReactElement } from 'react';
 import { TabsProps, TabsTriggerProps, TabsListProps, TabsContentProps } from '@radix-ui/react-tabs';
 import { SetRequired } from 'type-fest';
 
@@ -53,13 +53,13 @@ interface SpinnerProps {
     variant?: SpinnerVariant;
 }
 declare const Spinner: ({ className, size, variant, }: SpinnerProps) => react_jsx_runtime.JSX.Element;
-type Props = {
+type Props$1 = {
     isLoading: boolean;
     children?: ReactNode;
     minTime?: number;
 };
 /** Loading spinner that shows for a minimum of `minTime` */
-declare const SpinnerLoader: ({ isLoading, children, minTime }: Props) => react_jsx_runtime.JSX.Element;
+declare const SpinnerLoader: ({ isLoading, children, minTime }: Props$1) => react_jsx_runtime.JSX.Element;
 
 type TabsRootProps = SetRequired<TabsProps, 'defaultValue'>;
 declare const Tabs: {
@@ -69,4 +69,49 @@ declare const Tabs: {
     Content: ({ className, ...props }: TabsContentProps) => react_jsx_runtime.JSX.Element;
 };
 
-export { AsciiDocBlocks, Badge, BadgeColor, BadgeProps, BadgeVariant, Button, ButtonProps, ButtonSize, Spinner, SpinnerLoader, SpinnerSize, SpinnerVariant, Tabs, TabsRootProps, Variant, badgeColors, buttonSizes, buttonStyle, spinnerSizes, spinnerVariants, variants };
+type CheckboxProps = {
+    indeterminate?: boolean;
+    children?: React.ReactNode;
+    className?: string;
+} & Omit<React.ComponentProps<'input'>, 'type'>;
+/** Checkbox component that handles label, styling, and indeterminate state */
+declare const Checkbox: ({ indeterminate, children, className, ...inputProps }: CheckboxProps) => react_jsx_runtime.JSX.Element;
+
+type Props = {
+    icon?: ReactElement;
+    title: string;
+    body?: string;
+} & ({
+    buttonText: string;
+    buttonTo: string;
+} | {
+    buttonText: string;
+    onClick: () => void;
+} | {
+    buttonText?: never;
+});
+declare function EmptyMessage(props: Props): react_jsx_runtime.JSX.Element;
+
+type ListboxItem<Value extends string = string> = {
+    value: Value;
+} & ({
+    label: string;
+    labelString?: never;
+} | {
+    label: ReactNode;
+    labelString: string;
+});
+interface ListboxProps<Value extends string = string> {
+    selected: Value | null;
+    onChange: (value: Value) => void;
+    items: ListboxItem<Value>[];
+    placeholder?: string;
+    className?: string;
+    disabled?: boolean;
+    hasError?: boolean;
+    name?: string;
+    isLoading?: boolean;
+}
+declare const Listbox: <Value extends string = string>({ name, selected, items, placeholder, className, onChange, hasError, disabled, isLoading, ...props }: ListboxProps<Value>) => react_jsx_runtime.JSX.Element;
+
+export { AsciiDocBlocks, Badge, BadgeColor, BadgeProps, BadgeVariant, Button, ButtonProps, ButtonSize, Checkbox, CheckboxProps, EmptyMessage, Listbox, ListboxItem, ListboxProps, Spinner, SpinnerLoader, SpinnerSize, SpinnerVariant, Tabs, TabsRootProps, Variant, badgeColors, buttonSizes, buttonStyle, spinnerSizes, spinnerVariants, variants };

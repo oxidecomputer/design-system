@@ -9,7 +9,7 @@ import cn from 'classnames'
 import type { ReactElement } from 'react'
 import { Link } from 'react-router-dom'
 
-import { Button, buttonStyle } from '@oxide/design-system'
+import { Button, buttonStyle } from '../'
 
 const buttonStyleProps = { variant: 'ghost', size: 'sm', color: 'secondary' } as const
 
