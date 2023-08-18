@@ -7,5 +7,5 @@ const DirectionUpIcon = ({
   title,
   titleId,
   ...props
-}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={12} height={12} viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path d="M6.597 3.193a.667.667 0 0 0-1.194 0l-2.92 5.842c-.222.443.1.965.596.965h5.842a.667.667 0 0 0 .596-.965l-2.92-5.842Z" fill="#B8BBBC" /></svg>;
+}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={12} height={12} viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path d="M6.597 3.193a.667.667 0 0 0-1.194 0l-2.92 5.842c-.222.443.1.965.596.965h5.842a.667.667 0 0 0 .596-.965l-2.92-5.842Z" fill="currentColor" /></svg>;
 export default DirectionUpIcon;

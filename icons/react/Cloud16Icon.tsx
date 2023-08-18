@@ -7,5 +7,5 @@ const Cloud16Icon = ({
   title,
   titleId,
   ...props
-}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={16} height={16} viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path fillRule="evenodd" clipRule="evenodd" d="M13.333 7v.018A3 3 0 0 1 13 13H4a4 4 0 0 1-.254-7.992A5.001 5.001 0 0 1 13.333 7Z" fill="#A1A4A5" /></svg>;
+}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={16} height={16} viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path fillRule="evenodd" clipRule="evenodd" d="M13.333 7v.018A3 3 0 0 1 13 13H4a4 4 0 0 1-.254-7.992A5.001 5.001 0 0 1 13.333 7Z" fill="currentColor" /></svg>;
 export default Cloud16Icon;

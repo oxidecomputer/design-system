@@ -7,5 +7,5 @@ const Storage24Icon = ({
   title,
   titleId,
   ...props
-}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={24} height={24} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path d="M18.3 2.375A1 1 0 0 0 17.52 2H17a1 1 0 0 0-1 1v3.1H5V3a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V7.35a1 1 0 0 0-.22-.624l-3.48-4.35ZM12 18c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4Z" fill="#A1A4A5" /></svg>;
+}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={24} height={24} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path d="M18.3 2.375A1 1 0 0 0 17.52 2H17a1 1 0 0 0-1 1v3.1H5V3a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V7.35a1 1 0 0 0-.22-.624l-3.48-4.35ZM12 18c-2.2 0-4-1.8-4-4s1.8-4 4-4 4 1.8 4 4-1.8 4-4 4Z" fill="currentColor" /></svg>;
 export default Storage24Icon;

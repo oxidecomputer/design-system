@@ -7,5 +7,5 @@ const Close12Icon = ({
   title,
   titleId,
   ...props
-}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={12} height={12} viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path d="M10.301 2.76a.667.667 0 0 0 0-.944l-.117-.117a.667.667 0 0 0-.943 0L6 4.939 2.76 1.7a.667.667 0 0 0-.944 0l-.117.117a.667.667 0 0 0 0 .943L4.939 6 1.7 9.24a.667.667 0 0 0 0 .944l.117.117c.26.26.683.26.943 0L6 7.061l3.24 3.24c.261.26.683.26.944 0l.117-.117a.667.667 0 0 0 0-.943L7.061 6l3.24-3.24Z" fill="#B8BBBC" /></svg>;
+}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={12} height={12} viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path d="M10.301 2.76a.667.667 0 0 0 0-.944l-.117-.117a.667.667 0 0 0-.943 0L6 4.939 2.76 1.7a.667.667 0 0 0-.944 0l-.117.117a.667.667 0 0 0 0 .943L4.939 6 1.7 9.24a.667.667 0 0 0 0 .944l.117.117c.26.26.683.26.943 0L6 7.061l3.24 3.24c.261.26.683.26.944 0l.117-.117a.667.667 0 0 0 0-.943L7.061 6l3.24-3.24Z" fill="currentColor" /></svg>;
 export default Close12Icon;

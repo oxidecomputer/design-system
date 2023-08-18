@@ -7,5 +7,5 @@ const Terminal24Icon = ({
   title,
   titleId,
   ...props
-}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={24} height={24} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path fillRule="evenodd" clipRule="evenodd" d="M2 3a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h20a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H2Zm3.44 12.294A1 1 0 0 1 4 14.396v-.138a1 1 0 0 1 .585-.91L9.733 11 4.585 8.651A1 1 0 0 1 4 7.741v-.137a1 1 0 0 1 1.44-.898l6 2.943a1 1 0 0 1 .56.898v.906a1 1 0 0 1-.56.898l-6 2.943ZM19 16h-6a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2Z" fill="#A1A4A5" /></svg>;
+}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={24} height={24} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path fillRule="evenodd" clipRule="evenodd" d="M2 3a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h20a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H2Zm3.44 12.294A1 1 0 0 1 4 14.396v-.138a1 1 0 0 1 .585-.91L9.733 11 4.585 8.651A1 1 0 0 1 4 7.741v-.137a1 1 0 0 1 1.44-.898l6 2.943a1 1 0 0 1 .56.898v.906a1 1 0 0 1-.56.898l-6 2.943ZM19 16h-6a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2Z" fill="currentColor" /></svg>;
 export default Terminal24Icon;

@@ -7,5 +7,5 @@ const AddRoundel16Icon = ({
   title,
   titleId,
   ...props
-}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={16} height={16} viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path fillRule="evenodd" clipRule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14ZM7 4.75A.75.75 0 0 1 7.75 4h.5a.75.75 0 0 1 .75.75V7h2.25a.75.75 0 0 1 .75.75v.5a.75.75 0 0 1-.75.75H9v2.25a.75.75 0 0 1-.75.75h-.5a.75.75 0 0 1-.75-.75V9H4.75A.75.75 0 0 1 4 8.25v-.5A.75.75 0 0 1 4.75 7H7V4.75Z" fill="#A1A4A5" /></svg>;
+}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={16} height={16} viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path fillRule="evenodd" clipRule="evenodd" d="M8 15A7 7 0 1 0 8 1a7 7 0 0 0 0 14ZM7 4.75A.75.75 0 0 1 7.75 4h.5a.75.75 0 0 1 .75.75V7h2.25a.75.75 0 0 1 .75.75v.5a.75.75 0 0 1-.75.75H9v2.25a.75.75 0 0 1-.75.75h-.5a.75.75 0 0 1-.75-.75V9H4.75A.75.75 0 0 1 4 8.25v-.5A.75.75 0 0 1 4.75 7H7V4.75Z" fill="currentColor" /></svg>;
 export default AddRoundel16Icon;
