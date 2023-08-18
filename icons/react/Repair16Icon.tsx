@@ -1,0 +1,11 @@
+import { SVGProps } from "react";
+interface SVGRProps {
+  title?: string;
+  titleId?: string;
+}
+const Repair16Icon = ({
+  title,
+  titleId,
+  ...props
+}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={16} height={16} viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path fillRule="evenodd" clipRule="evenodd" d="M6.703 9.703A5 5 0 0 1 .03 4.443c.06-.545.712-.7 1.1-.312L3.47 6.47a.75.75 0 0 0 1.06 0l1.94-1.94a.75.75 0 0 0 0-1.06L4.13 1.13c-.388-.388-.233-1.04.312-1.1a5 5 0 0 1 5.26 6.672l5.767 5.767a.75.75 0 0 1 0 1.06l-1.94 1.94a.75.75 0 0 1-1.06 0L6.703 9.703Z" fill="#A1A4A5" /></svg>;
+export default Repair16Icon;

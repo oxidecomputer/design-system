@@ -32,7 +32,7 @@ fill color was set as in the designs. What we want instead is to be able to use
 such that the fill color of the icons can be controlled in its calling code.
 
 ```js
-const icons = await glob('./icons/*.svg')
+const icons = await glob('./icons/svg/*.svg')
 for (let icon of icons) {
   await $`cat ${icon}`
     .then((i) => i.stdout.replace(/fill="[^"]*"/g, 'fill="currentColor"'))

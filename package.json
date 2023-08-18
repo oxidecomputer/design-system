@@ -70,6 +70,7 @@
     "@oxide/react-asciidoc": "^0.1.0"
   },
   "dependencies": {
+    "@figma-export/output-components-as-svgr": "^4.7.0",
     "@radix-ui/react-tabs": "^1.0.4"
   }
 }
