@@ -57317,7 +57317,7 @@ var Checkmark12Icon = ({
   ...props
 }) => /* @__PURE__ */ (0, import_jsx_runtime130.jsxs)("svg", { width: 12, height: 12, viewBox: "0 0 12 12", xmlns: "http://www.w3.org/2000/svg", role: "img", "aria-labelledby": titleId, ...props, children: [
   title ? /* @__PURE__ */ (0, import_jsx_runtime130.jsx)("title", { id: titleId, children: title }) : null,
-  /* @__PURE__ */ (0, import_jsx_runtime130.jsx)("path", { fillRule: "evenodd", clipRule: "evenodd", d: "M10.492 2.651c.28.242.31.665.067.944L5.447 9.463a.667.667 0 0 1-.974.035L1.475 6.516a.667.667 0 0 1 0-.946l.237-.235a.667.667 0 0 1 .94 0l2.24 2.226L9.3 2.501a.667.667 0 0 1 .938-.068l.253.218Z", fill: "#B8BBBC" })
+  /* @__PURE__ */ (0, import_jsx_runtime130.jsx)("path", { fillRule: "evenodd", clipRule: "evenodd", d: "M10.492 2.651c.28.242.31.665.067.944L5.447 9.463a.667.667 0 0 1-.974.035L1.475 6.516a.667.667 0 0 1 0-.946l.237-.235a.667.667 0 0 1 .94 0l2.24 2.226L9.3 2.501a.667.667 0 0 1 .938-.068l.253.218Z", fill: "currentColor" })
 ] });
 var Checkmark12Icon_default = Checkmark12Icon;
 
@@ -57395,7 +57395,7 @@ var SelectArrows6Icon = ({
   ...props
 }) => /* @__PURE__ */ (0, import_jsx_runtime153.jsxs)("svg", { width: 6, height: 14, viewBox: "0 0 6 14", xmlns: "http://www.w3.org/2000/svg", role: "img", "aria-labelledby": titleId, ...props, children: [
   title ? /* @__PURE__ */ (0, import_jsx_runtime153.jsx)("title", { id: titleId, children: title }) : null,
-  /* @__PURE__ */ (0, import_jsx_runtime153.jsx)("path", { fillRule: "evenodd", clipRule: "evenodd", d: "M3.322.536a.375.375 0 0 0-.644 0L.341 4.432C.19 4.682.37 5 .662 5h4.676a.375.375 0 0 0 .321-.568L3.322.536Zm-.644 12.928a.375.375 0 0 0 .644 0l2.337-3.896A.375.375 0 0 0 5.338 9H.662a.375.375 0 0 0-.321.568l2.337 3.896Z", fill: "#B8BBBC" })
+  /* @__PURE__ */ (0, import_jsx_runtime153.jsx)("path", { fillRule: "evenodd", clipRule: "evenodd", d: "M3.322.536a.375.375 0 0 0-.644 0L.341 4.432C.19 4.682.37 5 .662 5h4.676a.375.375 0 0 0 .321-.568L3.322.536Zm-.644 12.928a.375.375 0 0 0 .644 0l2.337-3.896A.375.375 0 0 0 5.338 9H.662a.375.375 0 0 0-.321.568l2.337 3.896Z", fill: "currentColor" })
 ] });
 var SelectArrows6Icon_default = SelectArrows6Icon;
 
