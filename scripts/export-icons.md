@@ -38,13 +38,21 @@ for (let icon of svgIcons) {
     .then((i) => i.stdout.replace(/fill="[^"]*"/g, 'fill="currentColor"'))
     .then((r) => fs.writeFile(icon, r))
 }
-```
 
-```js
+const license = `/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, you can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * Copyright Oxide Computer Company
+ */
+`
+
 const reactIcons = await glob('./icons/react/*.tsx')
 for (let icon of reactIcons) {
   await $`cat ${icon}`
     .then((i) => i.stdout.replace(/fill="[^"]*"/g, 'fill="currentColor"'))
+    .then((r) => license + r) // prepend the license
     .then((r) => fs.writeFile(icon, r))
 }
 ```
@@ -69,14 +77,7 @@ for (let icon of svgIcons) {
   }
 }
 
-let contents = `/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, you can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright Oxide Computer Company
- */
-
+let contents = `${license}
 export type Icon = \n`
 
 for (let icon in iconMap) {
