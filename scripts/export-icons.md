@@ -55,6 +55,11 @@ for (let icon of reactIcons) {
     .then((r) => license + r) // prepend the license
     .then((r) => fs.writeFile(icon, r))
 }
+
+// Add license to icon exports file
+await $`cat ./icons/react/index.ts`
+  .then((r) => license + r) // prepend the license
+  .then((r) => fs.writeFile('./icons/react/index.ts', r))
 ```
 
 ## Create the icons type file
