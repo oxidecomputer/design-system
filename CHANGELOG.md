@@ -1,3 +1,15 @@
+# v1.0.4 (Tue Aug 22 2023)
+
+#### 🐛 Bug Fix
+
+- Fallback did not work in older chrome versions [#45](https://github.com/oxidecomputer/design-system/pull/45) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.0.3 (Wed Aug 16 2023)
 
 #### 🐛 Bug Fix
