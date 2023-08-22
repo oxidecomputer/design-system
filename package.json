@@ -67,7 +67,7 @@
     "access": "public"
   },
   "peerDependencies": {
-    "@oxide/react-asciidoc": "^0.1.0",
+    "@oxide/react-asciidoc": "^0.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -76,6 +76,7 @@
     "@floating-ui/react": "^0.25.1",
     "@headlessui/react": "^1.7.17",
     "@radix-ui/react-tabs": "^1.0.4",
+    "html-entities": "^2.4.0",
     "react-router-dom": "^6.15.0"
   }
 }

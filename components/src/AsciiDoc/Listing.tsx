@@ -5,22 +5,28 @@
  *
  * Copyright Oxide Computer Company
  */
-
-import { type AdocTypes, CaptionedTitle, useGetContent } from '@oxide/react-asciidoc'
+import {
+  type AdocTypes,
+  CaptionedTitle,
+  getLineNumber,
+  useGetContent,
+} from '@oxide/react-asciidoc'
 import cn from 'classnames'
 import hljs from 'highlight.js'
+import { decode } from 'html-entities'
 
 const Listing = ({ node }: { node: AdocTypes.Block }) => {
   const document = node.getDocument()
   const attrs = node.getAttributes()
   const nowrap = node.isOption('nowrap') || !document.hasAttribute('prewrap')
   const content = useGetContent(node)
+  const decodedContent = decode(content) || content // unescape the html entities
 
   if (node.getStyle() === 'source') {
     const lang = attrs.language
 
     return (
-      <div className="listingblock">
+      <div className="listingblock" {...getLineNumber(node)}>
         <CaptionedTitle node={node} />
         <div className="content">
           <pre className={cn('highlight', nowrap ? ' nowrap' : '')}>
@@ -30,12 +36,12 @@ const Listing = ({ node }: { node: AdocTypes.Block }) => {
                 data-lang={lang}
                 dangerouslySetInnerHTML={{
                   __html: hljs.getLanguage(lang)
-                    ? hljs.highlight(content, { language: lang }).value
-                    : content,
+                    ? hljs.highlight(decodedContent, { language: lang }).value
+                    : decodedContent,
                 }}
               />
             ) : (
-              <code dangerouslySetInnerHTML={{ __html: content }} />
+              <code dangerouslySetInnerHTML={{ __html: decodedContent }} />
             )}
           </pre>
         </div>
@@ -43,12 +49,10 @@ const Listing = ({ node }: { node: AdocTypes.Block }) => {
     )
   } else {
     return (
-      <div className="listingblock">
+      <div className="listingblock" {...getLineNumber(node)}>
         <CaptionedTitle node={node} />
         <div className="content">
-          <pre className={nowrap ? ' nowrap' : ''}>
-            <code dangerouslySetInnerHTML={{ __html: node.getSource() }} />
-          </pre>
+          <pre className={nowrap ? ' nowrap' : ''}>{node.getSource()}</pre>
         </div>
       </div>
     )

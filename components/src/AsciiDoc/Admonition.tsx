@@ -5,7 +5,6 @@
  *
  * Copyright Oxide Computer Company
  */
-
 import { type AdocTypes, Content, Title, useGetContent } from '@oxide/react-asciidoc'
 import parse from 'html-react-parser'
 
