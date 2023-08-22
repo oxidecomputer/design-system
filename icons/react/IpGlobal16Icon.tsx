@@ -1,0 +1,18 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, you can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * Copyright Oxide Computer Company
+ */
+import { SVGProps } from "react";
+interface SVGRProps {
+  title?: string;
+  titleId?: string;
+}
+const IpGlobal16Icon = ({
+  title,
+  titleId,
+  ...props
+}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={16} height={16} viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path fillRule="evenodd" clipRule="evenodd" d="M5.75 8c0-.424.008-.841.024-1.25h4.452a32.576 32.576 0 0 1-.023 3H5.797A32.353 32.353 0 0 1 5.75 8Zm-1.5 0c0-.423.008-.84.023-1.25H.097a8.06 8.06 0 0 0 .095 3h4.103C4.265 9.18 4.25 8.595 4.25 8ZM.688 11.25a8.026 8.026 0 0 0 4.54 4.257 13.39 13.39 0 0 1-.068-.22c-.34-1.135-.599-2.512-.752-4.037H.688Zm8.326 4.686a8.085 8.085 0 0 1-2.028 0 9.783 9.783 0 0 1-.389-1.08c-.298-.995-.535-2.224-.681-3.606h4.168c-.146 1.382-.383 2.611-.681 3.605-.123.41-.254.771-.389 1.081Zm1.758-.43a8.027 8.027 0 0 0 4.54-4.256h-3.72c-.153 1.525-.412 2.902-.752 4.037l-.068.22Zm5.036-5.756a8.027 8.027 0 0 0 .095-3h-4.176a34.235 34.235 0 0 1-.022 3h4.103Zm-.293-4.5A8.024 8.024 0 0 0 10.772.493l.068.22c.377 1.257.654 2.812.798 4.537h3.877ZM6.985.064a8.078 8.078 0 0 1 2.03 0c.134.31.265.67.388 1.08.334 1.113.59 2.52.73 4.106H5.867c.14-1.587.395-2.993.729-4.106.123-.41.254-.77.388-1.08Zm-1.757.43A8.024 8.024 0 0 0 .485 5.25h3.877c.144-1.725.421-3.28.798-4.537l.068-.22Z" fill="currentColor" /></svg>;
+export default IpGlobal16Icon;

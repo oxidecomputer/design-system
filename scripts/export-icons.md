@@ -32,12 +32,34 @@ fill color was set as in the designs. What we want instead is to be able to use
 such that the fill color of the icons can be controlled in its calling code.
 
 ```js
-const icons = await glob('./icons/*.svg')
-for (let icon of icons) {
+const svgIcons = await glob('./icons/svg/*.svg')
+for (let icon of svgIcons) {
   await $`cat ${icon}`
     .then((i) => i.stdout.replace(/fill="[^"]*"/g, 'fill="currentColor"'))
     .then((r) => fs.writeFile(icon, r))
 }
+
+const license = `/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, you can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * Copyright Oxide Computer Company
+ */
+`
+
+const reactIcons = await glob('./icons/react/*.tsx')
+for (let icon of reactIcons) {
+  await $`cat ${icon}`
+    .then((i) => i.stdout.replace(/fill="[^"]*"/g, 'fill="currentColor"'))
+    .then((r) => license + r) // prepend the license
+    .then((r) => fs.writeFile(icon, r))
+}
+
+// Add license to icon exports file
+await $`cat ./icons/react/index.ts`
+  .then((r) => license + r) // prepend the license
+  .then((r) => fs.writeFile('./icons/react/index.ts', r))
 ```
 
 ## Create the icons type file
@@ -48,7 +70,7 @@ whether the user is specifying a valid combination in the icon component
 ```js
 const iconMap = {}
 
-for (let icon of icons) {
+for (let icon of svgIcons) {
   let iconName = path.basename(icon, '.svg')
   let nameParts = iconName.split('-')
   let size = parseInt(nameParts.pop())
@@ -60,14 +82,7 @@ for (let icon of icons) {
   }
 }
 
-let contents = `/*
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, you can obtain one at https://mozilla.org/MPL/2.0/.
- *
- * Copyright Oxide Computer Company
- */
-
+let contents = `${license}
 export type Icon = \n`
 
 for (let icon in iconMap) {
@@ -85,5 +100,5 @@ Create the SVG sprite. It's a combination of all the SVGs. In the future we migh
 splitting this up if the file gets too large.
 
 ```sh
-svg-sprite --symbol --symbol-dest=icons --symbol-sprite=sprite.svg icons/*.svg
+svg-sprite --symbol --symbol-dest=icons --symbol-sprite=sprite.svg icons/svg/*.svg
 ```

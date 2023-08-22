@@ -1,0 +1,18 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, you can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * Copyright Oxide Computer Company
+ */
+import { SVGProps } from "react";
+interface SVGRProps {
+  title?: string;
+  titleId?: string;
+}
+const Transmit16Icon = ({
+  title,
+  titleId,
+  ...props
+}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={16} height={16} viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path fillRule="evenodd" clipRule="evenodd" d="M13.582 9.332c-.192.322-.164.739.104 1.002l.014.013c.319.313.842.28 1.08-.098A7.962 7.962 0 0 0 16 6c0-1.63-.488-3.147-1.326-4.412-.243-.367-.757-.394-1.071-.085l-.011.01c-.274.268-.297.697-.093 1.02A6.47 6.47 0 0 1 14.5 6a6.47 6.47 0 0 1-.918 3.332Zm-11.164 0c.192.322.164.739-.104 1.002l-.014.013c-.319.313-.842.28-1.08-.098A7.963 7.963 0 0 1 0 6c0-1.63.488-3.147 1.326-4.412.243-.367.757-.394 1.071-.085l.011.01c.274.268.297.697.093 1.02A6.47 6.47 0 0 0 1.5 6a6.47 6.47 0 0 0 .918 3.332Zm1.011-1.303c.19.427.743.482 1.076.155l.042-.042c.244-.239.287-.61.169-.93A3.493 3.493 0 0 1 4.5 6c0-.48.096-.936.27-1.352.138-.328.103-.718-.151-.967l-.034-.033c-.325-.32-.864-.277-1.066.132A4.98 4.98 0 0 0 3 6c0 .723.153 1.41.429 2.03Zm8.066.155c.334.327.886.272 1.076-.155C12.847 7.41 13 6.723 13 6a4.98 4.98 0 0 0-.518-2.22c-.203-.409-.741-.451-1.067-.132l-.034.033c-.254.249-.29.64-.152.967.175.416.271.873.271 1.352 0 .426-.076.835-.216 1.213-.118.32-.075.69.169.93l.042.04ZM10 6a2 2 0 0 1-1.406 1.91.773.773 0 0 1 .118.225l1.959 5.878a.75.75 0 0 1-.712.987H6.041a.75.75 0 0 1-.712-.987l1.96-5.878a.773.773 0 0 1 .117-.225A2 2 0 1 1 10 6Z" fill="currentColor" /></svg>;
+export default Transmit16Icon;

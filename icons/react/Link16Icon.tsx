@@ -1,0 +1,18 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, you can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * Copyright Oxide Computer Company
+ */
+import { SVGProps } from "react";
+interface SVGRProps {
+  title?: string;
+  titleId?: string;
+}
+const Link16Icon = ({
+  title,
+  titleId,
+  ...props
+}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={16} height={16} viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<g fill="currentColor"><path d="m6.586 12.243 1.59-1.591a.75.75 0 0 1 1.061 0l.354.353a.75.75 0 0 1 0 1.06L8 13.658A4 4 0 0 1 2.343 8l1.591-1.591a.75.75 0 0 1 1.06 0l.354.354a.75.75 0 0 1 0 1.06l-1.59 1.591a2 2 0 1 0 2.828 2.829ZM12.066 9.591a.75.75 0 0 1-1.06 0l-.354-.354a.75.75 0 0 1 0-1.06l1.59-1.591a2 2 0 1 0-2.828-2.829l-1.59 1.591a.75.75 0 0 1-1.061 0l-.354-.353a.75.75 0 0 1 0-1.06L8 2.342A4 4 0 0 1 13.657 8l-1.591 1.591Z" /><path d="M9.945 5.702a.75.75 0 0 0-1.061 0L5.702 8.884a.75.75 0 0 0 0 1.06l.353.354a.75.75 0 0 0 1.061 0l3.182-3.182a.75.75 0 0 0 0-1.06l-.353-.354Z" /></g></svg>;
+export default Link16Icon;
