@@ -1,3 +1,15 @@
+# v1.1.0 (Tue Aug 22 2023)
+
+#### 🚀 Enhancement
+
+- More UI components and React icons [#44](https://github.com/oxidecomputer/design-system/pull/44) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.0.4 (Tue Aug 22 2023)
 
 #### 🐛 Bug Fix
