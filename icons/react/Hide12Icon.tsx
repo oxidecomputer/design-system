@@ -5,14 +5,29 @@
  *
  * Copyright Oxide Computer Company
  */
-import { SVGProps } from "react";
+import { SVGProps } from 'react'
+
 interface SVGRProps {
-  title?: string;
-  titleId?: string;
+  title?: string
+  titleId?: string
 }
-const Hide12Icon = ({
-  title,
-  titleId,
-  ...props
-}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={12} height={12} viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path fillRule="evenodd" clipRule="evenodd" d="M11.539 1.385 1.385 11.539a.653.653 0 1 1-.923-.924L2.298 8.78C1.117 7.92.392 6.835.086 6.31a.61.61 0 0 1 0-.622C.635 4.749 2.534 2 6 2c.966 0 1.81.213 2.536.54l2.08-2.078a.653.653 0 0 1 .923.923ZM6.867 4.21 4.183 6.894A2 2 0 0 1 6.866 4.21Zm1.099 1.624L10.19 3.61a8.46 8.46 0 0 1 1.723 2.08.61.61 0 0 1 0 .622C11.366 7.251 9.467 10 6 10a6.142 6.142 0 0 1-1.903-.297l1.71-1.71a2 2 0 0 0 2.16-2.16Z" fill="currentColor" /></svg>;
-export default Hide12Icon;
+const Hide12Icon = ({ title, titleId, ...props }: SVGProps<SVGSVGElement> & SVGRProps) => (
+  <svg
+    width={12}
+    height={12}
+    viewBox="0 0 12 12"
+    xmlns="http://www.w3.org/2000/svg"
+    role="img"
+    aria-labelledby={titleId}
+    {...props}
+  >
+    {title ? <title id={titleId}>{title}</title> : null}
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M11.539 1.385 1.385 11.539a.653.653 0 1 1-.923-.924L2.298 8.78C1.117 7.92.392 6.835.086 6.31a.61.61 0 0 1 0-.622C.635 4.749 2.534 2 6 2c.966 0 1.81.213 2.536.54l2.08-2.078a.653.653 0 0 1 .923.923ZM6.867 4.21 4.183 6.894A2 2 0 0 1 6.866 4.21Zm1.099 1.624L10.19 3.61a8.46 8.46 0 0 1 1.723 2.08.61.61 0 0 1 0 .622C11.366 7.251 9.467 10 6 10a6.142 6.142 0 0 1-1.903-.297l1.71-1.71a2 2 0 0 0 2.16-2.16Z"
+      fill="currentColor"
+    />
+  </svg>
+)
+export default Hide12Icon

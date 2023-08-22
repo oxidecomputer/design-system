@@ -4,7 +4,7 @@
   "description": "Home of reusable design assets and token for oxide internal sites",
   "main": "components/dist/index.js",
   "scripts": {
-    "export-icons": "npx zx ./scripts/export-icons.md",
+    "export-icons": "npx zx ./scripts/export-icons.md && npm run fmt",
     "build": "run-s build:*",
     "prebuild:tokens": "token-transformer --preserveRawValue ./styles/src/tokens.json ./styles/src/.tokens/main.json global,colors,core,main",
     "build:themes": "./scripts/build_themes.sh",

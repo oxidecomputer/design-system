@@ -5,14 +5,33 @@
  *
  * Copyright Oxide Computer Company
  */
-import { SVGProps } from "react";
+import { SVGProps } from 'react'
+
 interface SVGRProps {
-  title?: string;
-  titleId?: string;
+  title?: string
+  titleId?: string
 }
 const LoadBalancer16Icon = ({
   title,
   titleId,
   ...props
-}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={16} height={16} viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path fillRule="evenodd" clipRule="evenodd" d="M10.25 0h-4.5A.75.75 0 0 0 5 .75v3.5c0 .414.336.75.75.75H7v2H2.75a.75.75 0 0 0-.75.75V11H.75a.75.75 0 0 0-.75.75v3.5c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-3.5a.75.75 0 0 0-.75-.75H4V9h8v2h-1.25a.75.75 0 0 0-.75.75v3.5c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-3.5a.75.75 0 0 0-.75-.75H14V7.75a.75.75 0 0 0-.75-.75H9V5h1.25a.75.75 0 0 0 .75-.75V.75a.75.75 0 0 0-.75-.75Z" fill="currentColor" /></svg>;
-export default LoadBalancer16Icon;
+}: SVGProps<SVGSVGElement> & SVGRProps) => (
+  <svg
+    width={16}
+    height={16}
+    viewBox="0 0 16 16"
+    xmlns="http://www.w3.org/2000/svg"
+    role="img"
+    aria-labelledby={titleId}
+    {...props}
+  >
+    {title ? <title id={titleId}>{title}</title> : null}
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M10.25 0h-4.5A.75.75 0 0 0 5 .75v3.5c0 .414.336.75.75.75H7v2H2.75a.75.75 0 0 0-.75.75V11H.75a.75.75 0 0 0-.75.75v3.5c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-3.5a.75.75 0 0 0-.75-.75H4V9h8v2h-1.25a.75.75 0 0 0-.75.75v3.5c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-3.5a.75.75 0 0 0-.75-.75H14V7.75a.75.75 0 0 0-.75-.75H9V5h1.25a.75.75 0 0 0 .75-.75V.75a.75.75 0 0 0-.75-.75Z"
+      fill="currentColor"
+    />
+  </svg>
+)
+export default LoadBalancer16Icon
