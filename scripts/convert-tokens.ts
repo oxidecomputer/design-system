@@ -15,7 +15,7 @@ import StyleDictionary from 'style-dictionary'
 import dedent from 'ts-dedent'
 import type { KebabCase } from 'type-fest'
 
-const THEMES = ['main', 'blue', 'yellow', 'purple', 'red'] as const
+const THEMES = ['main', 'blue', 'yellow', 'purple', 'red', 'green'] as const
 
 const FONT_FAMILIES = {
   'GT America Mono': '"GT America Mono", monospace',
