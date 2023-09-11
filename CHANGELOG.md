@@ -1,3 +1,19 @@
+# v1.2.0 (Mon Sep 11 2023)
+
+#### 🚀 Enhancement
+
+- Adding green theme [#47](https://github.com/oxidecomputer/design-system/pull/47) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### 🐛 Bug Fix
+
+- Support for sidebarblock [#48](https://github.com/oxidecomputer/design-system/pull/48) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.1.0 (Tue Aug 22 2023)
 
 #### 🚀 Enhancement
