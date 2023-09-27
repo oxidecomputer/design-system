@@ -1,3 +1,15 @@
+# v1.2.1 (Wed Sep 27 2023)
+
+#### 🐛 Bug Fix
+
+- Upgrade `react-asciidoc` peer dep [#49](https://github.com/oxidecomputer/design-system/pull/49) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.2.0 (Mon Sep 11 2023)
 
 #### 🚀 Enhancement
