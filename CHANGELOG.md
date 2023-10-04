@@ -1,3 +1,15 @@
+# v1.2.2 (Wed Oct 04 2023)
+
+#### 🐛 Bug Fix
+
+- Add metrics/24 icon [#51](https://github.com/oxidecomputer/design-system/pull/51) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.2.1 (Wed Sep 27 2023)
 
 #### 🐛 Bug Fix
