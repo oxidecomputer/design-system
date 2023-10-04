@@ -39,6 +39,7 @@ export { default as Like24Icon } from './Like24Icon.tsx';
 export { default as LoadBalancer24Icon } from './LoadBalancer24Icon.tsx';
 export { default as Location24Icon } from './Location24Icon.tsx';
 export { default as Logs24Icon } from './Logs24Icon.tsx';
+export { default as Metrics24Icon } from './Metrics24Icon.tsx';
 export { default as Networking24Icon } from './Networking24Icon.tsx';
 export { default as Organization24Icon } from './Organization24Icon.tsx';
 export { default as Overview24Icon } from './Overview24Icon.tsx';

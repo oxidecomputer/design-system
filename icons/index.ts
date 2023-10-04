@@ -95,6 +95,7 @@ export type Icon =
 | { name: 'logs', size: 16 }
 | { name: 'logs', size: 24 }
 | { name: 'metrics', size: 16 }
+| { name: 'metrics', size: 24 }
 | { name: 'more', size: 12 }
 | { name: 'networking', size: 16 }
 | { name: 'networking', size: 24 }
