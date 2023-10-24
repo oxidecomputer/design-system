@@ -1,3 +1,15 @@
+# v1.2.3 (Tue Oct 24 2023)
+
+#### 🐛 Bug Fix
+
+- Improved body contrast [#55](https://github.com/oxidecomputer/design-system/pull/55) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.2.2 (Wed Oct 04 2023)
 
 #### 🐛 Bug Fix
