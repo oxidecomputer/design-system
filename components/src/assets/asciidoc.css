@@ -732,4 +732,14 @@
   & ol li {
     @apply mt-0;
   }
+
+  /* Use semi-bold for strong */
+  .asciidoc-body strong {
+    font-weight: 500;
+  }
+
+  /* Boosting body text for long text readability */
+  .asciidoc-body p {
+    color: #c8cacb;
+  }
 }
