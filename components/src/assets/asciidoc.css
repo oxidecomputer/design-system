@@ -47,8 +47,9 @@
     word-wrap: break-word;
   }
 
+  /* Use semi-bold for strong */
   .asciidoc-body strong {
-    @apply font-[600] text-default;
+    @apply font-[500] text-default;
   }
 
   .asciidoc-body a strong {
@@ -731,11 +732,6 @@
   & ul li,
   & ol li {
     @apply mt-0;
-  }
-
-  /* Use semi-bold for strong */
-  .asciidoc-body strong {
-    font-weight: 500;
   }
 
   /* Boosting body text for long text readability */
