@@ -711,6 +711,11 @@
       --content-secondary: rgb(0, 0, 0, 0.8);
     }
   }
+
+  /* Boosting body text for long text readability */
+  .asciidoc-body p {
+    color: #c8cacb;
+  }
 }
 
 .changelog-doc.asciidoc-body {
@@ -732,10 +737,5 @@
   & ul li,
   & ol li {
     @apply mt-0;
-  }
-
-  /* Boosting body text for long text readability */
-  .asciidoc-body p {
-    color: #c8cacb;
   }
 }
