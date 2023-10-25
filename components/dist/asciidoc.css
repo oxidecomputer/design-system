@@ -47,8 +47,9 @@
     word-wrap: break-word;
   }
 
+  /* Use semi-bold for strong */
   .asciidoc-body strong {
-    @apply font-[600] text-default;
+    @apply font-[500] text-default;
   }
 
   .asciidoc-body a strong {
@@ -710,6 +711,11 @@
       --content-secondary: rgb(0, 0, 0, 0.8);
     }
   }
+
+  /* Boosting body text for long text readability */
+  .asciidoc-body p {
+    color: #c8cacb;
+  }
 }
 
 .changelog-doc.asciidoc-body {
@@ -731,15 +737,5 @@
   & ul li,
   & ol li {
     @apply mt-0;
-  }
-
-  /* Use semi-bold for strong */
-  .asciidoc-body strong {
-    font-weight: 500;
-  }
-
-  /* Boosting body text for long text readability */
-  .asciidoc-body p {
-    color: #c8cacb;
   }
 }
