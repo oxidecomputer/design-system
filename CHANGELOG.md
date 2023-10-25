@@ -1,3 +1,15 @@
+# v1.2.4 (Wed Oct 25 2023)
+
+#### 🐛 Bug Fix
+
+- Fix dupe strong class [#57](https://github.com/oxidecomputer/design-system/pull/57) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.2.3 (Tue Oct 24 2023)
 
 #### 🐛 Bug Fix
