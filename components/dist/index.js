@@ -1,16 +1,18 @@
-"use strict";
-var __create = Object.create;
+"use strict";Object.defineProperty(exports, "__esModule", {value: true});var __create = Object.create;
 var __defProp = Object.defineProperty;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __commonJS = (cb, mod) => function __require() {
+var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require : typeof Proxy !== "undefined" ? new Proxy(x, {
+  get: (a, b) => (typeof require !== "undefined" ? require : a)[b]
+}) : x)(function(x) {
+  if (typeof require !== "undefined")
+    return require.apply(this, arguments);
+  throw Error('Dynamic require of "' + x + '" is not supported');
+});
+var __commonJS = (cb, mod) => function __require2() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
-};
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
 };
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
@@ -28,7 +30,6 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // node_modules/domelementtype/lib/index.js
 var require_lib = __commonJS({
@@ -1182,11 +1183,7 @@ var require_Tokenizer = __commonJS({
       State2[State2["BeforeSpecialS"] = 22] = "BeforeSpecialS";
       State2[State2["SpecialStartSequence"] = 23] = "SpecialStartSequence";
       State2[State2["InSpecialTag"] = 24] = "InSpecialTag";
-      State2[State2["BeforeEntity"] = 25] = "BeforeEntity";
-      State2[State2["BeforeNumericEntity"] = 26] = "BeforeNumericEntity";
-      State2[State2["InNamedEntity"] = 27] = "InNamedEntity";
-      State2[State2["InNumericEntity"] = 28] = "InNumericEntity";
-      State2[State2["InHexEntity"] = 29] = "InHexEntity";
+      State2[State2["InEntity"] = 25] = "InEntity";
     })(State || (State = {}));
     function isWhitespace(c) {
       return c === CharCodes.Space || c === CharCodes.NewLine || c === CharCodes.Tab || c === CharCodes.FormFeed || c === CharCodes.CarriageReturn;
@@ -1194,14 +1191,8 @@ var require_Tokenizer = __commonJS({
     function isEndOfTagSection(c) {
       return c === CharCodes.Slash || c === CharCodes.Gt || isWhitespace(c);
     }
-    function isNumber(c) {
-      return c >= CharCodes.Zero && c <= CharCodes.Nine;
-    }
     function isASCIIAlpha(c) {
       return c >= CharCodes.LowerA && c <= CharCodes.LowerZ || c >= CharCodes.UpperA && c <= CharCodes.UpperZ;
-    }
-    function isHexDigit(c) {
-      return c >= CharCodes.UpperA && c <= CharCodes.UpperF || c >= CharCodes.LowerA && c <= CharCodes.LowerF;
     }
     var QuoteType;
     (function(QuoteType2) {
@@ -1224,24 +1215,24 @@ var require_Tokenizer = __commonJS({
       function() {
         function Tokenizer2(_a, cbs) {
           var _b = _a.xmlMode, xmlMode = _b === void 0 ? false : _b, _c = _a.decodeEntities, decodeEntities = _c === void 0 ? true : _c;
+          var _this = this;
           this.cbs = cbs;
           this.state = State.Text;
           this.buffer = "";
           this.sectionStart = 0;
           this.index = 0;
+          this.entityStart = 0;
           this.baseState = State.Text;
           this.isSpecial = false;
           this.running = true;
           this.offset = 0;
           this.currentSequence = void 0;
           this.sequenceIndex = 0;
-          this.trieIndex = 0;
-          this.trieCurrent = 0;
-          this.entityResult = 0;
-          this.entityExcess = 0;
           this.xmlMode = xmlMode;
           this.decodeEntities = decodeEntities;
-          this.entityTrie = xmlMode ? decode_js_1.xmlDecodeTree : decode_js_1.htmlDecodeTree;
+          this.entityDecoder = new decode_js_1.EntityDecoder(xmlMode ? decode_js_1.xmlDecodeTree : decode_js_1.htmlDecodeTree, function(cp, consumed) {
+            return _this.emitCodePoint(cp, consumed);
+          });
         }
         Tokenizer2.prototype.reset = function() {
           this.state = State.Text;
@@ -1271,12 +1262,6 @@ var require_Tokenizer = __commonJS({
             this.parse();
           }
         };
-        Tokenizer2.prototype.getIndex = function() {
-          return this.index;
-        };
-        Tokenizer2.prototype.getSectionStart = function() {
-          return this.sectionStart;
-        };
         Tokenizer2.prototype.stateText = function(c) {
           if (c === CharCodes.Lt || !this.decodeEntities && this.fastForwardTo(CharCodes.Lt)) {
             if (this.index > this.sectionStart) {
@@ -1285,7 +1270,7 @@ var require_Tokenizer = __commonJS({
             this.state = State.BeforeTagName;
             this.sectionStart = this.index;
           } else if (this.decodeEntities && c === CharCodes.Amp) {
-            this.state = State.BeforeEntity;
+            this.startEntity();
           }
         };
         Tokenizer2.prototype.stateSpecialStartSequence = function(c) {
@@ -1329,7 +1314,7 @@ var require_Tokenizer = __commonJS({
           } else if (this.sequenceIndex === 0) {
             if (this.currentSequence === Sequences.TitleEnd) {
               if (this.decodeEntities && c === CharCodes.Amp) {
-                this.state = State.BeforeEntity;
+                this.startEntity();
               }
             } else if (this.fastForwardTo(CharCodes.Lt)) {
               this.sequenceIndex = 1;
@@ -1440,7 +1425,6 @@ var require_Tokenizer = __commonJS({
         Tokenizer2.prototype.stateAfterClosingTagName = function(c) {
           if (c === CharCodes.Gt || this.fastForwardTo(CharCodes.Gt)) {
             this.state = State.Text;
-            this.baseState = State.Text;
             this.sectionStart = this.index + 1;
           }
         };
@@ -1453,7 +1437,6 @@ var require_Tokenizer = __commonJS({
             } else {
               this.state = State.Text;
             }
-            this.baseState = this.state;
             this.sectionStart = this.index + 1;
           } else if (c === CharCodes.Slash) {
             this.state = State.InSelfClosingTag;
@@ -1466,7 +1449,6 @@ var require_Tokenizer = __commonJS({
           if (c === CharCodes.Gt) {
             this.cbs.onselfclosingtag(this.index);
             this.state = State.Text;
-            this.baseState = State.Text;
             this.sectionStart = this.index + 1;
             this.isSpecial = false;
           } else if (!isWhitespace(c)) {
@@ -1515,8 +1497,7 @@ var require_Tokenizer = __commonJS({
             this.cbs.onattribend(quote === CharCodes.DoubleQuote ? QuoteType.Double : QuoteType.Single, this.index);
             this.state = State.BeforeAttributeName;
           } else if (this.decodeEntities && c === CharCodes.Amp) {
-            this.baseState = this.state;
-            this.state = State.BeforeEntity;
+            this.startEntity();
           }
         };
         Tokenizer2.prototype.stateInAttributeValueDoubleQuotes = function(c) {
@@ -1533,8 +1514,7 @@ var require_Tokenizer = __commonJS({
             this.state = State.BeforeAttributeName;
             this.stateBeforeAttributeName(c);
           } else if (this.decodeEntities && c === CharCodes.Amp) {
-            this.baseState = this.state;
-            this.state = State.BeforeEntity;
+            this.startEntity();
           }
         };
         Tokenizer2.prototype.stateBeforeDeclaration = function(c) {
@@ -1587,125 +1567,22 @@ var require_Tokenizer = __commonJS({
             this.stateInTagName(c);
           }
         };
-        Tokenizer2.prototype.stateBeforeEntity = function(c) {
-          this.entityExcess = 1;
-          this.entityResult = 0;
-          if (c === CharCodes.Number) {
-            this.state = State.BeforeNumericEntity;
-          } else if (c === CharCodes.Amp) {
+        Tokenizer2.prototype.startEntity = function() {
+          this.baseState = this.state;
+          this.state = State.InEntity;
+          this.entityStart = this.index;
+          this.entityDecoder.startEntity(this.xmlMode ? decode_js_1.DecodingMode.Strict : this.baseState === State.Text || this.baseState === State.InSpecialTag ? decode_js_1.DecodingMode.Legacy : decode_js_1.DecodingMode.Attribute);
+        };
+        Tokenizer2.prototype.stateInEntity = function() {
+          var length = this.entityDecoder.write(this.buffer, this.index - this.offset);
+          if (length >= 0) {
+            this.state = this.baseState;
+            if (length === 0) {
+              this.index = this.entityStart;
+            }
           } else {
-            this.trieIndex = 0;
-            this.trieCurrent = this.entityTrie[0];
-            this.state = State.InNamedEntity;
-            this.stateInNamedEntity(c);
+            this.index = this.offset + this.buffer.length - 1;
           }
-        };
-        Tokenizer2.prototype.stateInNamedEntity = function(c) {
-          this.entityExcess += 1;
-          this.trieIndex = (0, decode_js_1.determineBranch)(this.entityTrie, this.trieCurrent, this.trieIndex + 1, c);
-          if (this.trieIndex < 0) {
-            this.emitNamedEntity();
-            this.index--;
-            return;
-          }
-          this.trieCurrent = this.entityTrie[this.trieIndex];
-          var masked = this.trieCurrent & decode_js_1.BinTrieFlags.VALUE_LENGTH;
-          if (masked) {
-            var valueLength = (masked >> 14) - 1;
-            if (!this.allowLegacyEntity() && c !== CharCodes.Semi) {
-              this.trieIndex += valueLength;
-            } else {
-              var entityStart = this.index - this.entityExcess + 1;
-              if (entityStart > this.sectionStart) {
-                this.emitPartial(this.sectionStart, entityStart);
-              }
-              this.entityResult = this.trieIndex;
-              this.trieIndex += valueLength;
-              this.entityExcess = 0;
-              this.sectionStart = this.index + 1;
-              if (valueLength === 0) {
-                this.emitNamedEntity();
-              }
-            }
-          }
-        };
-        Tokenizer2.prototype.emitNamedEntity = function() {
-          this.state = this.baseState;
-          if (this.entityResult === 0) {
-            return;
-          }
-          var valueLength = (this.entityTrie[this.entityResult] & decode_js_1.BinTrieFlags.VALUE_LENGTH) >> 14;
-          switch (valueLength) {
-            case 1: {
-              this.emitCodePoint(this.entityTrie[this.entityResult] & ~decode_js_1.BinTrieFlags.VALUE_LENGTH);
-              break;
-            }
-            case 2: {
-              this.emitCodePoint(this.entityTrie[this.entityResult + 1]);
-              break;
-            }
-            case 3: {
-              this.emitCodePoint(this.entityTrie[this.entityResult + 1]);
-              this.emitCodePoint(this.entityTrie[this.entityResult + 2]);
-            }
-          }
-        };
-        Tokenizer2.prototype.stateBeforeNumericEntity = function(c) {
-          if ((c | 32) === CharCodes.LowerX) {
-            this.entityExcess++;
-            this.state = State.InHexEntity;
-          } else {
-            this.state = State.InNumericEntity;
-            this.stateInNumericEntity(c);
-          }
-        };
-        Tokenizer2.prototype.emitNumericEntity = function(strict) {
-          var entityStart = this.index - this.entityExcess - 1;
-          var numberStart = entityStart + 2 + Number(this.state === State.InHexEntity);
-          if (numberStart !== this.index) {
-            if (entityStart > this.sectionStart) {
-              this.emitPartial(this.sectionStart, entityStart);
-            }
-            this.sectionStart = this.index + Number(strict);
-            this.emitCodePoint((0, decode_js_1.replaceCodePoint)(this.entityResult));
-          }
-          this.state = this.baseState;
-        };
-        Tokenizer2.prototype.stateInNumericEntity = function(c) {
-          if (c === CharCodes.Semi) {
-            this.emitNumericEntity(true);
-          } else if (isNumber(c)) {
-            this.entityResult = this.entityResult * 10 + (c - CharCodes.Zero);
-            this.entityExcess++;
-          } else {
-            if (this.allowLegacyEntity()) {
-              this.emitNumericEntity(false);
-            } else {
-              this.state = this.baseState;
-            }
-            this.index--;
-          }
-        };
-        Tokenizer2.prototype.stateInHexEntity = function(c) {
-          if (c === CharCodes.Semi) {
-            this.emitNumericEntity(true);
-          } else if (isNumber(c)) {
-            this.entityResult = this.entityResult * 16 + (c - CharCodes.Zero);
-            this.entityExcess++;
-          } else if (isHexDigit(c)) {
-            this.entityResult = this.entityResult * 16 + ((c | 32) - CharCodes.LowerA + 10);
-            this.entityExcess++;
-          } else {
-            if (this.allowLegacyEntity()) {
-              this.emitNumericEntity(false);
-            } else {
-              this.state = this.baseState;
-            }
-            this.index--;
-          }
-        };
-        Tokenizer2.prototype.allowLegacyEntity = function() {
-          return !this.xmlMode && (this.baseState === State.Text || this.baseState === State.InSpecialTag);
         };
         Tokenizer2.prototype.cleanup = function() {
           if (this.running && this.sectionStart !== this.index) {
@@ -1821,24 +1698,9 @@ var require_Tokenizer = __commonJS({
                 this.stateInProcessingInstruction(c);
                 break;
               }
-              case State.InNamedEntity: {
-                this.stateInNamedEntity(c);
+              case State.InEntity: {
+                this.stateInEntity();
                 break;
-              }
-              case State.BeforeEntity: {
-                this.stateBeforeEntity(c);
-                break;
-              }
-              case State.InHexEntity: {
-                this.stateInHexEntity(c);
-                break;
-              }
-              case State.InNumericEntity: {
-                this.stateInNumericEntity(c);
-                break;
-              }
-              default: {
-                this.stateBeforeNumericEntity(c);
               }
             }
             this.index++;
@@ -1846,43 +1708,44 @@ var require_Tokenizer = __commonJS({
           this.cleanup();
         };
         Tokenizer2.prototype.finish = function() {
-          if (this.state === State.InNamedEntity) {
-            this.emitNamedEntity();
+          if (this.state === State.InEntity) {
+            this.entityDecoder.end();
+            this.state = this.baseState;
           }
-          if (this.sectionStart < this.index) {
-            this.handleTrailingData();
-          }
+          this.handleTrailingData();
           this.cbs.onend();
         };
         Tokenizer2.prototype.handleTrailingData = function() {
           var endIndex = this.buffer.length + this.offset;
+          if (this.sectionStart >= endIndex) {
+            return;
+          }
           if (this.state === State.InCommentLike) {
             if (this.currentSequence === Sequences.CdataEnd) {
               this.cbs.oncdata(this.sectionStart, endIndex, 0);
             } else {
               this.cbs.oncomment(this.sectionStart, endIndex, 0);
             }
-          } else if (this.state === State.InNumericEntity && this.allowLegacyEntity()) {
-            this.emitNumericEntity(false);
-          } else if (this.state === State.InHexEntity && this.allowLegacyEntity()) {
-            this.emitNumericEntity(false);
           } else if (this.state === State.InTagName || this.state === State.BeforeAttributeName || this.state === State.BeforeAttributeValue || this.state === State.AfterAttributeName || this.state === State.InAttributeName || this.state === State.InAttributeValueSq || this.state === State.InAttributeValueDq || this.state === State.InAttributeValueNq || this.state === State.InClosingTagName) {
           } else {
             this.cbs.ontext(this.sectionStart, endIndex);
           }
         };
-        Tokenizer2.prototype.emitPartial = function(start, endIndex) {
+        Tokenizer2.prototype.emitCodePoint = function(cp, consumed) {
           if (this.baseState !== State.Text && this.baseState !== State.InSpecialTag) {
-            this.cbs.onattribdata(start, endIndex);
-          } else {
-            this.cbs.ontext(start, endIndex);
-          }
-        };
-        Tokenizer2.prototype.emitCodePoint = function(cp) {
-          if (this.baseState !== State.Text && this.baseState !== State.InSpecialTag) {
+            if (this.sectionStart < this.entityStart) {
+              this.cbs.onattribdata(this.sectionStart, this.entityStart);
+            }
+            this.sectionStart = this.entityStart + consumed;
+            this.index = this.sectionStart - 1;
             this.cbs.onattribentity(cp);
           } else {
-            this.cbs.ontextentity(cp);
+            if (this.sectionStart < this.entityStart) {
+              this.cbs.ontext(this.sectionStart, this.entityStart);
+            }
+            this.sectionStart = this.entityStart + consumed;
+            this.index = this.sectionStart - 1;
+            this.cbs.ontextentity(cp, this.sectionStart);
           }
         };
         return Tokenizer2;
@@ -2045,15 +1908,16 @@ var require_Parser = __commonJS({
           this.attribvalue = "";
           this.attribs = null;
           this.stack = [];
-          this.foreignContext = [];
           this.buffers = [];
           this.bufferOffset = 0;
           this.writeIndex = 0;
           this.ended = false;
           this.cbs = cbs !== null && cbs !== void 0 ? cbs : {};
-          this.lowerCaseTagNames = (_a = options.lowerCaseTags) !== null && _a !== void 0 ? _a : !options.xmlMode;
-          this.lowerCaseAttributeNames = (_b = options.lowerCaseAttributeNames) !== null && _b !== void 0 ? _b : !options.xmlMode;
+          this.htmlMode = !this.options.xmlMode;
+          this.lowerCaseTagNames = (_a = options.lowerCaseTags) !== null && _a !== void 0 ? _a : this.htmlMode;
+          this.lowerCaseAttributeNames = (_b = options.lowerCaseAttributeNames) !== null && _b !== void 0 ? _b : this.htmlMode;
           this.tokenizer = new ((_c = options.Tokenizer) !== null && _c !== void 0 ? _c : Tokenizer_js_1.default)(this.options, this);
+          this.foreignContext = [!this.htmlMode];
           (_e = (_d = this.cbs).onparserinit) === null || _e === void 0 ? void 0 : _e.call(_d, this);
         }
         Parser2.prototype.ontext = function(start, endIndex) {
@@ -2063,15 +1927,14 @@ var require_Parser = __commonJS({
           (_b = (_a = this.cbs).ontext) === null || _b === void 0 ? void 0 : _b.call(_a, data);
           this.startIndex = endIndex;
         };
-        Parser2.prototype.ontextentity = function(cp) {
+        Parser2.prototype.ontextentity = function(cp, endIndex) {
           var _a, _b;
-          var index = this.tokenizer.getSectionStart();
-          this.endIndex = index - 1;
+          this.endIndex = endIndex - 1;
           (_b = (_a = this.cbs).ontext) === null || _b === void 0 ? void 0 : _b.call(_a, (0, decode_js_1.fromCodePoint)(cp));
-          this.startIndex = index;
+          this.startIndex = endIndex;
         };
         Parser2.prototype.isVoidElement = function(name) {
-          return !this.options.xmlMode && voidElements.has(name);
+          return this.htmlMode && voidElements.has(name);
         };
         Parser2.prototype.onopentagname = function(start, endIndex) {
           this.endIndex = endIndex;
@@ -2085,19 +1948,21 @@ var require_Parser = __commonJS({
           var _a, _b, _c, _d;
           this.openTagStart = this.startIndex;
           this.tagname = name;
-          var impliesClose = !this.options.xmlMode && openImpliesClose.get(name);
+          var impliesClose = this.htmlMode && openImpliesClose.get(name);
           if (impliesClose) {
-            while (this.stack.length > 0 && impliesClose.has(this.stack[this.stack.length - 1])) {
-              var element = this.stack.pop();
+            while (this.stack.length > 0 && impliesClose.has(this.stack[0])) {
+              var element = this.stack.shift();
               (_b = (_a = this.cbs).onclosetag) === null || _b === void 0 ? void 0 : _b.call(_a, element, true);
             }
           }
           if (!this.isVoidElement(name)) {
-            this.stack.push(name);
-            if (foreignContextElements.has(name)) {
-              this.foreignContext.push(true);
-            } else if (htmlIntegrationElements.has(name)) {
-              this.foreignContext.push(false);
+            this.stack.unshift(name);
+            if (this.htmlMode) {
+              if (foreignContextElements.has(name)) {
+                this.foreignContext.unshift(true);
+              } else if (htmlIntegrationElements.has(name)) {
+                this.foreignContext.unshift(false);
+              }
             }
           }
           (_d = (_c = this.cbs).onopentagname) === null || _d === void 0 ? void 0 : _d.call(_c, name);
@@ -2122,39 +1987,36 @@ var require_Parser = __commonJS({
           this.startIndex = endIndex + 1;
         };
         Parser2.prototype.onclosetag = function(start, endIndex) {
-          var _a, _b, _c, _d, _e, _f;
+          var _a, _b, _c, _d, _e, _f, _g, _h;
           this.endIndex = endIndex;
           var name = this.getSlice(start, endIndex);
           if (this.lowerCaseTagNames) {
             name = name.toLowerCase();
           }
-          if (foreignContextElements.has(name) || htmlIntegrationElements.has(name)) {
-            this.foreignContext.pop();
+          if (this.htmlMode && (foreignContextElements.has(name) || htmlIntegrationElements.has(name))) {
+            this.foreignContext.shift();
           }
           if (!this.isVoidElement(name)) {
-            var pos = this.stack.lastIndexOf(name);
+            var pos = this.stack.indexOf(name);
             if (pos !== -1) {
-              if (this.cbs.onclosetag) {
-                var count = this.stack.length - pos;
-                while (count--) {
-                  this.cbs.onclosetag(this.stack.pop(), count !== 0);
-                }
-              } else
-                this.stack.length = pos;
-            } else if (!this.options.xmlMode && name === "p") {
+              for (var index = 0; index <= pos; index++) {
+                var element = this.stack.shift();
+                (_b = (_a = this.cbs).onclosetag) === null || _b === void 0 ? void 0 : _b.call(_a, element, index !== pos);
+              }
+            } else if (this.htmlMode && name === "p") {
               this.emitOpenTag("p");
               this.closeCurrentTag(true);
             }
-          } else if (!this.options.xmlMode && name === "br") {
-            (_b = (_a = this.cbs).onopentagname) === null || _b === void 0 ? void 0 : _b.call(_a, "br");
-            (_d = (_c = this.cbs).onopentag) === null || _d === void 0 ? void 0 : _d.call(_c, "br", {}, true);
-            (_f = (_e = this.cbs).onclosetag) === null || _f === void 0 ? void 0 : _f.call(_e, "br", false);
+          } else if (this.htmlMode && name === "br") {
+            (_d = (_c = this.cbs).onopentagname) === null || _d === void 0 ? void 0 : _d.call(_c, "br");
+            (_f = (_e = this.cbs).onopentag) === null || _f === void 0 ? void 0 : _f.call(_e, "br", {}, true);
+            (_h = (_g = this.cbs).onclosetag) === null || _h === void 0 ? void 0 : _h.call(_g, "br", false);
           }
           this.startIndex = endIndex + 1;
         };
         Parser2.prototype.onselfclosingtag = function(endIndex) {
           this.endIndex = endIndex;
-          if (this.options.xmlMode || this.options.recognizeSelfClosing || this.foreignContext[this.foreignContext.length - 1]) {
+          if (this.options.recognizeSelfClosing || this.foreignContext[0]) {
             this.closeCurrentTag(false);
             this.startIndex = endIndex + 1;
           } else {
@@ -2165,9 +2027,9 @@ var require_Parser = __commonJS({
           var _a, _b;
           var name = this.tagname;
           this.endOpenTag(isOpenImplied);
-          if (this.stack[this.stack.length - 1] === name) {
+          if (this.stack[0] === name) {
             (_b = (_a = this.cbs).onclosetag) === null || _b === void 0 ? void 0 : _b.call(_a, name, !isOpenImplied);
-            this.stack.pop();
+            this.stack.shift();
           }
         };
         Parser2.prototype.onattribname = function(start, endIndex) {
@@ -2227,7 +2089,7 @@ var require_Parser = __commonJS({
           var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
           this.endIndex = endIndex;
           var value = this.getSlice(start, endIndex - offset2);
-          if (this.options.xmlMode || this.options.recognizeCDATA) {
+          if (!this.htmlMode || this.options.recognizeCDATA) {
             (_b = (_a = this.cbs).oncdatastart) === null || _b === void 0 ? void 0 : _b.call(_a);
             (_d = (_c = this.cbs).ontext) === null || _d === void 0 ? void 0 : _d.call(_c, value);
             (_f = (_e = this.cbs).oncdataend) === null || _f === void 0 ? void 0 : _f.call(_e);
@@ -2241,8 +2103,9 @@ var require_Parser = __commonJS({
           var _a, _b;
           if (this.cbs.onclosetag) {
             this.endIndex = this.startIndex;
-            for (var index = this.stack.length; index > 0; this.cbs.onclosetag(this.stack[--index], true))
-              ;
+            for (var index = 0; index < this.stack.length; index++) {
+              this.cbs.onclosetag(this.stack[index], true);
+            }
           }
           (_b = (_a = this.cbs).onend) === null || _b === void 0 ? void 0 : _b.call(_a);
         };
@@ -2258,6 +2121,8 @@ var require_Parser = __commonJS({
           this.endIndex = 0;
           (_d = (_c = this.cbs).onparserinit) === null || _d === void 0 ? void 0 : _d.call(_c, this);
           this.buffers.length = 0;
+          this.foreignContext.length = 0;
+          this.foreignContext.unshift(!this.htmlMode);
           this.bufferOffset = 0;
           this.writeIndex = 0;
           this.ended = false;
@@ -4284,7 +4149,7 @@ var require_lib7 = __commonJS({
       return mod && mod.__esModule ? mod : { "default": mod };
     };
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.DomUtils = exports.parseFeed = exports.getFeed = exports.ElementType = exports.Tokenizer = exports.createDomStream = exports.parseDOM = exports.parseDocument = exports.DefaultHandler = exports.DomHandler = exports.Parser = void 0;
+    exports.DomUtils = exports.parseFeed = exports.getFeed = exports.ElementType = exports.Tokenizer = exports.createDomStream = exports.createDocumentStream = exports.parseDOM = exports.parseDocument = exports.DefaultHandler = exports.DomHandler = exports.Parser = void 0;
     var Parser_js_1 = require_Parser();
     var Parser_js_2 = require_Parser();
     Object.defineProperty(exports, "Parser", { enumerable: true, get: function() {
@@ -4308,6 +4173,13 @@ var require_lib7 = __commonJS({
       return parseDocument(data, options).children;
     }
     exports.parseDOM = parseDOM;
+    function createDocumentStream(callback, options, elementCallback) {
+      var handler = new domhandler_1.DomHandler(function(error) {
+        return callback(error, handler.root);
+      }, options, elementCallback);
+      return new Parser_js_1.Parser(handler, options);
+    }
+    exports.createDocumentStream = createDocumentStream;
     function createDomStream(callback, options, elementCallback) {
       var handler = new domhandler_1.DomHandler(callback, options, elementCallback);
       return new Parser_js_1.Parser(handler, options);
@@ -4937,7 +4809,7 @@ var require_lib8 = __commonJS({
 
 // node_modules/html-dom-parser/lib/server/utilities.js
 var require_utilities = __commonJS({
-  "node_modules/html-dom-parser/lib/server/utilities.js"(exports, module2) {
+  "node_modules/html-dom-parser/lib/server/utilities.js"(exports, module) {
     "use strict";
     function unsetRootParent(nodes) {
       for (var index = 0, len = nodes.length; index < len; index++) {
@@ -4946,7 +4818,7 @@ var require_utilities = __commonJS({
       }
       return nodes;
     }
-    module2.exports = {
+    module.exports = {
       unsetRootParent
     };
   }
@@ -4954,7 +4826,7 @@ var require_utilities = __commonJS({
 
 // node_modules/html-dom-parser/lib/server/html-to-dom.js
 var require_html_to_dom = __commonJS({
-  "node_modules/html-dom-parser/lib/server/html-to-dom.js"(exports, module2) {
+  "node_modules/html-dom-parser/lib/server/html-to-dom.js"(exports, module) {
     "use strict";
     var Parser = require_lib7().Parser;
     var DomHandler = require_lib8().DomHandler;
@@ -4970,17 +4842,17 @@ var require_html_to_dom = __commonJS({
       new Parser(handler, options).end(html);
       return unsetRootParent(handler.dom);
     }
-    module2.exports = HTMLDOMParser;
+    module.exports = HTMLDOMParser;
   }
 });
 
 // node_modules/html-dom-parser/index.js
 var require_html_dom_parser = __commonJS({
-  "node_modules/html-dom-parser/index.js"(exports, module2) {
+  "node_modules/html-dom-parser/index.js"(exports, module) {
     "use strict";
     var HTMLDOMParser = require_html_to_dom();
-    module2.exports = HTMLDOMParser;
-    module2.exports.default = HTMLDOMParser;
+    module.exports = HTMLDOMParser;
+    module.exports.default = HTMLDOMParser;
   }
 });
 
@@ -5983,7 +5855,7 @@ var require_lib9 = __commonJS({
 
 // node_modules/inline-style-parser/index.js
 var require_inline_style_parser = __commonJS({
-  "node_modules/inline-style-parser/index.js"(exports, module2) {
+  "node_modules/inline-style-parser/index.js"(exports, module) {
     "use strict";
     var COMMENT_REGEX = /\/\*[^*]*\*+([^/*][^*]*\*+)*\//g;
     var NEWLINE_REGEX = /\n/g;
@@ -5999,7 +5871,7 @@ var require_inline_style_parser = __commonJS({
     var EMPTY_STRING = "";
     var TYPE_COMMENT = "comment";
     var TYPE_DECLARATION = "declaration";
-    module2.exports = function(style, options) {
+    module.exports = function(style, options) {
       if (typeof style !== "string") {
         throw new TypeError("First argument must be a string");
       }
@@ -6129,7 +6001,7 @@ var require_inline_style_parser = __commonJS({
 
 // node_modules/style-to-object/index.js
 var require_style_to_object = __commonJS({
-  "node_modules/style-to-object/index.js"(exports, module2) {
+  "node_modules/style-to-object/index.js"(exports, module) {
     "use strict";
     var parse = require_inline_style_parser();
     function StyleToObject(style, iterator) {
@@ -6155,8 +6027,8 @@ var require_style_to_object = __commonJS({
       }
       return output;
     }
-    module2.exports = StyleToObject;
-    module2.exports.default = StyleToObject;
+    module.exports = StyleToObject;
+    module.exports.default = StyleToObject;
   }
 });
 
@@ -6164,7 +6036,7 @@ var require_style_to_object = __commonJS({
 var require_utilities2 = __commonJS({
   "node_modules/style-to-js/cjs/utilities.js"(exports) {
     "use strict";
-    exports.__esModule = true;
+    Object.defineProperty(exports, "__esModule", { value: true });
     exports.camelCase = void 0;
     var CUSTOM_PROPERTY_REGEX = /^--[a-zA-Z0-9-]+$/;
     var HYPHEN_REGEX = /-([a-z])/g;
@@ -6206,7 +6078,7 @@ var require_cjs = __commonJS({
     var __importDefault = exports && exports.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
     };
-    exports.__esModule = true;
+    Object.defineProperty(exports, "__esModule", { value: true });
     var style_to_object_1 = __importDefault(require_style_to_object());
     var utilities_1 = require_utilities2();
     function StyleToJS(style, options) {
@@ -6214,34 +6086,32 @@ var require_cjs = __commonJS({
       if (!style || typeof style !== "string") {
         return output;
       }
-      (0, style_to_object_1["default"])(style, function(property, value) {
+      (0, style_to_object_1.default)(style, function(property, value) {
         if (property && value) {
           output[(0, utilities_1.camelCase)(property, options)] = value;
         }
       });
       return output;
     }
-    exports["default"] = StyleToJS;
+    exports.default = StyleToJS;
   }
 });
 
 // node_modules/html-react-parser/lib/utilities.js
 var require_utilities3 = __commonJS({
-  "node_modules/html-react-parser/lib/utilities.js"(exports, module2) {
+  "node_modules/html-react-parser/lib/utilities.js"(exports, module) {
     "use strict";
-    var React2 = require("react");
+    var React2 = __require("react");
     var styleToJS = require_cjs().default;
     function invertObject(obj, override) {
       if (!obj || typeof obj !== "object") {
         throw new TypeError("First argument must be an object");
       }
-      var key;
-      var value;
       var isOverridePresent = typeof override === "function";
       var overrides = {};
       var result = {};
-      for (key in obj) {
-        value = obj[key];
+      for (var key in obj) {
+        var value = obj[key];
         if (isOverridePresent) {
           overrides = override(key, value);
           if (overrides && overrides.length === 2) {
@@ -6255,37 +6125,38 @@ var require_utilities3 = __commonJS({
       }
       return result;
     }
+    var RESERVED_SVG_MATHML_ELEMENTS = /* @__PURE__ */ new Set([
+      "annotation-xml",
+      "color-profile",
+      "font-face",
+      "font-face-src",
+      "font-face-uri",
+      "font-face-format",
+      "font-face-name",
+      "missing-glyph"
+    ]);
     function isCustomComponent(tagName, props) {
       if (tagName.indexOf("-") === -1) {
         return props && typeof props.is === "string";
       }
-      switch (tagName) {
-        case "annotation-xml":
-        case "color-profile":
-        case "font-face":
-        case "font-face-src":
-        case "font-face-uri":
-        case "font-face-format":
-        case "font-face-name":
-        case "missing-glyph":
-          return false;
-        default:
-          return true;
+      if (RESERVED_SVG_MATHML_ELEMENTS.has(tagName)) {
+        return false;
       }
+      return true;
     }
-    var styleToJSOptions = { reactCompat: true };
+    var STYLE_TO_JS_OPTIONS = { reactCompat: true };
     function setStyleProp(style, props) {
       if (style === null || style === void 0) {
         return;
       }
       try {
-        props.style = styleToJS(style, styleToJSOptions);
+        props.style = styleToJS(style, STYLE_TO_JS_OPTIONS);
       } catch (err) {
         props.style = {};
       }
     }
     var PRESERVE_CUSTOM_ATTRIBUTES = React2.version.split(".")[0] >= 16;
-    var elementsWithNoTextChildren = /* @__PURE__ */ new Set([
+    var ELEMENTS_WITH_NO_TEXT_CHILDREN = /* @__PURE__ */ new Set([
       "tr",
       "tbody",
       "thead",
@@ -6297,22 +6168,26 @@ var require_utilities3 = __commonJS({
       "frameset"
     ]);
     function canTextBeChildOfNode(node) {
-      return !elementsWithNoTextChildren.has(node.name);
+      return !ELEMENTS_WITH_NO_TEXT_CHILDREN.has(node.name);
     }
-    module2.exports = {
+    function returnFirstArg(arg) {
+      return arg;
+    }
+    module.exports = {
       PRESERVE_CUSTOM_ATTRIBUTES,
+      ELEMENTS_WITH_NO_TEXT_CHILDREN,
       invertObject,
       isCustomComponent,
       setStyleProp,
       canTextBeChildOfNode,
-      elementsWithNoTextChildren
+      returnFirstArg
     };
   }
 });
 
 // node_modules/html-react-parser/lib/attributes-to-props.js
 var require_attributes_to_props = __commonJS({
-  "node_modules/html-react-parser/lib/attributes-to-props.js"(exports, module2) {
+  "node_modules/html-react-parser/lib/attributes-to-props.js"(exports, module) {
     "use strict";
     var reactProperty = require_lib9();
     var utilities = require_utilities3();
@@ -6322,7 +6197,7 @@ var require_attributes_to_props = __commonJS({
       reset: true,
       submit: true
     };
-    module2.exports = function attributesToProps2(attributes, nodeName) {
+    module.exports = function attributesToProps2(attributes, nodeName) {
       attributes = attributes || {};
       var attributeName;
       var attributeNameLowerCased;
@@ -6372,9 +6247,9 @@ var require_attributes_to_props = __commonJS({
 
 // node_modules/html-react-parser/lib/dom-to-react.js
 var require_dom_to_react = __commonJS({
-  "node_modules/html-react-parser/lib/dom-to-react.js"(exports, module2) {
+  "node_modules/html-react-parser/lib/dom-to-react.js"(exports, module) {
     "use strict";
-    var React2 = require("react");
+    var React2 = __require("react");
     var attributesToProps2 = require_attributes_to_props();
     var utilities = require_utilities3();
     var setStyleProp = utilities.setStyleProp;
@@ -6389,6 +6264,7 @@ var require_dom_to_react = __commonJS({
       var node;
       var isWhitespace;
       var hasReplace = typeof options.replace === "function";
+      var transform = options.transform || utilities.returnFirstArg;
       var replaceElement;
       var props;
       var children;
@@ -6403,7 +6279,7 @@ var require_dom_to_react = __commonJS({
                 key: replaceElement.key || i
               });
             }
-            result.push(replaceElement);
+            result.push(transform(replaceElement, node, i));
             continue;
           }
         }
@@ -6415,7 +6291,7 @@ var require_dom_to_react = __commonJS({
           if (trim && isWhitespace) {
             continue;
           }
-          result.push(node.data);
+          result.push(transform(node.data, node, i));
           continue;
         }
         props = node.attribs;
@@ -6447,20 +6323,20 @@ var require_dom_to_react = __commonJS({
         if (len > 1) {
           props.key = i;
         }
-        result.push(createElement(node.name, props, children));
+        result.push(transform(createElement(node.name, props, children), node, i));
       }
       return result.length === 1 ? result[0] : result;
     }
     function skipAttributesToProps(node) {
       return utilities.PRESERVE_CUSTOM_ATTRIBUTES && node.type === "tag" && utilities.isCustomComponent(node.name, node.attribs);
     }
-    module2.exports = domToReact2;
+    module.exports = domToReact2;
   }
 });
 
 // node_modules/html-react-parser/index.js
 var require_html_react_parser = __commonJS({
-  "node_modules/html-react-parser/index.js"(exports, module2) {
+  "node_modules/html-react-parser/index.js"(exports, module) {
     "use strict";
     var domhandler = require_lib2();
     var htmlToDOM2 = require_html_dom_parser();
@@ -6489,14 +6365,14 @@ var require_html_react_parser = __commonJS({
     HTMLReactParser2.Element = domhandler.Element;
     HTMLReactParser2.ProcessingInstruction = domhandler.ProcessingInstruction;
     HTMLReactParser2.Text = domhandler.Text;
-    module2.exports = HTMLReactParser2;
+    module.exports = HTMLReactParser2;
     HTMLReactParser2.default = HTMLReactParser2;
   }
 });
 
 // node_modules/classnames/index.js
 var require_classnames = __commonJS({
-  "node_modules/classnames/index.js"(exports, module2) {
+  "node_modules/classnames/index.js"(exports, module) {
     "use strict";
     (function() {
       "use strict";
@@ -6532,9 +6408,9 @@ var require_classnames = __commonJS({
         }
         return classes.join(" ");
       }
-      if (typeof module2 !== "undefined" && module2.exports) {
+      if (typeof module !== "undefined" && module.exports) {
         classNames.default = classNames;
-        module2.exports = classNames;
+        module.exports = classNames;
       } else if (typeof define === "function" && typeof define.amd === "object" && define.amd) {
         define("classnames", [], function() {
           return classNames;
@@ -6548,7 +6424,7 @@ var require_classnames = __commonJS({
 
 // node_modules/highlight.js/lib/core.js
 var require_core = __commonJS({
-  "node_modules/highlight.js/lib/core.js"(exports, module2) {
+  "node_modules/highlight.js/lib/core.js"(exports, module) {
     "use strict";
     function deepFreeze(obj) {
       if (obj instanceof Map) {
@@ -8128,7 +8004,7 @@ var require_core = __commonJS({
     };
     var highlight = HLJS({});
     highlight.newInstance = () => HLJS({});
-    module2.exports = highlight;
+    module.exports = highlight;
     highlight.HighlightJS = highlight;
     highlight.default = highlight;
   }
@@ -8136,7 +8012,7 @@ var require_core = __commonJS({
 
 // node_modules/highlight.js/lib/languages/1c.js
 var require_c = __commonJS({
-  "node_modules/highlight.js/lib/languages/1c.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/1c.js"(exports, module) {
     "use strict";
     function _1c(hljs) {
       const UNDERSCORE_IDENT_RE = "[A-Za-z\u0410-\u042F\u0430-\u044F\u0451\u0401_][A-Za-z\u0410-\u042F\u0430-\u044F\u0451\u0401_0-9]+";
@@ -8278,13 +8154,13 @@ var require_c = __commonJS({
         ]
       };
     }
-    module2.exports = _1c;
+    module.exports = _1c;
   }
 });
 
 // node_modules/highlight.js/lib/languages/abnf.js
 var require_abnf = __commonJS({
-  "node_modules/highlight.js/lib/languages/abnf.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/abnf.js"(exports, module) {
     "use strict";
     function abnf(hljs) {
       const regex = hljs.regex;
@@ -8349,13 +8225,13 @@ var require_abnf = __commonJS({
         ]
       };
     }
-    module2.exports = abnf;
+    module.exports = abnf;
   }
 });
 
 // node_modules/highlight.js/lib/languages/accesslog.js
 var require_accesslog = __commonJS({
-  "node_modules/highlight.js/lib/languages/accesslog.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/accesslog.js"(exports, module) {
     "use strict";
     function accesslog(hljs) {
       const regex = hljs.regex;
@@ -8436,13 +8312,13 @@ var require_accesslog = __commonJS({
         ]
       };
     }
-    module2.exports = accesslog;
+    module.exports = accesslog;
   }
 });
 
 // node_modules/highlight.js/lib/languages/actionscript.js
 var require_actionscript = __commonJS({
-  "node_modules/highlight.js/lib/languages/actionscript.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/actionscript.js"(exports, module) {
     "use strict";
     function actionscript(hljs) {
       const regex = hljs.regex;
@@ -8584,13 +8460,13 @@ var require_actionscript = __commonJS({
         illegal: /#/
       };
     }
-    module2.exports = actionscript;
+    module.exports = actionscript;
   }
 });
 
 // node_modules/highlight.js/lib/languages/ada.js
 var require_ada = __commonJS({
-  "node_modules/highlight.js/lib/languages/ada.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/ada.js"(exports, module) {
     "use strict";
     function ada(hljs) {
       const INTEGER_RE = "\\d(_|\\d)*";
@@ -8812,13 +8688,13 @@ var require_ada = __commonJS({
         ]
       };
     }
-    module2.exports = ada;
+    module.exports = ada;
   }
 });
 
 // node_modules/highlight.js/lib/languages/angelscript.js
 var require_angelscript = __commonJS({
-  "node_modules/highlight.js/lib/languages/angelscript.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/angelscript.js"(exports, module) {
     "use strict";
     function angelscript(hljs) {
       const builtInTypeMode = {
@@ -8984,13 +8860,13 @@ var require_angelscript = __commonJS({
         ]
       };
     }
-    module2.exports = angelscript;
+    module.exports = angelscript;
   }
 });
 
 // node_modules/highlight.js/lib/languages/apache.js
 var require_apache = __commonJS({
-  "node_modules/highlight.js/lib/languages/apache.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/apache.js"(exports, module) {
     "use strict";
     function apache(hljs) {
       const NUMBER_REF = {
@@ -9080,13 +8956,13 @@ var require_apache = __commonJS({
         illegal: /\S/
       };
     }
-    module2.exports = apache;
+    module.exports = apache;
   }
 });
 
 // node_modules/highlight.js/lib/languages/applescript.js
 var require_applescript = __commonJS({
-  "node_modules/highlight.js/lib/languages/applescript.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/applescript.js"(exports, module) {
     "use strict";
     function applescript(hljs) {
       const regex = hljs.regex;
@@ -9207,13 +9083,13 @@ var require_applescript = __commonJS({
         illegal: /\/\/|->|=>|\[\[/
       };
     }
-    module2.exports = applescript;
+    module.exports = applescript;
   }
 });
 
 // node_modules/highlight.js/lib/languages/arcade.js
 var require_arcade = __commonJS({
-  "node_modules/highlight.js/lib/languages/arcade.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/arcade.js"(exports, module) {
     "use strict";
     function arcade(hljs) {
       const IDENT_RE = "[A-Za-z_][0-9A-Za-z_]*";
@@ -9567,13 +9443,13 @@ var require_arcade = __commonJS({
         illegal: /#(?!!)/
       };
     }
-    module2.exports = arcade;
+    module.exports = arcade;
   }
 });
 
 // node_modules/highlight.js/lib/languages/arduino.js
 var require_arduino = __commonJS({
-  "node_modules/highlight.js/lib/languages/arduino.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/arduino.js"(exports, module) {
     "use strict";
     function cPlusPlus(hljs) {
       const regex = hljs.regex;
@@ -10497,13 +10373,13 @@ var require_arduino = __commonJS({
       ARDUINO.supersetOf = "cpp";
       return ARDUINO;
     }
-    module2.exports = arduino;
+    module.exports = arduino;
   }
 });
 
 // node_modules/highlight.js/lib/languages/armasm.js
 var require_armasm = __commonJS({
-  "node_modules/highlight.js/lib/languages/armasm.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/armasm.js"(exports, module) {
     "use strict";
     function armasm(hljs) {
       const COMMENT = { variants: [
@@ -10591,13 +10467,13 @@ var require_armasm = __commonJS({
         ]
       };
     }
-    module2.exports = armasm;
+    module.exports = armasm;
   }
 });
 
 // node_modules/highlight.js/lib/languages/xml.js
 var require_xml = __commonJS({
-  "node_modules/highlight.js/lib/languages/xml.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/xml.js"(exports, module) {
     "use strict";
     function xml(hljs) {
       const regex = hljs.regex;
@@ -10823,13 +10699,13 @@ var require_xml = __commonJS({
         ]
       };
     }
-    module2.exports = xml;
+    module.exports = xml;
   }
 });
 
 // node_modules/highlight.js/lib/languages/asciidoc.js
 var require_asciidoc = __commonJS({
-  "node_modules/highlight.js/lib/languages/asciidoc.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/asciidoc.js"(exports, module) {
     "use strict";
     function asciidoc(hljs) {
       const regex = hljs.regex;
@@ -11077,13 +10953,13 @@ var require_asciidoc = __commonJS({
         ]
       };
     }
-    module2.exports = asciidoc;
+    module.exports = asciidoc;
   }
 });
 
 // node_modules/highlight.js/lib/languages/aspectj.js
 var require_aspectj = __commonJS({
-  "node_modules/highlight.js/lib/languages/aspectj.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/aspectj.js"(exports, module) {
     "use strict";
     function aspectj(hljs) {
       const regex = hljs.regex;
@@ -11303,13 +11179,13 @@ var require_aspectj = __commonJS({
         ]
       };
     }
-    module2.exports = aspectj;
+    module.exports = aspectj;
   }
 });
 
 // node_modules/highlight.js/lib/languages/autohotkey.js
 var require_autohotkey = __commonJS({
-  "node_modules/highlight.js/lib/languages/autohotkey.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/autohotkey.js"(exports, module) {
     "use strict";
     function autohotkey(hljs) {
       const BACKTICK_ESCAPE = { begin: "`[\\s\\S]" };
@@ -11376,13 +11252,13 @@ var require_autohotkey = __commonJS({
         ]
       };
     }
-    module2.exports = autohotkey;
+    module.exports = autohotkey;
   }
 });
 
 // node_modules/highlight.js/lib/languages/autoit.js
 var require_autoit = __commonJS({
-  "node_modules/highlight.js/lib/languages/autoit.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/autoit.js"(exports, module) {
     "use strict";
     function autoit(hljs) {
       const KEYWORDS = "ByRef Case Const ContinueCase ContinueLoop Dim Do Else ElseIf EndFunc EndIf EndSelect EndSwitch EndWith Enum Exit ExitLoop For Func Global If In Local Next ReDim Return Select Static Step Switch Then To Until Volatile WEnd While With";
@@ -11536,13 +11412,13 @@ var require_autoit = __commonJS({
         ]
       };
     }
-    module2.exports = autoit;
+    module.exports = autoit;
   }
 });
 
 // node_modules/highlight.js/lib/languages/avrasm.js
 var require_avrasm = __commonJS({
-  "node_modules/highlight.js/lib/languages/avrasm.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/avrasm.js"(exports, module) {
     "use strict";
     function avrasm(hljs) {
       return {
@@ -11600,13 +11476,13 @@ var require_avrasm = __commonJS({
         ]
       };
     }
-    module2.exports = avrasm;
+    module.exports = avrasm;
   }
 });
 
 // node_modules/highlight.js/lib/languages/awk.js
 var require_awk = __commonJS({
-  "node_modules/highlight.js/lib/languages/awk.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/awk.js"(exports, module) {
     "use strict";
     function awk(hljs) {
       const VARIABLE = {
@@ -11665,13 +11541,13 @@ var require_awk = __commonJS({
         ]
       };
     }
-    module2.exports = awk;
+    module.exports = awk;
   }
 });
 
 // node_modules/highlight.js/lib/languages/axapta.js
 var require_axapta = __commonJS({
-  "node_modules/highlight.js/lib/languages/axapta.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/axapta.js"(exports, module) {
     "use strict";
     function axapta(hljs) {
       const IDENT_RE = hljs.UNDERSCORE_IDENT_RE;
@@ -11845,13 +11721,13 @@ var require_axapta = __commonJS({
         ]
       };
     }
-    module2.exports = axapta;
+    module.exports = axapta;
   }
 });
 
 // node_modules/highlight.js/lib/languages/bash.js
 var require_bash = __commonJS({
-  "node_modules/highlight.js/lib/languages/bash.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/bash.js"(exports, module) {
     "use strict";
     function bash(hljs) {
       const regex = hljs.regex;
@@ -12224,13 +12100,13 @@ var require_bash = __commonJS({
         ]
       };
     }
-    module2.exports = bash;
+    module.exports = bash;
   }
 });
 
 // node_modules/highlight.js/lib/languages/basic.js
 var require_basic = __commonJS({
-  "node_modules/highlight.js/lib/languages/basic.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/basic.js"(exports, module) {
     "use strict";
     function basic(hljs) {
       const KEYWORDS = [
@@ -12450,13 +12326,13 @@ var require_basic = __commonJS({
         ]
       };
     }
-    module2.exports = basic;
+    module.exports = basic;
   }
 });
 
 // node_modules/highlight.js/lib/languages/bnf.js
 var require_bnf = __commonJS({
-  "node_modules/highlight.js/lib/languages/bnf.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/bnf.js"(exports, module) {
     "use strict";
     function bnf(hljs) {
       return {
@@ -12487,13 +12363,13 @@ var require_bnf = __commonJS({
         ]
       };
     }
-    module2.exports = bnf;
+    module.exports = bnf;
   }
 });
 
 // node_modules/highlight.js/lib/languages/brainfuck.js
 var require_brainfuck = __commonJS({
-  "node_modules/highlight.js/lib/languages/brainfuck.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/brainfuck.js"(exports, module) {
     "use strict";
     function brainfuck(hljs) {
       const LITERAL = {
@@ -12540,13 +12416,13 @@ var require_brainfuck = __commonJS({
         ]
       };
     }
-    module2.exports = brainfuck;
+    module.exports = brainfuck;
   }
 });
 
 // node_modules/highlight.js/lib/languages/c.js
 var require_c2 = __commonJS({
-  "node_modules/highlight.js/lib/languages/c.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/c.js"(exports, module) {
     "use strict";
     function c(hljs) {
       const regex = hljs.regex;
@@ -12825,13 +12701,13 @@ var require_c2 = __commonJS({
         }
       };
     }
-    module2.exports = c;
+    module.exports = c;
   }
 });
 
 // node_modules/highlight.js/lib/languages/cal.js
 var require_cal = __commonJS({
-  "node_modules/highlight.js/lib/languages/cal.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/cal.js"(exports, module) {
     "use strict";
     function cal(hljs) {
       const regex = hljs.regex;
@@ -12979,13 +12855,13 @@ var require_cal = __commonJS({
         ]
       };
     }
-    module2.exports = cal;
+    module.exports = cal;
   }
 });
 
 // node_modules/highlight.js/lib/languages/capnproto.js
 var require_capnproto = __commonJS({
-  "node_modules/highlight.js/lib/languages/capnproto.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/capnproto.js"(exports, module) {
     "use strict";
     function capnproto(hljs) {
       const KEYWORDS = [
@@ -13075,13 +12951,13 @@ var require_capnproto = __commonJS({
         ]
       };
     }
-    module2.exports = capnproto;
+    module.exports = capnproto;
   }
 });
 
 // node_modules/highlight.js/lib/languages/ceylon.js
 var require_ceylon = __commonJS({
-  "node_modules/highlight.js/lib/languages/ceylon.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/ceylon.js"(exports, module) {
     "use strict";
     function ceylon(hljs) {
       const KEYWORDS = [
@@ -13209,13 +13085,13 @@ var require_ceylon = __commonJS({
         ].concat(EXPRESSIONS)
       };
     }
-    module2.exports = ceylon;
+    module.exports = ceylon;
   }
 });
 
 // node_modules/highlight.js/lib/languages/clean.js
 var require_clean = __commonJS({
-  "node_modules/highlight.js/lib/languages/clean.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/clean.js"(exports, module) {
     "use strict";
     function clean(hljs) {
       const KEYWORDS = [
@@ -13274,13 +13150,13 @@ var require_clean = __commonJS({
         ]
       };
     }
-    module2.exports = clean;
+    module.exports = clean;
   }
 });
 
 // node_modules/highlight.js/lib/languages/clojure.js
 var require_clojure = __commonJS({
-  "node_modules/highlight.js/lib/languages/clojure.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/clojure.js"(exports, module) {
     "use strict";
     function clojure(hljs) {
       const SYMBOLSTART = "a-zA-Z_\\-!.?+*=<>&'";
@@ -13435,13 +13311,13 @@ var require_clojure = __commonJS({
         ]
       };
     }
-    module2.exports = clojure;
+    module.exports = clojure;
   }
 });
 
 // node_modules/highlight.js/lib/languages/clojure-repl.js
 var require_clojure_repl = __commonJS({
-  "node_modules/highlight.js/lib/languages/clojure-repl.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/clojure-repl.js"(exports, module) {
     "use strict";
     function clojureRepl(hljs) {
       return {
@@ -13458,13 +13334,13 @@ var require_clojure_repl = __commonJS({
         ]
       };
     }
-    module2.exports = clojureRepl;
+    module.exports = clojureRepl;
   }
 });
 
 // node_modules/highlight.js/lib/languages/cmake.js
 var require_cmake = __commonJS({
-  "node_modules/highlight.js/lib/languages/cmake.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/cmake.js"(exports, module) {
     "use strict";
     function cmake(hljs) {
       return {
@@ -13488,13 +13364,13 @@ var require_cmake = __commonJS({
         ]
       };
     }
-    module2.exports = cmake;
+    module.exports = cmake;
   }
 });
 
 // node_modules/highlight.js/lib/languages/coffeescript.js
 var require_coffeescript = __commonJS({
-  "node_modules/highlight.js/lib/languages/coffeescript.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/coffeescript.js"(exports, module) {
     "use strict";
     var KEYWORDS = [
       "as",
@@ -13842,13 +13718,13 @@ var require_coffeescript = __commonJS({
         ]
       };
     }
-    module2.exports = coffeescript;
+    module.exports = coffeescript;
   }
 });
 
 // node_modules/highlight.js/lib/languages/coq.js
 var require_coq = __commonJS({
-  "node_modules/highlight.js/lib/languages/coq.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/coq.js"(exports, module) {
     "use strict";
     function coq(hljs) {
       const KEYWORDS = [
@@ -14287,13 +14163,13 @@ var require_coq = __commonJS({
         ]
       };
     }
-    module2.exports = coq;
+    module.exports = coq;
   }
 });
 
 // node_modules/highlight.js/lib/languages/cos.js
 var require_cos = __commonJS({
-  "node_modules/highlight.js/lib/languages/cos.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/cos.js"(exports, module) {
     "use strict";
     function cos(hljs) {
       const STRINGS = {
@@ -14384,13 +14260,13 @@ var require_cos = __commonJS({
         ]
       };
     }
-    module2.exports = cos;
+    module.exports = cos;
   }
 });
 
 // node_modules/highlight.js/lib/languages/cpp.js
 var require_cpp = __commonJS({
-  "node_modules/highlight.js/lib/languages/cpp.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/cpp.js"(exports, module) {
     "use strict";
     function cpp(hljs) {
       const regex = hljs.regex;
@@ -14924,13 +14800,13 @@ var require_cpp = __commonJS({
         )
       };
     }
-    module2.exports = cpp;
+    module.exports = cpp;
   }
 });
 
 // node_modules/highlight.js/lib/languages/crmsh.js
 var require_crmsh = __commonJS({
-  "node_modules/highlight.js/lib/languages/crmsh.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/crmsh.js"(exports, module) {
     "use strict";
     function crmsh(hljs) {
       const RESOURCES = "primitive rsc_template";
@@ -15016,13 +14892,13 @@ var require_crmsh = __commonJS({
         ]
       };
     }
-    module2.exports = crmsh;
+    module.exports = crmsh;
   }
 });
 
 // node_modules/highlight.js/lib/languages/crystal.js
 var require_crystal = __commonJS({
-  "node_modules/highlight.js/lib/languages/crystal.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/crystal.js"(exports, module) {
     "use strict";
     function crystal(hljs) {
       const INT_SUFFIX = "(_?[ui](8|16|32|64|128))?";
@@ -15320,13 +15196,13 @@ var require_crystal = __commonJS({
         contains: CRYSTAL_DEFAULT_CONTAINS
       };
     }
-    module2.exports = crystal;
+    module.exports = crystal;
   }
 });
 
 // node_modules/highlight.js/lib/languages/csharp.js
 var require_csharp = __commonJS({
-  "node_modules/highlight.js/lib/languages/csharp.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/csharp.js"(exports, module) {
     "use strict";
     function csharp(hljs) {
       const BUILT_IN_KEYWORDS = [
@@ -15714,13 +15590,13 @@ var require_csharp = __commonJS({
         ]
       };
     }
-    module2.exports = csharp;
+    module.exports = csharp;
   }
 });
 
 // node_modules/highlight.js/lib/languages/csp.js
 var require_csp = __commonJS({
-  "node_modules/highlight.js/lib/languages/csp.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/csp.js"(exports, module) {
     "use strict";
     function csp(hljs) {
       const KEYWORDS = [
@@ -15767,13 +15643,13 @@ var require_csp = __commonJS({
         ]
       };
     }
-    module2.exports = csp;
+    module.exports = csp;
   }
 });
 
 // node_modules/highlight.js/lib/languages/css.js
 var require_css = __commonJS({
-  "node_modules/highlight.js/lib/languages/css.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/css.js"(exports, module) {
     "use strict";
     var MODES = (hljs) => {
       return {
@@ -16504,13 +16380,13 @@ var require_css = __commonJS({
         ]
       };
     }
-    module2.exports = css;
+    module.exports = css;
   }
 });
 
 // node_modules/highlight.js/lib/languages/d.js
 var require_d = __commonJS({
-  "node_modules/highlight.js/lib/languages/d.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/d.js"(exports, module) {
     "use strict";
     function d(hljs) {
       const D_KEYWORDS = {
@@ -16622,13 +16498,13 @@ var require_d = __commonJS({
         ]
       };
     }
-    module2.exports = d;
+    module.exports = d;
   }
 });
 
 // node_modules/highlight.js/lib/languages/markdown.js
 var require_markdown = __commonJS({
-  "node_modules/highlight.js/lib/languages/markdown.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/markdown.js"(exports, module) {
     "use strict";
     function markdown(hljs) {
       const regex = hljs.regex;
@@ -16854,13 +16730,13 @@ var require_markdown = __commonJS({
         ]
       };
     }
-    module2.exports = markdown;
+    module.exports = markdown;
   }
 });
 
 // node_modules/highlight.js/lib/languages/dart.js
 var require_dart = __commonJS({
-  "node_modules/highlight.js/lib/languages/dart.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/dart.js"(exports, module) {
     "use strict";
     function dart(hljs) {
       const SUBST = {
@@ -17106,13 +16982,13 @@ var require_dart = __commonJS({
         ]
       };
     }
-    module2.exports = dart;
+    module.exports = dart;
   }
 });
 
 // node_modules/highlight.js/lib/languages/delphi.js
 var require_delphi = __commonJS({
-  "node_modules/highlight.js/lib/languages/delphi.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/delphi.js"(exports, module) {
     "use strict";
     function delphi(hljs) {
       const KEYWORDS = [
@@ -17339,13 +17215,13 @@ var require_delphi = __commonJS({
         ].concat(COMMENT_MODES)
       };
     }
-    module2.exports = delphi;
+    module.exports = delphi;
   }
 });
 
 // node_modules/highlight.js/lib/languages/diff.js
 var require_diff = __commonJS({
-  "node_modules/highlight.js/lib/languages/diff.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/diff.js"(exports, module) {
     "use strict";
     function diff(hljs) {
       const regex = hljs.regex;
@@ -17398,13 +17274,13 @@ var require_diff = __commonJS({
         ]
       };
     }
-    module2.exports = diff;
+    module.exports = diff;
   }
 });
 
 // node_modules/highlight.js/lib/languages/django.js
 var require_django = __commonJS({
-  "node_modules/highlight.js/lib/languages/django.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/django.js"(exports, module) {
     "use strict";
     function django(hljs) {
       const FILTER = {
@@ -17450,13 +17326,13 @@ var require_django = __commonJS({
         ]
       };
     }
-    module2.exports = django;
+    module.exports = django;
   }
 });
 
 // node_modules/highlight.js/lib/languages/dns.js
 var require_dns = __commonJS({
-  "node_modules/highlight.js/lib/languages/dns.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/dns.js"(exports, module) {
     "use strict";
     function dns(hljs) {
       const KEYWORDS = [
@@ -17526,13 +17402,13 @@ var require_dns = __commonJS({
         ]
       };
     }
-    module2.exports = dns;
+    module.exports = dns;
   }
 });
 
 // node_modules/highlight.js/lib/languages/dockerfile.js
 var require_dockerfile = __commonJS({
-  "node_modules/highlight.js/lib/languages/dockerfile.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/dockerfile.js"(exports, module) {
     "use strict";
     function dockerfile(hljs) {
       const KEYWORDS = [
@@ -17566,13 +17442,13 @@ var require_dockerfile = __commonJS({
         illegal: "</"
       };
     }
-    module2.exports = dockerfile;
+    module.exports = dockerfile;
   }
 });
 
 // node_modules/highlight.js/lib/languages/dos.js
 var require_dos = __commonJS({
-  "node_modules/highlight.js/lib/languages/dos.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/dos.js"(exports, module) {
     "use strict";
     function dos(hljs) {
       const COMMENT = hljs.COMMENT(
@@ -17731,13 +17607,13 @@ var require_dos = __commonJS({
         ]
       };
     }
-    module2.exports = dos;
+    module.exports = dos;
   }
 });
 
 // node_modules/highlight.js/lib/languages/dsconfig.js
 var require_dsconfig = __commonJS({
-  "node_modules/highlight.js/lib/languages/dsconfig.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/dsconfig.js"(exports, module) {
     "use strict";
     function dsconfig(hljs) {
       const QUOTED_PROPERTY = {
@@ -17794,13 +17670,13 @@ var require_dsconfig = __commonJS({
         ]
       };
     }
-    module2.exports = dsconfig;
+    module.exports = dsconfig;
   }
 });
 
 // node_modules/highlight.js/lib/languages/dts.js
 var require_dts = __commonJS({
-  "node_modules/highlight.js/lib/languages/dts.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/dts.js"(exports, module) {
     "use strict";
     function dts(hljs) {
       const STRINGS = {
@@ -17935,13 +17811,13 @@ var require_dts = __commonJS({
         ]
       };
     }
-    module2.exports = dts;
+    module.exports = dts;
   }
 });
 
 // node_modules/highlight.js/lib/languages/dust.js
 var require_dust = __commonJS({
-  "node_modules/highlight.js/lib/languages/dust.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/dust.js"(exports, module) {
     "use strict";
     function dust(hljs) {
       const EXPRESSION_KEYWORDS = "if eq ne lt lte gt gte select default math sep";
@@ -17978,13 +17854,13 @@ var require_dust = __commonJS({
         ]
       };
     }
-    module2.exports = dust;
+    module.exports = dust;
   }
 });
 
 // node_modules/highlight.js/lib/languages/ebnf.js
 var require_ebnf = __commonJS({
-  "node_modules/highlight.js/lib/languages/ebnf.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/ebnf.js"(exports, module) {
     "use strict";
     function ebnf(hljs) {
       const commentMode = hljs.COMMENT(/\(\*/, /\*\)/);
@@ -18026,13 +17902,13 @@ var require_ebnf = __commonJS({
         ]
       };
     }
-    module2.exports = ebnf;
+    module.exports = ebnf;
   }
 });
 
 // node_modules/highlight.js/lib/languages/elixir.js
 var require_elixir = __commonJS({
-  "node_modules/highlight.js/lib/languages/elixir.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/elixir.js"(exports, module) {
     "use strict";
     function elixir(hljs) {
       const regex = hljs.regex;
@@ -18304,13 +18180,13 @@ var require_elixir = __commonJS({
         contains: ELIXIR_DEFAULT_CONTAINS
       };
     }
-    module2.exports = elixir;
+    module.exports = elixir;
   }
 });
 
 // node_modules/highlight.js/lib/languages/elm.js
 var require_elm = __commonJS({
-  "node_modules/highlight.js/lib/languages/elm.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/elm.js"(exports, module) {
     "use strict";
     function elm(hljs) {
       const COMMENT = { variants: [
@@ -18438,13 +18314,13 @@ var require_elm = __commonJS({
         illegal: /;/
       };
     }
-    module2.exports = elm;
+    module.exports = elm;
   }
 });
 
 // node_modules/highlight.js/lib/languages/ruby.js
 var require_ruby = __commonJS({
-  "node_modules/highlight.js/lib/languages/ruby.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/ruby.js"(exports, module) {
     "use strict";
     function ruby(hljs) {
       const regex = hljs.regex;
@@ -18857,13 +18733,13 @@ var require_ruby = __commonJS({
         contains: [hljs.SHEBANG({ binary: "ruby" })].concat(IRB_DEFAULT).concat(COMMENT_MODES).concat(RUBY_DEFAULT_CONTAINS)
       };
     }
-    module2.exports = ruby;
+    module.exports = ruby;
   }
 });
 
 // node_modules/highlight.js/lib/languages/erb.js
 var require_erb = __commonJS({
-  "node_modules/highlight.js/lib/languages/erb.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/erb.js"(exports, module) {
     "use strict";
     function erb(hljs) {
       return {
@@ -18881,13 +18757,13 @@ var require_erb = __commonJS({
         ]
       };
     }
-    module2.exports = erb;
+    module.exports = erb;
   }
 });
 
 // node_modules/highlight.js/lib/languages/erlang-repl.js
 var require_erlang_repl = __commonJS({
-  "node_modules/highlight.js/lib/languages/erlang-repl.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/erlang-repl.js"(exports, module) {
     "use strict";
     function erlangRepl(hljs) {
       const regex = hljs.regex;
@@ -18932,13 +18808,13 @@ var require_erlang_repl = __commonJS({
         ]
       };
     }
-    module2.exports = erlangRepl;
+    module.exports = erlangRepl;
   }
 });
 
 // node_modules/highlight.js/lib/languages/erlang.js
 var require_erlang = __commonJS({
-  "node_modules/highlight.js/lib/languages/erlang.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/erlang.js"(exports, module) {
     "use strict";
     function erlang(hljs) {
       const BASIC_ATOM_RE = "[a-z'][a-zA-Z0-9_']*";
@@ -19113,13 +18989,13 @@ var require_erlang = __commonJS({
         ]
       };
     }
-    module2.exports = erlang;
+    module.exports = erlang;
   }
 });
 
 // node_modules/highlight.js/lib/languages/excel.js
 var require_excel = __commonJS({
-  "node_modules/highlight.js/lib/languages/excel.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/excel.js"(exports, module) {
     "use strict";
     function excel(hljs) {
       const BUILT_INS = [
@@ -19658,13 +19534,13 @@ var require_excel = __commonJS({
         ]
       };
     }
-    module2.exports = excel;
+    module.exports = excel;
   }
 });
 
 // node_modules/highlight.js/lib/languages/fix.js
 var require_fix = __commonJS({
-  "node_modules/highlight.js/lib/languages/fix.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/fix.js"(exports, module) {
     "use strict";
     function fix(hljs) {
       return {
@@ -19697,13 +19573,13 @@ var require_fix = __commonJS({
         case_insensitive: true
       };
     }
-    module2.exports = fix;
+    module.exports = fix;
   }
 });
 
 // node_modules/highlight.js/lib/languages/flix.js
 var require_flix = __commonJS({
-  "node_modules/highlight.js/lib/languages/flix.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/flix.js"(exports, module) {
     "use strict";
     function flix(hljs) {
       const CHAR = {
@@ -19770,13 +19646,13 @@ var require_flix = __commonJS({
         ]
       };
     }
-    module2.exports = flix;
+    module.exports = flix;
   }
 });
 
 // node_modules/highlight.js/lib/languages/fortran.js
 var require_fortran = __commonJS({
-  "node_modules/highlight.js/lib/languages/fortran.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/fortran.js"(exports, module) {
     "use strict";
     function fortran(hljs) {
       const regex = hljs.regex;
@@ -20335,13 +20211,13 @@ var require_fortran = __commonJS({
         ]
       };
     }
-    module2.exports = fortran;
+    module.exports = fortran;
   }
 });
 
 // node_modules/highlight.js/lib/languages/fsharp.js
 var require_fsharp = __commonJS({
-  "node_modules/highlight.js/lib/languages/fsharp.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/fsharp.js"(exports, module) {
     "use strict";
     function escape(value) {
       return new RegExp(value.replace(/[-/\\^$*+?.()|[\]{}]/g, "\\$&"), "m");
@@ -20909,13 +20785,13 @@ var require_fsharp = __commonJS({
         ]
       };
     }
-    module2.exports = fsharp;
+    module.exports = fsharp;
   }
 });
 
 // node_modules/highlight.js/lib/languages/gams.js
 var require_gams = __commonJS({
-  "node_modules/highlight.js/lib/languages/gams.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/gams.js"(exports, module) {
     "use strict";
     function gams(hljs) {
       const regex = hljs.regex;
@@ -21068,13 +20944,13 @@ var require_gams = __commonJS({
         ]
       };
     }
-    module2.exports = gams;
+    module.exports = gams;
   }
 });
 
 // node_modules/highlight.js/lib/languages/gauss.js
 var require_gauss = __commonJS({
-  "node_modules/highlight.js/lib/languages/gauss.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/gauss.js"(exports, module) {
     "use strict";
     function gauss(hljs) {
       const KEYWORDS = {
@@ -21261,13 +21137,13 @@ var require_gauss = __commonJS({
         ]
       };
     }
-    module2.exports = gauss;
+    module.exports = gauss;
   }
 });
 
 // node_modules/highlight.js/lib/languages/gcode.js
 var require_gcode = __commonJS({
-  "node_modules/highlight.js/lib/languages/gcode.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/gcode.js"(exports, module) {
     "use strict";
     function gcode(hljs) {
       const GCODE_IDENT_RE = "[A-Z_][A-Z0-9_.]*";
@@ -21338,13 +21214,13 @@ var require_gcode = __commonJS({
         ].concat(GCODE_CODE)
       };
     }
-    module2.exports = gcode;
+    module.exports = gcode;
   }
 });
 
 // node_modules/highlight.js/lib/languages/gherkin.js
 var require_gherkin = __commonJS({
-  "node_modules/highlight.js/lib/languages/gherkin.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/gherkin.js"(exports, module) {
     "use strict";
     function gherkin(hljs) {
       return {
@@ -21386,13 +21262,13 @@ var require_gherkin = __commonJS({
         ]
       };
     }
-    module2.exports = gherkin;
+    module.exports = gherkin;
   }
 });
 
 // node_modules/highlight.js/lib/languages/glsl.js
 var require_glsl = __commonJS({
-  "node_modules/highlight.js/lib/languages/glsl.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/glsl.js"(exports, module) {
     "use strict";
     function glsl(hljs) {
       return {
@@ -21422,13 +21298,13 @@ var require_glsl = __commonJS({
         ]
       };
     }
-    module2.exports = glsl;
+    module.exports = glsl;
   }
 });
 
 // node_modules/highlight.js/lib/languages/gml.js
 var require_gml = __commonJS({
-  "node_modules/highlight.js/lib/languages/gml.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/gml.js"(exports, module) {
     "use strict";
     function gml(hljs) {
       const KEYWORDS = [
@@ -24235,13 +24111,13 @@ var require_gml = __commonJS({
         ]
       };
     }
-    module2.exports = gml;
+    module.exports = gml;
   }
 });
 
 // node_modules/highlight.js/lib/languages/go.js
 var require_go = __commonJS({
-  "node_modules/highlight.js/lib/languages/go.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/go.js"(exports, module) {
     "use strict";
     function go(hljs) {
       const LITERALS = [
@@ -24375,13 +24251,13 @@ var require_go = __commonJS({
         ]
       };
     }
-    module2.exports = go;
+    module.exports = go;
   }
 });
 
 // node_modules/highlight.js/lib/languages/golo.js
 var require_golo = __commonJS({
-  "node_modules/highlight.js/lib/languages/golo.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/golo.js"(exports, module) {
     "use strict";
     function golo(hljs) {
       const KEYWORDS = [
@@ -24453,13 +24329,13 @@ var require_golo = __commonJS({
         ]
       };
     }
-    module2.exports = golo;
+    module.exports = golo;
   }
 });
 
 // node_modules/highlight.js/lib/languages/gradle.js
 var require_gradle = __commonJS({
-  "node_modules/highlight.js/lib/languages/gradle.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/gradle.js"(exports, module) {
     "use strict";
     function gradle(hljs) {
       const KEYWORDS = [
@@ -24640,13 +24516,13 @@ var require_gradle = __commonJS({
         ]
       };
     }
-    module2.exports = gradle;
+    module.exports = gradle;
   }
 });
 
 // node_modules/highlight.js/lib/languages/graphql.js
 var require_graphql = __commonJS({
-  "node_modules/highlight.js/lib/languages/graphql.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/graphql.js"(exports, module) {
     "use strict";
     function graphql(hljs) {
       const regex = hljs.regex;
@@ -24716,13 +24592,13 @@ var require_graphql = __commonJS({
         ]
       };
     }
-    module2.exports = graphql;
+    module.exports = graphql;
   }
 });
 
 // node_modules/highlight.js/lib/languages/groovy.js
 var require_groovy = __commonJS({
-  "node_modules/highlight.js/lib/languages/groovy.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/groovy.js"(exports, module) {
     "use strict";
     function variants2(variants3, obj = {}) {
       obj.variants = variants3;
@@ -24901,13 +24777,13 @@ var require_groovy = __commonJS({
         illegal: /#|<\//
       };
     }
-    module2.exports = groovy;
+    module.exports = groovy;
   }
 });
 
 // node_modules/highlight.js/lib/languages/haml.js
 var require_haml = __commonJS({
-  "node_modules/highlight.js/lib/languages/haml.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/haml.js"(exports, module) {
     "use strict";
     function haml(hljs) {
       return {
@@ -25011,13 +24887,13 @@ var require_haml = __commonJS({
         ]
       };
     }
-    module2.exports = haml;
+    module.exports = haml;
   }
 });
 
 // node_modules/highlight.js/lib/languages/handlebars.js
 var require_handlebars = __commonJS({
-  "node_modules/highlight.js/lib/languages/handlebars.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/handlebars.js"(exports, module) {
     "use strict";
     function handlebars(hljs) {
       const regex = hljs.regex;
@@ -25247,13 +25123,13 @@ var require_handlebars = __commonJS({
         ]
       };
     }
-    module2.exports = handlebars;
+    module.exports = handlebars;
   }
 });
 
 // node_modules/highlight.js/lib/languages/haskell.js
 var require_haskell = __commonJS({
-  "node_modules/highlight.js/lib/languages/haskell.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/haskell.js"(exports, module) {
     "use strict";
     function haskell(hljs) {
       const COMMENT = { variants: [
@@ -25428,13 +25304,13 @@ var require_haskell = __commonJS({
         ]
       };
     }
-    module2.exports = haskell;
+    module.exports = haskell;
   }
 });
 
 // node_modules/highlight.js/lib/languages/haxe.js
 var require_haxe = __commonJS({
-  "node_modules/highlight.js/lib/languages/haxe.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/haxe.js"(exports, module) {
     "use strict";
     function haxe(hljs) {
       const HAXE_BASIC_TYPES = "Int Float String Bool Dynamic Void Array ";
@@ -25583,13 +25459,13 @@ var require_haxe = __commonJS({
         illegal: /<\//
       };
     }
-    module2.exports = haxe;
+    module.exports = haxe;
   }
 });
 
 // node_modules/highlight.js/lib/languages/hsp.js
 var require_hsp = __commonJS({
-  "node_modules/highlight.js/lib/languages/hsp.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/hsp.js"(exports, module) {
     "use strict";
     function hsp(hljs) {
       return {
@@ -25636,13 +25512,13 @@ var require_hsp = __commonJS({
         ]
       };
     }
-    module2.exports = hsp;
+    module.exports = hsp;
   }
 });
 
 // node_modules/highlight.js/lib/languages/http.js
 var require_http = __commonJS({
-  "node_modules/highlight.js/lib/languages/http.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/http.js"(exports, module) {
     "use strict";
     function http(hljs) {
       const regex = hljs.regex;
@@ -25730,13 +25606,13 @@ var require_http = __commonJS({
         ]
       };
     }
-    module2.exports = http;
+    module.exports = http;
   }
 });
 
 // node_modules/highlight.js/lib/languages/hy.js
 var require_hy = __commonJS({
-  "node_modules/highlight.js/lib/languages/hy.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/hy.js"(exports, module) {
     "use strict";
     function hy(hljs) {
       const SYMBOLSTART = "a-zA-Z_\\-!.?+*=<>&#'";
@@ -25834,13 +25710,13 @@ var require_hy = __commonJS({
         ]
       };
     }
-    module2.exports = hy;
+    module.exports = hy;
   }
 });
 
 // node_modules/highlight.js/lib/languages/inform7.js
 var require_inform7 = __commonJS({
-  "node_modules/highlight.js/lib/languages/inform7.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/inform7.js"(exports, module) {
     "use strict";
     function inform7(hljs) {
       const START_BRACKET = "\\[";
@@ -25897,13 +25773,13 @@ var require_inform7 = __commonJS({
         ]
       };
     }
-    module2.exports = inform7;
+    module.exports = inform7;
   }
 });
 
 // node_modules/highlight.js/lib/languages/ini.js
 var require_ini = __commonJS({
-  "node_modules/highlight.js/lib/languages/ini.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/ini.js"(exports, module) {
     "use strict";
     function ini(hljs) {
       const regex = hljs.regex;
@@ -26019,13 +25895,13 @@ var require_ini = __commonJS({
         ]
       };
     }
-    module2.exports = ini;
+    module.exports = ini;
   }
 });
 
 // node_modules/highlight.js/lib/languages/irpf90.js
 var require_irpf90 = __commonJS({
-  "node_modules/highlight.js/lib/languages/irpf90.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/irpf90.js"(exports, module) {
     "use strict";
     function irpf90(hljs) {
       const regex = hljs.regex;
@@ -26079,13 +25955,13 @@ var require_irpf90 = __commonJS({
         ]
       };
     }
-    module2.exports = irpf90;
+    module.exports = irpf90;
   }
 });
 
 // node_modules/highlight.js/lib/languages/isbl.js
 var require_isbl = __commonJS({
-  "node_modules/highlight.js/lib/languages/isbl.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/isbl.js"(exports, module) {
     "use strict";
     function isbl(hljs) {
       const UNDERSCORE_IDENT_RE = "[A-Za-z\u0410-\u042F\u0430-\u044F\u0451\u0401_!][A-Za-z\u0410-\u042F\u0430-\u044F\u0451\u0401_0-9]*";
@@ -26342,13 +26218,13 @@ var require_isbl = __commonJS({
         ]
       };
     }
-    module2.exports = isbl;
+    module.exports = isbl;
   }
 });
 
 // node_modules/highlight.js/lib/languages/java.js
 var require_java = __commonJS({
-  "node_modules/highlight.js/lib/languages/java.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/java.js"(exports, module) {
     "use strict";
     var decimalDigits = "[0-9](_*[0-9])*";
     var frac = `\\.(${decimalDigits})`;
@@ -26601,13 +26477,13 @@ var require_java = __commonJS({
         ]
       };
     }
-    module2.exports = java;
+    module.exports = java;
   }
 });
 
 // node_modules/highlight.js/lib/languages/javascript.js
 var require_javascript = __commonJS({
-  "node_modules/highlight.js/lib/languages/javascript.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/javascript.js"(exports, module) {
     "use strict";
     var IDENT_RE = "[A-Za-z$_][0-9A-Za-z$_]*";
     var KEYWORDS = [
@@ -27304,13 +27180,13 @@ var require_javascript = __commonJS({
         ]
       };
     }
-    module2.exports = javascript;
+    module.exports = javascript;
   }
 });
 
 // node_modules/highlight.js/lib/languages/jboss-cli.js
 var require_jboss_cli = __commonJS({
-  "node_modules/highlight.js/lib/languages/jboss-cli.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/jboss-cli.js"(exports, module) {
     "use strict";
     function jbossCli(hljs) {
       const PARAM = {
@@ -27363,13 +27239,13 @@ var require_jboss_cli = __commonJS({
         ]
       };
     }
-    module2.exports = jbossCli;
+    module.exports = jbossCli;
   }
 });
 
 // node_modules/highlight.js/lib/languages/json.js
 var require_json = __commonJS({
-  "node_modules/highlight.js/lib/languages/json.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/json.js"(exports, module) {
     "use strict";
     function json(hljs) {
       const ATTRIBUTE = {
@@ -27408,13 +27284,13 @@ var require_json = __commonJS({
         illegal: "\\S"
       };
     }
-    module2.exports = json;
+    module.exports = json;
   }
 });
 
 // node_modules/highlight.js/lib/languages/julia.js
 var require_julia = __commonJS({
-  "node_modules/highlight.js/lib/languages/julia.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/julia.js"(exports, module) {
     "use strict";
     function julia(hljs) {
       const VARIABLE_NAME_RE = "[A-Za-z_\\u00A1-\\uFFFF][A-Za-z_0-9\\u00A1-\\uFFFF]*";
@@ -27783,13 +27659,13 @@ var require_julia = __commonJS({
       INTERPOLATION.contains = DEFAULT.contains;
       return DEFAULT;
     }
-    module2.exports = julia;
+    module.exports = julia;
   }
 });
 
 // node_modules/highlight.js/lib/languages/julia-repl.js
 var require_julia_repl = __commonJS({
-  "node_modules/highlight.js/lib/languages/julia-repl.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/julia-repl.js"(exports, module) {
     "use strict";
     function juliaRepl(hljs) {
       return {
@@ -27815,13 +27691,13 @@ var require_julia_repl = __commonJS({
         aliases: ["jldoctest"]
       };
     }
-    module2.exports = juliaRepl;
+    module.exports = juliaRepl;
   }
 });
 
 // node_modules/highlight.js/lib/languages/kotlin.js
 var require_kotlin = __commonJS({
-  "node_modules/highlight.js/lib/languages/kotlin.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/kotlin.js"(exports, module) {
     "use strict";
     var decimalDigits = "[0-9](_*[0-9])*";
     var frac = `\\.(${decimalDigits})`;
@@ -28076,13 +27952,13 @@ var require_kotlin = __commonJS({
         ]
       };
     }
-    module2.exports = kotlin;
+    module.exports = kotlin;
   }
 });
 
 // node_modules/highlight.js/lib/languages/lasso.js
 var require_lasso = __commonJS({
-  "node_modules/highlight.js/lib/languages/lasso.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/lasso.js"(exports, module) {
     "use strict";
     function lasso(hljs) {
       const LASSO_IDENT_RE = "[a-zA-Z_][\\w.]*";
@@ -28227,13 +28103,13 @@ var require_lasso = __commonJS({
         ].concat(LASSO_CODE)
       };
     }
-    module2.exports = lasso;
+    module.exports = lasso;
   }
 });
 
 // node_modules/highlight.js/lib/languages/latex.js
 var require_latex = __commonJS({
-  "node_modules/highlight.js/lib/languages/latex.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/latex.js"(exports, module) {
     "use strict";
     function latex(hljs) {
       const regex = hljs.regex;
@@ -28504,13 +28380,13 @@ var require_latex = __commonJS({
         ]
       };
     }
-    module2.exports = latex;
+    module.exports = latex;
   }
 });
 
 // node_modules/highlight.js/lib/languages/ldif.js
 var require_ldif = __commonJS({
-  "node_modules/highlight.js/lib/languages/ldif.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/ldif.js"(exports, module) {
     "use strict";
     function ldif(hljs) {
       return {
@@ -28533,13 +28409,13 @@ var require_ldif = __commonJS({
         ]
       };
     }
-    module2.exports = ldif;
+    module.exports = ldif;
   }
 });
 
 // node_modules/highlight.js/lib/languages/leaf.js
 var require_leaf = __commonJS({
-  "node_modules/highlight.js/lib/languages/leaf.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/leaf.js"(exports, module) {
     "use strict";
     function leaf(hljs) {
       return {
@@ -28582,13 +28458,13 @@ var require_leaf = __commonJS({
         ]
       };
     }
-    module2.exports = leaf;
+    module.exports = leaf;
   }
 });
 
 // node_modules/highlight.js/lib/languages/less.js
 var require_less = __commonJS({
-  "node_modules/highlight.js/lib/languages/less.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/less.js"(exports, module) {
     "use strict";
     var MODES = (hljs) => {
       return {
@@ -29400,13 +29276,13 @@ var require_less = __commonJS({
         contains: RULES
       };
     }
-    module2.exports = less;
+    module.exports = less;
   }
 });
 
 // node_modules/highlight.js/lib/languages/lisp.js
 var require_lisp = __commonJS({
-  "node_modules/highlight.js/lib/languages/lisp.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/lisp.js"(exports, module) {
     "use strict";
     function lisp(hljs) {
       const LISP_IDENT_RE = "[a-zA-Z_\\-+\\*\\/<=>&#][a-zA-Z0-9_\\-+*\\/<=>&#!]*";
@@ -29538,13 +29414,13 @@ var require_lisp = __commonJS({
         ]
       };
     }
-    module2.exports = lisp;
+    module.exports = lisp;
   }
 });
 
 // node_modules/highlight.js/lib/languages/livecodeserver.js
 var require_livecodeserver = __commonJS({
-  "node_modules/highlight.js/lib/languages/livecodeserver.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/livecodeserver.js"(exports, module) {
     "use strict";
     function livecodeserver(hljs) {
       const VARIABLE = {
@@ -29638,13 +29514,13 @@ var require_livecodeserver = __commonJS({
         illegal: ";$|^\\[|^=|&|\\{"
       };
     }
-    module2.exports = livecodeserver;
+    module.exports = livecodeserver;
   }
 });
 
 // node_modules/highlight.js/lib/languages/livescript.js
 var require_livescript = __commonJS({
-  "node_modules/highlight.js/lib/languages/livescript.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/livescript.js"(exports, module) {
     "use strict";
     var KEYWORDS = [
       "as",
@@ -30003,13 +29879,13 @@ var require_livescript = __commonJS({
         ])
       };
     }
-    module2.exports = livescript;
+    module.exports = livescript;
   }
 });
 
 // node_modules/highlight.js/lib/languages/llvm.js
 var require_llvm = __commonJS({
-  "node_modules/highlight.js/lib/languages/llvm.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/llvm.js"(exports, module) {
     "use strict";
     function llvm(hljs) {
       const regex = hljs.regex;
@@ -30095,13 +29971,13 @@ var require_llvm = __commonJS({
         ]
       };
     }
-    module2.exports = llvm;
+    module.exports = llvm;
   }
 });
 
 // node_modules/highlight.js/lib/languages/lsl.js
 var require_lsl = __commonJS({
-  "node_modules/highlight.js/lib/languages/lsl.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/lsl.js"(exports, module) {
     "use strict";
     function lsl(hljs) {
       const LSL_STRING_ESCAPE_CHARS = {
@@ -30164,13 +30040,13 @@ var require_lsl = __commonJS({
         ]
       };
     }
-    module2.exports = lsl;
+    module.exports = lsl;
   }
 });
 
 // node_modules/highlight.js/lib/languages/lua.js
 var require_lua = __commonJS({
-  "node_modules/highlight.js/lib/languages/lua.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/lua.js"(exports, module) {
     "use strict";
     function lua(hljs) {
       const OPENING_LONG_BRACKET = "\\[=*\\[";
@@ -30230,13 +30106,13 @@ var require_lua = __commonJS({
         ])
       };
     }
-    module2.exports = lua;
+    module.exports = lua;
   }
 });
 
 // node_modules/highlight.js/lib/languages/makefile.js
 var require_makefile = __commonJS({
-  "node_modules/highlight.js/lib/languages/makefile.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/makefile.js"(exports, module) {
     "use strict";
     function makefile(hljs) {
       const VARIABLE = {
@@ -30303,13 +30179,13 @@ var require_makefile = __commonJS({
         ]
       };
     }
-    module2.exports = makefile;
+    module.exports = makefile;
   }
 });
 
 // node_modules/highlight.js/lib/languages/mathematica.js
 var require_mathematica = __commonJS({
-  "node_modules/highlight.js/lib/languages/mathematica.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/mathematica.js"(exports, module) {
     "use strict";
     var SYSTEM_SYMBOLS = [
       "AASTriangle",
@@ -37642,13 +37518,13 @@ var require_mathematica = __commonJS({
         ]
       };
     }
-    module2.exports = mathematica;
+    module.exports = mathematica;
   }
 });
 
 // node_modules/highlight.js/lib/languages/matlab.js
 var require_matlab = __commonJS({
-  "node_modules/highlight.js/lib/languages/matlab.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/matlab.js"(exports, module) {
     "use strict";
     function matlab(hljs) {
       const TRANSPOSE_RE = "('|\\.')+";
@@ -37724,13 +37600,13 @@ var require_matlab = __commonJS({
         ]
       };
     }
-    module2.exports = matlab;
+    module.exports = matlab;
   }
 });
 
 // node_modules/highlight.js/lib/languages/maxima.js
 var require_maxima = __commonJS({
-  "node_modules/highlight.js/lib/languages/maxima.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/maxima.js"(exports, module) {
     "use strict";
     function maxima(hljs) {
       const KEYWORDS = "if then else elseif for thru do while unless step in and or not";
@@ -37784,13 +37660,13 @@ var require_maxima = __commonJS({
         illegal: /@/
       };
     }
-    module2.exports = maxima;
+    module.exports = maxima;
   }
 });
 
 // node_modules/highlight.js/lib/languages/mel.js
 var require_mel = __commonJS({
-  "node_modules/highlight.js/lib/languages/mel.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/mel.js"(exports, module) {
     "use strict";
     function mel(hljs) {
       return {
@@ -37816,13 +37692,13 @@ var require_mel = __commonJS({
         ]
       };
     }
-    module2.exports = mel;
+    module.exports = mel;
   }
 });
 
 // node_modules/highlight.js/lib/languages/mercury.js
 var require_mercury = __commonJS({
-  "node_modules/highlight.js/lib/languages/mercury.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/mercury.js"(exports, module) {
     "use strict";
     function mercury(hljs) {
       const KEYWORDS = {
@@ -37900,13 +37776,13 @@ var require_mercury = __commonJS({
         ]
       };
     }
-    module2.exports = mercury;
+    module.exports = mercury;
   }
 });
 
 // node_modules/highlight.js/lib/languages/mipsasm.js
 var require_mipsasm = __commonJS({
-  "node_modules/highlight.js/lib/languages/mipsasm.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/mipsasm.js"(exports, module) {
     "use strict";
     function mipsasm(hljs) {
       return {
@@ -37982,13 +37858,13 @@ var require_mipsasm = __commonJS({
         illegal: /\//
       };
     }
-    module2.exports = mipsasm;
+    module.exports = mipsasm;
   }
 });
 
 // node_modules/highlight.js/lib/languages/mizar.js
 var require_mizar = __commonJS({
-  "node_modules/highlight.js/lib/languages/mizar.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/mizar.js"(exports, module) {
     "use strict";
     function mizar(hljs) {
       return {
@@ -37997,13 +37873,13 @@ var require_mizar = __commonJS({
         contains: [hljs.COMMENT("::", "$")]
       };
     }
-    module2.exports = mizar;
+    module.exports = mizar;
   }
 });
 
 // node_modules/highlight.js/lib/languages/perl.js
 var require_perl = __commonJS({
-  "node_modules/highlight.js/lib/languages/perl.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/perl.js"(exports, module) {
     "use strict";
     function perl(hljs) {
       const regex = hljs.regex;
@@ -38454,13 +38330,13 @@ var require_perl = __commonJS({
         contains: PERL_DEFAULT_CONTAINS
       };
     }
-    module2.exports = perl;
+    module.exports = perl;
   }
 });
 
 // node_modules/highlight.js/lib/languages/mojolicious.js
 var require_mojolicious = __commonJS({
-  "node_modules/highlight.js/lib/languages/mojolicious.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/mojolicious.js"(exports, module) {
     "use strict";
     function mojolicious(hljs) {
       return {
@@ -38488,13 +38364,13 @@ var require_mojolicious = __commonJS({
         ]
       };
     }
-    module2.exports = mojolicious;
+    module.exports = mojolicious;
   }
 });
 
 // node_modules/highlight.js/lib/languages/monkey.js
 var require_monkey = __commonJS({
-  "node_modules/highlight.js/lib/languages/monkey.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/monkey.js"(exports, module) {
     "use strict";
     function monkey(hljs) {
       const NUMBER = {
@@ -38669,13 +38545,13 @@ var require_monkey = __commonJS({
         ]
       };
     }
-    module2.exports = monkey;
+    module.exports = monkey;
   }
 });
 
 // node_modules/highlight.js/lib/languages/moonscript.js
 var require_moonscript = __commonJS({
-  "node_modules/highlight.js/lib/languages/moonscript.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/moonscript.js"(exports, module) {
     "use strict";
     function moonscript(hljs) {
       const KEYWORDS = {
@@ -38810,13 +38686,13 @@ var require_moonscript = __commonJS({
         ])
       };
     }
-    module2.exports = moonscript;
+    module.exports = moonscript;
   }
 });
 
 // node_modules/highlight.js/lib/languages/n1ql.js
 var require_n1ql = __commonJS({
-  "node_modules/highlight.js/lib/languages/n1ql.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/n1ql.js"(exports, module) {
     "use strict";
     function n1ql(hljs) {
       const KEYWORDS = [
@@ -39167,13 +39043,13 @@ var require_n1ql = __commonJS({
         ]
       };
     }
-    module2.exports = n1ql;
+    module.exports = n1ql;
   }
 });
 
 // node_modules/highlight.js/lib/languages/nestedtext.js
 var require_nestedtext = __commonJS({
-  "node_modules/highlight.js/lib/languages/nestedtext.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/nestedtext.js"(exports, module) {
     "use strict";
     function nestedtext(hljs) {
       const NESTED = {
@@ -39249,13 +39125,13 @@ var require_nestedtext = __commonJS({
         ]
       };
     }
-    module2.exports = nestedtext;
+    module.exports = nestedtext;
   }
 });
 
 // node_modules/highlight.js/lib/languages/nginx.js
 var require_nginx = __commonJS({
-  "node_modules/highlight.js/lib/languages/nginx.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/nginx.js"(exports, module) {
     "use strict";
     function nginx(hljs) {
       const regex = hljs.regex;
@@ -39398,13 +39274,13 @@ var require_nginx = __commonJS({
         illegal: "[^\\s\\}\\{]"
       };
     }
-    module2.exports = nginx;
+    module.exports = nginx;
   }
 });
 
 // node_modules/highlight.js/lib/languages/nim.js
 var require_nim = __commonJS({
-  "node_modules/highlight.js/lib/languages/nim.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/nim.js"(exports, module) {
     "use strict";
     function nim(hljs) {
       const TYPES = [
@@ -39583,13 +39459,13 @@ var require_nim = __commonJS({
         ]
       };
     }
-    module2.exports = nim;
+    module.exports = nim;
   }
 });
 
 // node_modules/highlight.js/lib/languages/nix.js
 var require_nix = __commonJS({
-  "node_modules/highlight.js/lib/languages/nix.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/nix.js"(exports, module) {
     "use strict";
     function nix(hljs) {
       const KEYWORDS = {
@@ -39676,13 +39552,13 @@ var require_nix = __commonJS({
         contains: EXPRESSIONS
       };
     }
-    module2.exports = nix;
+    module.exports = nix;
   }
 });
 
 // node_modules/highlight.js/lib/languages/node-repl.js
 var require_node_repl = __commonJS({
-  "node_modules/highlight.js/lib/languages/node-repl.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/node-repl.js"(exports, module) {
     "use strict";
     function nodeRepl(hljs) {
       return {
@@ -39707,13 +39583,13 @@ var require_node_repl = __commonJS({
         ]
       };
     }
-    module2.exports = nodeRepl;
+    module.exports = nodeRepl;
   }
 });
 
 // node_modules/highlight.js/lib/languages/nsis.js
 var require_nsis = __commonJS({
-  "node_modules/highlight.js/lib/languages/nsis.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/nsis.js"(exports, module) {
     "use strict";
     function nsis(hljs) {
       const regex = hljs.regex;
@@ -40242,13 +40118,13 @@ var require_nsis = __commonJS({
         ]
       };
     }
-    module2.exports = nsis;
+    module.exports = nsis;
   }
 });
 
 // node_modules/highlight.js/lib/languages/objectivec.js
 var require_objectivec = __commonJS({
-  "node_modules/highlight.js/lib/languages/objectivec.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/objectivec.js"(exports, module) {
     "use strict";
     function objectivec(hljs) {
       const API_CLASS = {
@@ -40491,13 +40367,13 @@ var require_objectivec = __commonJS({
         ]
       };
     }
-    module2.exports = objectivec;
+    module.exports = objectivec;
   }
 });
 
 // node_modules/highlight.js/lib/languages/ocaml.js
 var require_ocaml = __commonJS({
-  "node_modules/highlight.js/lib/languages/ocaml.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/ocaml.js"(exports, module) {
     "use strict";
     function ocaml(hljs) {
       return {
@@ -40563,13 +40439,13 @@ var require_ocaml = __commonJS({
         ]
       };
     }
-    module2.exports = ocaml;
+    module.exports = ocaml;
   }
 });
 
 // node_modules/highlight.js/lib/languages/openscad.js
 var require_openscad = __commonJS({
-  "node_modules/highlight.js/lib/languages/openscad.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/openscad.js"(exports, module) {
     "use strict";
     function openscad(hljs) {
       const SPECIAL_VARS = {
@@ -40638,13 +40514,13 @@ var require_openscad = __commonJS({
         ]
       };
     }
-    module2.exports = openscad;
+    module.exports = openscad;
   }
 });
 
 // node_modules/highlight.js/lib/languages/oxygene.js
 var require_oxygene = __commonJS({
-  "node_modules/highlight.js/lib/languages/oxygene.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/oxygene.js"(exports, module) {
     "use strict";
     function oxygene(hljs) {
       const OXYGENE_KEYWORDS = {
@@ -40713,13 +40589,13 @@ var require_oxygene = __commonJS({
         ]
       };
     }
-    module2.exports = oxygene;
+    module.exports = oxygene;
   }
 });
 
 // node_modules/highlight.js/lib/languages/parser3.js
 var require_parser3 = __commonJS({
-  "node_modules/highlight.js/lib/languages/parser3.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/parser3.js"(exports, module) {
     "use strict";
     function parser3(hljs) {
       const CURLY_SUBCOMMENT = hljs.COMMENT(
@@ -40766,13 +40642,13 @@ var require_parser3 = __commonJS({
         ]
       };
     }
-    module2.exports = parser3;
+    module.exports = parser3;
   }
 });
 
 // node_modules/highlight.js/lib/languages/pf.js
 var require_pf = __commonJS({
-  "node_modules/highlight.js/lib/languages/pf.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/pf.js"(exports, module) {
     "use strict";
     function pf(hljs) {
       const MACRO = {
@@ -40808,13 +40684,13 @@ var require_pf = __commonJS({
         ]
       };
     }
-    module2.exports = pf;
+    module.exports = pf;
   }
 });
 
 // node_modules/highlight.js/lib/languages/pgsql.js
 var require_pgsql = __commonJS({
-  "node_modules/highlight.js/lib/languages/pgsql.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/pgsql.js"(exports, module) {
     "use strict";
     function pgsql(hljs) {
       const COMMENT_MODE = hljs.COMMENT("--", "$");
@@ -41094,13 +40970,13 @@ var require_pgsql = __commonJS({
         ]
       };
     }
-    module2.exports = pgsql;
+    module.exports = pgsql;
   }
 });
 
 // node_modules/highlight.js/lib/languages/php.js
 var require_php = __commonJS({
-  "node_modules/highlight.js/lib/languages/php.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/php.js"(exports, module) {
     "use strict";
     function php(hljs) {
       const regex = hljs.regex;
@@ -41688,13 +41564,13 @@ var require_php = __commonJS({
         ]
       };
     }
-    module2.exports = php;
+    module.exports = php;
   }
 });
 
 // node_modules/highlight.js/lib/languages/php-template.js
 var require_php_template = __commonJS({
-  "node_modules/highlight.js/lib/languages/php-template.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/php-template.js"(exports, module) {
     "use strict";
     function phpTemplate(hljs) {
       return {
@@ -41740,13 +41616,13 @@ var require_php_template = __commonJS({
         ]
       };
     }
-    module2.exports = phpTemplate;
+    module.exports = phpTemplate;
   }
 });
 
 // node_modules/highlight.js/lib/languages/plaintext.js
 var require_plaintext = __commonJS({
-  "node_modules/highlight.js/lib/languages/plaintext.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/plaintext.js"(exports, module) {
     "use strict";
     function plaintext(hljs) {
       return {
@@ -41758,13 +41634,13 @@ var require_plaintext = __commonJS({
         disableAutodetect: true
       };
     }
-    module2.exports = plaintext;
+    module.exports = plaintext;
   }
 });
 
 // node_modules/highlight.js/lib/languages/pony.js
 var require_pony = __commonJS({
-  "node_modules/highlight.js/lib/languages/pony.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/pony.js"(exports, module) {
     "use strict";
     function pony(hljs) {
       const KEYWORDS = {
@@ -41820,13 +41696,13 @@ var require_pony = __commonJS({
         ]
       };
     }
-    module2.exports = pony;
+    module.exports = pony;
   }
 });
 
 // node_modules/highlight.js/lib/languages/powershell.js
 var require_powershell = __commonJS({
-  "node_modules/highlight.js/lib/languages/powershell.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/powershell.js"(exports, module) {
     "use strict";
     function powershell(hljs) {
       const TYPES = [
@@ -42082,13 +41958,13 @@ var require_powershell = __commonJS({
         )
       };
     }
-    module2.exports = powershell;
+    module.exports = powershell;
   }
 });
 
 // node_modules/highlight.js/lib/languages/processing.js
 var require_processing = __commonJS({
-  "node_modules/highlight.js/lib/languages/processing.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/processing.js"(exports, module) {
     "use strict";
     function processing(hljs) {
       const regex = hljs.regex;
@@ -42514,13 +42390,13 @@ var require_processing = __commonJS({
         ]
       };
     }
-    module2.exports = processing;
+    module.exports = processing;
   }
 });
 
 // node_modules/highlight.js/lib/languages/profile.js
 var require_profile = __commonJS({
-  "node_modules/highlight.js/lib/languages/profile.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/profile.js"(exports, module) {
     "use strict";
     function profile(hljs) {
       return {
@@ -42557,13 +42433,13 @@ var require_profile = __commonJS({
         ]
       };
     }
-    module2.exports = profile;
+    module.exports = profile;
   }
 });
 
 // node_modules/highlight.js/lib/languages/prolog.js
 var require_prolog = __commonJS({
-  "node_modules/highlight.js/lib/languages/prolog.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/prolog.js"(exports, module) {
     "use strict";
     function prolog(hljs) {
       const ATOM = {
@@ -42640,13 +42516,13 @@ var require_prolog = __commonJS({
         ])
       };
     }
-    module2.exports = prolog;
+    module.exports = prolog;
   }
 });
 
 // node_modules/highlight.js/lib/languages/properties.js
 var require_properties = __commonJS({
-  "node_modules/highlight.js/lib/languages/properties.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/properties.js"(exports, module) {
     "use strict";
     function properties(hljs) {
       const WS0 = "[ \\t\\f]*";
@@ -42702,13 +42578,13 @@ var require_properties = __commonJS({
         ]
       };
     }
-    module2.exports = properties;
+    module.exports = properties;
   }
 });
 
 // node_modules/highlight.js/lib/languages/protobuf.js
 var require_protobuf = __commonJS({
-  "node_modules/highlight.js/lib/languages/protobuf.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/protobuf.js"(exports, module) {
     "use strict";
     function protobuf(hljs) {
       const KEYWORDS = [
@@ -42780,13 +42656,13 @@ var require_protobuf = __commonJS({
         ]
       };
     }
-    module2.exports = protobuf;
+    module.exports = protobuf;
   }
 });
 
 // node_modules/highlight.js/lib/languages/puppet.js
 var require_puppet = __commonJS({
-  "node_modules/highlight.js/lib/languages/puppet.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/puppet.js"(exports, module) {
     "use strict";
     function puppet(hljs) {
       const PUPPET_KEYWORDS = {
@@ -42897,13 +42773,13 @@ var require_puppet = __commonJS({
         ]
       };
     }
-    module2.exports = puppet;
+    module.exports = puppet;
   }
 });
 
 // node_modules/highlight.js/lib/languages/purebasic.js
 var require_purebasic = __commonJS({
-  "node_modules/highlight.js/lib/languages/purebasic.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/purebasic.js"(exports, module) {
     "use strict";
     function purebasic(hljs) {
       const STRINGS = {
@@ -42962,13 +42838,13 @@ var require_purebasic = __commonJS({
         ]
       };
     }
-    module2.exports = purebasic;
+    module.exports = purebasic;
   }
 });
 
 // node_modules/highlight.js/lib/languages/python.js
 var require_python = __commonJS({
-  "node_modules/highlight.js/lib/languages/python.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/python.js"(exports, module) {
     "use strict";
     function python(hljs) {
       const regex = hljs.regex;
@@ -43381,13 +43257,13 @@ var require_python = __commonJS({
         ]
       };
     }
-    module2.exports = python;
+    module.exports = python;
   }
 });
 
 // node_modules/highlight.js/lib/languages/python-repl.js
 var require_python_repl = __commonJS({
-  "node_modules/highlight.js/lib/languages/python-repl.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/python-repl.js"(exports, module) {
     "use strict";
     function pythonRepl(hljs) {
       return {
@@ -43412,13 +43288,13 @@ var require_python_repl = __commonJS({
         ]
       };
     }
-    module2.exports = pythonRepl;
+    module.exports = pythonRepl;
   }
 });
 
 // node_modules/highlight.js/lib/languages/q.js
 var require_q = __commonJS({
-  "node_modules/highlight.js/lib/languages/q.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/q.js"(exports, module) {
     "use strict";
     function q(hljs) {
       const KEYWORDS = {
@@ -43442,13 +43318,13 @@ var require_q = __commonJS({
         ]
       };
     }
-    module2.exports = q;
+    module.exports = q;
   }
 });
 
 // node_modules/highlight.js/lib/languages/qml.js
 var require_qml = __commonJS({
-  "node_modules/highlight.js/lib/languages/qml.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/qml.js"(exports, module) {
     "use strict";
     function qml(hljs) {
       const regex = hljs.regex;
@@ -43596,13 +43472,13 @@ var require_qml = __commonJS({
         illegal: /#/
       };
     }
-    module2.exports = qml;
+    module.exports = qml;
   }
 });
 
 // node_modules/highlight.js/lib/languages/r.js
 var require_r = __commonJS({
-  "node_modules/highlight.js/lib/languages/r.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/r.js"(exports, module) {
     "use strict";
     function r(hljs) {
       const regex = hljs.regex;
@@ -43812,13 +43688,13 @@ var require_r = __commonJS({
         ]
       };
     }
-    module2.exports = r;
+    module.exports = r;
   }
 });
 
 // node_modules/highlight.js/lib/languages/reasonml.js
 var require_reasonml = __commonJS({
-  "node_modules/highlight.js/lib/languages/reasonml.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/reasonml.js"(exports, module) {
     "use strict";
     function reasonml(hljs) {
       function orReValues(ops) {
@@ -44090,13 +43966,13 @@ var require_reasonml = __commonJS({
         ]
       };
     }
-    module2.exports = reasonml;
+    module.exports = reasonml;
   }
 });
 
 // node_modules/highlight.js/lib/languages/rib.js
 var require_rib = __commonJS({
-  "node_modules/highlight.js/lib/languages/rib.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/rib.js"(exports, module) {
     "use strict";
     function rib(hljs) {
       return {
@@ -44111,13 +43987,13 @@ var require_rib = __commonJS({
         ]
       };
     }
-    module2.exports = rib;
+    module.exports = rib;
   }
 });
 
 // node_modules/highlight.js/lib/languages/roboconf.js
 var require_roboconf = __commonJS({
-  "node_modules/highlight.js/lib/languages/roboconf.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/roboconf.js"(exports, module) {
     "use strict";
     function roboconf(hljs) {
       const IDENTIFIER = "[a-zA-Z-_][^\\n{]+\\{";
@@ -44186,13 +44062,13 @@ var require_roboconf = __commonJS({
         ]
       };
     }
-    module2.exports = roboconf;
+    module.exports = roboconf;
   }
 });
 
 // node_modules/highlight.js/lib/languages/routeros.js
 var require_routeros = __commonJS({
-  "node_modules/highlight.js/lib/languages/routeros.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/routeros.js"(exports, module) {
     "use strict";
     function routeros(hljs) {
       const STATEMENTS = "foreach do while for if from to step else on-error and or not in";
@@ -44338,13 +44214,13 @@ var require_routeros = __commonJS({
         ]
       };
     }
-    module2.exports = routeros;
+    module.exports = routeros;
   }
 });
 
 // node_modules/highlight.js/lib/languages/rsl.js
 var require_rsl = __commonJS({
-  "node_modules/highlight.js/lib/languages/rsl.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/rsl.js"(exports, module) {
     "use strict";
     function rsl(hljs) {
       const BUILT_INS = [
@@ -44481,13 +44357,13 @@ var require_rsl = __commonJS({
         ]
       };
     }
-    module2.exports = rsl;
+    module.exports = rsl;
   }
 });
 
 // node_modules/highlight.js/lib/languages/ruleslanguage.js
 var require_ruleslanguage = __commonJS({
-  "node_modules/highlight.js/lib/languages/ruleslanguage.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/ruleslanguage.js"(exports, module) {
     "use strict";
     function ruleslanguage(hljs) {
       return {
@@ -44516,13 +44392,13 @@ var require_ruleslanguage = __commonJS({
         ]
       };
     }
-    module2.exports = ruleslanguage;
+    module.exports = ruleslanguage;
   }
 });
 
 // node_modules/highlight.js/lib/languages/rust.js
 var require_rust = __commonJS({
-  "node_modules/highlight.js/lib/languages/rust.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/rust.js"(exports, module) {
     "use strict";
     function rust(hljs) {
       const regex = hljs.regex;
@@ -44817,13 +44693,13 @@ var require_rust = __commonJS({
         ]
       };
     }
-    module2.exports = rust;
+    module.exports = rust;
   }
 });
 
 // node_modules/highlight.js/lib/languages/sas.js
 var require_sas = __commonJS({
-  "node_modules/highlight.js/lib/languages/sas.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/sas.js"(exports, module) {
     "use strict";
     function sas(hljs) {
       const regex = hljs.regex;
@@ -45366,13 +45242,13 @@ var require_sas = __commonJS({
         ]
       };
     }
-    module2.exports = sas;
+    module.exports = sas;
   }
 });
 
 // node_modules/highlight.js/lib/languages/scala.js
 var require_scala = __commonJS({
-  "node_modules/highlight.js/lib/languages/scala.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/scala.js"(exports, module) {
     "use strict";
     function scala(hljs) {
       const regex = hljs.regex;
@@ -45532,13 +45408,13 @@ var require_scala = __commonJS({
         ]
       };
     }
-    module2.exports = scala;
+    module.exports = scala;
   }
 });
 
 // node_modules/highlight.js/lib/languages/scheme.js
 var require_scheme = __commonJS({
-  "node_modules/highlight.js/lib/languages/scheme.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/scheme.js"(exports, module) {
     "use strict";
     function scheme(hljs) {
       const SCHEME_IDENT_RE = "[^\\(\\)\\[\\]\\{\\}\",'`;#|\\\\\\s]+";
@@ -45677,13 +45553,13 @@ var require_scheme = __commonJS({
         ].concat(COMMENT_MODES)
       };
     }
-    module2.exports = scheme;
+    module.exports = scheme;
   }
 });
 
 // node_modules/highlight.js/lib/languages/scilab.js
 var require_scilab = __commonJS({
-  "node_modules/highlight.js/lib/languages/scilab.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/scilab.js"(exports, module) {
     "use strict";
     function scilab(hljs) {
       const COMMON_CONTAINS = [
@@ -45741,13 +45617,13 @@ var require_scilab = __commonJS({
         ].concat(COMMON_CONTAINS)
       };
     }
-    module2.exports = scilab;
+    module.exports = scilab;
   }
 });
 
 // node_modules/highlight.js/lib/languages/scss.js
 var require_scss = __commonJS({
-  "node_modules/highlight.js/lib/languages/scss.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/scss.js"(exports, module) {
     "use strict";
     var MODES = (hljs) => {
       return {
@@ -46463,13 +46339,13 @@ var require_scss = __commonJS({
         ]
       };
     }
-    module2.exports = scss;
+    module.exports = scss;
   }
 });
 
 // node_modules/highlight.js/lib/languages/shell.js
 var require_shell = __commonJS({
-  "node_modules/highlight.js/lib/languages/shell.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/shell.js"(exports, module) {
     "use strict";
     function shell(hljs) {
       return {
@@ -46493,13 +46369,13 @@ var require_shell = __commonJS({
         ]
       };
     }
-    module2.exports = shell;
+    module.exports = shell;
   }
 });
 
 // node_modules/highlight.js/lib/languages/smali.js
 var require_smali = __commonJS({
-  "node_modules/highlight.js/lib/languages/smali.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/smali.js"(exports, module) {
     "use strict";
     function smali(hljs) {
       const smali_instr_low_prio = [
@@ -46617,13 +46493,13 @@ var require_smali = __commonJS({
         ]
       };
     }
-    module2.exports = smali;
+    module.exports = smali;
   }
 });
 
 // node_modules/highlight.js/lib/languages/smalltalk.js
 var require_smalltalk = __commonJS({
-  "node_modules/highlight.js/lib/languages/smalltalk.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/smalltalk.js"(exports, module) {
     "use strict";
     function smalltalk(hljs) {
       const VAR_IDENT_RE = "[a-z][a-zA-Z0-9_]*";
@@ -46684,13 +46560,13 @@ var require_smalltalk = __commonJS({
         ]
       };
     }
-    module2.exports = smalltalk;
+    module.exports = smalltalk;
   }
 });
 
 // node_modules/highlight.js/lib/languages/sml.js
 var require_sml = __commonJS({
-  "node_modules/highlight.js/lib/languages/sml.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/sml.js"(exports, module) {
     "use strict";
     function sml(hljs) {
       return {
@@ -46758,13 +46634,13 @@ var require_sml = __commonJS({
         ]
       };
     }
-    module2.exports = sml;
+    module.exports = sml;
   }
 });
 
 // node_modules/highlight.js/lib/languages/sqf.js
 var require_sqf = __commonJS({
-  "node_modules/highlight.js/lib/languages/sqf.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/sqf.js"(exports, module) {
     "use strict";
     function sqf(hljs) {
       const VARIABLE = {
@@ -49374,13 +49250,13 @@ var require_sqf = __commonJS({
         ]
       };
     }
-    module2.exports = sqf;
+    module.exports = sqf;
   }
 });
 
 // node_modules/highlight.js/lib/languages/sql.js
 var require_sql = __commonJS({
-  "node_modules/highlight.js/lib/languages/sql.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/sql.js"(exports, module) {
     "use strict";
     function sql(hljs) {
       const regex = hljs.regex;
@@ -50018,13 +49894,13 @@ var require_sql = __commonJS({
         ]
       };
     }
-    module2.exports = sql;
+    module.exports = sql;
   }
 });
 
 // node_modules/highlight.js/lib/languages/stan.js
 var require_stan = __commonJS({
-  "node_modules/highlight.js/lib/languages/stan.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/stan.js"(exports, module) {
     "use strict";
     function stan(hljs) {
       const regex = hljs.regex;
@@ -50491,13 +50367,13 @@ var require_stan = __commonJS({
         ]
       };
     }
-    module2.exports = stan;
+    module.exports = stan;
   }
 });
 
 // node_modules/highlight.js/lib/languages/stata.js
 var require_stata = __commonJS({
-  "node_modules/highlight.js/lib/languages/stata.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/stata.js"(exports, module) {
     "use strict";
     function stata(hljs) {
       return {
@@ -50535,13 +50411,13 @@ var require_stata = __commonJS({
         ]
       };
     }
-    module2.exports = stata;
+    module.exports = stata;
   }
 });
 
 // node_modules/highlight.js/lib/languages/step21.js
 var require_step21 = __commonJS({
-  "node_modules/highlight.js/lib/languages/step21.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/step21.js"(exports, module) {
     "use strict";
     function step21(hljs) {
       const STEP21_IDENT_RE = "[A-Z_][A-Z0-9_.]*";
@@ -50600,13 +50476,13 @@ var require_step21 = __commonJS({
         ]
       };
     }
-    module2.exports = step21;
+    module.exports = step21;
   }
 });
 
 // node_modules/highlight.js/lib/languages/stylus.js
 var require_stylus = __commonJS({
-  "node_modules/highlight.js/lib/languages/stylus.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/stylus.js"(exports, module) {
     "use strict";
     var MODES = (hljs) => {
       return {
@@ -51371,13 +51247,13 @@ var require_stylus = __commonJS({
         ]
       };
     }
-    module2.exports = stylus;
+    module.exports = stylus;
   }
 });
 
 // node_modules/highlight.js/lib/languages/subunit.js
 var require_subunit = __commonJS({
-  "node_modules/highlight.js/lib/languages/subunit.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/subunit.js"(exports, module) {
     "use strict";
     function subunit(hljs) {
       const DETAILS = {
@@ -51414,13 +51290,13 @@ var require_subunit = __commonJS({
         ]
       };
     }
-    module2.exports = subunit;
+    module.exports = subunit;
   }
 });
 
 // node_modules/highlight.js/lib/languages/swift.js
 var require_swift = __commonJS({
-  "node_modules/highlight.js/lib/languages/swift.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/swift.js"(exports, module) {
     "use strict";
     function source(re) {
       if (!re)
@@ -52195,13 +52071,13 @@ var require_swift = __commonJS({
         ]
       };
     }
-    module2.exports = swift;
+    module.exports = swift;
   }
 });
 
 // node_modules/highlight.js/lib/languages/taggerscript.js
 var require_taggerscript = __commonJS({
-  "node_modules/highlight.js/lib/languages/taggerscript.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/taggerscript.js"(exports, module) {
     "use strict";
     function taggerscript(hljs) {
       const NOOP = {
@@ -52248,13 +52124,13 @@ var require_taggerscript = __commonJS({
         ]
       };
     }
-    module2.exports = taggerscript;
+    module.exports = taggerscript;
   }
 });
 
 // node_modules/highlight.js/lib/languages/yaml.js
 var require_yaml = __commonJS({
-  "node_modules/highlight.js/lib/languages/yaml.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/yaml.js"(exports, module) {
     "use strict";
     function yaml(hljs) {
       const LITERALS = "true false yes no null";
@@ -52438,13 +52314,13 @@ var require_yaml = __commonJS({
         contains: MODES
       };
     }
-    module2.exports = yaml;
+    module.exports = yaml;
   }
 });
 
 // node_modules/highlight.js/lib/languages/tap.js
 var require_tap = __commonJS({
-  "node_modules/highlight.js/lib/languages/tap.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/tap.js"(exports, module) {
     "use strict";
     function tap(hljs) {
       return {
@@ -52483,13 +52359,13 @@ var require_tap = __commonJS({
         ]
       };
     }
-    module2.exports = tap;
+    module.exports = tap;
   }
 });
 
 // node_modules/highlight.js/lib/languages/tcl.js
 var require_tcl = __commonJS({
-  "node_modules/highlight.js/lib/languages/tcl.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/tcl.js"(exports, module) {
     "use strict";
     function tcl(hljs) {
       const regex = hljs.regex;
@@ -52669,13 +52545,13 @@ var require_tcl = __commonJS({
         ]
       };
     }
-    module2.exports = tcl;
+    module.exports = tcl;
   }
 });
 
 // node_modules/highlight.js/lib/languages/thrift.js
 var require_thrift = __commonJS({
-  "node_modules/highlight.js/lib/languages/thrift.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/thrift.js"(exports, module) {
     "use strict";
     function thrift(hljs) {
       const TYPES = [
@@ -52745,13 +52621,13 @@ var require_thrift = __commonJS({
         ]
       };
     }
-    module2.exports = thrift;
+    module.exports = thrift;
   }
 });
 
 // node_modules/highlight.js/lib/languages/tp.js
 var require_tp = __commonJS({
-  "node_modules/highlight.js/lib/languages/tp.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/tp.js"(exports, module) {
     "use strict";
     function tp(hljs) {
       const TPID = {
@@ -52915,13 +52791,13 @@ var require_tp = __commonJS({
         ]
       };
     }
-    module2.exports = tp;
+    module.exports = tp;
   }
 });
 
 // node_modules/highlight.js/lib/languages/twig.js
 var require_twig = __commonJS({
-  "node_modules/highlight.js/lib/languages/twig.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/twig.js"(exports, module) {
     "use strict";
     function twig(hljs) {
       const regex = hljs.regex;
@@ -53160,13 +53036,13 @@ var require_twig = __commonJS({
         ]
       };
     }
-    module2.exports = twig;
+    module.exports = twig;
   }
 });
 
 // node_modules/highlight.js/lib/languages/typescript.js
 var require_typescript = __commonJS({
-  "node_modules/highlight.js/lib/languages/typescript.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/typescript.js"(exports, module) {
     "use strict";
     var IDENT_RE = "[A-Za-z$_][0-9A-Za-z$_]*";
     var KEYWORDS = [
@@ -53953,13 +53829,13 @@ var require_typescript = __commonJS({
       });
       return tsLanguage;
     }
-    module2.exports = typescript;
+    module.exports = typescript;
   }
 });
 
 // node_modules/highlight.js/lib/languages/vala.js
 var require_vala = __commonJS({
-  "node_modules/highlight.js/lib/languages/vala.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/vala.js"(exports, module) {
     "use strict";
     function vala(hljs) {
       return {
@@ -54000,13 +53876,13 @@ var require_vala = __commonJS({
         ]
       };
     }
-    module2.exports = vala;
+    module.exports = vala;
   }
 });
 
 // node_modules/highlight.js/lib/languages/vbnet.js
 var require_vbnet = __commonJS({
-  "node_modules/highlight.js/lib/languages/vbnet.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/vbnet.js"(exports, module) {
     "use strict";
     function vbnet(hljs) {
       const regex = hljs.regex;
@@ -54139,13 +54015,13 @@ var require_vbnet = __commonJS({
         ]
       };
     }
-    module2.exports = vbnet;
+    module.exports = vbnet;
   }
 });
 
 // node_modules/highlight.js/lib/languages/vbscript.js
 var require_vbscript = __commonJS({
-  "node_modules/highlight.js/lib/languages/vbscript.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/vbscript.js"(exports, module) {
     "use strict";
     function vbscript(hljs) {
       const regex = hljs.regex;
@@ -54351,13 +54227,13 @@ var require_vbscript = __commonJS({
         ]
       };
     }
-    module2.exports = vbscript;
+    module.exports = vbscript;
   }
 });
 
 // node_modules/highlight.js/lib/languages/vbscript-html.js
 var require_vbscript_html = __commonJS({
-  "node_modules/highlight.js/lib/languages/vbscript-html.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/vbscript-html.js"(exports, module) {
     "use strict";
     function vbscriptHtml(hljs) {
       return {
@@ -54372,13 +54248,13 @@ var require_vbscript_html = __commonJS({
         ]
       };
     }
-    module2.exports = vbscriptHtml;
+    module.exports = vbscriptHtml;
   }
 });
 
 // node_modules/highlight.js/lib/languages/verilog.js
 var require_verilog = __commonJS({
-  "node_modules/highlight.js/lib/languages/verilog.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/verilog.js"(exports, module) {
     "use strict";
     function verilog(hljs) {
       const regex = hljs.regex;
@@ -54919,13 +54795,13 @@ var require_verilog = __commonJS({
         ]
       };
     }
-    module2.exports = verilog;
+    module.exports = verilog;
   }
 });
 
 // node_modules/highlight.js/lib/languages/vhdl.js
 var require_vhdl = __commonJS({
-  "node_modules/highlight.js/lib/languages/vhdl.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/vhdl.js"(exports, module) {
     "use strict";
     function vhdl(hljs) {
       const INTEGER_RE = "\\d(_|\\d)*";
@@ -55126,13 +55002,13 @@ var require_vhdl = __commonJS({
         ]
       };
     }
-    module2.exports = vhdl;
+    module.exports = vhdl;
   }
 });
 
 // node_modules/highlight.js/lib/languages/vim.js
 var require_vim = __commonJS({
-  "node_modules/highlight.js/lib/languages/vim.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/vim.js"(exports, module) {
     "use strict";
     function vim(hljs) {
       return {
@@ -55203,13 +55079,13 @@ var require_vim = __commonJS({
         ]
       };
     }
-    module2.exports = vim;
+    module.exports = vim;
   }
 });
 
 // node_modules/highlight.js/lib/languages/wasm.js
 var require_wasm = __commonJS({
-  "node_modules/highlight.js/lib/languages/wasm.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/wasm.js"(exports, module) {
     "use strict";
     function wasm(hljs) {
       hljs.regex;
@@ -55330,13 +55206,13 @@ var require_wasm = __commonJS({
         ]
       };
     }
-    module2.exports = wasm;
+    module.exports = wasm;
   }
 });
 
 // node_modules/highlight.js/lib/languages/wren.js
 var require_wren = __commonJS({
-  "node_modules/highlight.js/lib/languages/wren.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/wren.js"(exports, module) {
     "use strict";
     function wren(hljs) {
       const regex = hljs.regex;
@@ -55615,13 +55491,13 @@ var require_wren = __commonJS({
         ]
       };
     }
-    module2.exports = wren;
+    module.exports = wren;
   }
 });
 
 // node_modules/highlight.js/lib/languages/x86asm.js
 var require_x86asm = __commonJS({
-  "node_modules/highlight.js/lib/languages/x86asm.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/x86asm.js"(exports, module) {
     "use strict";
     function x86asm(hljs) {
       return {
@@ -55708,13 +55584,13 @@ var require_x86asm = __commonJS({
         ]
       };
     }
-    module2.exports = x86asm;
+    module.exports = x86asm;
   }
 });
 
 // node_modules/highlight.js/lib/languages/xl.js
 var require_xl = __commonJS({
-  "node_modules/highlight.js/lib/languages/xl.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/xl.js"(exports, module) {
     "use strict";
     function xl(hljs) {
       const KWS = [
@@ -55911,13 +55787,13 @@ var require_xl = __commonJS({
         ]
       };
     }
-    module2.exports = xl;
+    module.exports = xl;
   }
 });
 
 // node_modules/highlight.js/lib/languages/xquery.js
 var require_xquery = __commonJS({
-  "node_modules/highlight.js/lib/languages/xquery.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/xquery.js"(exports, module) {
     "use strict";
     function xquery(_hljs) {
       const KEYWORDS = [
@@ -56243,13 +56119,13 @@ var require_xquery = __commonJS({
         contains: CONTAINS
       };
     }
-    module2.exports = xquery;
+    module.exports = xquery;
   }
 });
 
 // node_modules/highlight.js/lib/languages/zephir.js
 var require_zephir = __commonJS({
-  "node_modules/highlight.js/lib/languages/zephir.js"(exports, module2) {
+  "node_modules/highlight.js/lib/languages/zephir.js"(exports, module) {
     "use strict";
     function zephir(hljs) {
       const STRING = {
@@ -56348,13 +56224,13 @@ var require_zephir = __commonJS({
         ]
       };
     }
-    module2.exports = zephir;
+    module.exports = zephir;
   }
 });
 
 // node_modules/highlight.js/lib/index.js
 var require_lib10 = __commonJS({
-  "node_modules/highlight.js/lib/index.js"(exports, module2) {
+  "node_modules/highlight.js/lib/index.js"(exports, module) {
     "use strict";
     var hljs = require_core();
     hljs.registerLanguage("1c", require_c());
@@ -56551,33 +56427,12 @@ var require_lib10 = __commonJS({
     hljs.registerLanguage("zephir", require_zephir());
     hljs.HighlightJS = hljs;
     hljs.default = hljs;
-    module2.exports = hljs;
+    module.exports = hljs;
   }
 });
 
-// components/src/index.ts
-var src_exports = {};
-__export(src_exports, {
-  AsciiDocBlocks: () => AsciiDocBlocks,
-  Badge: () => Badge,
-  Button: () => Button,
-  Checkbox: () => Checkbox,
-  EmptyMessage: () => EmptyMessage,
-  Listbox: () => Listbox,
-  Spinner: () => Spinner,
-  SpinnerLoader: () => SpinnerLoader,
-  Tabs: () => Tabs,
-  badgeColors: () => badgeColors,
-  buttonSizes: () => buttonSizes,
-  buttonStyle: () => buttonStyle,
-  spinnerSizes: () => spinnerSizes,
-  spinnerVariants: () => spinnerVariants,
-  variants: () => variants
-});
-module.exports = __toCommonJS(src_exports);
-
 // components/src/asciidoc/Admonition.tsx
-var import_react_asciidoc = require("@oxide/react-asciidoc");
+var _reactasciidoc = require('@oxide/react-asciidoc');
 
 // node_modules/html-react-parser/index.mjs
 var import_index = __toESM(require_html_react_parser(), 1);
@@ -56629,29 +56484,29 @@ var classed = {
 };
 
 // components/src/asciidoc/Admonition.tsx
-var import_jsx_runtime = require("react/jsx-runtime");
+var _jsxruntime = require('react/jsx-runtime');
 var Admonition = ({ node }) => {
   const attrs = node.getAttributes();
-  const content = (0, import_react_asciidoc.useGetContent)(node);
+  const content = _reactasciidoc.useGetContent.call(void 0, node);
   const contentModel = node.getContentModel();
   let icon;
   if (attrs.name === "caution") {
-    icon = /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Error12, {});
+    icon = /* @__PURE__ */ _jsxruntime.jsx.call(void 0, Error12, {});
   } else if (attrs.name === "warning") {
-    icon = /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Warning12, {});
+    icon = /* @__PURE__ */ _jsxruntime.jsx.call(void 0, Warning12, {});
   } else {
-    icon = /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Error12, { className: "rotate-180" });
+    icon = /* @__PURE__ */ _jsxruntime.jsx.call(void 0, Error12, { className: "rotate-180" });
   }
-  return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: `admonitionblock ${attrs.name}`, children: [
-    /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "admonition-icon", children: icon }),
-    /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "admonition-content content", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_react_asciidoc.Title, { node }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: titleCase(attrs.name) }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: contentModel === "simple" ? html_react_parser_default(content) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_react_asciidoc.Content, { blocks: node.getBlocks() }) })
+  return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, "div", { className: `admonitionblock ${attrs.name}`, children: [
+    /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "div", { className: "admonition-icon", children: icon }),
+    /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, "div", { className: "admonition-content content", children: [
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _reactasciidoc.Title, { node }),
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "div", { children: titleCase(attrs.name) }),
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "p", { children: contentModel === "simple" ? html_react_parser_default(content) : /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _reactasciidoc.Content, { blocks: node.getBlocks() }) })
     ] })
   ] });
 };
-var Error12 = ({ className }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+var Error12 = ({ className }) => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
   "svg",
   {
     width: "12",
@@ -56659,7 +56514,7 @@ var Error12 = ({ className }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
     viewBox: "0 0 12 12",
     xmlns: "http://www.w3.org/2000/svg",
     className,
-    children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+    children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
       "path",
       {
         fillRule: "evenodd",
@@ -56670,7 +56525,7 @@ var Error12 = ({ className }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
     )
   }
 );
-var Warning12 = ({ className }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+var Warning12 = ({ className }) => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
   "svg",
   {
     width: "12",
@@ -56678,7 +56533,7 @@ var Warning12 = ({ className }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
     viewBox: "0 0 12 12",
     xmlns: "http://www.w3.org/2000/svg",
     className,
-    children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
+    children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
       "path",
       {
         fillRule: "evenodd",
@@ -56692,25 +56547,25 @@ var Warning12 = ({ className }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(
 var Admonition_default = Admonition;
 
 // components/src/asciidoc/Listing.tsx
-var import_react_asciidoc2 = require("@oxide/react-asciidoc");
 var import_classnames = __toESM(require_classnames());
+
 
 // node_modules/highlight.js/es/index.js
 var import_lib = __toESM(require_lib10(), 1);
 var es_default = import_lib.default;
 
 // components/src/asciidoc/Listing.tsx
-var import_jsx_runtime2 = require("react/jsx-runtime");
+
 var Listing = ({ node }) => {
   const document2 = node.getDocument();
   const attrs = node.getAttributes();
   const nowrap = node.isOption("nowrap") || !document2.hasAttribute("prewrap");
-  const content = (0, import_react_asciidoc2.useGetContent)(node);
+  const content = _reactasciidoc.useGetContent.call(void 0, node);
   if (node.getStyle() === "source") {
     const lang = attrs.language;
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "listingblock", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_react_asciidoc2.CaptionedTitle, { node }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "content", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("pre", { className: (0, import_classnames.default)("highlight", nowrap ? " nowrap" : ""), children: lang ? /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
+    return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, "div", { className: "listingblock", children: [
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _reactasciidoc.CaptionedTitle, { node }),
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "div", { className: "content", children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "pre", { className: (0, import_classnames.default)("highlight", nowrap ? " nowrap" : ""), children: lang ? /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
         "code",
         {
           className: lang ? `language-${lang}` : "",
@@ -56719,21 +56574,21 @@ var Listing = ({ node }) => {
             __html: es_default.getLanguage(lang) ? es_default.highlight(content, { language: lang }).value : content
           }
         }
-      ) : /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("code", { dangerouslySetInnerHTML: { __html: content } }) }) })
+      ) : /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "code", { dangerouslySetInnerHTML: { __html: content } }) }) })
     ] });
   } else {
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "listingblock", children: [
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_react_asciidoc2.CaptionedTitle, { node }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "content", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("pre", { className: nowrap ? " nowrap" : "", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("code", { dangerouslySetInnerHTML: { __html: node.getSource() } }) }) })
+    return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, "div", { className: "listingblock", children: [
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _reactasciidoc.CaptionedTitle, { node }),
+      /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "div", { className: "content", children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "pre", { className: nowrap ? " nowrap" : "", children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "code", { dangerouslySetInnerHTML: { __html: node.getSource() } }) }) })
     ] });
   }
 };
 var Listing_default = Listing;
 
 // components/src/asciidoc/Table.tsx
-var import_react_asciidoc3 = require("@oxide/react-asciidoc");
-var import_jsx_runtime3 = require("react/jsx-runtime");
-var Table = ({ node }) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "table-wrapper", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_react_asciidoc3.Table, { node }) });
+
+
+var Table = ({ node }) => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "div", { className: "table-wrapper", children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _reactasciidoc.Table, { node }) });
 var Table_default = Table;
 
 // components/src/asciidoc/index.ts
@@ -56745,7 +56600,7 @@ var AsciiDocBlocks = {
 
 // components/src/ui/badge/Badge.tsx
 var import_classnames2 = __toESM(require_classnames());
-var import_jsx_runtime4 = require("react/jsx-runtime");
+
 var badgeColors = {
   default: {
     default: `ring-1 ring-inset bg-accent-secondary text-accent ring-[rgba(var(--base-green-800-rgb),0.15)]`,
@@ -56770,7 +56625,7 @@ var Badge = ({
   color = "default",
   variant = "default"
 }) => {
-  return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+  return /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
     "span",
     {
       className: (0, import_classnames2.default)(
@@ -56780,15 +56635,15 @@ var Badge = ({
         badgeColors[variant][color],
         className
       ),
-      children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children })
+      children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { children })
     }
   );
 };
 
 // components/src/ui/button/Button.tsx
 var import_classnames3 = __toESM(require_classnames());
-var import_react = require("react");
-var import_jsx_runtime5 = require("react/jsx-runtime");
+var _react = require('react');
+
 var buttonSizes = ["sm", "icon", "base"];
 var variants = ["primary", "secondary", "ghost", "danger"];
 var sizeStyle = {
@@ -56812,7 +56667,7 @@ var noop = (e) => {
   e.stopPropagation();
   e.preventDefault();
 };
-var Button = (0, import_react.forwardRef)(
+var Button = _react.forwardRef.call(void 0, 
   ({
     type = "button",
     children,
@@ -56828,7 +56683,7 @@ var Button = (0, import_react.forwardRef)(
     ...rest
   }, ref) => {
     const isDisabled = disabled || loading;
-    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(
+    return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
       "button",
       {
         className: (0, import_classnames3.default)(buttonStyle({ size: size2, variant }), className, {
@@ -56841,8 +56696,8 @@ var Button = (0, import_react.forwardRef)(
         "aria-disabled": isDisabled,
         ...rest,
         children: [
-          loading && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Spinner, { className: "absolute", variant }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { className: (0, import_classnames3.default)("flex items-center", innerClassName, { invisible: loading }), children })
+          loading && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, Spinner, { className: "absolute", variant }),
+          /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { className: (0, import_classnames3.default)("flex items-center", innerClassName, { invisible: loading }), children })
         ]
       }
     );
@@ -56851,8 +56706,8 @@ var Button = (0, import_react.forwardRef)(
 
 // components/src/ui/spinner/Spinner.tsx
 var import_classnames4 = __toESM(require_classnames());
-var import_react2 = require("react");
-var import_jsx_runtime6 = require("react/jsx-runtime");
+
+
 var spinnerSizes = ["base", "lg"];
 var spinnerVariants = ["primary", "secondary", "ghost", "danger"];
 var Spinner = ({
@@ -56864,7 +56719,7 @@ var Spinner = ({
   const center = size2 === "lg" ? 18 : 6;
   const radius = size2 === "lg" ? 16 : 5;
   const strokeWidth = size2 === "lg" ? 3 : 2;
-  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(
+  return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
     "svg",
     {
       width: frameSize,
@@ -56875,7 +56730,7 @@ var Spinner = ({
       "aria-labelledby": "Spinner",
       className: (0, import_classnames4.default)("spinner", `spinner-${variant}`, `spinner-${size2}`, className),
       children: [
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+        /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
           "circle",
           {
             fill: "none",
@@ -56888,7 +56743,7 @@ var Spinner = ({
             strokeOpacity: 0.2
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+        /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
           "circle",
           {
             className: "path",
@@ -56906,10 +56761,10 @@ var Spinner = ({
   );
 };
 var SpinnerLoader = ({ isLoading, children = null, minTime = 500 }) => {
-  const [isVisible, setIsVisible] = (0, import_react2.useState)(isLoading);
-  const hideTimeout = (0, import_react2.useRef)(null);
-  const loadingStartTime = (0, import_react2.useRef)(0);
-  (0, import_react2.useEffect)(() => {
+  const [isVisible, setIsVisible] = _react.useState.call(void 0, isLoading);
+  const hideTimeout = _react.useRef.call(void 0, null);
+  const loadingStartTime = _react.useRef.call(void 0, 0);
+  _react.useEffect.call(void 0, () => {
     if (isLoading) {
       setIsVisible(true);
       loadingStartTime.current = Date.now();
@@ -56929,483 +56784,486 @@ var SpinnerLoader = ({ isLoading, children = null, minTime = 500 }) => {
         clearTimeout(hideTimeout.current);
     };
   }, [isLoading, minTime]);
-  return isVisible ? /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Spinner, {}) : /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(import_jsx_runtime6.Fragment, { children });
+  return isVisible ? /* @__PURE__ */ _jsxruntime.jsx.call(void 0, Spinner, {}) : /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _jsxruntime.Fragment, { children });
 };
 
 // components/src/ui/tabs/Tabs.tsx
-var import_react_tabs = require("@radix-ui/react-tabs");
 var import_classnames5 = __toESM(require_classnames());
-var import_jsx_runtime7 = require("react/jsx-runtime");
+var _reacttabs = require('@radix-ui/react-tabs');
+
 var Tabs = {
-  Root: ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(import_react_tabs.Root, { ...props, className: (0, import_classnames5.default)("ox-tabs", className) }),
-  Trigger: ({ children, className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(import_react_tabs.Trigger, { ...props, className: (0, import_classnames5.default)("ox-tab", className), children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { children }) }),
-  List: ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(import_react_tabs.List, { ...props, className: (0, import_classnames5.default)("ox-tabs-list", className) }),
-  Content: ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(import_react_tabs.Content, { ...props, className: (0, import_classnames5.default)("ox-tabs-panel", className) })
+  Root: ({ className, ...props }) => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _reacttabs.Root, { ...props, className: (0, import_classnames5.default)("ox-tabs", className) }),
+  Trigger: ({ children, className, ...props }) => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _reacttabs.Trigger, { ...props, className: (0, import_classnames5.default)("ox-tab", className), children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "div", { children }) }),
+  List: ({ className, ...props }) => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _reacttabs.List, { ...props, className: (0, import_classnames5.default)("ox-tabs-list", className) }),
+  Content: ({ className, ...props }) => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _reacttabs.Content, { ...props, className: (0, import_classnames5.default)("ox-tabs-panel", className) })
 };
 
 // icons/react/Access24Icon.tsx
-var import_jsx_runtime8 = require("react/jsx-runtime");
+
 
 // icons/react/Action24Icon.tsx
-var import_jsx_runtime9 = require("react/jsx-runtime");
+
 
 // icons/react/AddRoundel24Icon.tsx
-var import_jsx_runtime10 = require("react/jsx-runtime");
+
 
 // icons/react/Calendar24Icon.tsx
-var import_jsx_runtime11 = require("react/jsx-runtime");
+
 
 // icons/react/Chat24Icon.tsx
-var import_jsx_runtime12 = require("react/jsx-runtime");
+
 
 // icons/react/Clipboard24Icon.tsx
-var import_jsx_runtime13 = require("react/jsx-runtime");
+
 
 // icons/react/Cloud24Icon.tsx
-var import_jsx_runtime14 = require("react/jsx-runtime");
+
 
 // icons/react/Compatibility24Icon.tsx
-var import_jsx_runtime15 = require("react/jsx-runtime");
+
 
 // icons/react/Contrast24Icon.tsx
-var import_jsx_runtime16 = require("react/jsx-runtime");
+
 
 // icons/react/Cpu24Icon.tsx
-var import_jsx_runtime17 = require("react/jsx-runtime");
+
 
 // icons/react/Delete24Icon.tsx
-var import_jsx_runtime18 = require("react/jsx-runtime");
+
 
 // icons/react/Dislike24Icon.tsx
-var import_jsx_runtime19 = require("react/jsx-runtime");
+
 
 // icons/react/Document24Icon.tsx
-var import_jsx_runtime20 = require("react/jsx-runtime");
+
 
 // icons/react/Dots24Icon.tsx
-var import_jsx_runtime21 = require("react/jsx-runtime");
+
 
 // icons/react/Download24Icon.tsx
-var import_jsx_runtime22 = require("react/jsx-runtime");
+
 
 // icons/react/Email24Icon.tsx
-var import_jsx_runtime23 = require("react/jsx-runtime");
+
 
 // icons/react/Error24Icon.tsx
-var import_jsx_runtime24 = require("react/jsx-runtime");
+
 
 // icons/react/Firewall24Icon.tsx
-var import_jsx_runtime25 = require("react/jsx-runtime");
+
 
 // icons/react/Folder24Icon.tsx
-var import_jsx_runtime26 = require("react/jsx-runtime");
+
 
 // icons/react/Gateway24Icon.tsx
-var import_jsx_runtime27 = require("react/jsx-runtime");
+
 
 // icons/react/Heart24Icon.tsx
-var import_jsx_runtime28 = require("react/jsx-runtime");
+
 
 // icons/react/Hide24Icon.tsx
-var import_jsx_runtime29 = require("react/jsx-runtime");
+
 
 // icons/react/Hourglass24Icon.tsx
-var import_jsx_runtime30 = require("react/jsx-runtime");
+
 
 // icons/react/Images24Icon.tsx
-var import_jsx_runtime31 = require("react/jsx-runtime");
+
 
 // icons/react/Info24Icon.tsx
-var import_jsx_runtime32 = require("react/jsx-runtime");
+
 
 // icons/react/Instances24Icon.tsx
-var import_jsx_runtime33 = require("react/jsx-runtime");
+
 
 // icons/react/IpGlobal24Icon.tsx
-var import_jsx_runtime34 = require("react/jsx-runtime");
+
 
 // icons/react/IpLocal24Icon.tsx
-var import_jsx_runtime35 = require("react/jsx-runtime");
+
 
 // icons/react/Issues24Icon.tsx
-var import_jsx_runtime36 = require("react/jsx-runtime");
+
 
 // icons/react/Key24Icon.tsx
-var import_jsx_runtime37 = require("react/jsx-runtime");
+
 
 // icons/react/Like24Icon.tsx
-var import_jsx_runtime38 = require("react/jsx-runtime");
+
 
 // icons/react/LoadBalancer24Icon.tsx
-var import_jsx_runtime39 = require("react/jsx-runtime");
+
 
 // icons/react/Location24Icon.tsx
-var import_jsx_runtime40 = require("react/jsx-runtime");
+
 
 // icons/react/Logs24Icon.tsx
-var import_jsx_runtime41 = require("react/jsx-runtime");
+
+
+// icons/react/Metrics24Icon.tsx
+
 
 // icons/react/Networking24Icon.tsx
-var import_jsx_runtime42 = require("react/jsx-runtime");
+
 
 // icons/react/Organization24Icon.tsx
-var import_jsx_runtime43 = require("react/jsx-runtime");
+
 
 // icons/react/Overview24Icon.tsx
-var import_jsx_runtime44 = require("react/jsx-runtime");
+
 
 // icons/react/Person24Icon.tsx
-var import_jsx_runtime45 = require("react/jsx-runtime");
+
 
 // icons/react/PersonGroup24Icon.tsx
-var import_jsx_runtime46 = require("react/jsx-runtime");
+
 
 // icons/react/Progress24Icon.tsx
-var import_jsx_runtime47 = require("react/jsx-runtime");
+
 
 // icons/react/Prohibited24Icon.tsx
-var import_jsx_runtime48 = require("react/jsx-runtime");
+
 
 // icons/react/Router24Icon.tsx
-var import_jsx_runtime49 = require("react/jsx-runtime");
+
 
 // icons/react/Safety24Icon.tsx
-var import_jsx_runtime50 = require("react/jsx-runtime");
+
 
 // icons/react/Security24Icon.tsx
-var import_jsx_runtime51 = require("react/jsx-runtime");
+
 
 // icons/react/Racks24Icon.tsx
-var import_jsx_runtime52 = require("react/jsx-runtime");
+
 
 // icons/react/Settings24Icon.tsx
-var import_jsx_runtime53 = require("react/jsx-runtime");
+
 
 // icons/react/Snapshots24Icon.tsx
-var import_jsx_runtime54 = require("react/jsx-runtime");
+
 
 // icons/react/SoftwareUpdate24Icon.tsx
-var import_jsx_runtime55 = require("react/jsx-runtime");
+
 
 // icons/react/Speaker24Icon.tsx
-var import_jsx_runtime56 = require("react/jsx-runtime");
+
 
 // icons/react/Storage24Icon.tsx
-var import_jsx_runtime57 = require("react/jsx-runtime");
+
 
 // icons/react/Subnet24Icon.tsx
-var import_jsx_runtime58 = require("react/jsx-runtime");
+
 
 // icons/react/Resize24Icon.tsx
-var import_jsx_runtime59 = require("react/jsx-runtime");
+
 
 // icons/react/Terminal24Icon.tsx
-var import_jsx_runtime60 = require("react/jsx-runtime");
+
 
 // icons/react/Transmit24Icon.tsx
-var import_jsx_runtime61 = require("react/jsx-runtime");
+
 
 // icons/react/Wireless24Icon.tsx
-var import_jsx_runtime62 = require("react/jsx-runtime");
+
 
 // icons/react/Access16Icon.tsx
-var import_jsx_runtime63 = require("react/jsx-runtime");
+
 
 // icons/react/Action16Icon.tsx
-var import_jsx_runtime64 = require("react/jsx-runtime");
+
 
 // icons/react/AddRoundel16Icon.tsx
-var import_jsx_runtime65 = require("react/jsx-runtime");
+
 
 // icons/react/Calendar16Icon.tsx
-var import_jsx_runtime66 = require("react/jsx-runtime");
+
 
 // icons/react/Chat16Icon.tsx
-var import_jsx_runtime67 = require("react/jsx-runtime");
+
 
 // icons/react/Clipboard16Icon.tsx
-var import_jsx_runtime68 = require("react/jsx-runtime");
+
 
 // icons/react/Cloud16Icon.tsx
-var import_jsx_runtime69 = require("react/jsx-runtime");
+
 
 // icons/react/Close16Icon.tsx
-var import_jsx_runtime70 = require("react/jsx-runtime");
+
 
 // icons/react/Compability16Icon.tsx
-var import_jsx_runtime71 = require("react/jsx-runtime");
+
 
 // icons/react/Contrast16Icon.tsx
-var import_jsx_runtime72 = require("react/jsx-runtime");
+
 
 // icons/react/Cpu16Icon.tsx
-var import_jsx_runtime73 = require("react/jsx-runtime");
+
 
 // icons/react/Delete16Icon.tsx
-var import_jsx_runtime74 = require("react/jsx-runtime");
+
 
 // icons/react/Dislike16Icon.tsx
-var import_jsx_runtime75 = require("react/jsx-runtime");
+
 
 // icons/react/Document16Icon.tsx
-var import_jsx_runtime76 = require("react/jsx-runtime");
+
 
 // icons/react/Dots16Icon.tsx
-var import_jsx_runtime77 = require("react/jsx-runtime");
+
 
 // icons/react/DownloadRoundel16Icon.tsx
-var import_jsx_runtime78 = require("react/jsx-runtime");
+
 
 // icons/react/Edit16Icon.tsx
-var import_jsx_runtime79 = require("react/jsx-runtime");
+
 
 // icons/react/Email16Icon.tsx
-var import_jsx_runtime80 = require("react/jsx-runtime");
+
 
 // icons/react/Error16Icon.tsx
-var import_jsx_runtime81 = require("react/jsx-runtime");
+
 
 // icons/react/Firewall16Icon.tsx
-var import_jsx_runtime82 = require("react/jsx-runtime");
+
 
 // icons/react/Folder16Icon.tsx
-var import_jsx_runtime83 = require("react/jsx-runtime");
+
 
 // icons/react/Gateway16Icon.tsx
-var import_jsx_runtime84 = require("react/jsx-runtime");
+
 
 // icons/react/Heart16Icon.tsx
-var import_jsx_runtime85 = require("react/jsx-runtime");
+
 
 // icons/react/Hide16Icon.tsx
-var import_jsx_runtime86 = require("react/jsx-runtime");
+
 
 // icons/react/Hourglass16Icon.tsx
-var import_jsx_runtime87 = require("react/jsx-runtime");
+
 
 // icons/react/Images16Icon.tsx
-var import_jsx_runtime88 = require("react/jsx-runtime");
+
 
 // icons/react/Info16Icon.tsx
-var import_jsx_runtime89 = require("react/jsx-runtime");
+
 
 // icons/react/Instances16Icon.tsx
-var import_jsx_runtime90 = require("react/jsx-runtime");
+
 
 // icons/react/Integration16Icon.tsx
-var import_jsx_runtime91 = require("react/jsx-runtime");
+
 
 // icons/react/IpGlobal16Icon.tsx
-var import_jsx_runtime92 = require("react/jsx-runtime");
+
 
 // icons/react/IpLocal16Icon.tsx
-var import_jsx_runtime93 = require("react/jsx-runtime");
+
 
 // icons/react/Issues16Icon.tsx
-var import_jsx_runtime94 = require("react/jsx-runtime");
+
 
 // icons/react/Key16Icon.tsx
-var import_jsx_runtime95 = require("react/jsx-runtime");
+
 
 // icons/react/Like16Icon.tsx
-var import_jsx_runtime96 = require("react/jsx-runtime");
+
 
 // icons/react/Link16Icon.tsx
-var import_jsx_runtime97 = require("react/jsx-runtime");
+
 
 // icons/react/LoadBalancer16Icon.tsx
-var import_jsx_runtime98 = require("react/jsx-runtime");
+
 
 // icons/react/Logs16Icon.tsx
-var import_jsx_runtime99 = require("react/jsx-runtime");
+
 
 // icons/react/Metrics16Icon.tsx
-var import_jsx_runtime100 = require("react/jsx-runtime");
+
 
 // icons/react/Networking16Icon.tsx
-var import_jsx_runtime101 = require("react/jsx-runtime");
+
 
 // icons/react/NewWindow16Icon.tsx
-var import_jsx_runtime102 = require("react/jsx-runtime");
+
 
 // icons/react/Notifications16Icon.tsx
-var import_jsx_runtime103 = require("react/jsx-runtime");
+
 
 // icons/react/Organization16Icon.tsx
-var import_jsx_runtime104 = require("react/jsx-runtime");
+
 
 // icons/react/Overview16Icon.tsx
-var import_jsx_runtime105 = require("react/jsx-runtime");
+
 
 // icons/react/Person16Icon.tsx
-var import_jsx_runtime106 = require("react/jsx-runtime");
+
 
 // icons/react/PersonGroup16Icon.tsx
-var import_jsx_runtime107 = require("react/jsx-runtime");
+
 
 // icons/react/Profile16Icon.tsx
-var import_jsx_runtime108 = require("react/jsx-runtime");
+
 
 // icons/react/Refresh16Icon.tsx
-var import_jsx_runtime109 = require("react/jsx-runtime");
+
 
 // icons/react/Ram16Icon.tsx
-var import_jsx_runtime110 = require("react/jsx-runtime");
+
 
 // icons/react/Repair16Icon.tsx
-var import_jsx_runtime111 = require("react/jsx-runtime");
+
 
 // icons/react/Resize16Icon.tsx
-var import_jsx_runtime112 = require("react/jsx-runtime");
+
 
 // icons/react/Router16Icon.tsx
-var import_jsx_runtime113 = require("react/jsx-runtime");
+
 
 // icons/react/Search16Icon.tsx
-var import_jsx_runtime114 = require("react/jsx-runtime");
+
 
 // icons/react/Security16Icon.tsx
-var import_jsx_runtime115 = require("react/jsx-runtime");
+
 
 // icons/react/Servers16Icon.tsx
-var import_jsx_runtime116 = require("react/jsx-runtime");
+
 
 // icons/react/Settings16Icon.tsx
-var import_jsx_runtime117 = require("react/jsx-runtime");
+
 
 // icons/react/Show16Icon.tsx
-var import_jsx_runtime118 = require("react/jsx-runtime");
+
 
 // icons/react/Snapshots16Icon.tsx
-var import_jsx_runtime119 = require("react/jsx-runtime");
+
 
 // icons/react/SoftwareUpdate16Icon.tsx
-var import_jsx_runtime120 = require("react/jsx-runtime");
+
 
 // icons/react/Ssd16Icon.tsx
-var import_jsx_runtime121 = require("react/jsx-runtime");
+
 
 // icons/react/Storage16Icon.tsx
-var import_jsx_runtime122 = require("react/jsx-runtime");
+
 
 // icons/react/Subnet16Icon.tsx
-var import_jsx_runtime123 = require("react/jsx-runtime");
+
 
 // icons/react/Tags16Icon.tsx
-var import_jsx_runtime124 = require("react/jsx-runtime");
+
 
 // icons/react/Terminal16Icon.tsx
-var import_jsx_runtime125 = require("react/jsx-runtime");
+
 
 // icons/react/Time16Icon.tsx
-var import_jsx_runtime126 = require("react/jsx-runtime");
+
 
 // icons/react/Transmit16Icon.tsx
-var import_jsx_runtime127 = require("react/jsx-runtime");
+
 
 // icons/react/Add12Icon.tsx
-var import_jsx_runtime128 = require("react/jsx-runtime");
+
 
 // icons/react/AddRoundel12Icon.tsx
-var import_jsx_runtime129 = require("react/jsx-runtime");
+
 
 // icons/react/Checkmark12Icon.tsx
-var import_jsx_runtime130 = require("react/jsx-runtime");
+
 var Checkmark12Icon = ({
   title,
   titleId,
   ...props
-}) => /* @__PURE__ */ (0, import_jsx_runtime130.jsxs)("svg", { width: 12, height: 12, viewBox: "0 0 12 12", xmlns: "http://www.w3.org/2000/svg", role: "img", "aria-labelledby": titleId, ...props, children: [
-  title ? /* @__PURE__ */ (0, import_jsx_runtime130.jsx)("title", { id: titleId, children: title }) : null,
-  /* @__PURE__ */ (0, import_jsx_runtime130.jsx)("path", { fillRule: "evenodd", clipRule: "evenodd", d: "M10.492 2.651c.28.242.31.665.067.944L5.447 9.463a.667.667 0 0 1-.974.035L1.475 6.516a.667.667 0 0 1 0-.946l.237-.235a.667.667 0 0 1 .94 0l2.24 2.226L9.3 2.501a.667.667 0 0 1 .938-.068l.253.218Z", fill: "currentColor" })
+}) => /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, "svg", { width: 12, height: 12, viewBox: "0 0 12 12", xmlns: "http://www.w3.org/2000/svg", role: "img", "aria-labelledby": titleId, ...props, children: [
+  title ? /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "title", { id: titleId, children: title }) : null,
+  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "path", { fillRule: "evenodd", clipRule: "evenodd", d: "M10.492 2.651c.28.242.31.665.067.944L5.447 9.463a.667.667 0 0 1-.974.035L1.475 6.516a.667.667 0 0 1 0-.946l.237-.235a.667.667 0 0 1 .94 0l2.24 2.226L9.3 2.501a.667.667 0 0 1 .938-.068l.253.218Z", fill: "currentColor" })
 ] });
 var Checkmark12Icon_default = Checkmark12Icon;
 
 // icons/react/Close12Icon.tsx
-var import_jsx_runtime131 = require("react/jsx-runtime");
+
 
 // icons/react/DirectionRightIcon.tsx
-var import_jsx_runtime132 = require("react/jsx-runtime");
+
 
 // icons/react/DirectionUpIcon.tsx
-var import_jsx_runtime133 = require("react/jsx-runtime");
+
 
 // icons/react/DirectionDownIcon.tsx
-var import_jsx_runtime134 = require("react/jsx-runtime");
+
 
 // icons/react/DirectionLeftIcon.tsx
-var import_jsx_runtime135 = require("react/jsx-runtime");
+
 
 // icons/react/Clipboard12Icon.tsx
-var import_jsx_runtime136 = require("react/jsx-runtime");
+
 
 // icons/react/Disabled12Icon.tsx
-var import_jsx_runtime137 = require("react/jsx-runtime");
+
 
 // icons/react/Error12Icon.tsx
-var import_jsx_runtime138 = require("react/jsx-runtime");
+
 
 // icons/react/Filter12Icon.tsx
-var import_jsx_runtime139 = require("react/jsx-runtime");
+
 
 // icons/react/Key12Icon.tsx
-var import_jsx_runtime140 = require("react/jsx-runtime");
+
 
 // icons/react/Loader12Icon.tsx
-var import_jsx_runtime141 = require("react/jsx-runtime");
+
 
 // icons/react/More12Icon.tsx
-var import_jsx_runtime142 = require("react/jsx-runtime");
+
 
 // icons/react/NextArrow12Icon.tsx
-var import_jsx_runtime143 = require("react/jsx-runtime");
+
 
 // icons/react/PrevArrow12Icon.tsx
-var import_jsx_runtime144 = require("react/jsx-runtime");
+
 
 // icons/react/OpenLink12Icon.tsx
-var import_jsx_runtime145 = require("react/jsx-runtime");
+
 
 // icons/react/Repair12Icon.tsx
-var import_jsx_runtime146 = require("react/jsx-runtime");
+
 
 // icons/react/Security12Icon.tsx
-var import_jsx_runtime147 = require("react/jsx-runtime");
+
 
 // icons/react/Success12Icon.tsx
-var import_jsx_runtime148 = require("react/jsx-runtime");
+
 
 // icons/react/Unauthorized12Icon.tsx
-var import_jsx_runtime149 = require("react/jsx-runtime");
+
 
 // icons/react/Warning12Icon.tsx
-var import_jsx_runtime150 = require("react/jsx-runtime");
+
 
 // icons/react/Question12Icon.tsx
-var import_jsx_runtime151 = require("react/jsx-runtime");
+
 
 // icons/react/Hide12Icon.tsx
-var import_jsx_runtime152 = require("react/jsx-runtime");
+
 
 // icons/react/SelectArrows6Icon.tsx
-var import_jsx_runtime153 = require("react/jsx-runtime");
+
 var SelectArrows6Icon = ({
   title,
   titleId,
   ...props
-}) => /* @__PURE__ */ (0, import_jsx_runtime153.jsxs)("svg", { width: 6, height: 14, viewBox: "0 0 6 14", xmlns: "http://www.w3.org/2000/svg", role: "img", "aria-labelledby": titleId, ...props, children: [
-  title ? /* @__PURE__ */ (0, import_jsx_runtime153.jsx)("title", { id: titleId, children: title }) : null,
-  /* @__PURE__ */ (0, import_jsx_runtime153.jsx)("path", { fillRule: "evenodd", clipRule: "evenodd", d: "M3.322.536a.375.375 0 0 0-.644 0L.341 4.432C.19 4.682.37 5 .662 5h4.676a.375.375 0 0 0 .321-.568L3.322.536Zm-.644 12.928a.375.375 0 0 0 .644 0l2.337-3.896A.375.375 0 0 0 5.338 9H.662a.375.375 0 0 0-.321.568l2.337 3.896Z", fill: "currentColor" })
+}) => /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, "svg", { width: 6, height: 14, viewBox: "0 0 6 14", xmlns: "http://www.w3.org/2000/svg", role: "img", "aria-labelledby": titleId, ...props, children: [
+  title ? /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "title", { id: titleId, children: title }) : null,
+  /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "path", { fillRule: "evenodd", clipRule: "evenodd", d: "M3.322.536a.375.375 0 0 0-.644 0L.341 4.432C.19 4.682.37 5 .662 5h4.676a.375.375 0 0 0 .321-.568L3.322.536Zm-.644 12.928a.375.375 0 0 0 .644 0l2.337-3.896A.375.375 0 0 0 5.338 9H.662a.375.375 0 0 0-.321.568l2.337 3.896Z", fill: "currentColor" })
 ] });
 var SelectArrows6Icon_default = SelectArrows6Icon;
 
 // icons/react/Close8Icon.tsx
-var import_jsx_runtime154 = require("react/jsx-runtime");
+
 
 // components/src/ui/checkbox/Checkbox.tsx
 var import_classnames6 = __toESM(require_classnames());
-var import_jsx_runtime155 = require("react/jsx-runtime");
-var Check = () => /* @__PURE__ */ (0, import_jsx_runtime155.jsx)(Checkmark12Icon_default, { className: "pointer-events-none absolute left-0.5 top-0.5 h-3 w-3 fill-current text-accent" });
+
+var Check = () => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, Checkmark12Icon_default, { className: "pointer-events-none absolute left-0.5 top-0.5 h-3 w-3 fill-current text-accent" });
 var Indeterminate = classed.div`absolute w-2 h-0.5 left-1 top-[7px] bg-accent pointer-events-none`;
 var inputStyle = `
   appearance-none border border-default bg-default h-4 w-4 rounded-sm absolute left-0 outline-none
@@ -57419,9 +57277,9 @@ var Checkbox = ({
   children,
   className,
   ...inputProps
-}) => /* @__PURE__ */ (0, import_jsx_runtime155.jsxs)("label", { className: "inline-flex items-center", children: [
-  /* @__PURE__ */ (0, import_jsx_runtime155.jsxs)("span", { className: "relative h-4 w-4", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime155.jsx)(
+}) => /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, "label", { className: "inline-flex items-center", children: [
+  /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, "span", { className: "relative h-4 w-4", children: [
+    /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
       "input",
       {
         className: (0, import_classnames6.default)(inputStyle, className),
@@ -57430,37 +57288,37 @@ var Checkbox = ({
         ...inputProps
       }
     ),
-    inputProps.checked && !indeterminate && /* @__PURE__ */ (0, import_jsx_runtime155.jsx)(Check, {}),
-    indeterminate && /* @__PURE__ */ (0, import_jsx_runtime155.jsx)(Indeterminate, {})
+    inputProps.checked && !indeterminate && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, Check, {}),
+    indeterminate && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, Indeterminate, {})
   ] }),
-  children && /* @__PURE__ */ (0, import_jsx_runtime155.jsx)("span", { className: "ml-2.5 text-sans-md text-secondary", children })
+  children && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { className: "ml-2.5 text-sans-md text-secondary", children })
 ] });
 
 // components/src/ui/empty-message/EmptyMessage.tsx
 var import_classnames7 = __toESM(require_classnames());
-var import_react_router_dom = require("react-router-dom");
-var import_jsx_runtime156 = require("react/jsx-runtime");
+var _reactrouterdom = require('react-router-dom');
+
 var buttonStyleProps = { variant: "ghost", size: "sm", color: "secondary" };
 function EmptyMessage(props) {
   let button = null;
   if (props.buttonText && "buttonTo" in props) {
-    button = /* @__PURE__ */ (0, import_jsx_runtime156.jsx)(import_react_router_dom.Link, { className: (0, import_classnames7.default)("mt-6", buttonStyle(buttonStyleProps)), to: props.buttonTo, children: props.buttonText });
+    button = /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _reactrouterdom.Link, { className: (0, import_classnames7.default)("mt-6", buttonStyle(buttonStyleProps)), to: props.buttonTo, children: props.buttonText });
   } else if (props.buttonText && "onClick" in props) {
-    button = /* @__PURE__ */ (0, import_jsx_runtime156.jsx)(Button, { ...buttonStyleProps, className: "mt-6", onClick: props.onClick, children: props.buttonText });
+    button = /* @__PURE__ */ _jsxruntime.jsx.call(void 0, Button, { ...buttonStyleProps, className: "mt-6", onClick: props.onClick, children: props.buttonText });
   }
-  return /* @__PURE__ */ (0, import_jsx_runtime156.jsxs)("div", { className: "m-4 flex max-w-[14rem] flex-col items-center text-center", children: [
-    props.icon && /* @__PURE__ */ (0, import_jsx_runtime156.jsx)("div", { className: "mb-4 rounded p-1 leading-[0] text-accent bg-accent-secondary", children: props.icon }),
-    /* @__PURE__ */ (0, import_jsx_runtime156.jsx)("h3", { className: "text-sans-semi-lg", children: props.title }),
-    props.body && /* @__PURE__ */ (0, import_jsx_runtime156.jsx)("p", { className: "mt-1 text-sans-md text-secondary", children: props.body }),
+  return /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, "div", { className: "m-4 flex max-w-[14rem] flex-col items-center text-center", children: [
+    props.icon && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "div", { className: "mb-4 rounded p-1 leading-[0] text-accent bg-accent-secondary", children: props.icon }),
+    /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "h3", { className: "text-sans-semi-lg", children: props.title }),
+    props.body && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "p", { className: "mt-1 text-sans-md text-secondary", children: props.body }),
     button
   ] });
 }
 
 // components/src/ui/listbox/Listbox.tsx
-var import_react5 = require("@floating-ui/react");
-var import_react6 = require("@headlessui/react");
 var import_classnames8 = __toESM(require_classnames());
-var import_jsx_runtime157 = require("react/jsx-runtime");
+var _react3 = require('@floating-ui/react');
+var _react5 = require('@headlessui/react');
+
 var Listbox = ({
   name,
   selected,
@@ -57473,11 +57331,11 @@ var Listbox = ({
   isLoading = false,
   ...props
 }) => {
-  const { refs, floatingStyles } = (0, import_react5.useFloating)({
+  const { refs, floatingStyles } = _react3.useFloating.call(void 0, {
     middleware: [
-      (0, import_react5.offset)(12),
-      (0, import_react5.flip)(),
-      (0, import_react5.size)({
+      _react3.offset.call(void 0, 12),
+      _react3.flip.call(void 0, ),
+      _react3.size.call(void 0, {
         apply({ rects, elements }) {
           Object.assign(elements.floating.style, {
             width: `${rects.reference.width}px`
@@ -57489,15 +57347,15 @@ var Listbox = ({
   const selectedItem = selected && items.find((i) => i.value === selected);
   const noItems = !isLoading && items.length === 0;
   const isDisabled = disabled || noItems;
-  return /* @__PURE__ */ (0, import_jsx_runtime157.jsx)("div", { className: (0, import_classnames8.default)("relative", className), children: /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(
-    import_react6.Listbox,
+  return /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "div", { className: (0, import_classnames8.default)("relative", className), children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+    _react5.Listbox,
     {
       value: selected,
       onChange: (val) => val !== null && onChange(val),
       disabled: isDisabled || isLoading,
-      children: ({ open }) => /* @__PURE__ */ (0, import_jsx_runtime157.jsxs)(import_jsx_runtime157.Fragment, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime157.jsxs)(
-          import_react6.Listbox.Button,
+      children: ({ open }) => /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, _jsxruntime.Fragment, { children: [
+        /* @__PURE__ */ _jsxruntime.jsxs.call(void 0, 
+          _react5.Listbox.Button,
           {
             name,
             ref: refs.setReference,
@@ -57512,34 +57370,34 @@ var Listbox = ({
             ),
             ...props,
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime157.jsx)("div", { className: "w-full px-3 text-left", children: selectedItem ? (
+              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "div", { className: "w-full px-3 text-left", children: selectedItem ? (
                 // labelString is one line, which is what we need when label is a ReactNode
                 selectedItem.labelString || selectedItem.label
-              ) : /* @__PURE__ */ (0, import_jsx_runtime157.jsx)("span", { className: "text-quaternary", children: noItems ? "No items" : placeholder }) }),
-              !isDisabled && /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(SpinnerLoader, { isLoading }),
-              /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(
+              ) : /* @__PURE__ */ _jsxruntime.jsx.call(void 0, "span", { className: "text-quaternary", children: noItems ? "No items" : placeholder }) }),
+              !isDisabled && /* @__PURE__ */ _jsxruntime.jsx.call(void 0, SpinnerLoader, { isLoading }),
+              /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
                 "div",
                 {
                   className: "ml-3 flex h-[calc(100%-12px)] items-center border-l px-3 border-secondary",
                   "aria-hidden": true,
-                  children: /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(SelectArrows6Icon_default, { className: "h-[14px] w-2 text-tertiary" })
+                  children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, SelectArrows6Icon_default, { className: "h-[14px] w-2 text-tertiary" })
                 }
               )
             ]
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(import_react5.FloatingPortal, { children: /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(
-          import_react6.Listbox.Options,
+        /* @__PURE__ */ _jsxruntime.jsx.call(void 0, _react3.FloatingPortal, { children: /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+          _react5.Listbox.Options,
           {
             ref: refs.setFloating,
             style: floatingStyles,
             className: "ox-menu pointer-events-auto z-50 overflow-y-auto !outline-none",
-            children: items.map((item) => /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(
-              import_react6.Listbox.Option,
+            children: items.map((item) => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
+              _react5.Listbox.Option,
               {
                 value: item.value,
                 className: "relative border-b border-secondary last:border-0",
-                children: ({ active, selected: selected2 }) => /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(
+                children: ({ active, selected: selected2 }) => /* @__PURE__ */ _jsxruntime.jsx.call(void 0, 
                   "div",
                   {
                     className: (0, import_classnames8.default)(
@@ -57559,24 +57417,23 @@ var Listbox = ({
     }
   ) });
 };
-// Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {
-  AsciiDocBlocks,
-  Badge,
-  Button,
-  Checkbox,
-  EmptyMessage,
-  Listbox,
-  Spinner,
-  SpinnerLoader,
-  Tabs,
-  badgeColors,
-  buttonSizes,
-  buttonStyle,
-  spinnerSizes,
-  spinnerVariants,
-  variants
-});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+exports.AsciiDocBlocks = AsciiDocBlocks; exports.Badge = Badge; exports.Button = Button; exports.Checkbox = Checkbox; exports.EmptyMessage = EmptyMessage; exports.Listbox = Listbox; exports.Spinner = Spinner; exports.SpinnerLoader = SpinnerLoader; exports.Tabs = Tabs; exports.badgeColors = badgeColors; exports.buttonSizes = buttonSizes; exports.buttonStyle = buttonStyle; exports.spinnerSizes = spinnerSizes; exports.spinnerVariants = spinnerVariants; exports.variants = variants;
 /*! Bundled license information:
 
 classnames/index.js:
