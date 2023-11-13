@@ -47,8 +47,9 @@
     word-wrap: break-word;
   }
 
+  /* Use semi-bold for strong */
   .asciidoc-body strong {
-    @apply font-[600] text-default;
+    @apply font-[500] text-default;
   }
 
   .asciidoc-body a strong {
@@ -654,6 +655,10 @@
     @apply my-3 border-default;
   }
 
+  .asciidoc-body .sidebarblock {
+    @apply bg-raise p-4 rounded-lg my-8 px-6 py-5;
+  }
+
   @media print {
     a {
       color: inherit !important;
@@ -705,6 +710,11 @@
       --content-default: black;
       --content-secondary: rgb(0, 0, 0, 0.8);
     }
+  }
+
+  /* Boosting body text for long text readability */
+  .asciidoc-body p {
+    color: #c8cacb;
   }
 }
 
