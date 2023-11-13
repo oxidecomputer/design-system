@@ -8,8 +8,8 @@
 import {
   type AdocTypes,
   CaptionedTitle,
+  getContent,
   getLineNumber,
-  useGetContent,
 } from '@oxide/react-asciidoc'
 import cn from 'classnames'
 import hljs from 'highlight.js'
@@ -19,7 +19,7 @@ const Listing = ({ node }: { node: AdocTypes.Block }) => {
   const document = node.getDocument()
   const attrs = node.getAttributes()
   const nowrap = node.isOption('nowrap') || !document.hasAttribute('prewrap')
-  const content = useGetContent(node)
+  const content = getContent(node)
   const decodedContent = decode(content) || content // unescape the html entities
 
   if (node.getStyle() === 'source') {

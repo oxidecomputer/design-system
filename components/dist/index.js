@@ -56507,7 +56507,7 @@ var classed = {
 var import_jsx_runtime = require("react/jsx-runtime");
 var Admonition = ({ node }) => {
   const attrs = node.getAttributes();
-  const content = (0, import_react_asciidoc.useGetContent)(node);
+  const content = (0, import_react_asciidoc.getContent)(node);
   const contentModel = node.getContentModel();
   let icon;
   if (attrs.name === "caution") {
@@ -56581,7 +56581,7 @@ var Listing = ({ node }) => {
   const document2 = node.getDocument();
   const attrs = node.getAttributes();
   const nowrap = node.isOption("nowrap") || !document2.hasAttribute("prewrap");
-  const content = (0, import_react_asciidoc2.useGetContent)(node);
+  const content = (0, import_react_asciidoc2.getContent)(node);
   const decodedContent = (0, import_html_entities.decode)(content) || content;
   if (node.getStyle() === "source") {
     const lang = attrs.language;

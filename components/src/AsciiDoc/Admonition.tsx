@@ -5,14 +5,14 @@
  *
  * Copyright Oxide Computer Company
  */
-import { type AdocTypes, Content, Title, useGetContent } from '@oxide/react-asciidoc'
+import { type AdocTypes, Content, Title, getContent } from '@oxide/react-asciidoc'
 import parse from 'html-react-parser'
 
 import { titleCase } from '../utils'
 
 const Admonition = ({ node }: { node: AdocTypes.Block }) => {
   const attrs = node.getAttributes()
-  const content = useGetContent(node)
+  const content = getContent(node)
 
   // Undocumented asciidoc attribute
   // Use this to check if we should render the content as is, or use a <Content /> block
