@@ -56508,7 +56508,6 @@ var import_jsx_runtime = require("react/jsx-runtime");
 var Admonition = ({ node }) => {
   const attrs = node.getAttributes();
   const content = (0, import_react_asciidoc.getContent)(node);
-  const contentModel = node.getContentModel();
   let icon;
   if (attrs.name === "caution") {
     icon = /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Error12, {});
@@ -56522,7 +56521,10 @@ var Admonition = ({ node }) => {
     /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "admonition-content content", children: [
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_react_asciidoc.Title, { node }),
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: titleCase(attrs.name) }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: contentModel === "simple" ? html_react_parser_default(content) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_react_asciidoc.Content, { blocks: node.getBlocks() }) })
+      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_react_asciidoc.Title, { node }),
+        html_react_parser_default(content)
+      ] })
     ] })
   ] });
 };
