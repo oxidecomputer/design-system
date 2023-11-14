@@ -1,3 +1,15 @@
+# v1.2.5 (Tue Nov 14 2023)
+
+#### 🐛 Bug Fix
+
+- RFD site asciidoc fixes [#46](https://github.com/oxidecomputer/design-system/pull/46) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.2.4 (Wed Oct 25 2023)
 
 #### 🐛 Bug Fix
