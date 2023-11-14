@@ -5,7 +5,6 @@
  *
  * Copyright Oxide Computer Company
  */
-
 import { Link16Icon } from '@/icons/react'
 import { type AdocTypes, Content, getRole } from '@oxide/react-asciidoc'
 import cn from 'classnames'
@@ -34,10 +33,10 @@ const Section = ({ node }: { node: AdocTypes.Section }) => {
         const signifier = docAttrs['part-signifier']
         title = `${signifier || ''} ${sectNum} ${node.getTitle()}`
       } else {
-        title = `${node.getTitle()}`
+        title = node.getTitle() || ''
       }
     } else {
-      title = `${node.getTitle()}`
+      title = node.getTitle() || ''
     }
   } else {
     title = node.getTitle() || ''

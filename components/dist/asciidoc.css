@@ -32,6 +32,14 @@
     @apply text-accent;
   }
 
+  .asciidoc-body .admonition-content .paragraph {
+    @apply mb-1 last:mb-0;
+  }
+
+  .asciidoc-body .admonition-content > div {
+    @apply titlecase;
+  }
+
   .asciidoc-body img {
     @apply mx-auto h-auto w-auto w-full rounded-lg border border-tertiary;
     max-height: max(500px, 75vh);

@@ -57155,10 +57155,10 @@ var Section = ({ node }) => {
         const signifier = docAttrs["part-signifier"];
         title = `${signifier || ""} ${sectNum} ${node.getTitle()}`;
       } else {
-        title = `${node.getTitle()}`;
+        title = node.getTitle() || "";
       }
     } else {
-      title = `${node.getTitle()}`;
+      title = node.getTitle() || "";
     }
   } else {
     title = node.getTitle() || "";
