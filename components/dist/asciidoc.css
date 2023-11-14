@@ -37,7 +37,7 @@
   }
 
   .asciidoc-body .admonition-content > div {
-    @apply titlecase;
+    @apply normal-case;
   }
 
   .asciidoc-body img {
