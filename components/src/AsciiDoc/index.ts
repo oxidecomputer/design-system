@@ -5,13 +5,14 @@
  *
  * Copyright Oxide Computer Company
  */
-
 import Admonition from './Admonition'
 import Listing from './Listing'
+import Section from './Section'
 import Table from './Table'
 
 export const AsciiDocBlocks = {
   Admonition,
   Listing,
   Table,
+  Section,
 }

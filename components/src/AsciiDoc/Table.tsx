@@ -5,7 +5,6 @@
  *
  * Copyright Oxide Computer Company
  */
-
 import { type AdocTypes, Table as InnerTable } from '@oxide/react-asciidoc'
 
 const Table = ({ node }: { node: AdocTypes.Table }) => (

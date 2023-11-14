@@ -1182,11 +1182,7 @@ var require_Tokenizer = __commonJS({
       State2[State2["BeforeSpecialS"] = 22] = "BeforeSpecialS";
       State2[State2["SpecialStartSequence"] = 23] = "SpecialStartSequence";
       State2[State2["InSpecialTag"] = 24] = "InSpecialTag";
-      State2[State2["BeforeEntity"] = 25] = "BeforeEntity";
-      State2[State2["BeforeNumericEntity"] = 26] = "BeforeNumericEntity";
-      State2[State2["InNamedEntity"] = 27] = "InNamedEntity";
-      State2[State2["InNumericEntity"] = 28] = "InNumericEntity";
-      State2[State2["InHexEntity"] = 29] = "InHexEntity";
+      State2[State2["InEntity"] = 25] = "InEntity";
     })(State || (State = {}));
     function isWhitespace(c) {
       return c === CharCodes.Space || c === CharCodes.NewLine || c === CharCodes.Tab || c === CharCodes.FormFeed || c === CharCodes.CarriageReturn;
@@ -1194,14 +1190,8 @@ var require_Tokenizer = __commonJS({
     function isEndOfTagSection(c) {
       return c === CharCodes.Slash || c === CharCodes.Gt || isWhitespace(c);
     }
-    function isNumber(c) {
-      return c >= CharCodes.Zero && c <= CharCodes.Nine;
-    }
     function isASCIIAlpha(c) {
       return c >= CharCodes.LowerA && c <= CharCodes.LowerZ || c >= CharCodes.UpperA && c <= CharCodes.UpperZ;
-    }
-    function isHexDigit(c) {
-      return c >= CharCodes.UpperA && c <= CharCodes.UpperF || c >= CharCodes.LowerA && c <= CharCodes.LowerF;
     }
     var QuoteType;
     (function(QuoteType2) {
@@ -1224,24 +1214,24 @@ var require_Tokenizer = __commonJS({
       function() {
         function Tokenizer2(_a, cbs) {
           var _b = _a.xmlMode, xmlMode = _b === void 0 ? false : _b, _c = _a.decodeEntities, decodeEntities = _c === void 0 ? true : _c;
+          var _this = this;
           this.cbs = cbs;
           this.state = State.Text;
           this.buffer = "";
           this.sectionStart = 0;
           this.index = 0;
+          this.entityStart = 0;
           this.baseState = State.Text;
           this.isSpecial = false;
           this.running = true;
           this.offset = 0;
           this.currentSequence = void 0;
           this.sequenceIndex = 0;
-          this.trieIndex = 0;
-          this.trieCurrent = 0;
-          this.entityResult = 0;
-          this.entityExcess = 0;
           this.xmlMode = xmlMode;
           this.decodeEntities = decodeEntities;
-          this.entityTrie = xmlMode ? decode_js_1.xmlDecodeTree : decode_js_1.htmlDecodeTree;
+          this.entityDecoder = new decode_js_1.EntityDecoder(xmlMode ? decode_js_1.xmlDecodeTree : decode_js_1.htmlDecodeTree, function(cp, consumed) {
+            return _this.emitCodePoint(cp, consumed);
+          });
         }
         Tokenizer2.prototype.reset = function() {
           this.state = State.Text;
@@ -1271,12 +1261,6 @@ var require_Tokenizer = __commonJS({
             this.parse();
           }
         };
-        Tokenizer2.prototype.getIndex = function() {
-          return this.index;
-        };
-        Tokenizer2.prototype.getSectionStart = function() {
-          return this.sectionStart;
-        };
         Tokenizer2.prototype.stateText = function(c) {
           if (c === CharCodes.Lt || !this.decodeEntities && this.fastForwardTo(CharCodes.Lt)) {
             if (this.index > this.sectionStart) {
@@ -1285,7 +1269,7 @@ var require_Tokenizer = __commonJS({
             this.state = State.BeforeTagName;
             this.sectionStart = this.index;
           } else if (this.decodeEntities && c === CharCodes.Amp) {
-            this.state = State.BeforeEntity;
+            this.startEntity();
           }
         };
         Tokenizer2.prototype.stateSpecialStartSequence = function(c) {
@@ -1329,7 +1313,7 @@ var require_Tokenizer = __commonJS({
           } else if (this.sequenceIndex === 0) {
             if (this.currentSequence === Sequences.TitleEnd) {
               if (this.decodeEntities && c === CharCodes.Amp) {
-                this.state = State.BeforeEntity;
+                this.startEntity();
               }
             } else if (this.fastForwardTo(CharCodes.Lt)) {
               this.sequenceIndex = 1;
@@ -1440,7 +1424,6 @@ var require_Tokenizer = __commonJS({
         Tokenizer2.prototype.stateAfterClosingTagName = function(c) {
           if (c === CharCodes.Gt || this.fastForwardTo(CharCodes.Gt)) {
             this.state = State.Text;
-            this.baseState = State.Text;
             this.sectionStart = this.index + 1;
           }
         };
@@ -1453,7 +1436,6 @@ var require_Tokenizer = __commonJS({
             } else {
               this.state = State.Text;
             }
-            this.baseState = this.state;
             this.sectionStart = this.index + 1;
           } else if (c === CharCodes.Slash) {
             this.state = State.InSelfClosingTag;
@@ -1466,7 +1448,6 @@ var require_Tokenizer = __commonJS({
           if (c === CharCodes.Gt) {
             this.cbs.onselfclosingtag(this.index);
             this.state = State.Text;
-            this.baseState = State.Text;
             this.sectionStart = this.index + 1;
             this.isSpecial = false;
           } else if (!isWhitespace(c)) {
@@ -1515,8 +1496,7 @@ var require_Tokenizer = __commonJS({
             this.cbs.onattribend(quote === CharCodes.DoubleQuote ? QuoteType.Double : QuoteType.Single, this.index);
             this.state = State.BeforeAttributeName;
           } else if (this.decodeEntities && c === CharCodes.Amp) {
-            this.baseState = this.state;
-            this.state = State.BeforeEntity;
+            this.startEntity();
           }
         };
         Tokenizer2.prototype.stateInAttributeValueDoubleQuotes = function(c) {
@@ -1533,8 +1513,7 @@ var require_Tokenizer = __commonJS({
             this.state = State.BeforeAttributeName;
             this.stateBeforeAttributeName(c);
           } else if (this.decodeEntities && c === CharCodes.Amp) {
-            this.baseState = this.state;
-            this.state = State.BeforeEntity;
+            this.startEntity();
           }
         };
         Tokenizer2.prototype.stateBeforeDeclaration = function(c) {
@@ -1587,125 +1566,22 @@ var require_Tokenizer = __commonJS({
             this.stateInTagName(c);
           }
         };
-        Tokenizer2.prototype.stateBeforeEntity = function(c) {
-          this.entityExcess = 1;
-          this.entityResult = 0;
-          if (c === CharCodes.Number) {
-            this.state = State.BeforeNumericEntity;
-          } else if (c === CharCodes.Amp) {
+        Tokenizer2.prototype.startEntity = function() {
+          this.baseState = this.state;
+          this.state = State.InEntity;
+          this.entityStart = this.index;
+          this.entityDecoder.startEntity(this.xmlMode ? decode_js_1.DecodingMode.Strict : this.baseState === State.Text || this.baseState === State.InSpecialTag ? decode_js_1.DecodingMode.Legacy : decode_js_1.DecodingMode.Attribute);
+        };
+        Tokenizer2.prototype.stateInEntity = function() {
+          var length = this.entityDecoder.write(this.buffer, this.index - this.offset);
+          if (length >= 0) {
+            this.state = this.baseState;
+            if (length === 0) {
+              this.index = this.entityStart;
+            }
           } else {
-            this.trieIndex = 0;
-            this.trieCurrent = this.entityTrie[0];
-            this.state = State.InNamedEntity;
-            this.stateInNamedEntity(c);
+            this.index = this.offset + this.buffer.length - 1;
           }
-        };
-        Tokenizer2.prototype.stateInNamedEntity = function(c) {
-          this.entityExcess += 1;
-          this.trieIndex = (0, decode_js_1.determineBranch)(this.entityTrie, this.trieCurrent, this.trieIndex + 1, c);
-          if (this.trieIndex < 0) {
-            this.emitNamedEntity();
-            this.index--;
-            return;
-          }
-          this.trieCurrent = this.entityTrie[this.trieIndex];
-          var masked = this.trieCurrent & decode_js_1.BinTrieFlags.VALUE_LENGTH;
-          if (masked) {
-            var valueLength = (masked >> 14) - 1;
-            if (!this.allowLegacyEntity() && c !== CharCodes.Semi) {
-              this.trieIndex += valueLength;
-            } else {
-              var entityStart = this.index - this.entityExcess + 1;
-              if (entityStart > this.sectionStart) {
-                this.emitPartial(this.sectionStart, entityStart);
-              }
-              this.entityResult = this.trieIndex;
-              this.trieIndex += valueLength;
-              this.entityExcess = 0;
-              this.sectionStart = this.index + 1;
-              if (valueLength === 0) {
-                this.emitNamedEntity();
-              }
-            }
-          }
-        };
-        Tokenizer2.prototype.emitNamedEntity = function() {
-          this.state = this.baseState;
-          if (this.entityResult === 0) {
-            return;
-          }
-          var valueLength = (this.entityTrie[this.entityResult] & decode_js_1.BinTrieFlags.VALUE_LENGTH) >> 14;
-          switch (valueLength) {
-            case 1: {
-              this.emitCodePoint(this.entityTrie[this.entityResult] & ~decode_js_1.BinTrieFlags.VALUE_LENGTH);
-              break;
-            }
-            case 2: {
-              this.emitCodePoint(this.entityTrie[this.entityResult + 1]);
-              break;
-            }
-            case 3: {
-              this.emitCodePoint(this.entityTrie[this.entityResult + 1]);
-              this.emitCodePoint(this.entityTrie[this.entityResult + 2]);
-            }
-          }
-        };
-        Tokenizer2.prototype.stateBeforeNumericEntity = function(c) {
-          if ((c | 32) === CharCodes.LowerX) {
-            this.entityExcess++;
-            this.state = State.InHexEntity;
-          } else {
-            this.state = State.InNumericEntity;
-            this.stateInNumericEntity(c);
-          }
-        };
-        Tokenizer2.prototype.emitNumericEntity = function(strict) {
-          var entityStart = this.index - this.entityExcess - 1;
-          var numberStart = entityStart + 2 + Number(this.state === State.InHexEntity);
-          if (numberStart !== this.index) {
-            if (entityStart > this.sectionStart) {
-              this.emitPartial(this.sectionStart, entityStart);
-            }
-            this.sectionStart = this.index + Number(strict);
-            this.emitCodePoint((0, decode_js_1.replaceCodePoint)(this.entityResult));
-          }
-          this.state = this.baseState;
-        };
-        Tokenizer2.prototype.stateInNumericEntity = function(c) {
-          if (c === CharCodes.Semi) {
-            this.emitNumericEntity(true);
-          } else if (isNumber(c)) {
-            this.entityResult = this.entityResult * 10 + (c - CharCodes.Zero);
-            this.entityExcess++;
-          } else {
-            if (this.allowLegacyEntity()) {
-              this.emitNumericEntity(false);
-            } else {
-              this.state = this.baseState;
-            }
-            this.index--;
-          }
-        };
-        Tokenizer2.prototype.stateInHexEntity = function(c) {
-          if (c === CharCodes.Semi) {
-            this.emitNumericEntity(true);
-          } else if (isNumber(c)) {
-            this.entityResult = this.entityResult * 16 + (c - CharCodes.Zero);
-            this.entityExcess++;
-          } else if (isHexDigit(c)) {
-            this.entityResult = this.entityResult * 16 + ((c | 32) - CharCodes.LowerA + 10);
-            this.entityExcess++;
-          } else {
-            if (this.allowLegacyEntity()) {
-              this.emitNumericEntity(false);
-            } else {
-              this.state = this.baseState;
-            }
-            this.index--;
-          }
-        };
-        Tokenizer2.prototype.allowLegacyEntity = function() {
-          return !this.xmlMode && (this.baseState === State.Text || this.baseState === State.InSpecialTag);
         };
         Tokenizer2.prototype.cleanup = function() {
           if (this.running && this.sectionStart !== this.index) {
@@ -1821,24 +1697,9 @@ var require_Tokenizer = __commonJS({
                 this.stateInProcessingInstruction(c);
                 break;
               }
-              case State.InNamedEntity: {
-                this.stateInNamedEntity(c);
+              case State.InEntity: {
+                this.stateInEntity();
                 break;
-              }
-              case State.BeforeEntity: {
-                this.stateBeforeEntity(c);
-                break;
-              }
-              case State.InHexEntity: {
-                this.stateInHexEntity(c);
-                break;
-              }
-              case State.InNumericEntity: {
-                this.stateInNumericEntity(c);
-                break;
-              }
-              default: {
-                this.stateBeforeNumericEntity(c);
               }
             }
             this.index++;
@@ -1846,43 +1707,44 @@ var require_Tokenizer = __commonJS({
           this.cleanup();
         };
         Tokenizer2.prototype.finish = function() {
-          if (this.state === State.InNamedEntity) {
-            this.emitNamedEntity();
+          if (this.state === State.InEntity) {
+            this.entityDecoder.end();
+            this.state = this.baseState;
           }
-          if (this.sectionStart < this.index) {
-            this.handleTrailingData();
-          }
+          this.handleTrailingData();
           this.cbs.onend();
         };
         Tokenizer2.prototype.handleTrailingData = function() {
           var endIndex = this.buffer.length + this.offset;
+          if (this.sectionStart >= endIndex) {
+            return;
+          }
           if (this.state === State.InCommentLike) {
             if (this.currentSequence === Sequences.CdataEnd) {
               this.cbs.oncdata(this.sectionStart, endIndex, 0);
             } else {
               this.cbs.oncomment(this.sectionStart, endIndex, 0);
             }
-          } else if (this.state === State.InNumericEntity && this.allowLegacyEntity()) {
-            this.emitNumericEntity(false);
-          } else if (this.state === State.InHexEntity && this.allowLegacyEntity()) {
-            this.emitNumericEntity(false);
           } else if (this.state === State.InTagName || this.state === State.BeforeAttributeName || this.state === State.BeforeAttributeValue || this.state === State.AfterAttributeName || this.state === State.InAttributeName || this.state === State.InAttributeValueSq || this.state === State.InAttributeValueDq || this.state === State.InAttributeValueNq || this.state === State.InClosingTagName) {
           } else {
             this.cbs.ontext(this.sectionStart, endIndex);
           }
         };
-        Tokenizer2.prototype.emitPartial = function(start, endIndex) {
+        Tokenizer2.prototype.emitCodePoint = function(cp, consumed) {
           if (this.baseState !== State.Text && this.baseState !== State.InSpecialTag) {
-            this.cbs.onattribdata(start, endIndex);
-          } else {
-            this.cbs.ontext(start, endIndex);
-          }
-        };
-        Tokenizer2.prototype.emitCodePoint = function(cp) {
-          if (this.baseState !== State.Text && this.baseState !== State.InSpecialTag) {
+            if (this.sectionStart < this.entityStart) {
+              this.cbs.onattribdata(this.sectionStart, this.entityStart);
+            }
+            this.sectionStart = this.entityStart + consumed;
+            this.index = this.sectionStart - 1;
             this.cbs.onattribentity(cp);
           } else {
-            this.cbs.ontextentity(cp);
+            if (this.sectionStart < this.entityStart) {
+              this.cbs.ontext(this.sectionStart, this.entityStart);
+            }
+            this.sectionStart = this.entityStart + consumed;
+            this.index = this.sectionStart - 1;
+            this.cbs.ontextentity(cp, this.sectionStart);
           }
         };
         return Tokenizer2;
@@ -2045,15 +1907,16 @@ var require_Parser = __commonJS({
           this.attribvalue = "";
           this.attribs = null;
           this.stack = [];
-          this.foreignContext = [];
           this.buffers = [];
           this.bufferOffset = 0;
           this.writeIndex = 0;
           this.ended = false;
           this.cbs = cbs !== null && cbs !== void 0 ? cbs : {};
-          this.lowerCaseTagNames = (_a = options.lowerCaseTags) !== null && _a !== void 0 ? _a : !options.xmlMode;
-          this.lowerCaseAttributeNames = (_b = options.lowerCaseAttributeNames) !== null && _b !== void 0 ? _b : !options.xmlMode;
+          this.htmlMode = !this.options.xmlMode;
+          this.lowerCaseTagNames = (_a = options.lowerCaseTags) !== null && _a !== void 0 ? _a : this.htmlMode;
+          this.lowerCaseAttributeNames = (_b = options.lowerCaseAttributeNames) !== null && _b !== void 0 ? _b : this.htmlMode;
           this.tokenizer = new ((_c = options.Tokenizer) !== null && _c !== void 0 ? _c : Tokenizer_js_1.default)(this.options, this);
+          this.foreignContext = [!this.htmlMode];
           (_e = (_d = this.cbs).onparserinit) === null || _e === void 0 ? void 0 : _e.call(_d, this);
         }
         Parser2.prototype.ontext = function(start, endIndex) {
@@ -2063,15 +1926,14 @@ var require_Parser = __commonJS({
           (_b = (_a = this.cbs).ontext) === null || _b === void 0 ? void 0 : _b.call(_a, data);
           this.startIndex = endIndex;
         };
-        Parser2.prototype.ontextentity = function(cp) {
+        Parser2.prototype.ontextentity = function(cp, endIndex) {
           var _a, _b;
-          var index = this.tokenizer.getSectionStart();
-          this.endIndex = index - 1;
+          this.endIndex = endIndex - 1;
           (_b = (_a = this.cbs).ontext) === null || _b === void 0 ? void 0 : _b.call(_a, (0, decode_js_1.fromCodePoint)(cp));
-          this.startIndex = index;
+          this.startIndex = endIndex;
         };
         Parser2.prototype.isVoidElement = function(name) {
-          return !this.options.xmlMode && voidElements.has(name);
+          return this.htmlMode && voidElements.has(name);
         };
         Parser2.prototype.onopentagname = function(start, endIndex) {
           this.endIndex = endIndex;
@@ -2085,19 +1947,21 @@ var require_Parser = __commonJS({
           var _a, _b, _c, _d;
           this.openTagStart = this.startIndex;
           this.tagname = name;
-          var impliesClose = !this.options.xmlMode && openImpliesClose.get(name);
+          var impliesClose = this.htmlMode && openImpliesClose.get(name);
           if (impliesClose) {
-            while (this.stack.length > 0 && impliesClose.has(this.stack[this.stack.length - 1])) {
-              var element = this.stack.pop();
+            while (this.stack.length > 0 && impliesClose.has(this.stack[0])) {
+              var element = this.stack.shift();
               (_b = (_a = this.cbs).onclosetag) === null || _b === void 0 ? void 0 : _b.call(_a, element, true);
             }
           }
           if (!this.isVoidElement(name)) {
-            this.stack.push(name);
-            if (foreignContextElements.has(name)) {
-              this.foreignContext.push(true);
-            } else if (htmlIntegrationElements.has(name)) {
-              this.foreignContext.push(false);
+            this.stack.unshift(name);
+            if (this.htmlMode) {
+              if (foreignContextElements.has(name)) {
+                this.foreignContext.unshift(true);
+              } else if (htmlIntegrationElements.has(name)) {
+                this.foreignContext.unshift(false);
+              }
             }
           }
           (_d = (_c = this.cbs).onopentagname) === null || _d === void 0 ? void 0 : _d.call(_c, name);
@@ -2122,39 +1986,36 @@ var require_Parser = __commonJS({
           this.startIndex = endIndex + 1;
         };
         Parser2.prototype.onclosetag = function(start, endIndex) {
-          var _a, _b, _c, _d, _e, _f;
+          var _a, _b, _c, _d, _e, _f, _g, _h;
           this.endIndex = endIndex;
           var name = this.getSlice(start, endIndex);
           if (this.lowerCaseTagNames) {
             name = name.toLowerCase();
           }
-          if (foreignContextElements.has(name) || htmlIntegrationElements.has(name)) {
-            this.foreignContext.pop();
+          if (this.htmlMode && (foreignContextElements.has(name) || htmlIntegrationElements.has(name))) {
+            this.foreignContext.shift();
           }
           if (!this.isVoidElement(name)) {
-            var pos = this.stack.lastIndexOf(name);
+            var pos = this.stack.indexOf(name);
             if (pos !== -1) {
-              if (this.cbs.onclosetag) {
-                var count = this.stack.length - pos;
-                while (count--) {
-                  this.cbs.onclosetag(this.stack.pop(), count !== 0);
-                }
-              } else
-                this.stack.length = pos;
-            } else if (!this.options.xmlMode && name === "p") {
+              for (var index = 0; index <= pos; index++) {
+                var element = this.stack.shift();
+                (_b = (_a = this.cbs).onclosetag) === null || _b === void 0 ? void 0 : _b.call(_a, element, index !== pos);
+              }
+            } else if (this.htmlMode && name === "p") {
               this.emitOpenTag("p");
               this.closeCurrentTag(true);
             }
-          } else if (!this.options.xmlMode && name === "br") {
-            (_b = (_a = this.cbs).onopentagname) === null || _b === void 0 ? void 0 : _b.call(_a, "br");
-            (_d = (_c = this.cbs).onopentag) === null || _d === void 0 ? void 0 : _d.call(_c, "br", {}, true);
-            (_f = (_e = this.cbs).onclosetag) === null || _f === void 0 ? void 0 : _f.call(_e, "br", false);
+          } else if (this.htmlMode && name === "br") {
+            (_d = (_c = this.cbs).onopentagname) === null || _d === void 0 ? void 0 : _d.call(_c, "br");
+            (_f = (_e = this.cbs).onopentag) === null || _f === void 0 ? void 0 : _f.call(_e, "br", {}, true);
+            (_h = (_g = this.cbs).onclosetag) === null || _h === void 0 ? void 0 : _h.call(_g, "br", false);
           }
           this.startIndex = endIndex + 1;
         };
         Parser2.prototype.onselfclosingtag = function(endIndex) {
           this.endIndex = endIndex;
-          if (this.options.xmlMode || this.options.recognizeSelfClosing || this.foreignContext[this.foreignContext.length - 1]) {
+          if (this.options.recognizeSelfClosing || this.foreignContext[0]) {
             this.closeCurrentTag(false);
             this.startIndex = endIndex + 1;
           } else {
@@ -2165,9 +2026,9 @@ var require_Parser = __commonJS({
           var _a, _b;
           var name = this.tagname;
           this.endOpenTag(isOpenImplied);
-          if (this.stack[this.stack.length - 1] === name) {
+          if (this.stack[0] === name) {
             (_b = (_a = this.cbs).onclosetag) === null || _b === void 0 ? void 0 : _b.call(_a, name, !isOpenImplied);
-            this.stack.pop();
+            this.stack.shift();
           }
         };
         Parser2.prototype.onattribname = function(start, endIndex) {
@@ -2227,7 +2088,7 @@ var require_Parser = __commonJS({
           var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
           this.endIndex = endIndex;
           var value = this.getSlice(start, endIndex - offset2);
-          if (this.options.xmlMode || this.options.recognizeCDATA) {
+          if (!this.htmlMode || this.options.recognizeCDATA) {
             (_b = (_a = this.cbs).oncdatastart) === null || _b === void 0 ? void 0 : _b.call(_a);
             (_d = (_c = this.cbs).ontext) === null || _d === void 0 ? void 0 : _d.call(_c, value);
             (_f = (_e = this.cbs).oncdataend) === null || _f === void 0 ? void 0 : _f.call(_e);
@@ -2241,8 +2102,9 @@ var require_Parser = __commonJS({
           var _a, _b;
           if (this.cbs.onclosetag) {
             this.endIndex = this.startIndex;
-            for (var index = this.stack.length; index > 0; this.cbs.onclosetag(this.stack[--index], true))
-              ;
+            for (var index = 0; index < this.stack.length; index++) {
+              this.cbs.onclosetag(this.stack[index], true);
+            }
           }
           (_b = (_a = this.cbs).onend) === null || _b === void 0 ? void 0 : _b.call(_a);
         };
@@ -2258,6 +2120,8 @@ var require_Parser = __commonJS({
           this.endIndex = 0;
           (_d = (_c = this.cbs).onparserinit) === null || _d === void 0 ? void 0 : _d.call(_c, this);
           this.buffers.length = 0;
+          this.foreignContext.length = 0;
+          this.foreignContext.unshift(!this.htmlMode);
           this.bufferOffset = 0;
           this.writeIndex = 0;
           this.ended = false;
@@ -3094,7 +2958,7 @@ var require_lib4 = __commonJS({
       EncodingMode2[EncodingMode2["Attribute"] = 3] = "Attribute";
       EncodingMode2[EncodingMode2["Text"] = 4] = "Text";
     })(EncodingMode = exports.EncodingMode || (exports.EncodingMode = {}));
-    function decode(data, options) {
+    function decode2(data, options) {
       if (options === void 0) {
         options = EntityLevel.XML;
       }
@@ -3105,7 +2969,7 @@ var require_lib4 = __commonJS({
       }
       return (0, decode_js_1.decodeXML)(data);
     }
-    exports.decode = decode;
+    exports.decode = decode2;
     function decodeStrict(data, options) {
       var _a;
       if (options === void 0) {
@@ -3113,7 +2977,7 @@ var require_lib4 = __commonJS({
       }
       var opts = typeof options === "number" ? { level: options } : options;
       (_a = opts.mode) !== null && _a !== void 0 ? _a : opts.mode = decode_js_1.DecodingMode.Strict;
-      return decode(data, opts);
+      return decode2(data, opts);
     }
     exports.decodeStrict = decodeStrict;
     function encode(data, options) {
@@ -4284,7 +4148,7 @@ var require_lib7 = __commonJS({
       return mod && mod.__esModule ? mod : { "default": mod };
     };
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.DomUtils = exports.parseFeed = exports.getFeed = exports.ElementType = exports.Tokenizer = exports.createDomStream = exports.parseDOM = exports.parseDocument = exports.DefaultHandler = exports.DomHandler = exports.Parser = void 0;
+    exports.DomUtils = exports.parseFeed = exports.getFeed = exports.ElementType = exports.Tokenizer = exports.createDomStream = exports.createDocumentStream = exports.parseDOM = exports.parseDocument = exports.DefaultHandler = exports.DomHandler = exports.Parser = void 0;
     var Parser_js_1 = require_Parser();
     var Parser_js_2 = require_Parser();
     Object.defineProperty(exports, "Parser", { enumerable: true, get: function() {
@@ -4308,6 +4172,13 @@ var require_lib7 = __commonJS({
       return parseDocument(data, options).children;
     }
     exports.parseDOM = parseDOM;
+    function createDocumentStream(callback, options, elementCallback) {
+      var handler = new domhandler_1.DomHandler(function(error) {
+        return callback(error, handler.root);
+      }, options, elementCallback);
+      return new Parser_js_1.Parser(handler, options);
+    }
+    exports.createDocumentStream = createDocumentStream;
     function createDomStream(callback, options, elementCallback) {
       var handler = new domhandler_1.DomHandler(callback, options, elementCallback);
       return new Parser_js_1.Parser(handler, options);
@@ -6164,7 +6035,7 @@ var require_style_to_object = __commonJS({
 var require_utilities2 = __commonJS({
   "node_modules/style-to-js/cjs/utilities.js"(exports) {
     "use strict";
-    exports.__esModule = true;
+    Object.defineProperty(exports, "__esModule", { value: true });
     exports.camelCase = void 0;
     var CUSTOM_PROPERTY_REGEX = /^--[a-zA-Z0-9-]+$/;
     var HYPHEN_REGEX = /-([a-z])/g;
@@ -6206,7 +6077,7 @@ var require_cjs = __commonJS({
     var __importDefault = exports && exports.__importDefault || function(mod) {
       return mod && mod.__esModule ? mod : { "default": mod };
     };
-    exports.__esModule = true;
+    Object.defineProperty(exports, "__esModule", { value: true });
     var style_to_object_1 = __importDefault(require_style_to_object());
     var utilities_1 = require_utilities2();
     function StyleToJS(style, options) {
@@ -6214,14 +6085,14 @@ var require_cjs = __commonJS({
       if (!style || typeof style !== "string") {
         return output;
       }
-      (0, style_to_object_1["default"])(style, function(property, value) {
+      (0, style_to_object_1.default)(style, function(property, value) {
         if (property && value) {
           output[(0, utilities_1.camelCase)(property, options)] = value;
         }
       });
       return output;
     }
-    exports["default"] = StyleToJS;
+    exports.default = StyleToJS;
   }
 });
 
@@ -6235,13 +6106,11 @@ var require_utilities3 = __commonJS({
       if (!obj || typeof obj !== "object") {
         throw new TypeError("First argument must be an object");
       }
-      var key;
-      var value;
       var isOverridePresent = typeof override === "function";
       var overrides = {};
       var result = {};
-      for (key in obj) {
-        value = obj[key];
+      for (var key in obj) {
+        var value = obj[key];
         if (isOverridePresent) {
           overrides = override(key, value);
           if (overrides && overrides.length === 2) {
@@ -6255,37 +6124,38 @@ var require_utilities3 = __commonJS({
       }
       return result;
     }
+    var RESERVED_SVG_MATHML_ELEMENTS = /* @__PURE__ */ new Set([
+      "annotation-xml",
+      "color-profile",
+      "font-face",
+      "font-face-src",
+      "font-face-uri",
+      "font-face-format",
+      "font-face-name",
+      "missing-glyph"
+    ]);
     function isCustomComponent(tagName, props) {
       if (tagName.indexOf("-") === -1) {
         return props && typeof props.is === "string";
       }
-      switch (tagName) {
-        case "annotation-xml":
-        case "color-profile":
-        case "font-face":
-        case "font-face-src":
-        case "font-face-uri":
-        case "font-face-format":
-        case "font-face-name":
-        case "missing-glyph":
-          return false;
-        default:
-          return true;
+      if (RESERVED_SVG_MATHML_ELEMENTS.has(tagName)) {
+        return false;
       }
+      return true;
     }
-    var styleToJSOptions = { reactCompat: true };
+    var STYLE_TO_JS_OPTIONS = { reactCompat: true };
     function setStyleProp(style, props) {
       if (style === null || style === void 0) {
         return;
       }
       try {
-        props.style = styleToJS(style, styleToJSOptions);
+        props.style = styleToJS(style, STYLE_TO_JS_OPTIONS);
       } catch (err) {
         props.style = {};
       }
     }
     var PRESERVE_CUSTOM_ATTRIBUTES = React2.version.split(".")[0] >= 16;
-    var elementsWithNoTextChildren = /* @__PURE__ */ new Set([
+    var ELEMENTS_WITH_NO_TEXT_CHILDREN = /* @__PURE__ */ new Set([
       "tr",
       "tbody",
       "thead",
@@ -6297,15 +6167,19 @@ var require_utilities3 = __commonJS({
       "frameset"
     ]);
     function canTextBeChildOfNode(node) {
-      return !elementsWithNoTextChildren.has(node.name);
+      return !ELEMENTS_WITH_NO_TEXT_CHILDREN.has(node.name);
+    }
+    function returnFirstArg(arg) {
+      return arg;
     }
     module2.exports = {
       PRESERVE_CUSTOM_ATTRIBUTES,
+      ELEMENTS_WITH_NO_TEXT_CHILDREN,
       invertObject,
       isCustomComponent,
       setStyleProp,
       canTextBeChildOfNode,
-      elementsWithNoTextChildren
+      returnFirstArg
     };
   }
 });
@@ -6383,12 +6257,13 @@ var require_dom_to_react = __commonJS({
       options = options || {};
       var library = options.library || React2;
       var cloneElement = library.cloneElement;
-      var createElement = library.createElement;
+      var createElement2 = library.createElement;
       var isValidElement = library.isValidElement;
       var result = [];
       var node;
       var isWhitespace;
       var hasReplace = typeof options.replace === "function";
+      var transform = options.transform || utilities.returnFirstArg;
       var replaceElement;
       var props;
       var children;
@@ -6403,7 +6278,7 @@ var require_dom_to_react = __commonJS({
                 key: replaceElement.key || i
               });
             }
-            result.push(replaceElement);
+            result.push(transform(replaceElement, node, i));
             continue;
           }
         }
@@ -6415,7 +6290,7 @@ var require_dom_to_react = __commonJS({
           if (trim && isWhitespace) {
             continue;
           }
-          result.push(node.data);
+          result.push(transform(node.data, node, i));
           continue;
         }
         props = node.attribs;
@@ -6447,7 +6322,7 @@ var require_dom_to_react = __commonJS({
         if (len > 1) {
           props.key = i;
         }
-        result.push(createElement(node.name, props, children));
+        result.push(transform(createElement2(node.name, props, children), node, i));
       }
       return result.length === 1 ? result[0] : result;
     }
@@ -56632,8 +56507,7 @@ var classed = {
 var import_jsx_runtime = require("react/jsx-runtime");
 var Admonition = ({ node }) => {
   const attrs = node.getAttributes();
-  const content = (0, import_react_asciidoc.useGetContent)(node);
-  const contentModel = node.getContentModel();
+  const content = (0, import_react_asciidoc.getContent)(node);
   let icon;
   if (attrs.name === "caution") {
     icon = /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Error12, {});
@@ -56647,7 +56521,10 @@ var Admonition = ({ node }) => {
     /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "admonition-content content", children: [
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_react_asciidoc.Title, { node }),
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: titleCase(attrs.name) }),
-      /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: contentModel === "simple" ? html_react_parser_default(content) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_react_asciidoc.Content, { blocks: node.getBlocks() }) })
+      /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_react_asciidoc.Title, { node }),
+        html_react_parser_default(content)
+      ] })
     ] })
   ] });
 };
@@ -56700,15 +56577,17 @@ var import_lib = __toESM(require_lib10(), 1);
 var es_default = import_lib.default;
 
 // components/src/asciidoc/Listing.tsx
+var import_html_entities = require("html-entities");
 var import_jsx_runtime2 = require("react/jsx-runtime");
 var Listing = ({ node }) => {
   const document2 = node.getDocument();
   const attrs = node.getAttributes();
   const nowrap = node.isOption("nowrap") || !document2.hasAttribute("prewrap");
-  const content = (0, import_react_asciidoc2.useGetContent)(node);
+  const content = (0, import_react_asciidoc2.getContent)(node);
+  const decodedContent = (0, import_html_entities.decode)(content) || content;
   if (node.getStyle() === "source") {
     const lang = attrs.language;
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "listingblock", children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "listingblock", ...(0, import_react_asciidoc2.getLineNumber)(node), children: [
       /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_react_asciidoc2.CaptionedTitle, { node }),
       /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "content", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("pre", { className: (0, import_classnames.default)("highlight", nowrap ? " nowrap" : ""), children: lang ? /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(
         "code",
@@ -56716,36 +56595,612 @@ var Listing = ({ node }) => {
           className: lang ? `language-${lang}` : "",
           "data-lang": lang,
           dangerouslySetInnerHTML: {
-            __html: es_default.getLanguage(lang) ? es_default.highlight(content, { language: lang }).value : content
+            __html: es_default.getLanguage(lang) ? es_default.highlight(decodedContent, { language: lang }).value : decodedContent
           }
         }
-      ) : /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("code", { dangerouslySetInnerHTML: { __html: content } }) }) })
+      ) : /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("code", { dangerouslySetInnerHTML: { __html: decodedContent } }) }) })
     ] });
   } else {
-    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "listingblock", children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime2.jsxs)("div", { className: "listingblock", ...(0, import_react_asciidoc2.getLineNumber)(node), children: [
       /* @__PURE__ */ (0, import_jsx_runtime2.jsx)(import_react_asciidoc2.CaptionedTitle, { node }),
-      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "content", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("pre", { className: nowrap ? " nowrap" : "", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("code", { dangerouslySetInnerHTML: { __html: node.getSource() } }) }) })
+      /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("div", { className: "content", children: /* @__PURE__ */ (0, import_jsx_runtime2.jsx)("pre", { className: nowrap ? " nowrap" : "", children: node.getSource() }) })
     ] });
   }
 };
 var Listing_default = Listing;
 
-// components/src/asciidoc/Table.tsx
-var import_react_asciidoc3 = require("@oxide/react-asciidoc");
+// icons/react/Access24Icon.tsx
 var import_jsx_runtime3 = require("react/jsx-runtime");
-var Table = ({ node }) => /* @__PURE__ */ (0, import_jsx_runtime3.jsx)("div", { className: "table-wrapper", children: /* @__PURE__ */ (0, import_jsx_runtime3.jsx)(import_react_asciidoc3.Table, { node }) });
+
+// icons/react/Action24Icon.tsx
+var import_jsx_runtime4 = require("react/jsx-runtime");
+
+// icons/react/AddRoundel24Icon.tsx
+var import_jsx_runtime5 = require("react/jsx-runtime");
+
+// icons/react/Calendar24Icon.tsx
+var import_jsx_runtime6 = require("react/jsx-runtime");
+
+// icons/react/Chat24Icon.tsx
+var import_jsx_runtime7 = require("react/jsx-runtime");
+
+// icons/react/Clipboard24Icon.tsx
+var import_jsx_runtime8 = require("react/jsx-runtime");
+
+// icons/react/Cloud24Icon.tsx
+var import_jsx_runtime9 = require("react/jsx-runtime");
+
+// icons/react/Compatibility24Icon.tsx
+var import_jsx_runtime10 = require("react/jsx-runtime");
+
+// icons/react/Contrast24Icon.tsx
+var import_jsx_runtime11 = require("react/jsx-runtime");
+
+// icons/react/Cpu24Icon.tsx
+var import_jsx_runtime12 = require("react/jsx-runtime");
+
+// icons/react/Delete24Icon.tsx
+var import_jsx_runtime13 = require("react/jsx-runtime");
+
+// icons/react/Dislike24Icon.tsx
+var import_jsx_runtime14 = require("react/jsx-runtime");
+
+// icons/react/Document24Icon.tsx
+var import_jsx_runtime15 = require("react/jsx-runtime");
+
+// icons/react/Dots24Icon.tsx
+var import_jsx_runtime16 = require("react/jsx-runtime");
+
+// icons/react/Download24Icon.tsx
+var import_jsx_runtime17 = require("react/jsx-runtime");
+
+// icons/react/Email24Icon.tsx
+var import_jsx_runtime18 = require("react/jsx-runtime");
+
+// icons/react/Error24Icon.tsx
+var import_jsx_runtime19 = require("react/jsx-runtime");
+
+// icons/react/Firewall24Icon.tsx
+var import_jsx_runtime20 = require("react/jsx-runtime");
+
+// icons/react/Folder24Icon.tsx
+var import_jsx_runtime21 = require("react/jsx-runtime");
+
+// icons/react/Gateway24Icon.tsx
+var import_jsx_runtime22 = require("react/jsx-runtime");
+
+// icons/react/Heart24Icon.tsx
+var import_jsx_runtime23 = require("react/jsx-runtime");
+
+// icons/react/Hide24Icon.tsx
+var import_jsx_runtime24 = require("react/jsx-runtime");
+
+// icons/react/Hourglass24Icon.tsx
+var import_jsx_runtime25 = require("react/jsx-runtime");
+
+// icons/react/Images24Icon.tsx
+var import_jsx_runtime26 = require("react/jsx-runtime");
+
+// icons/react/Info24Icon.tsx
+var import_jsx_runtime27 = require("react/jsx-runtime");
+
+// icons/react/Instances24Icon.tsx
+var import_jsx_runtime28 = require("react/jsx-runtime");
+
+// icons/react/IpGlobal24Icon.tsx
+var import_jsx_runtime29 = require("react/jsx-runtime");
+
+// icons/react/IpLocal24Icon.tsx
+var import_jsx_runtime30 = require("react/jsx-runtime");
+
+// icons/react/Issues24Icon.tsx
+var import_jsx_runtime31 = require("react/jsx-runtime");
+
+// icons/react/Key24Icon.tsx
+var import_jsx_runtime32 = require("react/jsx-runtime");
+
+// icons/react/Like24Icon.tsx
+var import_jsx_runtime33 = require("react/jsx-runtime");
+
+// icons/react/LoadBalancer24Icon.tsx
+var import_jsx_runtime34 = require("react/jsx-runtime");
+
+// icons/react/Location24Icon.tsx
+var import_jsx_runtime35 = require("react/jsx-runtime");
+
+// icons/react/Logs24Icon.tsx
+var import_jsx_runtime36 = require("react/jsx-runtime");
+
+// icons/react/Metrics24Icon.tsx
+var import_jsx_runtime37 = require("react/jsx-runtime");
+
+// icons/react/Networking24Icon.tsx
+var import_jsx_runtime38 = require("react/jsx-runtime");
+
+// icons/react/Organization24Icon.tsx
+var import_jsx_runtime39 = require("react/jsx-runtime");
+
+// icons/react/Overview24Icon.tsx
+var import_jsx_runtime40 = require("react/jsx-runtime");
+
+// icons/react/Person24Icon.tsx
+var import_jsx_runtime41 = require("react/jsx-runtime");
+
+// icons/react/PersonGroup24Icon.tsx
+var import_jsx_runtime42 = require("react/jsx-runtime");
+
+// icons/react/Progress24Icon.tsx
+var import_jsx_runtime43 = require("react/jsx-runtime");
+
+// icons/react/Prohibited24Icon.tsx
+var import_jsx_runtime44 = require("react/jsx-runtime");
+
+// icons/react/Router24Icon.tsx
+var import_jsx_runtime45 = require("react/jsx-runtime");
+
+// icons/react/Safety24Icon.tsx
+var import_jsx_runtime46 = require("react/jsx-runtime");
+
+// icons/react/Security24Icon.tsx
+var import_jsx_runtime47 = require("react/jsx-runtime");
+
+// icons/react/Racks24Icon.tsx
+var import_jsx_runtime48 = require("react/jsx-runtime");
+
+// icons/react/Settings24Icon.tsx
+var import_jsx_runtime49 = require("react/jsx-runtime");
+
+// icons/react/Snapshots24Icon.tsx
+var import_jsx_runtime50 = require("react/jsx-runtime");
+
+// icons/react/SoftwareUpdate24Icon.tsx
+var import_jsx_runtime51 = require("react/jsx-runtime");
+
+// icons/react/Speaker24Icon.tsx
+var import_jsx_runtime52 = require("react/jsx-runtime");
+
+// icons/react/Storage24Icon.tsx
+var import_jsx_runtime53 = require("react/jsx-runtime");
+
+// icons/react/Subnet24Icon.tsx
+var import_jsx_runtime54 = require("react/jsx-runtime");
+
+// icons/react/Resize24Icon.tsx
+var import_jsx_runtime55 = require("react/jsx-runtime");
+
+// icons/react/Terminal24Icon.tsx
+var import_jsx_runtime56 = require("react/jsx-runtime");
+
+// icons/react/Transmit24Icon.tsx
+var import_jsx_runtime57 = require("react/jsx-runtime");
+
+// icons/react/Wireless24Icon.tsx
+var import_jsx_runtime58 = require("react/jsx-runtime");
+
+// icons/react/Access16Icon.tsx
+var import_jsx_runtime59 = require("react/jsx-runtime");
+
+// icons/react/Action16Icon.tsx
+var import_jsx_runtime60 = require("react/jsx-runtime");
+
+// icons/react/AddRoundel16Icon.tsx
+var import_jsx_runtime61 = require("react/jsx-runtime");
+
+// icons/react/Calendar16Icon.tsx
+var import_jsx_runtime62 = require("react/jsx-runtime");
+
+// icons/react/Chat16Icon.tsx
+var import_jsx_runtime63 = require("react/jsx-runtime");
+
+// icons/react/Clipboard16Icon.tsx
+var import_jsx_runtime64 = require("react/jsx-runtime");
+
+// icons/react/Cloud16Icon.tsx
+var import_jsx_runtime65 = require("react/jsx-runtime");
+
+// icons/react/Close16Icon.tsx
+var import_jsx_runtime66 = require("react/jsx-runtime");
+
+// icons/react/Compability16Icon.tsx
+var import_jsx_runtime67 = require("react/jsx-runtime");
+
+// icons/react/Contrast16Icon.tsx
+var import_jsx_runtime68 = require("react/jsx-runtime");
+
+// icons/react/Cpu16Icon.tsx
+var import_jsx_runtime69 = require("react/jsx-runtime");
+
+// icons/react/Delete16Icon.tsx
+var import_jsx_runtime70 = require("react/jsx-runtime");
+
+// icons/react/Dislike16Icon.tsx
+var import_jsx_runtime71 = require("react/jsx-runtime");
+
+// icons/react/Document16Icon.tsx
+var import_jsx_runtime72 = require("react/jsx-runtime");
+
+// icons/react/Dots16Icon.tsx
+var import_jsx_runtime73 = require("react/jsx-runtime");
+
+// icons/react/DownloadRoundel16Icon.tsx
+var import_jsx_runtime74 = require("react/jsx-runtime");
+
+// icons/react/Edit16Icon.tsx
+var import_jsx_runtime75 = require("react/jsx-runtime");
+
+// icons/react/Email16Icon.tsx
+var import_jsx_runtime76 = require("react/jsx-runtime");
+
+// icons/react/Error16Icon.tsx
+var import_jsx_runtime77 = require("react/jsx-runtime");
+
+// icons/react/Firewall16Icon.tsx
+var import_jsx_runtime78 = require("react/jsx-runtime");
+
+// icons/react/Folder16Icon.tsx
+var import_jsx_runtime79 = require("react/jsx-runtime");
+
+// icons/react/Gateway16Icon.tsx
+var import_jsx_runtime80 = require("react/jsx-runtime");
+
+// icons/react/Heart16Icon.tsx
+var import_jsx_runtime81 = require("react/jsx-runtime");
+
+// icons/react/Hide16Icon.tsx
+var import_jsx_runtime82 = require("react/jsx-runtime");
+
+// icons/react/Hourglass16Icon.tsx
+var import_jsx_runtime83 = require("react/jsx-runtime");
+
+// icons/react/Images16Icon.tsx
+var import_jsx_runtime84 = require("react/jsx-runtime");
+
+// icons/react/Info16Icon.tsx
+var import_jsx_runtime85 = require("react/jsx-runtime");
+
+// icons/react/Instances16Icon.tsx
+var import_jsx_runtime86 = require("react/jsx-runtime");
+
+// icons/react/Integration16Icon.tsx
+var import_jsx_runtime87 = require("react/jsx-runtime");
+
+// icons/react/IpGlobal16Icon.tsx
+var import_jsx_runtime88 = require("react/jsx-runtime");
+
+// icons/react/IpLocal16Icon.tsx
+var import_jsx_runtime89 = require("react/jsx-runtime");
+
+// icons/react/Issues16Icon.tsx
+var import_jsx_runtime90 = require("react/jsx-runtime");
+
+// icons/react/Key16Icon.tsx
+var import_jsx_runtime91 = require("react/jsx-runtime");
+
+// icons/react/Like16Icon.tsx
+var import_jsx_runtime92 = require("react/jsx-runtime");
+
+// icons/react/Link16Icon.tsx
+var import_jsx_runtime93 = require("react/jsx-runtime");
+var Link16Icon = ({ title, titleId, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)(
+  "svg",
+  {
+    width: 16,
+    height: 16,
+    viewBox: "0 0 16 16",
+    xmlns: "http://www.w3.org/2000/svg",
+    role: "img",
+    "aria-labelledby": titleId,
+    ...props,
+    children: [
+      title ? /* @__PURE__ */ (0, import_jsx_runtime93.jsx)("title", { id: titleId, children: title }) : null,
+      /* @__PURE__ */ (0, import_jsx_runtime93.jsxs)("g", { fill: "currentColor", children: [
+        /* @__PURE__ */ (0, import_jsx_runtime93.jsx)("path", { d: "m6.586 12.243 1.59-1.591a.75.75 0 0 1 1.061 0l.354.353a.75.75 0 0 1 0 1.06L8 13.658A4 4 0 0 1 2.343 8l1.591-1.591a.75.75 0 0 1 1.06 0l.354.354a.75.75 0 0 1 0 1.06l-1.59 1.591a2 2 0 1 0 2.828 2.829ZM12.066 9.591a.75.75 0 0 1-1.06 0l-.354-.354a.75.75 0 0 1 0-1.06l1.59-1.591a2 2 0 1 0-2.828-2.829l-1.59 1.591a.75.75 0 0 1-1.061 0l-.354-.353a.75.75 0 0 1 0-1.06L8 2.342A4 4 0 0 1 13.657 8l-1.591 1.591Z" }),
+        /* @__PURE__ */ (0, import_jsx_runtime93.jsx)("path", { d: "M9.945 5.702a.75.75 0 0 0-1.061 0L5.702 8.884a.75.75 0 0 0 0 1.06l.353.354a.75.75 0 0 0 1.061 0l3.182-3.182a.75.75 0 0 0 0-1.06l-.353-.354Z" })
+      ] })
+    ]
+  }
+);
+var Link16Icon_default = Link16Icon;
+
+// icons/react/LoadBalancer16Icon.tsx
+var import_jsx_runtime94 = require("react/jsx-runtime");
+
+// icons/react/Logs16Icon.tsx
+var import_jsx_runtime95 = require("react/jsx-runtime");
+
+// icons/react/Metrics16Icon.tsx
+var import_jsx_runtime96 = require("react/jsx-runtime");
+
+// icons/react/Networking16Icon.tsx
+var import_jsx_runtime97 = require("react/jsx-runtime");
+
+// icons/react/NewWindow16Icon.tsx
+var import_jsx_runtime98 = require("react/jsx-runtime");
+
+// icons/react/Notifications16Icon.tsx
+var import_jsx_runtime99 = require("react/jsx-runtime");
+
+// icons/react/Organization16Icon.tsx
+var import_jsx_runtime100 = require("react/jsx-runtime");
+
+// icons/react/Overview16Icon.tsx
+var import_jsx_runtime101 = require("react/jsx-runtime");
+
+// icons/react/Person16Icon.tsx
+var import_jsx_runtime102 = require("react/jsx-runtime");
+
+// icons/react/PersonGroup16Icon.tsx
+var import_jsx_runtime103 = require("react/jsx-runtime");
+
+// icons/react/Profile16Icon.tsx
+var import_jsx_runtime104 = require("react/jsx-runtime");
+
+// icons/react/Refresh16Icon.tsx
+var import_jsx_runtime105 = require("react/jsx-runtime");
+
+// icons/react/Ram16Icon.tsx
+var import_jsx_runtime106 = require("react/jsx-runtime");
+
+// icons/react/Repair16Icon.tsx
+var import_jsx_runtime107 = require("react/jsx-runtime");
+
+// icons/react/Resize16Icon.tsx
+var import_jsx_runtime108 = require("react/jsx-runtime");
+
+// icons/react/Router16Icon.tsx
+var import_jsx_runtime109 = require("react/jsx-runtime");
+
+// icons/react/Search16Icon.tsx
+var import_jsx_runtime110 = require("react/jsx-runtime");
+
+// icons/react/Security16Icon.tsx
+var import_jsx_runtime111 = require("react/jsx-runtime");
+
+// icons/react/Servers16Icon.tsx
+var import_jsx_runtime112 = require("react/jsx-runtime");
+
+// icons/react/Settings16Icon.tsx
+var import_jsx_runtime113 = require("react/jsx-runtime");
+
+// icons/react/Show16Icon.tsx
+var import_jsx_runtime114 = require("react/jsx-runtime");
+
+// icons/react/Snapshots16Icon.tsx
+var import_jsx_runtime115 = require("react/jsx-runtime");
+
+// icons/react/SoftwareUpdate16Icon.tsx
+var import_jsx_runtime116 = require("react/jsx-runtime");
+
+// icons/react/Ssd16Icon.tsx
+var import_jsx_runtime117 = require("react/jsx-runtime");
+
+// icons/react/Storage16Icon.tsx
+var import_jsx_runtime118 = require("react/jsx-runtime");
+
+// icons/react/Subnet16Icon.tsx
+var import_jsx_runtime119 = require("react/jsx-runtime");
+
+// icons/react/Tags16Icon.tsx
+var import_jsx_runtime120 = require("react/jsx-runtime");
+
+// icons/react/Terminal16Icon.tsx
+var import_jsx_runtime121 = require("react/jsx-runtime");
+
+// icons/react/Time16Icon.tsx
+var import_jsx_runtime122 = require("react/jsx-runtime");
+
+// icons/react/Transmit16Icon.tsx
+var import_jsx_runtime123 = require("react/jsx-runtime");
+
+// icons/react/Add12Icon.tsx
+var import_jsx_runtime124 = require("react/jsx-runtime");
+
+// icons/react/AddRoundel12Icon.tsx
+var import_jsx_runtime125 = require("react/jsx-runtime");
+
+// icons/react/Checkmark12Icon.tsx
+var import_jsx_runtime126 = require("react/jsx-runtime");
+var Checkmark12Icon = ({
+  title,
+  titleId,
+  ...props
+}) => /* @__PURE__ */ (0, import_jsx_runtime126.jsxs)(
+  "svg",
+  {
+    width: 12,
+    height: 12,
+    viewBox: "0 0 12 12",
+    xmlns: "http://www.w3.org/2000/svg",
+    role: "img",
+    "aria-labelledby": titleId,
+    ...props,
+    children: [
+      title ? /* @__PURE__ */ (0, import_jsx_runtime126.jsx)("title", { id: titleId, children: title }) : null,
+      /* @__PURE__ */ (0, import_jsx_runtime126.jsx)(
+        "path",
+        {
+          fillRule: "evenodd",
+          clipRule: "evenodd",
+          d: "M10.492 2.651c.28.242.31.665.067.944L5.447 9.463a.667.667 0 0 1-.974.035L1.475 6.516a.667.667 0 0 1 0-.946l.237-.235a.667.667 0 0 1 .94 0l2.24 2.226L9.3 2.501a.667.667 0 0 1 .938-.068l.253.218Z",
+          fill: "currentColor"
+        }
+      )
+    ]
+  }
+);
+var Checkmark12Icon_default = Checkmark12Icon;
+
+// icons/react/Close12Icon.tsx
+var import_jsx_runtime127 = require("react/jsx-runtime");
+
+// icons/react/DirectionRightIcon.tsx
+var import_jsx_runtime128 = require("react/jsx-runtime");
+
+// icons/react/DirectionUpIcon.tsx
+var import_jsx_runtime129 = require("react/jsx-runtime");
+
+// icons/react/DirectionDownIcon.tsx
+var import_jsx_runtime130 = require("react/jsx-runtime");
+
+// icons/react/DirectionLeftIcon.tsx
+var import_jsx_runtime131 = require("react/jsx-runtime");
+
+// icons/react/Clipboard12Icon.tsx
+var import_jsx_runtime132 = require("react/jsx-runtime");
+
+// icons/react/Disabled12Icon.tsx
+var import_jsx_runtime133 = require("react/jsx-runtime");
+
+// icons/react/Error12Icon.tsx
+var import_jsx_runtime134 = require("react/jsx-runtime");
+
+// icons/react/Filter12Icon.tsx
+var import_jsx_runtime135 = require("react/jsx-runtime");
+
+// icons/react/Key12Icon.tsx
+var import_jsx_runtime136 = require("react/jsx-runtime");
+
+// icons/react/Loader12Icon.tsx
+var import_jsx_runtime137 = require("react/jsx-runtime");
+
+// icons/react/More12Icon.tsx
+var import_jsx_runtime138 = require("react/jsx-runtime");
+
+// icons/react/NextArrow12Icon.tsx
+var import_jsx_runtime139 = require("react/jsx-runtime");
+
+// icons/react/PrevArrow12Icon.tsx
+var import_jsx_runtime140 = require("react/jsx-runtime");
+
+// icons/react/OpenLink12Icon.tsx
+var import_jsx_runtime141 = require("react/jsx-runtime");
+
+// icons/react/Repair12Icon.tsx
+var import_jsx_runtime142 = require("react/jsx-runtime");
+
+// icons/react/Security12Icon.tsx
+var import_jsx_runtime143 = require("react/jsx-runtime");
+
+// icons/react/Success12Icon.tsx
+var import_jsx_runtime144 = require("react/jsx-runtime");
+
+// icons/react/Unauthorized12Icon.tsx
+var import_jsx_runtime145 = require("react/jsx-runtime");
+
+// icons/react/Warning12Icon.tsx
+var import_jsx_runtime146 = require("react/jsx-runtime");
+
+// icons/react/Question12Icon.tsx
+var import_jsx_runtime147 = require("react/jsx-runtime");
+
+// icons/react/Hide12Icon.tsx
+var import_jsx_runtime148 = require("react/jsx-runtime");
+
+// icons/react/SelectArrows6Icon.tsx
+var import_jsx_runtime149 = require("react/jsx-runtime");
+var SelectArrows6Icon = ({
+  title,
+  titleId,
+  ...props
+}) => /* @__PURE__ */ (0, import_jsx_runtime149.jsxs)(
+  "svg",
+  {
+    width: 6,
+    height: 14,
+    viewBox: "0 0 6 14",
+    xmlns: "http://www.w3.org/2000/svg",
+    role: "img",
+    "aria-labelledby": titleId,
+    ...props,
+    children: [
+      title ? /* @__PURE__ */ (0, import_jsx_runtime149.jsx)("title", { id: titleId, children: title }) : null,
+      /* @__PURE__ */ (0, import_jsx_runtime149.jsx)(
+        "path",
+        {
+          fillRule: "evenodd",
+          clipRule: "evenodd",
+          d: "M3.322.536a.375.375 0 0 0-.644 0L.341 4.432C.19 4.682.37 5 .662 5h4.676a.375.375 0 0 0 .321-.568L3.322.536Zm-.644 12.928a.375.375 0 0 0 .644 0l2.337-3.896A.375.375 0 0 0 5.338 9H.662a.375.375 0 0 0-.321.568l2.337 3.896Z",
+          fill: "currentColor"
+        }
+      )
+    ]
+  }
+);
+var SelectArrows6Icon_default = SelectArrows6Icon;
+
+// icons/react/Close8Icon.tsx
+var import_jsx_runtime150 = require("react/jsx-runtime");
+
+// components/src/asciidoc/Section.tsx
+var import_react_asciidoc3 = require("@oxide/react-asciidoc");
+var import_classnames2 = __toESM(require_classnames());
+var import_react2 = require("react");
+var import_jsx_runtime151 = require("react/jsx-runtime");
+var Section = ({ node }) => {
+  const docAttrs = node.getDocument().getAttributes();
+  const level = node.getLevel();
+  let title = "";
+  let sectNum = node.getSectionNumeral();
+  sectNum = sectNum === "." ? "" : sectNum;
+  const sectNumLevels = docAttrs["sectnumlevels"] ? parseInt(docAttrs["sectnumlevels"]) : 3;
+  if (node.getCaption()) {
+    title = node.getCaptionedTitle();
+  } else if (node.isNumbered() && level <= sectNumLevels) {
+    if (level < 2 && node.getDocument().getDoctype() === "book") {
+      const sectionName = node.getSectionName();
+      if (sectionName === "chapter") {
+        const signifier = docAttrs["chapter-signifier"];
+        title = `${signifier || ""} ${sectNum} ${node.getTitle()}`;
+      } else if (sectionName === "part") {
+        const signifier = docAttrs["part-signifier"];
+        title = `${signifier || ""} ${sectNum} ${node.getTitle()}`;
+      } else {
+        title = node.getTitle() || "";
+      }
+    } else {
+      title = node.getTitle() || "";
+    }
+  } else {
+    title = node.getTitle() || "";
+  }
+  title = /* @__PURE__ */ (0, import_jsx_runtime151.jsxs)(import_jsx_runtime151.Fragment, { children: [
+    /* @__PURE__ */ (0, import_jsx_runtime151.jsx)("a", { className: "anchor", id: node.getId() || "", "aria-hidden": true }),
+    /* @__PURE__ */ (0, import_jsx_runtime151.jsxs)("a", { className: "link group", href: `#${node.getId()}`, children: [
+      html_react_parser_default(title),
+      /* @__PURE__ */ (0, import_jsx_runtime151.jsx)(Link16Icon_default, { className: "text-accent-secondary hidden group-hover:inline-block ml-2" })
+    ] })
+  ] });
+  if (level === 0) {
+    return /* @__PURE__ */ (0, import_jsx_runtime151.jsxs)(import_jsx_runtime151.Fragment, { children: [
+      /* @__PURE__ */ (0, import_jsx_runtime151.jsx)("h1", { className: (0, import_classnames2.default)("sect0", (0, import_react_asciidoc3.getRole)(node)), "data-sectnum": sectNum, children: title }),
+      /* @__PURE__ */ (0, import_jsx_runtime151.jsx)(import_react_asciidoc3.Content, { blocks: node.getBlocks() })
+    ] });
+  } else {
+    return /* @__PURE__ */ (0, import_jsx_runtime151.jsxs)("div", { className: (0, import_classnames2.default)(`sect${level}`, (0, import_react_asciidoc3.getRole)(node)), children: [
+      (0, import_react2.createElement)(`h${level + 1}`, { "data-sectnum": sectNum }, title),
+      /* @__PURE__ */ (0, import_jsx_runtime151.jsx)("div", { className: "sectionbody", children: /* @__PURE__ */ (0, import_jsx_runtime151.jsx)(import_react_asciidoc3.Content, { blocks: node.getBlocks() }) })
+    ] });
+  }
+};
+var Section_default = Section;
+
+// components/src/asciidoc/Table.tsx
+var import_react_asciidoc4 = require("@oxide/react-asciidoc");
+var import_jsx_runtime152 = require("react/jsx-runtime");
+var Table = ({ node }) => /* @__PURE__ */ (0, import_jsx_runtime152.jsx)("div", { className: "table-wrapper", children: /* @__PURE__ */ (0, import_jsx_runtime152.jsx)(import_react_asciidoc4.Table, { node }) });
 var Table_default = Table;
 
 // components/src/asciidoc/index.ts
 var AsciiDocBlocks = {
   Admonition: Admonition_default,
   Listing: Listing_default,
-  Table: Table_default
+  Table: Table_default,
+  Section: Section_default
 };
 
 // components/src/ui/badge/Badge.tsx
-var import_classnames2 = __toESM(require_classnames());
-var import_jsx_runtime4 = require("react/jsx-runtime");
+var import_classnames3 = __toESM(require_classnames());
+var import_jsx_runtime153 = require("react/jsx-runtime");
 var badgeColors = {
   default: {
     default: `ring-1 ring-inset bg-accent-secondary text-accent ring-[rgba(var(--base-green-800-rgb),0.15)]`,
@@ -56770,25 +57225,25 @@ var Badge = ({
   color = "default",
   variant = "default"
 }) => {
-  return /* @__PURE__ */ (0, import_jsx_runtime4.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime153.jsx)(
     "span",
     {
-      className: (0, import_classnames2.default)(
+      className: (0, import_classnames3.default)(
         "ox-badge",
         `variant-${variant}`,
         "inline-flex h-4 items-center whitespace-nowrap rounded-sm px-[3px] py-[1px] uppercase text-mono-sm",
         badgeColors[variant][color],
         className
       ),
-      children: /* @__PURE__ */ (0, import_jsx_runtime4.jsx)("span", { children })
+      children: /* @__PURE__ */ (0, import_jsx_runtime153.jsx)("span", { children })
     }
   );
 };
 
 // components/src/ui/button/Button.tsx
-var import_classnames3 = __toESM(require_classnames());
-var import_react = require("react");
-var import_jsx_runtime5 = require("react/jsx-runtime");
+var import_classnames4 = __toESM(require_classnames());
+var import_react3 = require("react");
+var import_jsx_runtime154 = require("react/jsx-runtime");
 var buttonSizes = ["sm", "icon", "base"];
 var variants = ["primary", "secondary", "ghost", "danger"];
 var sizeStyle = {
@@ -56801,7 +57256,7 @@ var buttonStyle = ({
   size: size2 = "base",
   variant = "primary"
 } = {}) => {
-  return (0, import_classnames3.default)(
+  return (0, import_classnames4.default)(
     "ox-button inline-flex items-center justify-center rounded align-top elevation-1 disabled:cursor-not-allowed",
     `btn-${variant}`,
     sizeStyle[size2],
@@ -56812,7 +57267,7 @@ var noop = (e) => {
   e.stopPropagation();
   e.preventDefault();
 };
-var Button = (0, import_react.forwardRef)(
+var Button = (0, import_react3.forwardRef)(
   ({
     type = "button",
     children,
@@ -56828,10 +57283,10 @@ var Button = (0, import_react.forwardRef)(
     ...rest
   }, ref) => {
     const isDisabled = disabled || loading;
-    return /* @__PURE__ */ (0, import_jsx_runtime5.jsxs)(
+    return /* @__PURE__ */ (0, import_jsx_runtime154.jsxs)(
       "button",
       {
-        className: (0, import_classnames3.default)(buttonStyle({ size: size2, variant }), className, {
+        className: (0, import_classnames4.default)(buttonStyle({ size: size2, variant }), className, {
           "visually-disabled": isDisabled
         }),
         ref,
@@ -56841,8 +57296,8 @@ var Button = (0, import_react.forwardRef)(
         "aria-disabled": isDisabled,
         ...rest,
         children: [
-          loading && /* @__PURE__ */ (0, import_jsx_runtime5.jsx)(Spinner, { className: "absolute", variant }),
-          /* @__PURE__ */ (0, import_jsx_runtime5.jsx)("span", { className: (0, import_classnames3.default)("flex items-center", innerClassName, { invisible: loading }), children })
+          loading && /* @__PURE__ */ (0, import_jsx_runtime154.jsx)(Spinner, { className: "absolute", variant }),
+          /* @__PURE__ */ (0, import_jsx_runtime154.jsx)("span", { className: (0, import_classnames4.default)("flex items-center", innerClassName, { invisible: loading }), children })
         ]
       }
     );
@@ -56850,9 +57305,9 @@ var Button = (0, import_react.forwardRef)(
 );
 
 // components/src/ui/spinner/Spinner.tsx
-var import_classnames4 = __toESM(require_classnames());
-var import_react2 = require("react");
-var import_jsx_runtime6 = require("react/jsx-runtime");
+var import_classnames5 = __toESM(require_classnames());
+var import_react4 = require("react");
+var import_jsx_runtime155 = require("react/jsx-runtime");
 var spinnerSizes = ["base", "lg"];
 var spinnerVariants = ["primary", "secondary", "ghost", "danger"];
 var Spinner = ({
@@ -56864,7 +57319,7 @@ var Spinner = ({
   const center = size2 === "lg" ? 18 : 6;
   const radius = size2 === "lg" ? 16 : 5;
   const strokeWidth = size2 === "lg" ? 3 : 2;
-  return /* @__PURE__ */ (0, import_jsx_runtime6.jsxs)(
+  return /* @__PURE__ */ (0, import_jsx_runtime155.jsxs)(
     "svg",
     {
       width: frameSize,
@@ -56873,9 +57328,9 @@ var Spinner = ({
       fill: "none",
       xmlns: "http://www.w3.org/2000/svg",
       "aria-labelledby": "Spinner",
-      className: (0, import_classnames4.default)("spinner", `spinner-${variant}`, `spinner-${size2}`, className),
+      className: (0, import_classnames5.default)("spinner", `spinner-${variant}`, `spinner-${size2}`, className),
       children: [
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime155.jsx)(
           "circle",
           {
             fill: "none",
@@ -56888,7 +57343,7 @@ var Spinner = ({
             strokeOpacity: 0.2
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime155.jsx)(
           "circle",
           {
             className: "path",
@@ -56906,10 +57361,10 @@ var Spinner = ({
   );
 };
 var SpinnerLoader = ({ isLoading, children = null, minTime = 500 }) => {
-  const [isVisible, setIsVisible] = (0, import_react2.useState)(isLoading);
-  const hideTimeout = (0, import_react2.useRef)(null);
-  const loadingStartTime = (0, import_react2.useRef)(0);
-  (0, import_react2.useEffect)(() => {
+  const [isVisible, setIsVisible] = (0, import_react4.useState)(isLoading);
+  const hideTimeout = (0, import_react4.useRef)(null);
+  const loadingStartTime = (0, import_react4.useRef)(0);
+  (0, import_react4.useEffect)(() => {
     if (isLoading) {
       setIsVisible(true);
       loadingStartTime.current = Date.now();
@@ -56929,483 +57384,24 @@ var SpinnerLoader = ({ isLoading, children = null, minTime = 500 }) => {
         clearTimeout(hideTimeout.current);
     };
   }, [isLoading, minTime]);
-  return isVisible ? /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(Spinner, {}) : /* @__PURE__ */ (0, import_jsx_runtime6.jsx)(import_jsx_runtime6.Fragment, { children });
+  return isVisible ? /* @__PURE__ */ (0, import_jsx_runtime155.jsx)(Spinner, {}) : /* @__PURE__ */ (0, import_jsx_runtime155.jsx)(import_jsx_runtime155.Fragment, { children });
 };
 
 // components/src/ui/tabs/Tabs.tsx
 var import_react_tabs = require("@radix-ui/react-tabs");
-var import_classnames5 = __toESM(require_classnames());
-var import_jsx_runtime7 = require("react/jsx-runtime");
+var import_classnames6 = __toESM(require_classnames());
+var import_jsx_runtime156 = require("react/jsx-runtime");
 var Tabs = {
-  Root: ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(import_react_tabs.Root, { ...props, className: (0, import_classnames5.default)("ox-tabs", className) }),
-  Trigger: ({ children, className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(import_react_tabs.Trigger, { ...props, className: (0, import_classnames5.default)("ox-tab", className), children: /* @__PURE__ */ (0, import_jsx_runtime7.jsx)("div", { children }) }),
-  List: ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(import_react_tabs.List, { ...props, className: (0, import_classnames5.default)("ox-tabs-list", className) }),
-  Content: ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime7.jsx)(import_react_tabs.Content, { ...props, className: (0, import_classnames5.default)("ox-tabs-panel", className) })
+  Root: ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime156.jsx)(import_react_tabs.Root, { ...props, className: (0, import_classnames6.default)("ox-tabs", className) }),
+  Trigger: ({ children, className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime156.jsx)(import_react_tabs.Trigger, { ...props, className: (0, import_classnames6.default)("ox-tab", className), children: /* @__PURE__ */ (0, import_jsx_runtime156.jsx)("div", { children }) }),
+  List: ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime156.jsx)(import_react_tabs.List, { ...props, className: (0, import_classnames6.default)("ox-tabs-list", className) }),
+  Content: ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime156.jsx)(import_react_tabs.Content, { ...props, className: (0, import_classnames6.default)("ox-tabs-panel", className) })
 };
 
-// icons/react/Access24Icon.tsx
-var import_jsx_runtime8 = require("react/jsx-runtime");
-
-// icons/react/Action24Icon.tsx
-var import_jsx_runtime9 = require("react/jsx-runtime");
-
-// icons/react/AddRoundel24Icon.tsx
-var import_jsx_runtime10 = require("react/jsx-runtime");
-
-// icons/react/Calendar24Icon.tsx
-var import_jsx_runtime11 = require("react/jsx-runtime");
-
-// icons/react/Chat24Icon.tsx
-var import_jsx_runtime12 = require("react/jsx-runtime");
-
-// icons/react/Clipboard24Icon.tsx
-var import_jsx_runtime13 = require("react/jsx-runtime");
-
-// icons/react/Cloud24Icon.tsx
-var import_jsx_runtime14 = require("react/jsx-runtime");
-
-// icons/react/Compatibility24Icon.tsx
-var import_jsx_runtime15 = require("react/jsx-runtime");
-
-// icons/react/Contrast24Icon.tsx
-var import_jsx_runtime16 = require("react/jsx-runtime");
-
-// icons/react/Cpu24Icon.tsx
-var import_jsx_runtime17 = require("react/jsx-runtime");
-
-// icons/react/Delete24Icon.tsx
-var import_jsx_runtime18 = require("react/jsx-runtime");
-
-// icons/react/Dislike24Icon.tsx
-var import_jsx_runtime19 = require("react/jsx-runtime");
-
-// icons/react/Document24Icon.tsx
-var import_jsx_runtime20 = require("react/jsx-runtime");
-
-// icons/react/Dots24Icon.tsx
-var import_jsx_runtime21 = require("react/jsx-runtime");
-
-// icons/react/Download24Icon.tsx
-var import_jsx_runtime22 = require("react/jsx-runtime");
-
-// icons/react/Email24Icon.tsx
-var import_jsx_runtime23 = require("react/jsx-runtime");
-
-// icons/react/Error24Icon.tsx
-var import_jsx_runtime24 = require("react/jsx-runtime");
-
-// icons/react/Firewall24Icon.tsx
-var import_jsx_runtime25 = require("react/jsx-runtime");
-
-// icons/react/Folder24Icon.tsx
-var import_jsx_runtime26 = require("react/jsx-runtime");
-
-// icons/react/Gateway24Icon.tsx
-var import_jsx_runtime27 = require("react/jsx-runtime");
-
-// icons/react/Heart24Icon.tsx
-var import_jsx_runtime28 = require("react/jsx-runtime");
-
-// icons/react/Hide24Icon.tsx
-var import_jsx_runtime29 = require("react/jsx-runtime");
-
-// icons/react/Hourglass24Icon.tsx
-var import_jsx_runtime30 = require("react/jsx-runtime");
-
-// icons/react/Images24Icon.tsx
-var import_jsx_runtime31 = require("react/jsx-runtime");
-
-// icons/react/Info24Icon.tsx
-var import_jsx_runtime32 = require("react/jsx-runtime");
-
-// icons/react/Instances24Icon.tsx
-var import_jsx_runtime33 = require("react/jsx-runtime");
-
-// icons/react/IpGlobal24Icon.tsx
-var import_jsx_runtime34 = require("react/jsx-runtime");
-
-// icons/react/IpLocal24Icon.tsx
-var import_jsx_runtime35 = require("react/jsx-runtime");
-
-// icons/react/Issues24Icon.tsx
-var import_jsx_runtime36 = require("react/jsx-runtime");
-
-// icons/react/Key24Icon.tsx
-var import_jsx_runtime37 = require("react/jsx-runtime");
-
-// icons/react/Like24Icon.tsx
-var import_jsx_runtime38 = require("react/jsx-runtime");
-
-// icons/react/LoadBalancer24Icon.tsx
-var import_jsx_runtime39 = require("react/jsx-runtime");
-
-// icons/react/Location24Icon.tsx
-var import_jsx_runtime40 = require("react/jsx-runtime");
-
-// icons/react/Logs24Icon.tsx
-var import_jsx_runtime41 = require("react/jsx-runtime");
-
-// icons/react/Networking24Icon.tsx
-var import_jsx_runtime42 = require("react/jsx-runtime");
-
-// icons/react/Organization24Icon.tsx
-var import_jsx_runtime43 = require("react/jsx-runtime");
-
-// icons/react/Overview24Icon.tsx
-var import_jsx_runtime44 = require("react/jsx-runtime");
-
-// icons/react/Person24Icon.tsx
-var import_jsx_runtime45 = require("react/jsx-runtime");
-
-// icons/react/PersonGroup24Icon.tsx
-var import_jsx_runtime46 = require("react/jsx-runtime");
-
-// icons/react/Progress24Icon.tsx
-var import_jsx_runtime47 = require("react/jsx-runtime");
-
-// icons/react/Prohibited24Icon.tsx
-var import_jsx_runtime48 = require("react/jsx-runtime");
-
-// icons/react/Router24Icon.tsx
-var import_jsx_runtime49 = require("react/jsx-runtime");
-
-// icons/react/Safety24Icon.tsx
-var import_jsx_runtime50 = require("react/jsx-runtime");
-
-// icons/react/Security24Icon.tsx
-var import_jsx_runtime51 = require("react/jsx-runtime");
-
-// icons/react/Racks24Icon.tsx
-var import_jsx_runtime52 = require("react/jsx-runtime");
-
-// icons/react/Settings24Icon.tsx
-var import_jsx_runtime53 = require("react/jsx-runtime");
-
-// icons/react/Snapshots24Icon.tsx
-var import_jsx_runtime54 = require("react/jsx-runtime");
-
-// icons/react/SoftwareUpdate24Icon.tsx
-var import_jsx_runtime55 = require("react/jsx-runtime");
-
-// icons/react/Speaker24Icon.tsx
-var import_jsx_runtime56 = require("react/jsx-runtime");
-
-// icons/react/Storage24Icon.tsx
-var import_jsx_runtime57 = require("react/jsx-runtime");
-
-// icons/react/Subnet24Icon.tsx
-var import_jsx_runtime58 = require("react/jsx-runtime");
-
-// icons/react/Resize24Icon.tsx
-var import_jsx_runtime59 = require("react/jsx-runtime");
-
-// icons/react/Terminal24Icon.tsx
-var import_jsx_runtime60 = require("react/jsx-runtime");
-
-// icons/react/Transmit24Icon.tsx
-var import_jsx_runtime61 = require("react/jsx-runtime");
-
-// icons/react/Wireless24Icon.tsx
-var import_jsx_runtime62 = require("react/jsx-runtime");
-
-// icons/react/Access16Icon.tsx
-var import_jsx_runtime63 = require("react/jsx-runtime");
-
-// icons/react/Action16Icon.tsx
-var import_jsx_runtime64 = require("react/jsx-runtime");
-
-// icons/react/AddRoundel16Icon.tsx
-var import_jsx_runtime65 = require("react/jsx-runtime");
-
-// icons/react/Calendar16Icon.tsx
-var import_jsx_runtime66 = require("react/jsx-runtime");
-
-// icons/react/Chat16Icon.tsx
-var import_jsx_runtime67 = require("react/jsx-runtime");
-
-// icons/react/Clipboard16Icon.tsx
-var import_jsx_runtime68 = require("react/jsx-runtime");
-
-// icons/react/Cloud16Icon.tsx
-var import_jsx_runtime69 = require("react/jsx-runtime");
-
-// icons/react/Close16Icon.tsx
-var import_jsx_runtime70 = require("react/jsx-runtime");
-
-// icons/react/Compability16Icon.tsx
-var import_jsx_runtime71 = require("react/jsx-runtime");
-
-// icons/react/Contrast16Icon.tsx
-var import_jsx_runtime72 = require("react/jsx-runtime");
-
-// icons/react/Cpu16Icon.tsx
-var import_jsx_runtime73 = require("react/jsx-runtime");
-
-// icons/react/Delete16Icon.tsx
-var import_jsx_runtime74 = require("react/jsx-runtime");
-
-// icons/react/Dislike16Icon.tsx
-var import_jsx_runtime75 = require("react/jsx-runtime");
-
-// icons/react/Document16Icon.tsx
-var import_jsx_runtime76 = require("react/jsx-runtime");
-
-// icons/react/Dots16Icon.tsx
-var import_jsx_runtime77 = require("react/jsx-runtime");
-
-// icons/react/DownloadRoundel16Icon.tsx
-var import_jsx_runtime78 = require("react/jsx-runtime");
-
-// icons/react/Edit16Icon.tsx
-var import_jsx_runtime79 = require("react/jsx-runtime");
-
-// icons/react/Email16Icon.tsx
-var import_jsx_runtime80 = require("react/jsx-runtime");
-
-// icons/react/Error16Icon.tsx
-var import_jsx_runtime81 = require("react/jsx-runtime");
-
-// icons/react/Firewall16Icon.tsx
-var import_jsx_runtime82 = require("react/jsx-runtime");
-
-// icons/react/Folder16Icon.tsx
-var import_jsx_runtime83 = require("react/jsx-runtime");
-
-// icons/react/Gateway16Icon.tsx
-var import_jsx_runtime84 = require("react/jsx-runtime");
-
-// icons/react/Heart16Icon.tsx
-var import_jsx_runtime85 = require("react/jsx-runtime");
-
-// icons/react/Hide16Icon.tsx
-var import_jsx_runtime86 = require("react/jsx-runtime");
-
-// icons/react/Hourglass16Icon.tsx
-var import_jsx_runtime87 = require("react/jsx-runtime");
-
-// icons/react/Images16Icon.tsx
-var import_jsx_runtime88 = require("react/jsx-runtime");
-
-// icons/react/Info16Icon.tsx
-var import_jsx_runtime89 = require("react/jsx-runtime");
-
-// icons/react/Instances16Icon.tsx
-var import_jsx_runtime90 = require("react/jsx-runtime");
-
-// icons/react/Integration16Icon.tsx
-var import_jsx_runtime91 = require("react/jsx-runtime");
-
-// icons/react/IpGlobal16Icon.tsx
-var import_jsx_runtime92 = require("react/jsx-runtime");
-
-// icons/react/IpLocal16Icon.tsx
-var import_jsx_runtime93 = require("react/jsx-runtime");
-
-// icons/react/Issues16Icon.tsx
-var import_jsx_runtime94 = require("react/jsx-runtime");
-
-// icons/react/Key16Icon.tsx
-var import_jsx_runtime95 = require("react/jsx-runtime");
-
-// icons/react/Like16Icon.tsx
-var import_jsx_runtime96 = require("react/jsx-runtime");
-
-// icons/react/Link16Icon.tsx
-var import_jsx_runtime97 = require("react/jsx-runtime");
-
-// icons/react/LoadBalancer16Icon.tsx
-var import_jsx_runtime98 = require("react/jsx-runtime");
-
-// icons/react/Logs16Icon.tsx
-var import_jsx_runtime99 = require("react/jsx-runtime");
-
-// icons/react/Metrics16Icon.tsx
-var import_jsx_runtime100 = require("react/jsx-runtime");
-
-// icons/react/Networking16Icon.tsx
-var import_jsx_runtime101 = require("react/jsx-runtime");
-
-// icons/react/NewWindow16Icon.tsx
-var import_jsx_runtime102 = require("react/jsx-runtime");
-
-// icons/react/Notifications16Icon.tsx
-var import_jsx_runtime103 = require("react/jsx-runtime");
-
-// icons/react/Organization16Icon.tsx
-var import_jsx_runtime104 = require("react/jsx-runtime");
-
-// icons/react/Overview16Icon.tsx
-var import_jsx_runtime105 = require("react/jsx-runtime");
-
-// icons/react/Person16Icon.tsx
-var import_jsx_runtime106 = require("react/jsx-runtime");
-
-// icons/react/PersonGroup16Icon.tsx
-var import_jsx_runtime107 = require("react/jsx-runtime");
-
-// icons/react/Profile16Icon.tsx
-var import_jsx_runtime108 = require("react/jsx-runtime");
-
-// icons/react/Refresh16Icon.tsx
-var import_jsx_runtime109 = require("react/jsx-runtime");
-
-// icons/react/Ram16Icon.tsx
-var import_jsx_runtime110 = require("react/jsx-runtime");
-
-// icons/react/Repair16Icon.tsx
-var import_jsx_runtime111 = require("react/jsx-runtime");
-
-// icons/react/Resize16Icon.tsx
-var import_jsx_runtime112 = require("react/jsx-runtime");
-
-// icons/react/Router16Icon.tsx
-var import_jsx_runtime113 = require("react/jsx-runtime");
-
-// icons/react/Search16Icon.tsx
-var import_jsx_runtime114 = require("react/jsx-runtime");
-
-// icons/react/Security16Icon.tsx
-var import_jsx_runtime115 = require("react/jsx-runtime");
-
-// icons/react/Servers16Icon.tsx
-var import_jsx_runtime116 = require("react/jsx-runtime");
-
-// icons/react/Settings16Icon.tsx
-var import_jsx_runtime117 = require("react/jsx-runtime");
-
-// icons/react/Show16Icon.tsx
-var import_jsx_runtime118 = require("react/jsx-runtime");
-
-// icons/react/Snapshots16Icon.tsx
-var import_jsx_runtime119 = require("react/jsx-runtime");
-
-// icons/react/SoftwareUpdate16Icon.tsx
-var import_jsx_runtime120 = require("react/jsx-runtime");
-
-// icons/react/Ssd16Icon.tsx
-var import_jsx_runtime121 = require("react/jsx-runtime");
-
-// icons/react/Storage16Icon.tsx
-var import_jsx_runtime122 = require("react/jsx-runtime");
-
-// icons/react/Subnet16Icon.tsx
-var import_jsx_runtime123 = require("react/jsx-runtime");
-
-// icons/react/Tags16Icon.tsx
-var import_jsx_runtime124 = require("react/jsx-runtime");
-
-// icons/react/Terminal16Icon.tsx
-var import_jsx_runtime125 = require("react/jsx-runtime");
-
-// icons/react/Time16Icon.tsx
-var import_jsx_runtime126 = require("react/jsx-runtime");
-
-// icons/react/Transmit16Icon.tsx
-var import_jsx_runtime127 = require("react/jsx-runtime");
-
-// icons/react/Add12Icon.tsx
-var import_jsx_runtime128 = require("react/jsx-runtime");
-
-// icons/react/AddRoundel12Icon.tsx
-var import_jsx_runtime129 = require("react/jsx-runtime");
-
-// icons/react/Checkmark12Icon.tsx
-var import_jsx_runtime130 = require("react/jsx-runtime");
-var Checkmark12Icon = ({
-  title,
-  titleId,
-  ...props
-}) => /* @__PURE__ */ (0, import_jsx_runtime130.jsxs)("svg", { width: 12, height: 12, viewBox: "0 0 12 12", xmlns: "http://www.w3.org/2000/svg", role: "img", "aria-labelledby": titleId, ...props, children: [
-  title ? /* @__PURE__ */ (0, import_jsx_runtime130.jsx)("title", { id: titleId, children: title }) : null,
-  /* @__PURE__ */ (0, import_jsx_runtime130.jsx)("path", { fillRule: "evenodd", clipRule: "evenodd", d: "M10.492 2.651c.28.242.31.665.067.944L5.447 9.463a.667.667 0 0 1-.974.035L1.475 6.516a.667.667 0 0 1 0-.946l.237-.235a.667.667 0 0 1 .94 0l2.24 2.226L9.3 2.501a.667.667 0 0 1 .938-.068l.253.218Z", fill: "currentColor" })
-] });
-var Checkmark12Icon_default = Checkmark12Icon;
-
-// icons/react/Close12Icon.tsx
-var import_jsx_runtime131 = require("react/jsx-runtime");
-
-// icons/react/DirectionRightIcon.tsx
-var import_jsx_runtime132 = require("react/jsx-runtime");
-
-// icons/react/DirectionUpIcon.tsx
-var import_jsx_runtime133 = require("react/jsx-runtime");
-
-// icons/react/DirectionDownIcon.tsx
-var import_jsx_runtime134 = require("react/jsx-runtime");
-
-// icons/react/DirectionLeftIcon.tsx
-var import_jsx_runtime135 = require("react/jsx-runtime");
-
-// icons/react/Clipboard12Icon.tsx
-var import_jsx_runtime136 = require("react/jsx-runtime");
-
-// icons/react/Disabled12Icon.tsx
-var import_jsx_runtime137 = require("react/jsx-runtime");
-
-// icons/react/Error12Icon.tsx
-var import_jsx_runtime138 = require("react/jsx-runtime");
-
-// icons/react/Filter12Icon.tsx
-var import_jsx_runtime139 = require("react/jsx-runtime");
-
-// icons/react/Key12Icon.tsx
-var import_jsx_runtime140 = require("react/jsx-runtime");
-
-// icons/react/Loader12Icon.tsx
-var import_jsx_runtime141 = require("react/jsx-runtime");
-
-// icons/react/More12Icon.tsx
-var import_jsx_runtime142 = require("react/jsx-runtime");
-
-// icons/react/NextArrow12Icon.tsx
-var import_jsx_runtime143 = require("react/jsx-runtime");
-
-// icons/react/PrevArrow12Icon.tsx
-var import_jsx_runtime144 = require("react/jsx-runtime");
-
-// icons/react/OpenLink12Icon.tsx
-var import_jsx_runtime145 = require("react/jsx-runtime");
-
-// icons/react/Repair12Icon.tsx
-var import_jsx_runtime146 = require("react/jsx-runtime");
-
-// icons/react/Security12Icon.tsx
-var import_jsx_runtime147 = require("react/jsx-runtime");
-
-// icons/react/Success12Icon.tsx
-var import_jsx_runtime148 = require("react/jsx-runtime");
-
-// icons/react/Unauthorized12Icon.tsx
-var import_jsx_runtime149 = require("react/jsx-runtime");
-
-// icons/react/Warning12Icon.tsx
-var import_jsx_runtime150 = require("react/jsx-runtime");
-
-// icons/react/Question12Icon.tsx
-var import_jsx_runtime151 = require("react/jsx-runtime");
-
-// icons/react/Hide12Icon.tsx
-var import_jsx_runtime152 = require("react/jsx-runtime");
-
-// icons/react/SelectArrows6Icon.tsx
-var import_jsx_runtime153 = require("react/jsx-runtime");
-var SelectArrows6Icon = ({
-  title,
-  titleId,
-  ...props
-}) => /* @__PURE__ */ (0, import_jsx_runtime153.jsxs)("svg", { width: 6, height: 14, viewBox: "0 0 6 14", xmlns: "http://www.w3.org/2000/svg", role: "img", "aria-labelledby": titleId, ...props, children: [
-  title ? /* @__PURE__ */ (0, import_jsx_runtime153.jsx)("title", { id: titleId, children: title }) : null,
-  /* @__PURE__ */ (0, import_jsx_runtime153.jsx)("path", { fillRule: "evenodd", clipRule: "evenodd", d: "M3.322.536a.375.375 0 0 0-.644 0L.341 4.432C.19 4.682.37 5 .662 5h4.676a.375.375 0 0 0 .321-.568L3.322.536Zm-.644 12.928a.375.375 0 0 0 .644 0l2.337-3.896A.375.375 0 0 0 5.338 9H.662a.375.375 0 0 0-.321.568l2.337 3.896Z", fill: "currentColor" })
-] });
-var SelectArrows6Icon_default = SelectArrows6Icon;
-
-// icons/react/Close8Icon.tsx
-var import_jsx_runtime154 = require("react/jsx-runtime");
-
 // components/src/ui/checkbox/Checkbox.tsx
-var import_classnames6 = __toESM(require_classnames());
-var import_jsx_runtime155 = require("react/jsx-runtime");
-var Check = () => /* @__PURE__ */ (0, import_jsx_runtime155.jsx)(Checkmark12Icon_default, { className: "pointer-events-none absolute left-0.5 top-0.5 h-3 w-3 fill-current text-accent" });
+var import_classnames7 = __toESM(require_classnames());
+var import_jsx_runtime157 = require("react/jsx-runtime");
+var Check = () => /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(Checkmark12Icon_default, { className: "pointer-events-none absolute left-0.5 top-0.5 h-3 w-3 fill-current text-accent" });
 var Indeterminate = classed.div`absolute w-2 h-0.5 left-1 top-[7px] bg-accent pointer-events-none`;
 var inputStyle = `
   appearance-none border border-default bg-default h-4 w-4 rounded-sm absolute left-0 outline-none
@@ -57419,48 +57415,48 @@ var Checkbox = ({
   children,
   className,
   ...inputProps
-}) => /* @__PURE__ */ (0, import_jsx_runtime155.jsxs)("label", { className: "inline-flex items-center", children: [
-  /* @__PURE__ */ (0, import_jsx_runtime155.jsxs)("span", { className: "relative h-4 w-4", children: [
-    /* @__PURE__ */ (0, import_jsx_runtime155.jsx)(
+}) => /* @__PURE__ */ (0, import_jsx_runtime157.jsxs)("label", { className: "inline-flex items-center", children: [
+  /* @__PURE__ */ (0, import_jsx_runtime157.jsxs)("span", { className: "relative h-4 w-4", children: [
+    /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(
       "input",
       {
-        className: (0, import_classnames6.default)(inputStyle, className),
+        className: (0, import_classnames7.default)(inputStyle, className),
         type: "checkbox",
         ref: (el) => el && (el.indeterminate = !!indeterminate),
         ...inputProps
       }
     ),
-    inputProps.checked && !indeterminate && /* @__PURE__ */ (0, import_jsx_runtime155.jsx)(Check, {}),
-    indeterminate && /* @__PURE__ */ (0, import_jsx_runtime155.jsx)(Indeterminate, {})
+    inputProps.checked && !indeterminate && /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(Check, {}),
+    indeterminate && /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(Indeterminate, {})
   ] }),
-  children && /* @__PURE__ */ (0, import_jsx_runtime155.jsx)("span", { className: "ml-2.5 text-sans-md text-secondary", children })
+  children && /* @__PURE__ */ (0, import_jsx_runtime157.jsx)("span", { className: "ml-2.5 text-sans-md text-secondary", children })
 ] });
 
 // components/src/ui/empty-message/EmptyMessage.tsx
-var import_classnames7 = __toESM(require_classnames());
+var import_classnames8 = __toESM(require_classnames());
 var import_react_router_dom = require("react-router-dom");
-var import_jsx_runtime156 = require("react/jsx-runtime");
+var import_jsx_runtime158 = require("react/jsx-runtime");
 var buttonStyleProps = { variant: "ghost", size: "sm", color: "secondary" };
 function EmptyMessage(props) {
   let button = null;
   if (props.buttonText && "buttonTo" in props) {
-    button = /* @__PURE__ */ (0, import_jsx_runtime156.jsx)(import_react_router_dom.Link, { className: (0, import_classnames7.default)("mt-6", buttonStyle(buttonStyleProps)), to: props.buttonTo, children: props.buttonText });
+    button = /* @__PURE__ */ (0, import_jsx_runtime158.jsx)(import_react_router_dom.Link, { className: (0, import_classnames8.default)("mt-6", buttonStyle(buttonStyleProps)), to: props.buttonTo, children: props.buttonText });
   } else if (props.buttonText && "onClick" in props) {
-    button = /* @__PURE__ */ (0, import_jsx_runtime156.jsx)(Button, { ...buttonStyleProps, className: "mt-6", onClick: props.onClick, children: props.buttonText });
+    button = /* @__PURE__ */ (0, import_jsx_runtime158.jsx)(Button, { ...buttonStyleProps, className: "mt-6", onClick: props.onClick, children: props.buttonText });
   }
-  return /* @__PURE__ */ (0, import_jsx_runtime156.jsxs)("div", { className: "m-4 flex max-w-[14rem] flex-col items-center text-center", children: [
-    props.icon && /* @__PURE__ */ (0, import_jsx_runtime156.jsx)("div", { className: "mb-4 rounded p-1 leading-[0] text-accent bg-accent-secondary", children: props.icon }),
-    /* @__PURE__ */ (0, import_jsx_runtime156.jsx)("h3", { className: "text-sans-semi-lg", children: props.title }),
-    props.body && /* @__PURE__ */ (0, import_jsx_runtime156.jsx)("p", { className: "mt-1 text-sans-md text-secondary", children: props.body }),
+  return /* @__PURE__ */ (0, import_jsx_runtime158.jsxs)("div", { className: "m-4 flex max-w-[14rem] flex-col items-center text-center", children: [
+    props.icon && /* @__PURE__ */ (0, import_jsx_runtime158.jsx)("div", { className: "mb-4 rounded p-1 leading-[0] text-accent bg-accent-secondary", children: props.icon }),
+    /* @__PURE__ */ (0, import_jsx_runtime158.jsx)("h3", { className: "text-sans-semi-lg", children: props.title }),
+    props.body && /* @__PURE__ */ (0, import_jsx_runtime158.jsx)("p", { className: "mt-1 text-sans-md text-secondary", children: props.body }),
     button
   ] });
 }
 
 // components/src/ui/listbox/Listbox.tsx
-var import_react5 = require("@floating-ui/react");
-var import_react6 = require("@headlessui/react");
-var import_classnames8 = __toESM(require_classnames());
-var import_jsx_runtime157 = require("react/jsx-runtime");
+var import_react7 = require("@floating-ui/react");
+var import_react8 = require("@headlessui/react");
+var import_classnames9 = __toESM(require_classnames());
+var import_jsx_runtime159 = require("react/jsx-runtime");
 var Listbox = ({
   name,
   selected,
@@ -57473,11 +57469,11 @@ var Listbox = ({
   isLoading = false,
   ...props
 }) => {
-  const { refs, floatingStyles } = (0, import_react5.useFloating)({
+  const { refs, floatingStyles } = (0, import_react7.useFloating)({
     middleware: [
-      (0, import_react5.offset)(12),
-      (0, import_react5.flip)(),
-      (0, import_react5.size)({
+      (0, import_react7.offset)(12),
+      (0, import_react7.flip)(),
+      (0, import_react7.size)({
         apply({ rects, elements }) {
           Object.assign(elements.floating.style, {
             width: `${rects.reference.width}px`
@@ -57489,19 +57485,19 @@ var Listbox = ({
   const selectedItem = selected && items.find((i) => i.value === selected);
   const noItems = !isLoading && items.length === 0;
   const isDisabled = disabled || noItems;
-  return /* @__PURE__ */ (0, import_jsx_runtime157.jsx)("div", { className: (0, import_classnames8.default)("relative", className), children: /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(
-    import_react6.Listbox,
+  return /* @__PURE__ */ (0, import_jsx_runtime159.jsx)("div", { className: (0, import_classnames9.default)("relative", className), children: /* @__PURE__ */ (0, import_jsx_runtime159.jsx)(
+    import_react8.Listbox,
     {
       value: selected,
       onChange: (val) => val !== null && onChange(val),
       disabled: isDisabled || isLoading,
-      children: ({ open }) => /* @__PURE__ */ (0, import_jsx_runtime157.jsxs)(import_jsx_runtime157.Fragment, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime157.jsxs)(
-          import_react6.Listbox.Button,
+      children: ({ open }) => /* @__PURE__ */ (0, import_jsx_runtime159.jsxs)(import_jsx_runtime159.Fragment, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime159.jsxs)(
+          import_react8.Listbox.Button,
           {
             name,
             ref: refs.setReference,
-            className: (0, import_classnames8.default)(
+            className: (0, import_classnames9.default)(
               `flex h-10 w-full items-center justify-between
                     rounded border text-sans-md`,
               hasError ? "focus-error border-error-secondary hover:border-error" : "border-default hover:border-hover",
@@ -57512,37 +57508,37 @@ var Listbox = ({
             ),
             ...props,
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime157.jsx)("div", { className: "w-full px-3 text-left", children: selectedItem ? (
+              /* @__PURE__ */ (0, import_jsx_runtime159.jsx)("div", { className: "w-full px-3 text-left", children: selectedItem ? (
                 // labelString is one line, which is what we need when label is a ReactNode
                 selectedItem.labelString || selectedItem.label
-              ) : /* @__PURE__ */ (0, import_jsx_runtime157.jsx)("span", { className: "text-quaternary", children: noItems ? "No items" : placeholder }) }),
-              !isDisabled && /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(SpinnerLoader, { isLoading }),
-              /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(
+              ) : /* @__PURE__ */ (0, import_jsx_runtime159.jsx)("span", { className: "text-quaternary", children: noItems ? "No items" : placeholder }) }),
+              !isDisabled && /* @__PURE__ */ (0, import_jsx_runtime159.jsx)(SpinnerLoader, { isLoading }),
+              /* @__PURE__ */ (0, import_jsx_runtime159.jsx)(
                 "div",
                 {
                   className: "ml-3 flex h-[calc(100%-12px)] items-center border-l px-3 border-secondary",
                   "aria-hidden": true,
-                  children: /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(SelectArrows6Icon_default, { className: "h-[14px] w-2 text-tertiary" })
+                  children: /* @__PURE__ */ (0, import_jsx_runtime159.jsx)(SelectArrows6Icon_default, { className: "h-[14px] w-2 text-tertiary" })
                 }
               )
             ]
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(import_react5.FloatingPortal, { children: /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(
-          import_react6.Listbox.Options,
+        /* @__PURE__ */ (0, import_jsx_runtime159.jsx)(import_react7.FloatingPortal, { children: /* @__PURE__ */ (0, import_jsx_runtime159.jsx)(
+          import_react8.Listbox.Options,
           {
             ref: refs.setFloating,
             style: floatingStyles,
             className: "ox-menu pointer-events-auto z-50 overflow-y-auto !outline-none",
-            children: items.map((item) => /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(
-              import_react6.Listbox.Option,
+            children: items.map((item) => /* @__PURE__ */ (0, import_jsx_runtime159.jsx)(
+              import_react8.Listbox.Option,
               {
                 value: item.value,
                 className: "relative border-b border-secondary last:border-0",
-                children: ({ active, selected: selected2 }) => /* @__PURE__ */ (0, import_jsx_runtime157.jsx)(
+                children: ({ active, selected: selected2 }) => /* @__PURE__ */ (0, import_jsx_runtime159.jsx)(
                   "div",
                   {
-                    className: (0, import_classnames8.default)(
+                    className: (0, import_classnames9.default)(
                       "ox-menu-item text-secondary",
                       selected2 && "is-selected",
                       active && "is-highlighted"

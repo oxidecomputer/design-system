@@ -15,6 +15,9 @@ declare const AsciiDocBlocks: {
     Table: ({ node }: {
         node: _asciidoctor_core_types.Table;
     }) => react_jsx_runtime.JSX.Element;
+    Section: ({ node }: {
+        node: _asciidoctor_core_types.Section;
+    }) => react_jsx_runtime.JSX.Element;
 };
 
 type BadgeColor = 'default' | 'destructive' | 'notice' | 'neutral' | 'purple' | 'blue';

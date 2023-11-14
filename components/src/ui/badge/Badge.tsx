@@ -5,7 +5,6 @@
  *
  * Copyright Oxide Computer Company
  */
-
 import cn from 'classnames'
 
 export type BadgeColor =

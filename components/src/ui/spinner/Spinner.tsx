@@ -5,7 +5,6 @@
  *
  * Copyright Oxide Computer Company
  */
-
 import cn from 'classnames'
 import type { ReactNode } from 'react'
 import { useEffect, useRef, useState } from 'react'

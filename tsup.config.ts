@@ -5,7 +5,6 @@
  *
  * Copyright Oxide Computer Company
  */
-
 import { defineConfig } from 'tsup'
 
 export default defineConfig({
