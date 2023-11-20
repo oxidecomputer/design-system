@@ -334,8 +334,17 @@
     @apply overflow-x-auto !text-[13px] text-mono-code;
   }
 
+  .asciidoc-body h1 code,
+  .asciidoc-body h2 code,
+  .asciidoc-body h3 code,
+  .asciidoc-body h4 code,
+  .asciidoc-body h5 code {
+    @apply text-[0.825em];
+  }
+
+  .asciidoc-body .paragraph > code,
   .asciidoc-body p code {
-    @apply !text-[0.825em];
+    @apply text-[0.825rem];
   }
 
   .asciidoc-body code {
