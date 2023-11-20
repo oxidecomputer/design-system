@@ -1,3 +1,15 @@
+# v1.2.7 (Mon Nov 20 2023)
+
+#### 🐛 Bug Fix
+
+- [AsciiDoc] Better code text size handling in titles and tables [#61](https://github.com/oxidecomputer/design-system/pull/61) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.2.6 (Tue Nov 14 2023)
 
 #### 🐛 Bug Fix
