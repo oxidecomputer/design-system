@@ -1,3 +1,15 @@
+# v1.2.8 (Tue Nov 21 2023)
+
+#### 🐛 Bug Fix
+
+- TLA language support [#62](https://github.com/oxidecomputer/design-system/pull/62) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.2.7 (Mon Nov 20 2023)
 
 #### 🐛 Bug Fix
