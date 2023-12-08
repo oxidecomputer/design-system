@@ -1,3 +1,15 @@
+# v1.2.9 (Fri Dec 08 2023)
+
+#### 🐛 Bug Fix
+
+- Turn off contextual alternates by default [#64](https://github.com/oxidecomputer/design-system/pull/64) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.2.8 (Tue Nov 21 2023)
 
 #### 🐛 Bug Fix
