@@ -270,6 +270,11 @@ StyleDictionary.registerFormat({
               // @ts-expect-error null is filtered despite showing up in the types
               .map(([name, value]) => `'${name}': ${JSON.stringify(value)},`)
               .join('\n')}
+              ${
+                prop.value['fontFamily'] === 'GT America Mono'
+                  ? `'font-feature-settings': '"ss02" on,"ss03" on,"ss09" on,"ss06" on,"ss07" on,"ss08" on,"calt" off',`
+                  : ''
+              }
 					}`,
         )}
 			}

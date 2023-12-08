@@ -8,6 +8,8 @@ module.exports.textUtilities = {
     'font-size': '0.6875rem',
     'letter-spacing': '0.04rem',
     'text-transform': 'uppercase',
+    'font-feature-settings':
+      '"ss02" on,"ss03" on,"ss09" on,"ss06" on,"ss07" on,"ss08" on,"calt" off',
   },
   '.text-mono-sm': {
     'font-family': '"GT America Mono", monospace',
@@ -16,6 +18,8 @@ module.exports.textUtilities = {
     'font-size': '0.75rem',
     'letter-spacing': '0.04rem',
     'text-transform': 'uppercase',
+    'font-feature-settings':
+      '"ss02" on,"ss03" on,"ss09" on,"ss06" on,"ss07" on,"ss08" on,"calt" off',
   },
   '.text-mono-code': {
     'font-family': '"GT America Mono", monospace',
@@ -23,6 +27,8 @@ module.exports.textUtilities = {
     'line-height': '1rem',
     'font-size': '0.75rem',
     'letter-spacing': '0rem',
+    'font-feature-settings':
+      '"ss02" on,"ss03" on,"ss09" on,"ss06" on,"ss07" on,"ss08" on,"calt" off',
   },
   '.text-mono-md': {
     'font-family': '"GT America Mono", monospace',
@@ -31,6 +37,8 @@ module.exports.textUtilities = {
     'font-size': '0.875rem',
     'letter-spacing': '0.04rem',
     'text-transform': 'uppercase',
+    'font-feature-settings':
+      '"ss02" on,"ss03" on,"ss09" on,"ss06" on,"ss07" on,"ss08" on,"calt" off',
   },
   '.text-sans-sm': {
     'font-family':
