@@ -1,3 +1,15 @@
+# v1.2.10 (Mon Jan 15 2024)
+
+#### 🐛 Bug Fix
+
+- Update icons [#65](https://github.com/oxidecomputer/design-system/pull/65) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.2.9 (Fri Dec 08 2023)
 
 #### 🐛 Bug Fix
