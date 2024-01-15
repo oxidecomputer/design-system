@@ -11,11 +11,7 @@ interface SVGRProps {
   title?: string
   titleId?: string
 }
-const OpenLink12Icon = ({
-  title,
-  titleId,
-  ...props
-}: SVGProps<SVGSVGElement> & SVGRProps) => (
+const Info12Icon = ({ title, titleId, ...props }: SVGProps<SVGSVGElement> & SVGRProps) => (
   <svg
     width={12}
     height={12}
@@ -29,9 +25,9 @@ const OpenLink12Icon = ({
     <path
       fillRule="evenodd"
       clipRule="evenodd"
-      d="M1.667 1H5.02l.99.99.51.51H2.5v7h7V5.48l.51.51.99.99v3.353a.667.667 0 0 1-.667.667H1.667A.667.667 0 0 1 1 10.333V1.667C1 1.299 1.299 1 1.667 1ZM9.5 3.5l-1-1-.1-.1-.261-.261L7 1h3.333c.368 0 .667.299.667.667V5L9.862 3.862 9.6 3.6l-.1-.1Z"
+      d="M6 0a6 6 0 1 0 0 12A6 6 0 0 0 6 0Zm-.083 9a.667.667 0 0 1-.667-.667V5.667c0-.368.299-.667.667-.667h.166c.368 0 .667.299.667.667v2.666A.667.667 0 0 1 6.083 9h-.166Zm0-5a.667.667 0 0 1-.667-.667v-.166c0-.368.299-.667.667-.667h.166c.368 0 .667.299.667.667v.166A.667.667 0 0 1 6.083 4h-.166Z"
       fill="currentColor"
     />
   </svg>
 )
-export default OpenLink12Icon
+export default Info12Icon

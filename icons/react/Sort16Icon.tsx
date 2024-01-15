@@ -11,15 +11,11 @@ interface SVGRProps {
   title?: string
   titleId?: string
 }
-const OpenLink12Icon = ({
-  title,
-  titleId,
-  ...props
-}: SVGProps<SVGSVGElement> & SVGRProps) => (
+const Sort16Icon = ({ title, titleId, ...props }: SVGProps<SVGSVGElement> & SVGRProps) => (
   <svg
-    width={12}
-    height={12}
-    viewBox="0 0 12 12"
+    width={16}
+    height={16}
+    viewBox="0 0 16 16"
     xmlns="http://www.w3.org/2000/svg"
     role="img"
     aria-labelledby={titleId}
@@ -29,9 +25,9 @@ const OpenLink12Icon = ({
     <path
       fillRule="evenodd"
       clipRule="evenodd"
-      d="M1.667 1H5.02l.99.99.51.51H2.5v7h7V5.48l.51.51.99.99v3.353a.667.667 0 0 1-.667.667H1.667A.667.667 0 0 1 1 10.333V1.667C1 1.299 1.299 1 1.667 1ZM9.5 3.5l-1-1-.1-.1-.261-.261L7 1h3.333c.368 0 .667.299.667.667V5L9.862 3.862 9.6 3.6l-.1-.1Z"
+      d="M3.414 2.732a.75.75 0 0 1 1.172 0l2.927 3.659A.375.375 0 0 1 7.22 7H6v5.25a.75.75 0 0 1-.75.75h-2.5a.75.75 0 0 1-.75-.75V7H.78a.375.375 0 0 1-.293-.61l2.927-3.658Zm8 10.536a.75.75 0 0 0 1.172 0l2.926-3.659A.375.375 0 0 0 15.22 9H14V3.75a.75.75 0 0 0-.75-.75h-2.5a.75.75 0 0 0-.75.75V9H8.78a.375.375 0 0 0-.293.61l2.927 3.658Z"
       fill="currentColor"
     />
   </svg>
 )
-export default OpenLink12Icon
+export default Sort16Icon

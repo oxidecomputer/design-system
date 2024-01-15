@@ -36,6 +36,7 @@ export type Icon =
   | { name: 'compatibility'; size: 24 }
   | { name: 'contrast'; size: 16 }
   | { name: 'contrast'; size: 24 }
+  | { name: 'copy'; size: 12 }
   | { name: 'cpu'; size: 16 }
   | { name: 'cpu'; size: 24 }
   | { name: 'delete'; size: 16 }
@@ -56,6 +57,7 @@ export type Icon =
   | { name: 'error'; size: 16 }
   | { name: 'error'; size: 24 }
   | { name: 'filter'; size: 12 }
+  | { name: 'filter'; size: 16 }
   | { name: 'firewall'; size: 16 }
   | { name: 'firewall'; size: 24 }
   | { name: 'folder'; size: 16 }
@@ -71,6 +73,7 @@ export type Icon =
   | { name: 'hourglass'; size: 24 }
   | { name: 'images'; size: 16 }
   | { name: 'images'; size: 24 }
+  | { name: 'info'; size: 12 }
   | { name: 'info'; size: 16 }
   | { name: 'info'; size: 24 }
   | { name: 'instances'; size: 16 }
@@ -139,6 +142,7 @@ export type Icon =
   | { name: 'snapshots'; size: 24 }
   | { name: 'software-update'; size: 16 }
   | { name: 'software-update'; size: 24 }
+  | { name: 'sort'; size: 16 }
   | { name: 'speaker'; size: 24 }
   | { name: 'ssd'; size: 16 }
   | { name: 'storage'; size: 16 }
