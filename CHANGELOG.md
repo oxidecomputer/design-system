@@ -1,3 +1,15 @@
+# v1.2.11 (Wed Feb 14 2024)
+
+#### 🐛 Bug Fix
+
+- [AsciiDoc] Use `object-contain` on image blocks [#66](https://github.com/oxidecomputer/design-system/pull/66) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.2.10 (Mon Jan 15 2024)
 
 #### 🐛 Bug Fix
