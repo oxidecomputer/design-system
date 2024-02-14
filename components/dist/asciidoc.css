@@ -40,9 +40,13 @@
     @apply normal-case;
   }
 
-  .asciidoc-body img {
-    @apply mx-auto h-auto w-auto w-full rounded-lg border border-tertiary;
+  .asciidoc-body .imageblock img {
+    @apply mx-auto h-auto w-auto w-full rounded-lg border border-tertiary object-contain;
     max-height: max(500px, 75vh);
+  }
+
+  .asciidoc-body span img {
+    @apply inline;
   }
 
   .asciidoc-body img.transparent-dark {
@@ -702,11 +706,6 @@
     pre {
       hyphens: none;
       white-space: pre-wrap;
-    }
-
-    .asciidoc-body img {
-      max-height: max(400px, 25vh);
-      margin-left: 0;
     }
 
     h1 {
