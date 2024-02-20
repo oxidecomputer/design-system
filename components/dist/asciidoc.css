@@ -54,7 +54,7 @@
   }
 
   .asciidoc-body p a {
-    @apply text-accent-tertiary hover:text-accent-secondary;
+    @apply text-accent-secondary hover:text-accent;
     overflow-wrap: break-word;
     word-wrap: break-word;
 
