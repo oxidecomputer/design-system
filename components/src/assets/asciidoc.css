@@ -54,9 +54,12 @@
   }
 
   .asciidoc-body p a {
-    @apply text-accent-tertiary hover:text-accent-secondary;
+    @apply text-accent-secondary hover:text-accent;
     overflow-wrap: break-word;
     word-wrap: break-word;
+
+    text-decoration: underline;
+    text-decoration-color: rgba(var(--content-accent-tertiary-rgb), 0.8);
   }
 
   /* Use semi-bold for strong */
