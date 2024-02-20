@@ -57,6 +57,9 @@
     @apply text-accent-tertiary hover:text-accent-secondary;
     overflow-wrap: break-word;
     word-wrap: break-word;
+
+    text-decoration: underline;
+    text-decoration-color: rgba(var(--content-accent-tertiary-rgb), 0.8);
   }
 
   /* Use semi-bold for strong */
