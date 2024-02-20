@@ -575,6 +575,10 @@
     @apply mb-2 max-w-[40rem] text-left italic text-sans-lg text-tertiary;
   }
 
+  .asciidoc-body summary.title {
+    @apply not-italic;
+  }
+
   .asciidoc-body .conum {
     @apply inline-block;
   }
