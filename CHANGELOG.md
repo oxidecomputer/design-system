@@ -1,3 +1,15 @@
+# v1.2.12 (Tue Feb 20 2024)
+
+#### 🐛 Bug Fix
+
+- [AsciiDoc] Improve link contrast [#67](https://github.com/oxidecomputer/design-system/pull/67) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.2.11 (Wed Feb 14 2024)
 
 #### 🐛 Bug Fix
