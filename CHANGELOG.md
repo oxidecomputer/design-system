@@ -1,3 +1,15 @@
+# v1.2.13 (Tue Feb 20 2024)
+
+#### 🐛 Bug Fix
+
+- Summary title should not be italic [#68](https://github.com/oxidecomputer/design-system/pull/68) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.2.12 (Tue Feb 20 2024)
 
 #### 🐛 Bug Fix
