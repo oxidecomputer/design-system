@@ -2,6 +2,7 @@
   "name": "@oxide/design-system",
   "version": "1.2.13",
   "description": "Home of reusable design assets and token for oxide internal sites",
+  "sideEffects": false,
   "main": "./components/dist/index.js",
   "typings": "./components/dist/index.d.ts",
   "module": "./components/dist/index.mjs",
