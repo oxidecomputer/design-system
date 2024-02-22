@@ -2,7 +2,19 @@
   "name": "@oxide/design-system",
   "version": "1.2.13",
   "description": "Home of reusable design assets and token for oxide internal sites",
-  "main": "components/dist/index.js",
+  "main": "./components/dist/index.js",
+  "typings": "./components/dist/index.d.ts",
+  "module": "./components/dist/index.mjs",
+  "exports": {
+    "require": {
+      "types": "./components/dist/index.d.ts",
+      "default": "./components/dist/index.ts"
+    },
+    "import": {
+      "types": "./components/dist/index.d.mts",
+      "default": "./components/dist/index.mjs"
+    }
+  },
   "scripts": {
     "export-icons": "npx zx ./scripts/export-icons.md && npm run fmt",
     "build": "run-s build:*",
