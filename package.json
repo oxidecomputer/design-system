@@ -36,7 +36,7 @@
     "@types/react-dom": "^18.0.11",
     "@types/svg-sprite": "^0.0.34",
     "@typescript-eslint/eslint-plugin": "^5.47.0",
-    "auto": "^10.37.6",
+    "auto": "^10.46.0",
     "esbuild-register": "^3.3.3",
     "eslint": "^8.23.0",
     "eslint-config-prettier": "^8.5.0",
