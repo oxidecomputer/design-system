@@ -18,7 +18,8 @@
     "paths": {
       "~/*": ["./components/*"],
       "@/*": ["./*"]
-    }
+    },
+    "allowImportingTsExtensions": true
   },
   "include": ["components/**/*.ts", "components/**/*.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
