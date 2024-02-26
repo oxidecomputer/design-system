@@ -1,3 +1,15 @@
+# v1.2.14 (Mon Feb 26 2024)
+
+#### 🐛 Bug Fix
+
+- [AsciiDoc] Better contrast for admonition title [#70](https://github.com/oxidecomputer/design-system/pull/70) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.2.13 (Tue Feb 20 2024)
 
 #### 🐛 Bug Fix
