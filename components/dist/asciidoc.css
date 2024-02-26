@@ -36,8 +36,8 @@
     @apply mb-1 last:mb-0;
   }
 
-  .asciidoc-body .admonition-content > div {
-    @apply normal-case;
+  .asciidoc-body .admonition-content > div:first-of-type {
+    @apply normal-case text-sans-semi-md;
   }
 
   .asciidoc-body .imageblock img {
