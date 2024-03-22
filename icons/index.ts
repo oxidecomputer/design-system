@@ -97,8 +97,12 @@ export type Icon =
   | { name: 'location'; size: 24 }
   | { name: 'logs'; size: 16 }
   | { name: 'logs'; size: 24 }
+  | { name: 'menu-close'; size: 12 }
+  | { name: 'menu-open'; size: 12 }
   | { name: 'metrics'; size: 16 }
   | { name: 'metrics'; size: 24 }
+  | { name: 'monitoring'; size: 16 }
+  | { name: 'monitoring'; size: 24 }
   | { name: 'more'; size: 12 }
   | { name: 'networking'; size: 16 }
   | { name: 'networking'; size: 24 }
@@ -138,6 +142,7 @@ export type Icon =
   | { name: 'settings'; size: 16 }
   | { name: 'settings'; size: 24 }
   | { name: 'show'; size: 16 }
+  | { name: 'sign-out'; size: 16 }
   | { name: 'snapshots'; size: 16 }
   | { name: 'snapshots'; size: 24 }
   | { name: 'software-update'; size: 16 }
