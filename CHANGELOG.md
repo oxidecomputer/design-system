@@ -1,3 +1,15 @@
+# v1.3.0 (Fri Mar 22 2024)
+
+#### 🚀 Enhancement
+
+- Add responsive console icons [#73](https://github.com/oxidecomputer/design-system/pull/73) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.2.14 (Mon Feb 26 2024)
 
 #### 🐛 Bug Fix
