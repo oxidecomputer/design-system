@@ -733,7 +733,12 @@
       margin-bottom: 2cm;
     }
 
-    :root {
+    :root,
+    .yellow-theme,
+    .purple-theme,
+    .green-theme,
+    .blue-theme,
+    .red-theme {
       --surface-default: white;
       --surface-default-p3: var(--surface-default);
       --content-default: black;
