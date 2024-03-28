@@ -1,3 +1,15 @@
+# v1.4.1 (Thu Mar 28 2024)
+
+#### 🐛 Bug Fix
+
+- Add print vars to themes also [#75](https://github.com/oxidecomputer/design-system/pull/75) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.3.0 (Thu Mar 28 2024)
 
 #### 🚀 Enhancement
