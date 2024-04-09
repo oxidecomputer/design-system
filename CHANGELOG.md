@@ -1,3 +1,15 @@
+# v1.4.2 (Tue Apr 09 2024)
+
+#### 🐛 Bug Fix
+
+- [AsciiDoc] Remove css svgs [#77](https://github.com/oxidecomputer/design-system/pull/77) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.4.1 (Thu Mar 28 2024)
 
 #### 🐛 Bug Fix
