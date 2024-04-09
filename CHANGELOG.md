@@ -1,3 +1,15 @@
+# v1.4.3 (Tue Apr 09 2024)
+
+#### 🐛 Bug Fix
+
+- Use success for default admonition [#78](https://github.com/oxidecomputer/design-system/pull/78) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.4.2 (Tue Apr 09 2024)
 
 #### 🐛 Bug Fix
