@@ -24,12 +24,12 @@
   }
 
   .asciidoc-body .admonitionblock .quoteblock {
-    @apply mb-2 mt-2 pl-[0.75rem] border-accent-secondary;
+    @apply mb-2 mt-2 pl-[0.75rem] border-success-secondary;
   }
 
   .asciidoc-body .admonitionblock p,
   .asciidoc-body .admonitionblock blockquote {
-    @apply text-accent;
+    @apply text-success;
   }
 
   .asciidoc-body .admonition-content .paragraph {
@@ -288,7 +288,7 @@
   }
 
   .asciidoc-body .admonitionblock p code {
-    @apply border-none text-inverse bg-accent;
+    @apply border-none text-inverse bg-success;
   }
 
   .asciidoc-body pre {
@@ -361,12 +361,12 @@
   }
 
   .asciidoc-body .admonitionblock {
-    @apply rounded-lg border text-accent bg-accent-secondary border-accent-tertiary;
+    @apply rounded-lg border text-success bg-success-secondary border-success-tertiary;
     @apply my-[1.5rem] flex px-3 py-3;
   }
 
   .asciidoc-body .admonitionblock strong {
-    @apply text-accent;
+    @apply text-success;
   }
 
   .asciidoc-body .admonitionblock.caution strong,
@@ -444,7 +444,7 @@
   }
 
   .asciidoc-body .admonitionblock a {
-    @apply text-accent;
+    @apply text-success;
   }
 
   .asciidoc-body .admonitionblock.caution a,
