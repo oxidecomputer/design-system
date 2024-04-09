@@ -108,51 +108,6 @@
     @apply 800:bottom-[2px];
   }
 
-  .asciidoc-body h1 a:hover::after,
-  .asciidoc-body h2 a:hover::after,
-  .asciidoc-body h3 a:hover::after,
-  .asciidoc-body h4 a:hover::after,
-  .asciidoc-body h5 a:hover::after,
-  .asciidoc-body .table-wrapper caption a:hover::after {
-    content: ' ';
-    @apply ml-2 inline-block h-4 w-4 min-w-[16px];
-    background: url(/svgs/link.svg) no-repeat top left;
-    background-size: contain;
-  }
-
-  .blue-theme {
-    & .asciidoc-body h1 a:hover::after,
-    & .asciidoc-body h2 a:hover::after,
-    & .asciidoc-body h3 a:hover::after,
-    & .asciidoc-body h4 a:hover::after,
-    & .asciidoc-body h5 a:hover::after,
-    & .asciidoc-body .table-wrapper caption a:hover::after {
-      background: url(/svgs/link-blue.svg) no-repeat top left;
-    }
-  }
-
-  .purple-theme {
-    & .asciidoc-body h1 a:hover::after,
-    & .asciidoc-body h2 a:hover::after,
-    & .asciidoc-body h3 a:hover::after,
-    & .asciidoc-body h4 a:hover::after,
-    & .asciidoc-body h5 a:hover::after,
-    & .asciidoc-body .table-wrapper caption a:hover::after {
-      background: url(/svgs/link-purple.svg) no-repeat top left;
-    }
-  }
-
-  .yellow-theme {
-    & .asciidoc-body h1 a:hover::after,
-    & .asciidoc-body h2 a:hover::after,
-    & .asciidoc-body h3 a:hover::after,
-    & .asciidoc-body h4 a:hover::after,
-    & .asciidoc-body h5 a:hover::after,
-    & .asciidoc-body .table-wrapper caption a:hover::after {
-      background: url(/svgs/link-yellow.svg) no-repeat top left;
-    }
-  }
-
   .asciidoc-body h2 {
     @apply text-sans-2xl;
   }
@@ -508,19 +463,6 @@
   .asciidoc-body .admonition-icon svg {
     @apply mr-2 mt-0.5 h-3 w-3;
   }
-
-  /* .asciidoc-body .admonitionblock.warning .admonition-icon {
-		background: url(/svgs/warning.svg) no-repeat top left;
-	}
-
-	.asciidoc-body .admonitionblock.caution .admonition-icon,
-	.asciidoc-body .admonitionblock.important .admonition-icon {
-		background: url(/svgs/caution.svg) no-repeat top left;
-	}
-
-	.asciidoc-body .admonitionblock.tip .admonition-icon {
-		background: url(/svgs/tip.svg) no-repeat top left;
-	} */
 
   .asciidoc-body .admonition-content {
     @apply text-sans-md 800:mr-[1.25rem];
