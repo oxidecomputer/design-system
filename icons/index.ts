@@ -123,6 +123,8 @@ export type Icon =
   | { name: 'progress'; size: 24 }
   | { name: 'prohibited'; size: 24 }
   | { name: 'question'; size: 12 }
+  | { name: 'question'; size: 16 }
+  | { name: 'question'; size: 24 }
   | { name: 'racks'; size: 24 }
   | { name: 'ram'; size: 16 }
   | { name: 'refresh'; size: 16 }
