@@ -1,3 +1,15 @@
+# v1.4.4 (Wed Apr 24 2024)
+
+#### 🐛 Bug Fix
+
+- added question icon 16px and 24px [#79](https://github.com/oxidecomputer/design-system/pull/79) ([@paryhin](https://github.com/paryhin))
+
+#### Authors: 1
+
+- Eugene Paryhin ([@paryhin](https://github.com/paryhin))
+
+---
+
 # v1.4.3 (Tue Apr 09 2024)
 
 #### 🐛 Bug Fix
