@@ -11,7 +11,11 @@ interface SVGRProps {
   title?: string
   titleId?: string
 }
-const Racks24Icon = ({ title, titleId, ...props }: SVGProps<SVGSVGElement> & SVGRProps) => (
+const Servers24Icon = ({
+  title,
+  titleId,
+  ...props
+}: SVGProps<SVGSVGElement> & SVGRProps) => (
   <svg
     width={24}
     height={24}
@@ -30,4 +34,4 @@ const Racks24Icon = ({ title, titleId, ...props }: SVGProps<SVGSVGElement> & SVG
     />
   </svg>
 )
-export default Racks24Icon
+export default Servers24Icon

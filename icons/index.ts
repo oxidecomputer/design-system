@@ -125,7 +125,6 @@ export type Icon =
   | { name: 'question'; size: 12 }
   | { name: 'question'; size: 16 }
   | { name: 'question'; size: 24 }
-  | { name: 'racks'; size: 24 }
   | { name: 'ram'; size: 16 }
   | { name: 'refresh'; size: 16 }
   | { name: 'repair'; size: 12 }
@@ -141,6 +140,7 @@ export type Icon =
   | { name: 'security'; size: 24 }
   | { name: 'select-arrows'; size: 6 }
   | { name: 'servers'; size: 16 }
+  | { name: 'servers'; size: 24 }
   | { name: 'settings'; size: 16 }
   | { name: 'settings'; size: 24 }
   | { name: 'show'; size: 16 }
