@@ -1,3 +1,15 @@
+# v1.4.5 (Fri Apr 26 2024)
+
+#### 🐛 Bug Fix
+
+- Rename `Racks24` to `Servers24` [#80](https://github.com/oxidecomputer/design-system/pull/80) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.4.4 (Wed Apr 24 2024)
 
 #### 🐛 Bug Fix
