@@ -1,3 +1,15 @@
+# v1.4.6 (Tue May 07 2024)
+
+#### 🐛 Bug Fix
+
+- Add inline image style [#81](https://github.com/oxidecomputer/design-system/pull/81) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.4.5 (Fri Apr 26 2024)
 
 #### 🐛 Bug Fix
