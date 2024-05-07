@@ -477,6 +477,10 @@
     @apply my-6;
   }
 
+  .asciidoc-body .imageblock.inlineimage {
+    @apply my-4;
+  }
+
   .asciidoc-body table.tableblock table.tableblock {
     @apply my-2;
   }
