@@ -67,7 +67,7 @@
     "access": "public"
   },
   "peerDependencies": {
-    "@oxide/react-asciidoc": "^0.2.9--canary.6a70e3a.0",
+    "@oxide/react-asciidoc": "^0.2.9--canary.*",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
