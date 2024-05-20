@@ -9,9 +9,6 @@ declare const AsciiDocBlocks: {
     Admonition: ({ node }: {
         node: _oxide_react_asciidoc.AdmonitionBlock;
     }) => react_jsx_runtime.JSX.Element;
-    Listing: ({ node }: {
-        node: _oxide_react_asciidoc.LiteralBlock;
-    }) => react_jsx_runtime.JSX.Element;
     Table: ({ node }: {
         node: _oxide_react_asciidoc.TableBlock;
     }) => react_jsx_runtime.JSX.Element;
