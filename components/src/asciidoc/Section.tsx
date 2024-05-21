@@ -25,9 +25,9 @@ const Section = ({ node }: { node: SectionBlock }) => {
   title = (
     <>
       <span className="anchor" id={node.id || ''} aria-hidden="true" />
-      <a className="link group" href={`#${node.id}`}>
+      <a className="section-link" href={`#${node.id}`}>
         {parse(stripAnchors(node.title))}
-        <Link16Icon className="ml-2 hidden text-accent-secondary group-hover:inline-block" />
+        <Link16Icon className="section-link-icon" />
       </a>
     </>
   )
