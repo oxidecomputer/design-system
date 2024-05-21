@@ -13,7 +13,7 @@ declare const AsciiDocBlocks: {
         node: _oxide_react_asciidoc.TableBlock;
     }) => react_jsx_runtime.JSX.Element;
     Section: ({ node }: {
-        node: AdocTypes.Section;
+        node: _oxide_react_asciidoc.SectionBlock;
     }) => react_jsx_runtime.JSX.Element;
 };
 

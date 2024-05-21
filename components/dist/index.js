@@ -7118,49 +7118,28 @@ var import_react_asciidoc2 = require("@oxide/react-asciidoc");
 var import_classnames = __toESM(require_classnames());
 var import_react2 = require("react");
 var import_jsx_runtime161 = require("react/jsx-runtime");
+var stripAnchors = (str) => str.replace(/<a[^>]*>(.*?)<\/a>/gi, "$1");
 var Section = ({ node }) => {
-  const docAttrs = node.getDocument().getAttributes();
-  const level = node.getLevel();
+  const level = node.level;
   let title = "";
-  let sectNum = node.getSectionNumeral();
+  let sectNum = node.num;
   sectNum = sectNum === "." ? "" : sectNum;
-  const sectNumLevels = docAttrs["sectnumlevels"] ? parseInt(docAttrs["sectnumlevels"]) : 3;
-  if (node.getCaption()) {
-    title = node.getCaptionedTitle();
-  } else if (node.isNumbered() && level <= sectNumLevels) {
-    if (level < 2 && node.getDocument().getDoctype() === "book") {
-      const sectionName = node.getSectionName();
-      if (sectionName === "chapter") {
-        const signifier = docAttrs["chapter-signifier"];
-        title = `${signifier || ""} ${sectNum} ${node.getTitle()}`;
-      } else if (sectionName === "part") {
-        const signifier = docAttrs["part-signifier"];
-        title = `${signifier || ""} ${sectNum} ${node.getTitle()}`;
-      } else {
-        title = node.getTitle() || "";
-      }
-    } else {
-      title = node.getTitle() || "";
-    }
-  } else {
-    title = node.getTitle() || "";
-  }
   title = /* @__PURE__ */ (0, import_jsx_runtime161.jsxs)(import_jsx_runtime161.Fragment, { children: [
-    /* @__PURE__ */ (0, import_jsx_runtime161.jsx)("a", { className: "anchor", id: node.getId() || "", "aria-hidden": true }),
-    /* @__PURE__ */ (0, import_jsx_runtime161.jsxs)("a", { className: "link group", href: `#${node.getId()}`, children: [
-      html_react_parser_default(title),
-      /* @__PURE__ */ (0, import_jsx_runtime161.jsx)(Link16Icon_default, { className: "text-accent-secondary hidden group-hover:inline-block ml-2" })
+    /* @__PURE__ */ (0, import_jsx_runtime161.jsx)("span", { className: "anchor", id: node.id || "", "aria-hidden": "true" }),
+    /* @__PURE__ */ (0, import_jsx_runtime161.jsxs)("a", { className: "link group", href: `#${node.id}`, children: [
+      html_react_parser_default(stripAnchors(node.title)),
+      /* @__PURE__ */ (0, import_jsx_runtime161.jsx)(Link16Icon_default, { className: "ml-2 hidden text-accent-secondary group-hover:inline-block" })
     ] })
   ] });
   if (level === 0) {
     return /* @__PURE__ */ (0, import_jsx_runtime161.jsxs)(import_jsx_runtime161.Fragment, { children: [
-      /* @__PURE__ */ (0, import_jsx_runtime161.jsx)("h1", { className: (0, import_classnames.default)("sect0", (0, import_react_asciidoc2.getRole)(node)), "data-sectnum": sectNum, children: title }),
-      /* @__PURE__ */ (0, import_jsx_runtime161.jsx)(import_react_asciidoc2.Content, { blocks: node.getBlocks() })
+      /* @__PURE__ */ (0, import_jsx_runtime161.jsx)("h1", { className: (0, import_classnames.default)("sect0", node.role), "data-sectnum": sectNum, children: title }),
+      /* @__PURE__ */ (0, import_jsx_runtime161.jsx)(import_react_asciidoc2.Content, { blocks: node.blocks })
     ] });
   } else {
-    return /* @__PURE__ */ (0, import_jsx_runtime161.jsxs)("div", { className: (0, import_classnames.default)(`sect${level}`, (0, import_react_asciidoc2.getRole)(node)), children: [
+    return /* @__PURE__ */ (0, import_jsx_runtime161.jsxs)("div", { className: (0, import_classnames.default)(`sect${level}`, node.role), children: [
       (0, import_react2.createElement)(`h${level + 1}`, { "data-sectnum": sectNum }, title),
-      /* @__PURE__ */ (0, import_jsx_runtime161.jsx)("div", { className: "sectionbody", children: /* @__PURE__ */ (0, import_jsx_runtime161.jsx)(import_react_asciidoc2.Content, { blocks: node.getBlocks() }) })
+      /* @__PURE__ */ (0, import_jsx_runtime161.jsx)("div", { className: "sectionbody", children: /* @__PURE__ */ (0, import_jsx_runtime161.jsx)(import_react_asciidoc2.Content, { blocks: node.blocks }) })
     ] });
   }
 };
