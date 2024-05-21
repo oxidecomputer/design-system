@@ -6512,7 +6512,8 @@ var Admonition = ({ node }) => {
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { children: titleCase(attrs.name) }),
       /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_react_asciidoc.Title, { text: node.title }),
-        node.content && html_react_parser_default(node.content)
+        node.content && html_react_parser_default(node.content),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_react_asciidoc.Content, { blocks: node.blocks })
       ] })
     ] })
   ] });
