@@ -12,9 +12,6 @@ declare const AsciiDocBlocks: {
     Table: ({ node }: {
         node: _oxide_react_asciidoc.TableBlock;
     }) => react_jsx_runtime.JSX.Element;
-    Section: ({ node }: {
-        node: _oxide_react_asciidoc.SectionBlock;
-    }) => react_jsx_runtime.JSX.Element;
 };
 
 type BadgeColor = 'default' | 'destructive' | 'notice' | 'neutral' | 'purple' | 'blue';
