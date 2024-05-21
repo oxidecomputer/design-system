@@ -633,6 +633,21 @@
     @apply bg-raise p-4 rounded-lg my-8 px-6 py-5;
   }
 
+  .asciidoc-body .section-link-icon {
+    margin-left: 0.5rem;
+    display: none;
+    color: var(--text-accent-secondary);
+  }
+
+  .asciidoc-body .section-link:hover .section-link-icon {
+    display: block;
+  }
+
+  /* Boosting body text for long text readability */
+  .asciidoc-body p {
+    color: #c8cacb;
+  }
+
   @media print {
     html {
       font-size: 14px !important;
@@ -717,20 +732,5 @@
       color: var(--content-default) !important;
       background-color: var(--surface-raise) !important;
     }
-
-    .asciidoc-body .section-link-icon {
-      margin-left: 0.5rem;
-      display: none;
-      color: var(--text-accent-secondary);
-    }
-
-    .asciidoc-body .section-link:hover .section-link-icon {
-      display: block;
-    }
-  }
-
-  /* Boosting body text for long text readability */
-  .asciidoc-body p {
-    color: #c8cacb;
   }
 }
