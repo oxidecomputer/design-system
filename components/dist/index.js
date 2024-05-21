@@ -7126,9 +7126,9 @@ var Section = ({ node }) => {
   sectNum = sectNum === "." ? "" : sectNum;
   title = /* @__PURE__ */ (0, import_jsx_runtime161.jsxs)(import_jsx_runtime161.Fragment, { children: [
     /* @__PURE__ */ (0, import_jsx_runtime161.jsx)("span", { className: "anchor", id: node.id || "", "aria-hidden": "true" }),
-    /* @__PURE__ */ (0, import_jsx_runtime161.jsxs)("a", { className: "link group", href: `#${node.id}`, children: [
+    /* @__PURE__ */ (0, import_jsx_runtime161.jsxs)("a", { className: "section-link", href: `#${node.id}`, children: [
       html_react_parser_default(stripAnchors(node.title)),
-      /* @__PURE__ */ (0, import_jsx_runtime161.jsx)(Link16Icon_default, { className: "ml-2 hidden text-accent-secondary group-hover:inline-block" })
+      /* @__PURE__ */ (0, import_jsx_runtime161.jsx)(Link16Icon_default, { className: "section-link-icon" })
     ] })
   ] });
   if (level === 0) {
