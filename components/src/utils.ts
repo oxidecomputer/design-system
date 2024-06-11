@@ -5,6 +5,8 @@
  *
  * Copyright Oxide Computer Company
  */
+import cn from 'classnames'
+import { createElement } from 'react'
 
 const titleCase = (text: string): string => {
   return text.replace(
@@ -20,7 +22,7 @@ const make =
   // only one argument here means string interpolations are not allowed
   (strings: TemplateStringsArray) => {
     const Comp = ({ className, children, ...rest }: JSX.IntrinsicElements[T]) =>
-      React.createElement(tag, { className: cn(strings[0], className), ...rest }, children)
+      createElement(tag, { className: cn(strings[0], className), ...rest }, children)
     Comp.displayName = `classed.${tag}`
     return Comp
   }
