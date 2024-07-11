@@ -5,10 +5,10 @@
  *
  * Copyright Oxide Computer Company
  */
-import { Svg } from './Svg'
+import { IconSvg } from './IconSvg'
 
 const Instances16Icon = ({ title, ...props }: {title?: string}) => (
-  <Svg
+  <IconSvg
     title={title}
     size={16}
     path="M6 1.75A.75.75 0 0 1 6.75 1h7.5a.75.75 0 0 1 .75.75v7.5a.75.75 0 0 1-.75.75H13V3.75a.75.75 0 0 0-.75-.75H6V1.75Zm-5 4A.75.75 0 0 1 1.75 5h8.5a.75.75 0 0 1 .75.75v8.5a.75.75 0 0 1-.75.75h-8.5a.75.75 0 0 1-.75-.75v-8.5Z"
