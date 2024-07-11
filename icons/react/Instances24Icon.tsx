@@ -5,33 +5,14 @@
  *
  * Copyright Oxide Computer Company
  */
-import { SVGProps } from 'react'
+import { Svg } from './Svg'
 
-interface SVGRProps {
-  title?: string
-  titleId?: string
-}
-const Instances24Icon = ({
-  title,
-  titleId,
-  ...props
-}: SVGProps<SVGSVGElement> & SVGRProps) => (
-  <svg
-    width={24}
-    height={24}
-    viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
-    role="img"
-    aria-labelledby={titleId}
+const Instances24Icon = ({ title, ...props }: {title?: string}) => (
+  <Svg
+    title={title}
+    size={24}
+    path="M7 3a1 1 0 0 1 1-1h13a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-2V6a1 1 0 0 0-1-1H7V3ZM3 7h13a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"
     {...props}
-  >
-    {title ? <title id={titleId}>{title}</title> : null}
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M7 3a1 1 0 0 1 1-1h13a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-2V6a1 1 0 0 0-1-1H7V3ZM3 7h13a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"
-      fill="currentColor"
-    />
-  </svg>
+  />
 )
 export default Instances24Icon
