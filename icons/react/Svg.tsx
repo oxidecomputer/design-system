@@ -5,7 +5,6 @@
  *
  * Copyright Oxide Computer Company
  */
-import React from 'react'
 import { SVGProps } from 'react'
 
 export type OxSvgProps = {
@@ -30,9 +29,9 @@ export const Svg = ({
   >
     {title && <title>{title}</title>}
     <path
-      fillRule="evenodd"
-      clipRule="evenodd"
       d={path}
       fill="currentColor"
+      fillRule="evenodd"
+      clipRule="evenodd"
     />
   </svg>)
