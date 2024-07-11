@@ -19,7 +19,7 @@ export const Svg = ({
     ...props
 }: SVGProps<SVGSVGElement> & OxSvgProps) => (
 <svg
-    aria-hidden={!title}
+    aria-hidden={title ? undefined : 'true'}
     width={size}
     height={size}
     viewBox={`0 0 ${size} ${size}`}
