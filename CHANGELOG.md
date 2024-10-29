@@ -1,3 +1,15 @@
+# v1.4.7 (Tue Oct 29 2024)
+
+#### ⚠️ Pushed to `master`
+
+- Sync ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.4.6 (Tue May 07 2024)
 
 #### 🐛 Bug Fix
