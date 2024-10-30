@@ -56437,7 +56437,6 @@ __export(src_exports, {
   Badge: () => Badge,
   Button: () => Button,
   Checkbox: () => Checkbox,
-  EmptyMessage: () => EmptyMessage,
   Listbox: () => Listbox,
   Spinner: () => Spinner,
   SpinnerLoader: () => SpinnerLoader,
@@ -57480,31 +57479,11 @@ var Checkbox = ({
   children && /* @__PURE__ */ (0, import_jsx_runtime168.jsx)("span", { className: "ml-2.5 text-sans-md text-secondary", children })
 ] });
 
-// components/src/ui/empty-message/EmptyMessage.tsx
-var import_classnames8 = __toESM(require_classnames());
-var import_react_router_dom = require("react-router-dom");
-var import_jsx_runtime169 = require("react/jsx-runtime");
-var buttonStyleProps = { variant: "ghost", size: "sm", color: "secondary" };
-function EmptyMessage(props) {
-  let button = null;
-  if (props.buttonText && "buttonTo" in props) {
-    button = /* @__PURE__ */ (0, import_jsx_runtime169.jsx)(import_react_router_dom.Link, { className: (0, import_classnames8.default)("mt-6", buttonStyle(buttonStyleProps)), to: props.buttonTo, children: props.buttonText });
-  } else if (props.buttonText && "onClick" in props) {
-    button = /* @__PURE__ */ (0, import_jsx_runtime169.jsx)(Button, { ...buttonStyleProps, className: "mt-6", onClick: props.onClick, children: props.buttonText });
-  }
-  return /* @__PURE__ */ (0, import_jsx_runtime169.jsxs)("div", { className: "m-4 flex max-w-[14rem] flex-col items-center text-center", children: [
-    props.icon && /* @__PURE__ */ (0, import_jsx_runtime169.jsx)("div", { className: "mb-4 rounded p-1 leading-[0] text-accent bg-accent-secondary", children: props.icon }),
-    /* @__PURE__ */ (0, import_jsx_runtime169.jsx)("h3", { className: "text-sans-semi-lg", children: props.title }),
-    props.body && /* @__PURE__ */ (0, import_jsx_runtime169.jsx)("p", { className: "mt-1 text-sans-md text-secondary", children: props.body }),
-    button
-  ] });
-}
-
 // components/src/ui/listbox/Listbox.tsx
 var import_react7 = require("@floating-ui/react");
 var import_react8 = require("@headlessui/react");
-var import_classnames9 = __toESM(require_classnames());
-var import_jsx_runtime170 = require("react/jsx-runtime");
+var import_classnames8 = __toESM(require_classnames());
+var import_jsx_runtime169 = require("react/jsx-runtime");
 var Listbox = ({
   name,
   selected,
@@ -57533,19 +57512,19 @@ var Listbox = ({
   const selectedItem = selected && items.find((i) => i.value === selected);
   const noItems = !isLoading && items.length === 0;
   const isDisabled = disabled || noItems;
-  return /* @__PURE__ */ (0, import_jsx_runtime170.jsx)("div", { className: (0, import_classnames9.default)("relative", className), children: /* @__PURE__ */ (0, import_jsx_runtime170.jsx)(
+  return /* @__PURE__ */ (0, import_jsx_runtime169.jsx)("div", { className: (0, import_classnames8.default)("relative", className), children: /* @__PURE__ */ (0, import_jsx_runtime169.jsx)(
     import_react8.Listbox,
     {
       value: selected,
       onChange: (val) => val !== null && onChange(val),
       disabled: isDisabled || isLoading,
-      children: ({ open }) => /* @__PURE__ */ (0, import_jsx_runtime170.jsxs)(import_jsx_runtime170.Fragment, { children: [
-        /* @__PURE__ */ (0, import_jsx_runtime170.jsxs)(
+      children: ({ open }) => /* @__PURE__ */ (0, import_jsx_runtime169.jsxs)(import_jsx_runtime169.Fragment, { children: [
+        /* @__PURE__ */ (0, import_jsx_runtime169.jsxs)(
           import_react8.Listbox.Button,
           {
             name,
             ref: refs.setReference,
-            className: (0, import_classnames9.default)(
+            className: (0, import_classnames8.default)(
               `flex h-10 w-full items-center justify-between
                     rounded border text-sans-md`,
               hasError ? "focus-error border-error-secondary hover:border-error" : "border-default hover:border-hover",
@@ -57556,37 +57535,37 @@ var Listbox = ({
             ),
             ...props,
             children: [
-              /* @__PURE__ */ (0, import_jsx_runtime170.jsx)("div", { className: "w-full px-3 text-left", children: selectedItem ? (
+              /* @__PURE__ */ (0, import_jsx_runtime169.jsx)("div", { className: "w-full px-3 text-left", children: selectedItem ? (
                 // labelString is one line, which is what we need when label is a ReactNode
                 selectedItem.labelString || selectedItem.label
-              ) : /* @__PURE__ */ (0, import_jsx_runtime170.jsx)("span", { className: "text-quaternary", children: noItems ? "No items" : placeholder }) }),
-              !isDisabled && /* @__PURE__ */ (0, import_jsx_runtime170.jsx)(SpinnerLoader, { isLoading }),
-              /* @__PURE__ */ (0, import_jsx_runtime170.jsx)(
+              ) : /* @__PURE__ */ (0, import_jsx_runtime169.jsx)("span", { className: "text-quaternary", children: noItems ? "No items" : placeholder }) }),
+              !isDisabled && /* @__PURE__ */ (0, import_jsx_runtime169.jsx)(SpinnerLoader, { isLoading }),
+              /* @__PURE__ */ (0, import_jsx_runtime169.jsx)(
                 "div",
                 {
                   className: "ml-3 flex h-[calc(100%-12px)] items-center border-l px-3 border-secondary",
                   "aria-hidden": true,
-                  children: /* @__PURE__ */ (0, import_jsx_runtime170.jsx)(SelectArrows6Icon_default, { className: "h-[14px] w-2 text-tertiary" })
+                  children: /* @__PURE__ */ (0, import_jsx_runtime169.jsx)(SelectArrows6Icon_default, { className: "h-[14px] w-2 text-tertiary" })
                 }
               )
             ]
           }
         ),
-        /* @__PURE__ */ (0, import_jsx_runtime170.jsx)(import_react7.FloatingPortal, { children: /* @__PURE__ */ (0, import_jsx_runtime170.jsx)(
+        /* @__PURE__ */ (0, import_jsx_runtime169.jsx)(import_react7.FloatingPortal, { children: /* @__PURE__ */ (0, import_jsx_runtime169.jsx)(
           import_react8.Listbox.Options,
           {
             ref: refs.setFloating,
             style: floatingStyles,
             className: "ox-menu pointer-events-auto z-50 overflow-y-auto !outline-none",
-            children: items.map((item) => /* @__PURE__ */ (0, import_jsx_runtime170.jsx)(
+            children: items.map((item) => /* @__PURE__ */ (0, import_jsx_runtime169.jsx)(
               import_react8.Listbox.Option,
               {
                 value: item.value,
                 className: "relative border-b border-secondary last:border-0",
-                children: ({ active, selected: selected2 }) => /* @__PURE__ */ (0, import_jsx_runtime170.jsx)(
+                children: ({ active, selected: selected2 }) => /* @__PURE__ */ (0, import_jsx_runtime169.jsx)(
                   "div",
                   {
-                    className: (0, import_classnames9.default)(
+                    className: (0, import_classnames8.default)(
                       "ox-menu-item text-secondary",
                       selected2 && "is-selected",
                       active && "is-highlighted"
@@ -57609,7 +57588,6 @@ var Listbox = ({
   Badge,
   Button,
   Checkbox,
-  EmptyMessage,
   Listbox,
   Spinner,
   SpinnerLoader,
