@@ -399,6 +399,7 @@
     background-color: var(--base-purple-200);
     color: var(--base-purple-800);
     border-color: var(--base-purple-400);
+    text-decoration-color: var(--base-purple-500);
   }
 
   .asciidoc-body .admonitionblock.caution,
@@ -424,6 +425,7 @@
 
   .asciidoc-body .admonitionblock.tip p {
     color: var(--base-purple-800);
+    text-decoration-color: var(--base-purple-500);
   }
 
   .asciidoc-body .admonitionblock.caution p code,
