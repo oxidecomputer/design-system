@@ -76,7 +76,6 @@
     "@floating-ui/react": "^0.25.1",
     "@headlessui/react": "^1.7.17",
     "@radix-ui/react-tabs": "^1.0.4",
-    "html-entities": "^2.4.0",
-    "react-router-dom": "^6.15.0"
+    "html-entities": "^2.4.0"
   }
 }
