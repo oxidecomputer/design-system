@@ -12,6 +12,7 @@ import { titleCase } from '../utils'
 
 const Admonition = ({ node }: { node: AdmonitionBlock }) => {
   const attrs = node.attributes
+
   let icon
   if (attrs.name === 'caution') {
     icon = <Error12 />
@@ -25,11 +26,11 @@ const Admonition = ({ node }: { node: AdmonitionBlock }) => {
     <div className={`admonitionblock ${attrs.name}`}>
       <div className="admonition-icon">{icon}</div>
       <div className="admonition-content content">
-        <div>{titleCase(attrs.name)}</div>
+        <Title text={node.title} />
+        <div>{titleCase(attrs.name.toString())}</div>
         <div>
           <Title text={node.title} />
           {node.content && parse(node.content)}
-          <Content blocks={node.blocks} />
         </div>
       </div>
     </div>

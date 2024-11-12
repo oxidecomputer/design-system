@@ -1,6 +1,6 @@
 {
   "name": "@oxide/design-system",
-  "version": "1.4.6",
+  "version": "1.5.1",
   "description": "Home of reusable design assets and token for oxide internal sites",
   "main": "components/dist/index.js",
   "scripts": {
@@ -67,7 +67,11 @@
     "access": "public"
   },
   "peerDependencies": {
+<<<<<<< HEAD
     "@oxide/react-asciidoc": "0.2.9--canary.*",
+=======
+    "@oxide/react-asciidoc": "^1.0.0",
+>>>>>>> master
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -76,7 +80,6 @@
     "@floating-ui/react": "^0.25.1",
     "@headlessui/react": "^1.7.17",
     "@radix-ui/react-tabs": "^1.0.4",
-    "html-entities": "^2.4.0",
-    "react-router-dom": "^6.15.0"
+    "html-entities": "^2.4.0"
   }
 }
