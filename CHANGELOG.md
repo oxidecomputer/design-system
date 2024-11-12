@@ -1,3 +1,15 @@
+# v1.5.1 (Tue Nov 12 2024)
+
+#### 🐛 Bug Fix
+
+- Update `react-asciidoc` [#88](https://github.com/oxidecomputer/design-system/pull/88) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.5.0 (Wed Oct 30 2024)
 
 #### 🚀 Enhancement
