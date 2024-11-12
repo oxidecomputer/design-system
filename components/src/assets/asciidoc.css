@@ -589,7 +589,7 @@
   }
 
   .asciidoc-body .colist table {
-    @apply mt-[1.5rem];
+    @apply my-[1.5rem];
   }
 
   .asciidoc-body .colist table td {
