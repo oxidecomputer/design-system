@@ -313,10 +313,6 @@
     font-feature-settings: 'calt' 0;
   }
 
-  .asciidoc-body pre {
-    @apply flex items-center;
-  }
-
   .asciidoc-body .listingblock .content {
     @apply relative;
   }
