@@ -5,14 +5,13 @@
  *
  * Copyright Oxide Computer Company
  */
-import { type AdocTypes, Title, getContent } from '@oxide/react-asciidoc'
+import { AdmonitionBlock, Title } from '@oxide/react-asciidoc'
 import parse from 'html-react-parser'
 
 import { titleCase } from '../utils'
 
-const Admonition = ({ node }: { node: AdocTypes.Block }) => {
-  const attrs = node.getAttributes()
-  const content = getContent(node)
+const Admonition = ({ node }: { node: AdmonitionBlock }) => {
+  const attrs = node.attributes
 
   let icon
   if (attrs.name === 'caution') {
@@ -27,11 +26,11 @@ const Admonition = ({ node }: { node: AdocTypes.Block }) => {
     <div className={`admonitionblock ${attrs.name}`}>
       <div className="admonition-icon">{icon}</div>
       <div className="admonition-content content">
-        <Title node={node} />
-        <div>{titleCase(attrs.name)}</div>
+        <Title text={node.title} />
+        <div>{titleCase(attrs.name.toString())}</div>
         <div>
-          <Title node={node} />
-          {parse(content)}
+          <Title text={node.title} />
+          {node.content && parse(node.content)}
         </div>
       </div>
     </div>
