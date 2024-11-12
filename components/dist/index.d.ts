@@ -1,5 +1,5 @@
 import * as react_jsx_runtime from 'react/jsx-runtime';
-import * as _asciidoctor_core_types from '@asciidoctor/core/types';
+import * as _oxide_react_asciidoc from '@oxide/react-asciidoc';
 import * as react from 'react';
 import { ReactNode } from 'react';
 import { TabsProps, TabsTriggerProps, TabsListProps, TabsContentProps } from '@radix-ui/react-tabs';
@@ -7,16 +7,10 @@ import { SetRequired } from 'type-fest';
 
 declare const AsciiDocBlocks: {
     Admonition: ({ node }: {
-        node: _asciidoctor_core_types.Block;
-    }) => react_jsx_runtime.JSX.Element;
-    Listing: ({ node }: {
-        node: _asciidoctor_core_types.Block;
+        node: _oxide_react_asciidoc.AdmonitionBlock;
     }) => react_jsx_runtime.JSX.Element;
     Table: ({ node }: {
-        node: _asciidoctor_core_types.Table;
-    }) => react_jsx_runtime.JSX.Element;
-    Section: ({ node }: {
-        node: _asciidoctor_core_types.Section;
+        node: _oxide_react_asciidoc.TableBlock;
     }) => react_jsx_runtime.JSX.Element;
 };
 

@@ -5,9 +5,9 @@
  *
  * Copyright Oxide Computer Company
  */
-import { type AdocTypes, Table as InnerTable } from '@oxide/react-asciidoc'
+import { Table as InnerTable, TableBlock } from '@oxide/react-asciidoc'
 
-const Table = ({ node }: { node: AdocTypes.Table }) => (
+const Table = ({ node }: { node: TableBlock }) => (
   <div className="table-wrapper">
     <InnerTable node={node} />
   </div>
