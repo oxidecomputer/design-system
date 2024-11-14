@@ -5,7 +5,7 @@
  *
  * Copyright Oxide Computer Company
  */
-import { Table as InnerTable, TableBlock } from '@oxide/react-asciidoc'
+import { Table as InnerTable, type TableBlock } from '@oxide/react-asciidoc'
 
 const Table = ({ node }: { node: TableBlock }) => (
   <div className="table-wrapper">

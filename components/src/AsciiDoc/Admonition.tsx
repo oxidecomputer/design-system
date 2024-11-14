@@ -5,8 +5,7 @@
  *
  * Copyright Oxide Computer Company
  */
-import { AdmonitionBlock, Title } from '@oxide/react-asciidoc'
-import parse from 'html-react-parser'
+import { type AdmonitionBlock, Title, parse } from '@oxide/react-asciidoc'
 
 import { titleCase } from '../utils'
 
