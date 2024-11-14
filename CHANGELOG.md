@@ -1,3 +1,16 @@
+# v1.6.0 (Thu Nov 14 2024)
+
+#### 🚀 Enhancement
+
+- Prepared AsciiDoc document and ESM build [#82](https://github.com/oxidecomputer/design-system/pull/82) ([@benjaminleonard](https://github.com/benjaminleonard) [@david-crespo](https://github.com/david-crespo))
+
+#### Authors: 2
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+
+---
+
 # v1.5.1 (Tue Nov 12 2024)
 
 #### 🐛 Bug Fix
