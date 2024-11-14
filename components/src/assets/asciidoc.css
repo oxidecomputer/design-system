@@ -559,8 +559,12 @@
     @apply border-r-0;
   }
 
-  .asciidoc-body tbody tr:last-child td,
-  .asciidoc-body tbody tr:last-child th {
+  /* 
+    specificity to handle nested tables 
+    todo: check if it's needed in any of the other table styles
+  */
+  .asciidoc-body tbody > tr:last-child > td,
+  .asciidoc-body tbody > tr:last-child > th {
     @apply border-b-0;
   }
 
