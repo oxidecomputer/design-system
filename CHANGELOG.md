@@ -1,3 +1,15 @@
+# v1.6.1 (Thu Nov 14 2024)
+
+#### 🐛 Bug Fix
+
+- Fix nested table border issue [#89](https://github.com/oxidecomputer/design-system/pull/89) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.6.0 (Thu Nov 14 2024)
 
 #### 🚀 Enhancement
