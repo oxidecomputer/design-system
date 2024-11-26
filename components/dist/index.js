@@ -1,5 +1,5 @@
 // components/src/asciidoc/Admonition.tsx
-import { Title, parse } from "@oxide/react-asciidoc";
+import { Content, Title, parse } from "@oxide/react-asciidoc";
 
 // components/src/utils.ts
 var titleCase = (text) => {
@@ -58,7 +58,8 @@ var Admonition = ({ node }) => {
       /* @__PURE__ */ jsx("div", { children: titleCase(attrs.name.toString()) }),
       /* @__PURE__ */ jsxs("div", { children: [
         /* @__PURE__ */ jsx(Title, { text: node.title }),
-        node.content && parse(node.content)
+        node.content && parse(node.content),
+        /* @__PURE__ */ jsx(Content, { blocks: node.blocks })
       ] })
     ] })
   ] });
@@ -305,14 +306,14 @@ var SpinnerLoader = ({ isLoading, children = null, minTime = 500 }) => {
 };
 
 // components/src/ui/tabs/Tabs.tsx
-import { Content, List, Root, Trigger } from "@radix-ui/react-tabs";
+import { Content as Content2, List, Root, Trigger } from "@radix-ui/react-tabs";
 import cn5 from "classnames";
 import { jsx as jsx6 } from "react/jsx-runtime";
 var Tabs = {
   Root: ({ className, ...props }) => /* @__PURE__ */ jsx6(Root, { ...props, className: cn5("ox-tabs", className) }),
   Trigger: ({ children, className, ...props }) => /* @__PURE__ */ jsx6(Trigger, { ...props, className: cn5("ox-tab", className), children: /* @__PURE__ */ jsx6("div", { children }) }),
   List: ({ className, ...props }) => /* @__PURE__ */ jsx6(List, { ...props, className: cn5("ox-tabs-list", className) }),
-  Content: ({ className, ...props }) => /* @__PURE__ */ jsx6(Content, { ...props, className: cn5("ox-tabs-panel", className) })
+  Content: ({ className, ...props }) => /* @__PURE__ */ jsx6(Content2, { ...props, className: cn5("ox-tabs-panel", className) })
 };
 
 // icons/react/Checkmark12Icon.tsx
