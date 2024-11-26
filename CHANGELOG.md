@@ -1,3 +1,15 @@
+# v1.6.2 (Tue Nov 26 2024)
+
+#### 🐛 Bug Fix
+
+- Fix missing admonition content [#91](https://github.com/oxidecomputer/design-system/pull/91) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.6.1 (Thu Nov 14 2024)
 
 #### 🐛 Bug Fix
