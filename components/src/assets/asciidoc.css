@@ -274,8 +274,8 @@
   .asciidoc-body h3 code,
   .asciidoc-body h4 code,
   .asciidoc-body h5 code,
-  .asciidoc-body table code {
-    @apply text-secondary;
+  .asciidoc-body table code .inline-code {
+    @apply text-[0.825rem] text-secondary;
     @apply ml-[1px] mr-[1px] rounded border px-[4px] py-[1px] align-[1px] bg-raise border-secondary;
   }
 
@@ -294,19 +294,6 @@
   .asciidoc-body pre {
     @apply rounded-lg border px-[1.25rem] py-[1rem] border-secondary 800:px-[1.75rem] 800:py-[1.5rem];
     @apply overflow-x-auto !text-[13px] text-mono-code;
-  }
-
-  .asciidoc-body h1 code,
-  .asciidoc-body h2 code,
-  .asciidoc-body h3 code,
-  .asciidoc-body h4 code,
-  .asciidoc-body h5 code {
-    @apply text-[0.825em];
-  }
-
-  .asciidoc-body .paragraph > code,
-  .asciidoc-body p code {
-    @apply text-[0.825rem];
   }
 
   .asciidoc-body code {
