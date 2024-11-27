@@ -7,6 +7,12 @@
  */
 
 @layer components {
+  .accent-link {
+    @apply text-accent-secondary hover:text-accent;
+    text-decoration: underline;
+    text-decoration-color: var(--content-accent-tertiary);
+  }
+
   .asciidoc-body .line-through {
     text-decoration: line-through;
   }
@@ -546,8 +552,8 @@
     @apply border-r-0;
   }
 
-  /* 
-    specificity to handle nested tables 
+  /*
+    specificity to handle nested tables
     todo: check if it's needed in any of the other table styles
   */
   .asciidoc-body tbody > tr:last-child > td,
