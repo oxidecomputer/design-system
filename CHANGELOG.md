@@ -1,3 +1,16 @@
+# v1.6.4 (Thu Nov 28 2024)
+
+#### 🐛 Bug Fix
+
+- Fix underline color in admonition blocks [#83](https://github.com/oxidecomputer/design-system/pull/83) ([@david-crespo](https://github.com/david-crespo) [@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 2
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+
+---
+
 # v1.6.3 (Thu Nov 28 2024)
 
 #### 🐛 Bug Fix
