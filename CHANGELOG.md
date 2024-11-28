@@ -1,3 +1,76 @@
+# v1.6.2 (Tue Nov 26 2024)
+
+#### 🐛 Bug Fix
+
+- Fix missing admonition content [#91](https://github.com/oxidecomputer/design-system/pull/91) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.6.1 (Thu Nov 14 2024)
+
+#### 🐛 Bug Fix
+
+- Fix nested table border issue [#89](https://github.com/oxidecomputer/design-system/pull/89) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.6.0 (Thu Nov 14 2024)
+
+#### 🚀 Enhancement
+
+- Prepared AsciiDoc document and ESM build [#82](https://github.com/oxidecomputer/design-system/pull/82) ([@benjaminleonard](https://github.com/benjaminleonard) [@david-crespo](https://github.com/david-crespo))
+
+#### Authors: 2
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+
+---
+
+# v1.5.1 (Tue Nov 12 2024)
+
+#### 🐛 Bug Fix
+
+- Update `react-asciidoc` [#88](https://github.com/oxidecomputer/design-system/pull/88) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.5.0 (Wed Oct 30 2024)
+
+#### 🚀 Enhancement
+
+- Delete `EmptyMessage` and uninstall `react-router-dom` [#87](https://github.com/oxidecomputer/design-system/pull/87) ([@david-crespo](https://github.com/david-crespo))
+
+#### Authors: 1
+
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+
+---
+
+# v1.4.7 (Tue Oct 29 2024)
+
+#### ⚠️ Pushed to `master`
+
+- Sync ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.4.6 (Tue May 07 2024)
 
 #### 🐛 Bug Fix
