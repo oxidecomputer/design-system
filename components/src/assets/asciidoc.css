@@ -23,6 +23,10 @@
     @apply mt-8 text-default;
   }
 
+  .asciidoc-body .attribution cite {
+    @apply block;
+  }
+
   .asciidoc-body .admonitionblock .quoteblock {
     @apply mb-2 mt-2 pl-[0.75rem] border-success-secondary;
   }
@@ -559,8 +563,8 @@
     @apply border-r-0;
   }
 
-  /* 
-    specificity to handle nested tables 
+  /*
+    specificity to handle nested tables
     todo: check if it's needed in any of the other table styles
   */
   .asciidoc-body tbody > tr:last-child > td,
