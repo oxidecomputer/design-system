@@ -1,3 +1,15 @@
+# v1.6.3 (Thu Nov 28 2024)
+
+#### 🐛 Bug Fix
+
+- Fix <cite> missing line break [#90](https://github.com/oxidecomputer/design-system/pull/90) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.6.2 (Tue Nov 26 2024)
 
 #### 🐛 Bug Fix
