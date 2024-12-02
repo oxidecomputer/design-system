@@ -1,3 +1,15 @@
+# v1.7.0 (Mon Dec 02 2024)
+
+#### 🚀 Enhancement
+
+- Tweak content default [#93](https://github.com/oxidecomputer/design-system/pull/93) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.6.4 (Thu Nov 28 2024)
 
 #### 🐛 Bug Fix
