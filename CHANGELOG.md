@@ -1,3 +1,18 @@
+# v1.7.2 (Mon Dec 02 2024)
+
+#### 🐛 Bug Fix
+
+- Add convenience classes for inline code and links [#92](https://github.com/oxidecomputer/design-system/pull/92) ([@benjaminleonard](https://github.com/benjaminleonard))
+- Remove `update-icons` CI [#96](https://github.com/oxidecomputer/design-system/pull/96) ([@benjaminleonard](https://github.com/benjaminleonard))
+- Upgrade node to LTS [#95](https://github.com/oxidecomputer/design-system/pull/95) ([@benjaminleonard](https://github.com/benjaminleonard))
+- Allow `.tsx` imports [#53](https://github.com/oxidecomputer/design-system/pull/53) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.7.1 (Mon Dec 02 2024)
 
 #### 🐛 Bug Fix
