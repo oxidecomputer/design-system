@@ -9,7 +9,7 @@ import cn from 'classnames'
 import type { MouseEventHandler } from 'react'
 import { forwardRef } from 'react'
 
-import { Spinner } from '../'
+import { Spinner } from '../spinner/Spinner'
 
 export const buttonSizes = ['sm', 'icon', 'base'] as const
 export const variants = ['primary', 'secondary', 'ghost', 'danger'] as const
