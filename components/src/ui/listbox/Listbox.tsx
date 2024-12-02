@@ -11,7 +11,7 @@ import { Listbox as Select } from '@headlessui/react'
 import cn from 'classnames'
 import type { ReactNode } from 'react'
 
-import { SpinnerLoader } from '../spinner/Spinner'
+import { SpinnerLoader } from '~/src'
 
 export type ListboxItem<Value extends string = string> = {
   value: Value

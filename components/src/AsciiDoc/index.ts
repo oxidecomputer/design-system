@@ -5,6 +5,10 @@
  *
  * Copyright Oxide Computer Company
  */
+import Admonition from './Admonition'
+import Table from './Table'
 
-export * from './asciidoc'
-export * from './ui'
+export const AsciiDocBlocks = {
+  Admonition,
+  Table,
+}

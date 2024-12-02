@@ -6,5 +6,9 @@
  * Copyright Oxide Computer Company
  */
 
-export * from './asciidoc'
-export * from './ui'
+export * from './badge/Badge'
+export * from './button/Button'
+export * from './spinner/Spinner'
+export * from './tabs/Tabs'
+export * from './checkbox/Checkbox'
+export * from './listbox/Listbox'
