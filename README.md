@@ -35,9 +35,7 @@ back with figma.
 ## Exporting Icons
 
 Icons are also exported from figma using
-[figma export cli](https://figma-export.marcomontalbano.com/). A PR should be opened
-automatically for updating icons via the
-[update-icons workflow](.github/workflows/update-icons.yaml).
+[figma export cli](https://figma-export.marcomontalbano.com/).
 
 Icons are processed and exported as SVGs for direct use in environments where SVGR is
 supported (like our web console). However, for other internal sites such as the marketing
