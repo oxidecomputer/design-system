@@ -5,6 +5,15 @@
  *
  * Copyright Oxide Computer Company
  */
+// AsciiDoc
+import Admonition from './asciidoc/Admonition'
+import Table from './asciidoc/Table'
+// UI
+import { Badge } from './ui/badge/Badge'
+import { Button } from './ui/button/Button'
+import { Checkbox } from './ui/checkbox/Checkbox'
+import { Listbox } from './ui/listbox/Listbox'
+import { Spinner } from './ui/spinner/Spinner'
+import { Tabs } from './ui/tabs/Tabs'
 
-export * from '~/src/asciidoc'
-export * from '~/src/ui'
+export { Admonition, Table, Badge, Button, Checkbox, Listbox, Spinner, Tabs }
