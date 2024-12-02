@@ -131,6 +131,12 @@ module.exports.textUtilities = {
 }
 
 module.exports.colorUtilities = {
+  '.text-raise': {
+    color: 'var(--content-raise)',
+    '@supports (color: color(display-p3 1 1 1))': {
+      color: 'var(--content-raise-p3)',
+    },
+  },
   '.text-default': {
     color: 'var(--content-default)',
     '@supports (color: color(display-p3 1 1 1))': {
@@ -153,12 +159,6 @@ module.exports.colorUtilities = {
     color: 'var(--content-quaternary)',
     '@supports (color: color(display-p3 1 1 1))': {
       color: 'var(--content-quaternary-p3)',
-    },
-  },
-  '.text-quinary': {
-    color: 'var(--content-quinary)',
-    '@supports (color: color(display-p3 1 1 1))': {
-      color: 'var(--content-quinary-p3)',
     },
   },
   '.text-disabled': {
@@ -756,22 +756,22 @@ module.exports.colorUtilities = {
       'background-color': 'var(--surface-error-secondary-p3)',
     },
   },
-  '.bg-inverse': {
-    'background-color': 'var(--surface-inverse)',
+  '.bg-inverse-raise': {
+    'background-color': 'var(--surface-inverse-raise)',
     '@supports (color: color(display-p3 1 1 1))': {
-      'background-color': 'var(--surface-inverse-p3)',
+      'background-color': 'var(--surface-inverse-raise-p3)',
+    },
+  },
+  '.bg-inverse-primary': {
+    'background-color': 'var(--surface-inverse-primary)',
+    '@supports (color: color(display-p3 1 1 1))': {
+      'background-color': 'var(--surface-inverse-primary-p3)',
     },
   },
   '.bg-inverse-secondary': {
     'background-color': 'var(--surface-inverse-secondary)',
     '@supports (color: color(display-p3 1 1 1))': {
       'background-color': 'var(--surface-inverse-secondary-p3)',
-    },
-  },
-  '.bg-inverse-tertiary': {
-    'background-color': 'var(--surface-inverse-tertiary)',
-    '@supports (color: color(display-p3 1 1 1))': {
-      'background-color': 'var(--surface-inverse-tertiary-p3)',
     },
   },
   '.bg-info': {
