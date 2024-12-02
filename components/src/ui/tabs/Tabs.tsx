@@ -5,7 +5,6 @@
  *
  * Copyright Oxide Computer Company
  */
-
 import type {
   TabsContentProps,
   TabsListProps,

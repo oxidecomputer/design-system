@@ -5,14 +5,29 @@
  *
  * Copyright Oxide Computer Company
  */
-import { SVGProps } from "react";
+import { SVGProps } from 'react'
+
 interface SVGRProps {
-  title?: string;
-  titleId?: string;
+  title?: string
+  titleId?: string
 }
-const Key16Icon = ({
-  title,
-  titleId,
-  ...props
-}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={16} height={16} viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path fillRule="evenodd" clipRule="evenodd" d="m14.53.53.94.94a.75.75 0 0 1 0 1.06L15 3l.5.5a.707.707 0 0 1-1 1L14 4l-1 1 .47.47a.75.75 0 0 1 0 1.06l-.94.94a.75.75 0 0 1-1.06 0L11 7 9.392 8.608a5 5 0 1 1-2-2L13.47.53a.75.75 0 0 1 1.06 0ZM5 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" fill="currentColor" /></svg>;
-export default Key16Icon;
+const Key16Icon = ({ title, titleId, ...props }: SVGProps<SVGSVGElement> & SVGRProps) => (
+  <svg
+    width={16}
+    height={16}
+    viewBox="0 0 16 16"
+    xmlns="http://www.w3.org/2000/svg"
+    role="img"
+    aria-labelledby={titleId}
+    {...props}
+  >
+    {title ? <title id={titleId}>{title}</title> : null}
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="m14.53.53.94.94a.75.75 0 0 1 0 1.06L15 3l.5.5a.707.707 0 0 1-1 1L14 4l-1 1 .47.47a.75.75 0 0 1 0 1.06l-.94.94a.75.75 0 0 1-1.06 0L11 7 9.392 8.608a5 5 0 1 1-2-2L13.47.53a.75.75 0 0 1 1.06 0ZM5 13a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"
+      fill="currentColor"
+    />
+  </svg>
+)
+export default Key16Icon

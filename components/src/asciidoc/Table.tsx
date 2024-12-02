@@ -5,13 +5,12 @@
  *
  * Copyright Oxide Computer Company
  */
+import { Table as InnerTable, type TableBlock } from '@oxide/react-asciidoc'
 
-import Admonition from './Admonition'
-import Listing from './Listing'
-import Table from './Table'
+const Table = ({ node }: { node: TableBlock }) => (
+  <div className="table-wrapper">
+    <InnerTable node={node} />
+  </div>
+)
 
-export const AsciiDocBlocks = {
-  Admonition,
-  Listing,
-  Table,
-}
+export default Table

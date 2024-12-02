@@ -5,7 +5,6 @@
  *
  * Copyright Oxide Computer Company
  */
-
 import cn from 'classnames'
 import type { MouseEventHandler } from 'react'
 import { forwardRef } from 'react'

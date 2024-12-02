@@ -1,3 +1,369 @@
+# v1.7.1 (Mon Dec 02 2024)
+
+#### 🐛 Bug Fix
+
+- Remove dist and auto build [#94](https://github.com/oxidecomputer/design-system/pull/94) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.7.0 (Mon Dec 02 2024)
+
+#### 🚀 Enhancement
+
+- Tweak content default [#93](https://github.com/oxidecomputer/design-system/pull/93) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.6.4 (Thu Nov 28 2024)
+
+#### 🐛 Bug Fix
+
+- Fix underline color in admonition blocks [#83](https://github.com/oxidecomputer/design-system/pull/83) ([@david-crespo](https://github.com/david-crespo) [@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 2
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+
+---
+
+# v1.6.3 (Thu Nov 28 2024)
+
+#### 🐛 Bug Fix
+
+- Fix <cite> missing line break [#90](https://github.com/oxidecomputer/design-system/pull/90) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.6.2 (Tue Nov 26 2024)
+
+#### 🐛 Bug Fix
+
+- Fix missing admonition content [#91](https://github.com/oxidecomputer/design-system/pull/91) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.6.1 (Thu Nov 14 2024)
+
+#### 🐛 Bug Fix
+
+- Fix nested table border issue [#89](https://github.com/oxidecomputer/design-system/pull/89) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.6.0 (Thu Nov 14 2024)
+
+#### 🚀 Enhancement
+
+- Prepared AsciiDoc document and ESM build [#82](https://github.com/oxidecomputer/design-system/pull/82) ([@benjaminleonard](https://github.com/benjaminleonard) [@david-crespo](https://github.com/david-crespo))
+
+#### Authors: 2
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+
+---
+
+# v1.5.1 (Tue Nov 12 2024)
+
+#### 🐛 Bug Fix
+
+- Update `react-asciidoc` [#88](https://github.com/oxidecomputer/design-system/pull/88) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.5.0 (Wed Oct 30 2024)
+
+#### 🚀 Enhancement
+
+- Delete `EmptyMessage` and uninstall `react-router-dom` [#87](https://github.com/oxidecomputer/design-system/pull/87) ([@david-crespo](https://github.com/david-crespo))
+
+#### Authors: 1
+
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+
+---
+
+# v1.4.7 (Tue Oct 29 2024)
+
+#### ⚠️ Pushed to `master`
+
+- Sync ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.4.6 (Tue May 07 2024)
+
+#### 🐛 Bug Fix
+
+- Add inline image style [#81](https://github.com/oxidecomputer/design-system/pull/81) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.4.5 (Fri Apr 26 2024)
+
+#### 🐛 Bug Fix
+
+- Rename `Racks24` to `Servers24` [#80](https://github.com/oxidecomputer/design-system/pull/80) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.4.4 (Wed Apr 24 2024)
+
+#### 🐛 Bug Fix
+
+- added question icon 16px and 24px [#79](https://github.com/oxidecomputer/design-system/pull/79) ([@paryhin](https://github.com/paryhin))
+
+#### Authors: 1
+
+- Eugene Paryhin ([@paryhin](https://github.com/paryhin))
+
+---
+
+# v1.4.3 (Tue Apr 09 2024)
+
+#### 🐛 Bug Fix
+
+- Use success for default admonition [#78](https://github.com/oxidecomputer/design-system/pull/78) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.4.2 (Tue Apr 09 2024)
+
+#### 🐛 Bug Fix
+
+- [AsciiDoc] Remove css svgs [#77](https://github.com/oxidecomputer/design-system/pull/77) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.4.1 (Thu Mar 28 2024)
+
+#### 🐛 Bug Fix
+
+- Add print vars to themes also [#75](https://github.com/oxidecomputer/design-system/pull/75) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.3.0 (Thu Mar 28 2024)
+
+#### 🚀 Enhancement
+
+- Add responsive console icons [#73](https://github.com/oxidecomputer/design-system/pull/73) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### 🐛 Bug Fix
+
+- Improved print styles [#74](https://github.com/oxidecomputer/design-system/pull/74) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.3.0 (Fri Mar 22 2024)
+
+#### 🚀 Enhancement
+
+- Add responsive console icons [#73](https://github.com/oxidecomputer/design-system/pull/73) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.2.14 (Mon Feb 26 2024)
+
+#### 🐛 Bug Fix
+
+- [AsciiDoc] Better contrast for admonition title [#70](https://github.com/oxidecomputer/design-system/pull/70) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.2.13 (Tue Feb 20 2024)
+
+#### 🐛 Bug Fix
+
+- Summary title should not be italic [#68](https://github.com/oxidecomputer/design-system/pull/68) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.2.12 (Tue Feb 20 2024)
+
+#### 🐛 Bug Fix
+
+- [AsciiDoc] Improve link contrast [#67](https://github.com/oxidecomputer/design-system/pull/67) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.2.11 (Wed Feb 14 2024)
+
+#### 🐛 Bug Fix
+
+- [AsciiDoc] Use `object-contain` on image blocks [#66](https://github.com/oxidecomputer/design-system/pull/66) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.2.10 (Mon Jan 15 2024)
+
+#### 🐛 Bug Fix
+
+- Update icons [#65](https://github.com/oxidecomputer/design-system/pull/65) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.2.9 (Fri Dec 08 2023)
+
+#### 🐛 Bug Fix
+
+- Turn off contextual alternates by default [#64](https://github.com/oxidecomputer/design-system/pull/64) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.2.8 (Tue Nov 21 2023)
+
+#### 🐛 Bug Fix
+
+- TLA language support [#62](https://github.com/oxidecomputer/design-system/pull/62) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.2.7 (Mon Nov 20 2023)
+
+#### 🐛 Bug Fix
+
+- [AsciiDoc] Better code text size handling in titles and tables [#61](https://github.com/oxidecomputer/design-system/pull/61) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.2.6 (Tue Nov 14 2023)
+
+#### 🐛 Bug Fix
+
+- Update `react-asciidoc` [#60](https://github.com/oxidecomputer/design-system/pull/60) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.2.5 (Tue Nov 14 2023)
+
+#### 🐛 Bug Fix
+
+- RFD site asciidoc fixes [#46](https://github.com/oxidecomputer/design-system/pull/46) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.2.4 (Wed Oct 25 2023)
+
+#### 🐛 Bug Fix
+
+- Fix dupe strong class [#57](https://github.com/oxidecomputer/design-system/pull/57) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.2.3 (Tue Oct 24 2023)
+
+#### 🐛 Bug Fix
+
+- Improved body contrast [#55](https://github.com/oxidecomputer/design-system/pull/55) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.2.2 (Wed Oct 04 2023)
 
 #### 🐛 Bug Fix

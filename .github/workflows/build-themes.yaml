@@ -29,7 +29,7 @@ jobs:
         run: npm install
 
       - name: Build themes
-        run: yarn build:themes
+        run: npm run build:themes
 
       - uses: EndBug/add-and-commit@v7
         with:

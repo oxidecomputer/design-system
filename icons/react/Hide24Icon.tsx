@@ -5,14 +5,29 @@
  *
  * Copyright Oxide Computer Company
  */
-import { SVGProps } from "react";
+import { SVGProps } from 'react'
+
 interface SVGRProps {
-  title?: string;
-  titleId?: string;
+  title?: string
+  titleId?: string
 }
-const Hide24Icon = ({
-  title,
-  titleId,
-  ...props
-}: SVGProps<SVGSVGElement> & SVGRProps) => <svg width={24} height={24} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby={titleId} {...props}>{title ? <title id={titleId}>{title}</title> : null}<path fillRule="evenodd" clipRule="evenodd" d="M6.985 17.564 5.5 19.155a.707.707 0 1 1-1.033-.964l1.244-1.333c-2.63-1.669-4.135-3.998-4.623-4.845a.642.642 0 0 1 0-.647C1.88 9.99 5.367 4.69 12 4.69c1.621 0 3.055.316 4.306.815l1.195-1.28a.707.707 0 0 1 1.033.964l-.887.95-2.556 2.74-5.687 6.092-2.42 2.593Zm1.482-3.66 5.515-5.908a4.109 4.109 0 0 0-1.98-.506c-2.298 0-4.16 1.88-4.16 4.2 0 .813.229 1.572.625 2.215Zm10.398-6.997-3.003 3.218c.192.483.298 1.012.298 1.565 0 2.32-1.862 4.2-4.159 4.2-.46 0-.904-.076-1.319-.216l-2.289 2.453c1.08.35 2.28.563 3.608.563 6.635 0 10.12-5.3 10.914-6.677a.641.641 0 0 0 0-.647c-.451-.783-1.773-2.835-4.05-4.459Z" fill="currentColor" /></svg>;
-export default Hide24Icon;
+const Hide24Icon = ({ title, titleId, ...props }: SVGProps<SVGSVGElement> & SVGRProps) => (
+  <svg
+    width={24}
+    height={24}
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+    role="img"
+    aria-labelledby={titleId}
+    {...props}
+  >
+    {title ? <title id={titleId}>{title}</title> : null}
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M6.985 17.564 5.5 19.155a.707.707 0 1 1-1.033-.964l1.244-1.333c-2.63-1.669-4.135-3.998-4.623-4.845a.642.642 0 0 1 0-.647C1.88 9.99 5.367 4.69 12 4.69c1.621 0 3.055.316 4.306.815l1.195-1.28a.707.707 0 0 1 1.033.964l-.887.95-2.556 2.74-5.687 6.092-2.42 2.593Zm1.482-3.66 5.515-5.908a4.109 4.109 0 0 0-1.98-.506c-2.298 0-4.16 1.88-4.16 4.2 0 .813.229 1.572.625 2.215Zm10.398-6.997-3.003 3.218c.192.483.298 1.012.298 1.565 0 2.32-1.862 4.2-4.159 4.2-.46 0-.904-.076-1.319-.216l-2.289 2.453c1.08.35 2.28.563 3.608.563 6.635 0 10.12-5.3 10.914-6.677a.641.641 0 0 0 0-.647c-.451-.783-1.773-2.835-4.05-4.459Z"
+      fill="currentColor"
+    />
+  </svg>
+)
+export default Hide24Icon

@@ -23,18 +23,34 @@
     @apply mt-8 text-default;
   }
 
+  .asciidoc-body .attribution cite {
+    @apply block;
+  }
+
   .asciidoc-body .admonitionblock .quoteblock {
-    @apply mb-2 mt-2 pl-[0.75rem] border-accent-secondary;
+    @apply mb-2 mt-2 pl-[0.75rem] border-success-secondary;
   }
 
   .asciidoc-body .admonitionblock p,
   .asciidoc-body .admonitionblock blockquote {
-    @apply text-accent;
+    @apply text-success;
   }
 
-  .asciidoc-body img {
-    @apply mx-auto h-auto w-auto w-full rounded-lg border border-tertiary;
+  .asciidoc-body .admonition-content .paragraph {
+    @apply mb-1 last:mb-0;
+  }
+
+  .asciidoc-body .admonition-content > div:first-of-type {
+    @apply normal-case text-sans-semi-md;
+  }
+
+  .asciidoc-body .imageblock img {
+    @apply mx-auto h-auto w-auto w-full rounded-lg border border-tertiary object-contain;
     max-height: max(500px, 75vh);
+  }
+
+  .asciidoc-body span img {
+    @apply inline;
   }
 
   .asciidoc-body img.transparent-dark {
@@ -42,13 +58,17 @@
   }
 
   .asciidoc-body p a {
-    @apply text-accent-tertiary hover:text-accent-secondary;
+    @apply text-accent-secondary hover:text-accent;
     overflow-wrap: break-word;
     word-wrap: break-word;
+
+    text-decoration: underline;
+    text-decoration-color: var(--content-accent-tertiary);
   }
 
+  /* Use semi-bold for strong */
   .asciidoc-body strong {
-    @apply font-[600] text-default;
+    @apply font-[500] text-default;
   }
 
   .asciidoc-body a strong {
@@ -90,51 +110,6 @@
   .asciidoc-body h3[data-sectnum]:before,
   .asciidoc-body h2[data-sectnum]:before {
     @apply 800:bottom-[2px];
-  }
-
-  .asciidoc-body h1 a:hover::after,
-  .asciidoc-body h2 a:hover::after,
-  .asciidoc-body h3 a:hover::after,
-  .asciidoc-body h4 a:hover::after,
-  .asciidoc-body h5 a:hover::after,
-  .asciidoc-body .table-wrapper caption a:hover::after {
-    content: ' ';
-    @apply ml-2 inline-block h-4 w-4 min-w-[16px];
-    background: url(/svgs/link.svg) no-repeat top left;
-    background-size: contain;
-  }
-
-  .blue-theme {
-    & .asciidoc-body h1 a:hover::after,
-    & .asciidoc-body h2 a:hover::after,
-    & .asciidoc-body h3 a:hover::after,
-    & .asciidoc-body h4 a:hover::after,
-    & .asciidoc-body h5 a:hover::after,
-    & .asciidoc-body .table-wrapper caption a:hover::after {
-      background: url(/svgs/link-blue.svg) no-repeat top left;
-    }
-  }
-
-  .purple-theme {
-    & .asciidoc-body h1 a:hover::after,
-    & .asciidoc-body h2 a:hover::after,
-    & .asciidoc-body h3 a:hover::after,
-    & .asciidoc-body h4 a:hover::after,
-    & .asciidoc-body h5 a:hover::after,
-    & .asciidoc-body .table-wrapper caption a:hover::after {
-      background: url(/svgs/link-purple.svg) no-repeat top left;
-    }
-  }
-
-  .yellow-theme {
-    & .asciidoc-body h1 a:hover::after,
-    & .asciidoc-body h2 a:hover::after,
-    & .asciidoc-body h3 a:hover::after,
-    & .asciidoc-body h4 a:hover::after,
-    & .asciidoc-body h5 a:hover::after,
-    & .asciidoc-body .table-wrapper caption a:hover::after {
-      background: url(/svgs/link-yellow.svg) no-repeat top left;
-    }
   }
 
   .asciidoc-body h2 {
@@ -317,7 +292,7 @@
   }
 
   .asciidoc-body .admonitionblock p code {
-    @apply border-none text-inverse bg-accent;
+    @apply border-none text-inverse bg-success;
   }
 
   .asciidoc-body pre {
@@ -325,16 +300,21 @@
     @apply overflow-x-auto !text-[13px] text-mono-code;
   }
 
+  .asciidoc-body h1 code,
+  .asciidoc-body h2 code,
+  .asciidoc-body h3 code,
+  .asciidoc-body h4 code,
+  .asciidoc-body h5 code {
+    @apply text-[0.825em];
+  }
+
+  .asciidoc-body .paragraph > code,
   .asciidoc-body p code {
-    @apply !text-[0.825em];
+    @apply text-[0.825rem];
   }
 
   .asciidoc-body code {
     font-feature-settings: 'calt' 0;
-  }
-
-  .asciidoc-body pre {
-    @apply flex items-center;
   }
 
   .asciidoc-body .listingblock .content {
@@ -381,12 +361,29 @@
   }
 
   .asciidoc-body .admonitionblock {
-    @apply rounded-lg border text-accent bg-accent-secondary border-accent-tertiary;
+    @apply rounded-lg border text-success bg-success-secondary border-success-tertiary;
     @apply my-[1.5rem] flex px-3 py-3;
   }
 
+  .asciidoc-body .admonitionblock a {
+    text-decoration-color: var(--content-success-tertiary);
+  }
+
+  .asciidoc-body .admonitionblock.tip a {
+    text-decoration-color: var(--base-purple-600);
+  }
+
+  .asciidoc-body .admonitionblock.warning a {
+    text-decoration-color: var(--content-error-tertiary);
+  }
+
+  .asciidoc-body .admonitionblock.caution a,
+  .asciidoc-body .admonitionblock.important a {
+    text-decoration-color: var(--content-notice-tertiary);
+  }
+
   .asciidoc-body .admonitionblock strong {
-    @apply text-accent;
+    @apply text-success;
   }
 
   .asciidoc-body .admonitionblock.caution strong,
@@ -400,10 +397,6 @@
 
   .asciidoc-body .admonitionblock.warning .quoteblock {
     @apply border-destructive-secondary;
-  }
-
-  .asciidoc-body .admonitionblock.tip .quoteblock {
-    border-color: var(--base-purple-500);
   }
 
   .asciidoc-body .admonitionblock.warning strong {
@@ -464,7 +457,7 @@
   }
 
   .asciidoc-body .admonitionblock a {
-    @apply text-accent;
+    @apply text-success;
   }
 
   .asciidoc-body .admonitionblock.caution a,
@@ -484,19 +477,6 @@
     @apply mr-2 mt-0.5 h-3 w-3;
   }
 
-  /* .asciidoc-body .admonitionblock.warning .admonition-icon {
-		background: url(/svgs/warning.svg) no-repeat top left;
-	}
-
-	.asciidoc-body .admonitionblock.caution .admonition-icon,
-	.asciidoc-body .admonitionblock.important .admonition-icon {
-		background: url(/svgs/caution.svg) no-repeat top left;
-	}
-
-	.asciidoc-body .admonitionblock.tip .admonition-icon {
-		background: url(/svgs/tip.svg) no-repeat top left;
-	} */
-
   .asciidoc-body .admonition-content {
     @apply text-sans-md 800:mr-[1.25rem];
   }
@@ -507,7 +487,11 @@
 
   .asciidoc-body .imageblock,
   .asciidoc-body table.tableblock {
-    @apply my-12;
+    @apply my-6;
+  }
+
+  .asciidoc-body .imageblock.inlineimage {
+    @apply my-4;
   }
 
   .asciidoc-body table.tableblock table.tableblock {
@@ -550,6 +534,10 @@
     @apply mb-2 max-w-[40rem] text-left italic text-sans-lg text-tertiary;
   }
 
+  .asciidoc-body summary.title {
+    @apply not-italic;
+  }
+
   .asciidoc-body .conum {
     @apply inline-block;
   }
@@ -588,8 +576,12 @@
     @apply border-r-0;
   }
 
-  .asciidoc-body tbody tr:last-child td,
-  .asciidoc-body tbody tr:last-child th {
+  /*
+    specificity to handle nested tables
+    todo: check if it's needed in any of the other table styles
+  */
+  .asciidoc-body tbody > tr:last-child > td,
+  .asciidoc-body tbody > tr:last-child > th {
     @apply border-b-0;
   }
 
@@ -618,7 +610,7 @@
   }
 
   .asciidoc-body .colist table {
-    @apply mt-[1.5rem];
+    @apply my-[1.5rem];
   }
 
   .asciidoc-body .colist table td {
@@ -658,7 +650,16 @@
     @apply bg-raise p-4 rounded-lg my-8 px-6 py-5;
   }
 
+  /* Boosting body text for long text readability */
+  .asciidoc-body p {
+    color: #c8cacb;
+  }
+
   @media print {
+    html {
+      font-size: 14px !important;
+    }
+
     a {
       color: inherit !important;
       text-decoration: underline;
@@ -686,11 +687,6 @@
       white-space: pre-wrap;
     }
 
-    .asciidoc-body img {
-      max-height: max(400px, 25vh);
-      margin-left: 0;
-    }
-
     h1 {
       font-size: 3rem !important;
       line-height: 1 !important;
@@ -705,31 +701,43 @@
       margin-bottom: 2cm;
     }
 
-    :root {
+    :root,
+    .yellow-theme,
+    .purple-theme,
+    .green-theme,
+    .blue-theme,
+    .red-theme {
+      --surface-default: white;
+      --surface-default-p3: var(--surface-default);
       --content-default: black;
+      --content-default-p3: var(--content-default);
       --content-secondary: rgb(0, 0, 0, 0.8);
+      --content-secondary-p3: var(--content-secondary);
+      --content-tertiary: var(--content-secondary);
+      --content-tertiary-p3: var(--content-secondary);
+      --surface-raise: rgb(0, 0, 0, 0.025);
+      --surface-raise-p3: var(--surface-raise);
+      --surface-inverse: var(--surface-raise);
+      --surface-inverse-p3: var(--surface-raise);
+      --stroke-default: var(--content-secondary);
+      --stroke-default-p3: var(--content-secondary);
     }
-  }
-}
 
-.changelog-doc.asciidoc-body {
-  & h2 {
-    @apply text-sans-xl;
-  }
+    .asciidoc-body p a {
+      text-decoration-color: black !important;
+    }
 
-  & h3 {
-    @apply text-sans-lg;
-  }
+    .asciidoc-body p {
+      color: black !important;
+    }
 
-  & h2,
-  & h3,
-  & h4,
-  & h5 {
-    @apply mb-0 mt-6;
-  }
+    .asciidoc-body .imageblock img {
+      border: 0;
+    }
 
-  & ul li,
-  & ol li {
-    @apply mt-0;
+    .asciidoc-body .admonitionblock {
+      color: var(--content-default) !important;
+      background-color: var(--surface-raise) !important;
+    }
   }
 }

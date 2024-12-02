@@ -5,19 +5,12 @@
  *
  * Copyright Oxide Computer Company
  */
-
-import { type AdocTypes, Content, Title, useGetContent } from '@oxide/react-asciidoc'
-import parse from 'html-react-parser'
+import { type AdmonitionBlock, Content, Title, parse } from '@oxide/react-asciidoc'
 
 import { titleCase } from '../utils'
 
-const Admonition = ({ node }: { node: AdocTypes.Block }) => {
-  const attrs = node.getAttributes()
-  const content = useGetContent(node)
-
-  // Undocumented asciidoc attribute
-  // Use this to check if we should render the content as is, or use a <Content /> block
-  const contentModel = node.getContentModel()
+const Admonition = ({ node }: { node: AdmonitionBlock }) => {
+  const attrs = node.attributes
 
   let icon
   if (attrs.name === 'caution') {
@@ -32,15 +25,13 @@ const Admonition = ({ node }: { node: AdocTypes.Block }) => {
     <div className={`admonitionblock ${attrs.name}`}>
       <div className="admonition-icon">{icon}</div>
       <div className="admonition-content content">
-        <Title node={node} />
-        <div>{titleCase(attrs.name)}</div>
-        <p>
-          {contentModel === 'simple' ? (
-            parse(content)
-          ) : (
-            <Content blocks={node.getBlocks()} />
-          )}
-        </p>
+        <Title text={node.title} />
+        <div>{titleCase(attrs.name.toString())}</div>
+        <div>
+          <Title text={node.title} />
+          {node.content && parse(node.content)}
+          <Content blocks={node.blocks} />
+        </div>
       </div>
     </div>
   )
