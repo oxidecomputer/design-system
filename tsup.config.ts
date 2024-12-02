@@ -15,4 +15,14 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   format: ['esm'],
+  esbuildOptions(options) {
+    options.resolveExtensions = ['.tsx', '.ts', '.jsx', '.js']
+    options.loader = {
+      '.tsx': 'tsx',
+      '.ts': 'tsx',
+    }
+  },
+  treeshake: true,
+  splitting: true,
+  dts: true,
 })
