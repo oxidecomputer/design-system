@@ -1,3 +1,15 @@
+# v1.7.1 (Mon Dec 02 2024)
+
+#### 🐛 Bug Fix
+
+- Remove dist and auto build [#94](https://github.com/oxidecomputer/design-system/pull/94) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.7.0 (Mon Dec 02 2024)
 
 #### 🚀 Enhancement
