@@ -1,6 +1,6 @@
 {
   "name": "@oxide/design-system",
-  "version": "1.6.2",
+  "version": "1.7.1",
   "description": "Home of reusable design assets and token for oxide internal sites",
   "type": "module",
   "sideEffects": false,
@@ -27,7 +27,8 @@
     "build:components": "tsup --dts",
     "release": "auto shipit",
     "lint": "eslint --ext .js,.ts,.tsx,.json .",
-    "fmt": "prettier --cache --write . && npm run lint -- --fix"
+    "fmt": "prettier --cache --write . && npm run lint -- --fix",
+    "tsc": "tsc"
   },
   "author": "Oxide Computer Company <bots@oxidecomputer.com>",
   "license": "MPL 2.0",

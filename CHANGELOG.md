@@ -1,3 +1,52 @@
+# v1.7.1 (Mon Dec 02 2024)
+
+#### 🐛 Bug Fix
+
+- Remove dist and auto build [#94](https://github.com/oxidecomputer/design-system/pull/94) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.7.0 (Mon Dec 02 2024)
+
+#### 🚀 Enhancement
+
+- Tweak content default [#93](https://github.com/oxidecomputer/design-system/pull/93) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v1.6.4 (Thu Nov 28 2024)
+
+#### 🐛 Bug Fix
+
+- Fix underline color in admonition blocks [#83](https://github.com/oxidecomputer/design-system/pull/83) ([@david-crespo](https://github.com/david-crespo) [@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 2
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+
+---
+
+# v1.6.3 (Thu Nov 28 2024)
+
+#### 🐛 Bug Fix
+
+- Fix <cite> missing line break [#90](https://github.com/oxidecomputer/design-system/pull/90) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.6.2 (Tue Nov 26 2024)
 
 #### 🐛 Bug Fix

@@ -20,16 +20,16 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Setup Node
-        uses: actions/setup-node@v2
+      - name: Use Node.js 22.x
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: 22.x
 
       - name: Install dependencies
         run: npm install
 
       - name: Build themes
-        run: yarn build:themes
+        run: npm run build:themes
 
       - uses: EndBug/add-and-commit@v7
         with:

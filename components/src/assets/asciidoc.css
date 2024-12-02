@@ -29,6 +29,10 @@
     @apply mt-8 text-default;
   }
 
+  .asciidoc-body .attribution cite {
+    @apply block;
+  }
+
   .asciidoc-body .admonitionblock .quoteblock {
     @apply mb-2 mt-2 pl-[0.75rem] border-success-secondary;
   }
@@ -65,7 +69,7 @@
     word-wrap: break-word;
 
     text-decoration: underline;
-    text-decoration-color: rgba(var(--content-accent-tertiary-rgb), 0.8);
+    text-decoration-color: var(--content-accent-tertiary);
   }
 
   /* Use semi-bold for strong */
@@ -354,6 +358,23 @@
     @apply my-[1.5rem] flex px-3 py-3;
   }
 
+  .asciidoc-body .admonitionblock a {
+    text-decoration-color: var(--content-success-tertiary);
+  }
+
+  .asciidoc-body .admonitionblock.tip a {
+    text-decoration-color: var(--base-purple-600);
+  }
+
+  .asciidoc-body .admonitionblock.warning a {
+    text-decoration-color: var(--content-error-tertiary);
+  }
+
+  .asciidoc-body .admonitionblock.caution a,
+  .asciidoc-body .admonitionblock.important a {
+    text-decoration-color: var(--content-notice-tertiary);
+  }
+
   .asciidoc-body .admonitionblock strong {
     @apply text-success;
   }
@@ -369,10 +390,6 @@
 
   .asciidoc-body .admonitionblock.warning .quoteblock {
     @apply border-destructive-secondary;
-  }
-
-  .asciidoc-body .admonitionblock.tip .quoteblock {
-    border-color: var(--base-purple-500);
   }
 
   .asciidoc-body .admonitionblock.warning strong {
