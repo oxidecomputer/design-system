@@ -23,6 +23,10 @@
     @apply mt-8 text-default;
   }
 
+  .asciidoc-body .attribution cite {
+    @apply block;
+  }
+
   .asciidoc-body .admonitionblock .quoteblock {
     @apply mb-2 mt-2 pl-[0.75rem] border-success-secondary;
   }
@@ -59,7 +63,7 @@
     word-wrap: break-word;
 
     text-decoration: underline;
-    text-decoration-color: rgba(var(--content-accent-tertiary-rgb), 0.8);
+    text-decoration-color: var(--content-accent-tertiary);
   }
 
   /* Use semi-bold for strong */
@@ -313,10 +317,6 @@
     font-feature-settings: 'calt' 0;
   }
 
-  .asciidoc-body pre {
-    @apply flex items-center;
-  }
-
   .asciidoc-body .listingblock .content {
     @apply relative;
   }
@@ -365,6 +365,23 @@
     @apply my-[1.5rem] flex px-3 py-3;
   }
 
+  .asciidoc-body .admonitionblock a {
+    text-decoration-color: var(--content-success-tertiary);
+  }
+
+  .asciidoc-body .admonitionblock.tip a {
+    text-decoration-color: var(--base-purple-600);
+  }
+
+  .asciidoc-body .admonitionblock.warning a {
+    text-decoration-color: var(--content-error-tertiary);
+  }
+
+  .asciidoc-body .admonitionblock.caution a,
+  .asciidoc-body .admonitionblock.important a {
+    text-decoration-color: var(--content-notice-tertiary);
+  }
+
   .asciidoc-body .admonitionblock strong {
     @apply text-success;
   }
@@ -380,10 +397,6 @@
 
   .asciidoc-body .admonitionblock.warning .quoteblock {
     @apply border-destructive-secondary;
-  }
-
-  .asciidoc-body .admonitionblock.tip .quoteblock {
-    border-color: var(--base-purple-500);
   }
 
   .asciidoc-body .admonitionblock.warning strong {
@@ -563,8 +576,12 @@
     @apply border-r-0;
   }
 
-  .asciidoc-body tbody tr:last-child td,
-  .asciidoc-body tbody tr:last-child th {
+  /*
+    specificity to handle nested tables
+    todo: check if it's needed in any of the other table styles
+  */
+  .asciidoc-body tbody > tr:last-child > td,
+  .asciidoc-body tbody > tr:last-child > th {
     @apply border-b-0;
   }
 
@@ -593,7 +610,7 @@
   }
 
   .asciidoc-body .colist table {
-    @apply mt-[1.5rem];
+    @apply my-[1.5rem];
   }
 
   .asciidoc-body .colist table td {
@@ -631,6 +648,11 @@
 
   .asciidoc-body .sidebarblock {
     @apply bg-raise p-4 rounded-lg my-8 px-6 py-5;
+  }
+
+  /* Boosting body text for long text readability */
+  .asciidoc-body p {
+    color: #c8cacb;
   }
 
   @media print {
@@ -717,118 +739,5 @@
       color: var(--content-default) !important;
       background-color: var(--surface-raise) !important;
     }
-
-    pre code.hljs {
-      display: block;
-      overflow-x: auto;
-      padding: 1em;
-    }
-
-    code.hljs {
-      padding: 3px 5px;
-    }
-
-    .hljs {
-      color: #333;
-      background: #fff;
-    }
-
-    .hljs-comment,
-    .hljs-quote {
-      color: #777;
-      font-style: italic;
-    }
-
-    .hljs-keyword,
-    .hljs-selector-tag,
-    .hljs-subst {
-      color: #333;
-      font-weight: 700;
-    }
-
-    .hljs-literal,
-    .hljs-number {
-      color: #777;
-    }
-
-    .hljs-doctag,
-    .hljs-formula,
-    .hljs-string {
-      color: #333;
-      background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAJ0lEQVQIW2O8e/fufwYGBgZBQUEQxcCIIfDu3Tuwivfv30NUoAsAALHpFMMLqZlPAAAAAElFTkSuQmCC)
-        repeat;
-    }
-
-    .hljs-section,
-    .hljs-selector-id,
-    .hljs-title {
-      color: #000;
-      font-weight: 700;
-    }
-
-    .hljs-subst {
-      font-weight: 400;
-    }
-
-    .hljs-class .hljs-title,
-    .hljs-name,
-    .hljs-title.class_,
-    .hljs-type {
-      color: #333;
-      font-weight: 700;
-    }
-
-    .hljs-tag {
-      color: #333;
-    }
-
-    .hljs-regexp {
-      color: #333;
-      background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAICAYAAADA+m62AAAAPUlEQVQYV2NkQAN37979r6yszIgujiIAU4RNMVwhuiQ6H6wQl3XI4oy4FMHcCJPHcDS6J2A2EqUQpJhohQDexSef15DBCwAAAABJRU5ErkJggg==)
-        repeat;
-    }
-
-    .hljs-bullet,
-    .hljs-link,
-    .hljs-symbol {
-      color: #000;
-      background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAKElEQVQIW2NkQAO7d+/+z4gsBhJwdXVlhAvCBECKwIIwAbhKZBUwBQA6hBpm5efZsgAAAABJRU5ErkJggg==)
-        repeat;
-    }
-
-    .hljs-built_in {
-      color: #000;
-      text-decoration: underline;
-    }
-
-    .hljs-meta {
-      color: #999;
-      font-weight: 700;
-    }
-
-    .hljs-deletion {
-      color: #fff;
-      background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAADCAYAAABS3WWCAAAAE0lEQVQIW2MMDQ39zzhz5kwIAQAyxweWgUHd1AAAAABJRU5ErkJggg==)
-        repeat;
-    }
-
-    .hljs-addition {
-      color: #000;
-      background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAALUlEQVQYV2N89+7dfwYk8P79ewZBQUFkIQZGOiu6e/cuiptQHAPl0NtNxAQBAM97Oejj3Dg7AAAAAElFTkSuQmCC)
-        repeat;
-    }
-
-    .hljs-emphasis {
-      font-style: italic;
-    }
-
-    .hljs-strong {
-      font-weight: 700;
-    }
-  }
-
-  /* Boosting body text for long text readability */
-  .asciidoc-body p {
-    color: #c8cacb;
   }
 }
