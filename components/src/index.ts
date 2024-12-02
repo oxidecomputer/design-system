@@ -6,5 +6,5 @@
  * Copyright Oxide Computer Company
  */
 
-export * from './asciidoc'
-export * from './ui'
+export * from '~/src/asciidoc'
+export * from '~/src/ui'
