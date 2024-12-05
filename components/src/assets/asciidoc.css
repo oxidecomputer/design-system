@@ -18,15 +18,15 @@
   }
 
   .asciidoc-body .quoteblock {
-    @apply mb-8 mt-8 border-l pl-[1.6rem] text-tertiary border-default;
+    @apply mb-8 mt-8 border-l pl-[1.6rem] text-secondary border-default;
   }
 
   .asciidoc-body .quoteblock p {
-    @apply text-tertiary;
+    @apply text-secondary;
   }
 
   .asciidoc-body .quoteblock .attribution {
-    @apply mt-8 text-default;
+    @apply mt-8 text-raise;
   }
 
   .asciidoc-body .attribution cite {
@@ -74,7 +74,7 @@
 
   /* Use semi-bold for strong */
   .asciidoc-body strong {
-    @apply font-[500] text-default;
+    @apply font-[500] text-raise;
   }
 
   .asciidoc-body a strong {
@@ -85,7 +85,7 @@
   .asciidoc-body h3,
   .asciidoc-body h4,
   .asciidoc-body h5 {
-    @apply relative mb-3 mt-10 text-default;
+    @apply relative mb-3 mt-10 text-raise;
   }
 
   /* Removes top spacing from header if it is the first element */
@@ -102,7 +102,7 @@
   .asciidoc-body h3 a,
   .asciidoc-body h4 a,
   .asciidoc-body h5 a {
-    @apply flex items-center text-default;
+    @apply flex items-center text-raise;
   }
 
   .asciidoc-body h1[data-sectnum]:before,
@@ -110,7 +110,7 @@
   .asciidoc-body h3[data-sectnum]:before,
   .asciidoc-body h4[data-sectnum]:before,
   .asciidoc-body h5[data-sectnum]:before {
-    @apply bottom-0 mr-2 inline-block text-quaternary 800:absolute 800:-left-[72px] 800:mr-0 800:w-[60px] 800:text-right 800:text-sans-lg;
+    @apply bottom-0 mr-2 inline-block text-tertiary 800:absolute 800:-left-[72px] 800:mr-0 800:w-[60px] 800:text-right 800:text-sans-lg;
   }
 
   .asciidoc-body h3[data-sectnum]:before,
@@ -128,7 +128,7 @@
 
   .asciidoc-body h4,
   .asciidoc-body h5 {
-    @apply mb-2 mt-8 text-sans-lg text-default;
+    @apply mb-2 mt-8 text-sans-lg text-raise;
   }
 
   .asciidoc-body .anchor {
@@ -139,12 +139,12 @@
   }
 
   .asciidoc-body .dlist dt {
-    @apply text-sans-lg text-default;
+    @apply text-sans-lg text-raise;
   }
 
   .asciidoc-body .dlist dt:after {
     content: ':';
-    @apply text-sans-lg text-quaternary;
+    @apply text-sans-lg text-tertiary;
   }
 
   .asciidoc-body {
@@ -167,7 +167,7 @@
 
   .asciidoc-body ul,
   .asciidoc-body ol {
-    @apply mb-4 list-disc text-mono-sm text-tertiary;
+    @apply mb-4 list-disc text-mono-sm text-secondary;
   }
 
   .asciidoc-body ul p,
@@ -245,7 +245,7 @@
   }
 
   .asciidoc-body p {
-    @apply text-secondary;
+    @apply text-default;
   }
 
   .asciidoc-body .arabic {
@@ -269,7 +269,7 @@
   }
 
   .asciidoc-body ol p {
-    @apply normal-case text-secondary;
+    @apply normal-case text-default;
   }
 
   .text-mono-code {
@@ -285,7 +285,7 @@
   .asciidoc-body h4 code,
   .asciidoc-body h5 code,
   .asciidoc-body table code .inline-code {
-    @apply text-[0.825rem] text-secondary;
+    @apply text-[0.825rem] text-default;
     @apply ml-[1px] mr-[1px] rounded border px-[4px] py-[1px] align-[1px] bg-raise border-secondary;
   }
 
@@ -315,16 +315,16 @@
   }
 
   .asciidoc-body .listingblock pre:not(.highlight) {
-    @apply text-secondary;
+    @apply text-default;
   }
 
   .asciidoc-body .listingblock code[data-lang]:before {
-    @apply absolute right-2 top-2 block text-mono-xs text-tertiary;
+    @apply absolute right-2 top-2 block text-mono-xs text-secondary;
     content: attr(data-lang);
   }
 
   .asciidoc-body pre .conum[data-value] {
-    @apply relative -top-[0.125rem] inline-block h-[1rem] min-w-[1rem] rounded-full text-center not-italic text-mono-xs text-tertiary bg-raise;
+    @apply relative -top-[0.125rem] inline-block h-[1rem] min-w-[1rem] rounded-full text-center not-italic text-mono-xs text-secondary bg-raise;
   }
 
   .asciidoc-body pre .conum[data-value]:after {
@@ -496,7 +496,7 @@
   }
 
   .asciidoc-body .imageblock .title {
-    @apply mt-3 max-w-full text-center not-italic text-mono-xs text-tertiary;
+    @apply mt-3 max-w-full text-center not-italic text-mono-xs text-secondary;
   }
 
   .asciidoc-body img.wide {
@@ -506,7 +506,7 @@
   }
 
   .asciidoc-body sup.footnote {
-    @apply text-mono-xs text-tertiary;
+    @apply text-mono-xs text-secondary;
   }
 
   .asciidoc-body sup.footnote a {
@@ -524,7 +524,7 @@
   }
 
   .asciidoc-body .title {
-    @apply mb-2 max-w-[40rem] text-left italic text-sans-lg text-tertiary;
+    @apply mb-2 max-w-[40rem] text-left italic text-sans-lg text-secondary;
   }
 
   .asciidoc-body summary.title {
@@ -583,7 +583,7 @@
   }
 
   .asciidoc-body table th {
-    @apply text-left text-mono-xs text-tertiary bg-raise;
+    @apply text-left text-mono-xs text-secondary bg-raise;
   }
 
   .asciidoc-body table th p {
@@ -611,7 +611,7 @@
   }
 
   .asciidoc-body .colist table tr td:first-of-type {
-    @apply w-[1%] whitespace-nowrap text-quaternary;
+    @apply w-[1%] whitespace-nowrap text-tertiary;
   }
 
   .asciidoc-body .colist table b {
@@ -729,7 +729,7 @@
     }
 
     .asciidoc-body .admonitionblock {
-      color: var(--content-default) !important;
+      color: var(--content-raise) !important;
       background-color: var(--surface-raise) !important;
     }
   }
