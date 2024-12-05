@@ -1,3 +1,15 @@
+# v1.7.3 (Thu Dec 05 2024)
+
+#### 🐛 Bug Fix
+
+- Switch `tailwind-tokens.js` from cjs to esm [#97](https://github.com/oxidecomputer/design-system/pull/97) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.7.2 (Mon Dec 02 2024)
 
 #### 🐛 Bug Fix
