@@ -1,3 +1,15 @@
+# v1.7.4 (Thu Dec 05 2024)
+
+#### 🐛 Bug Fix
+
+- Bump colors in asciidoc css [#98](https://github.com/oxidecomputer/design-system/pull/98) ([@david-crespo](https://github.com/david-crespo))
+
+#### Authors: 1
+
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+
+---
+
 # v1.7.3 (Thu Dec 05 2024)
 
 #### 🐛 Bug Fix
