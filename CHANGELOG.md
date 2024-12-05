@@ -1,3 +1,15 @@
+# v1.7.5 (Thu Dec 05 2024)
+
+#### 🐛 Bug Fix
+
+- Remove color boost for AsciiDoc body text [#99](https://github.com/oxidecomputer/design-system/pull/99) ([@david-crespo](https://github.com/david-crespo))
+
+#### Authors: 1
+
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+
+---
+
 # v1.7.4 (Thu Dec 05 2024)
 
 #### 🐛 Bug Fix
