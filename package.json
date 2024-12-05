@@ -73,7 +73,7 @@
   },
   "files": [
     "styles/dist/*.css",
-    "styles/dist/tailwind-tokens.js",
+    "styles/dist/tailwind-tokens.ts",
     "icons/**",
     "components/dist/**"
   ],
