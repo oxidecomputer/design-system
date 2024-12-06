@@ -5,13 +5,24 @@
  *
  * Copyright Oxide Computer Company
  */
+import { Content, type DocumentBlock } from '@oxide/react-asciidoc'
+
 import Admonition from './Admonition'
+import Section from './Section'
 import Table from './Table'
 import { handleDocument, highlight, loadAsciidoctor } from './util'
+
+const MinimalDocument = ({ document }: { document: DocumentBlock }) => (
+  <div id="content" className="asciidoc-body w-full">
+    <Content blocks={document.blocks} />
+  </div>
+)
 
 const AsciiDocBlocks = {
   Admonition,
   Table,
+  Section,
+  MinimalDocument,
 }
 
 export { AsciiDocBlocks, handleDocument, highlight, loadAsciidoctor }

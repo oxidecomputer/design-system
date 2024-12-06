@@ -111,6 +111,12 @@ const highlight = async (block: Block): Promise<Block> => {
   return block
 }
 
+export const attrs = {
+  sectlinks: 'true',
+  stem: 'latexmath',
+  stylesheet: false,
+}
+
 const loadAsciidoctor = ({
   extensions = [],
 }: {
