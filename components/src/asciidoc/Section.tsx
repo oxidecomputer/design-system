@@ -6,9 +6,8 @@
  * Copyright Oxide Computer Company
  */
 import { Link16Icon } from '@/icons/react'
-import { Content, type SectionBlock } from '@oxide/react-asciidoc'
+import { Content, type SectionBlock, parse } from '@oxide/react-asciidoc'
 import cn from 'classnames'
-import parse from 'html-react-parser'
 import { createElement } from 'react'
 
 // We need to remove anchors from the section title (and table of contents) because having
