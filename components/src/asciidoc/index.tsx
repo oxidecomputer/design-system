@@ -10,7 +10,7 @@ import { Content, type DocumentBlock } from '@oxide/react-asciidoc'
 import Admonition from './Admonition'
 import Section from './Section'
 import Table from './Table'
-import { handleDocument, highlight, loadAsciidoctor } from './util'
+import { attrs, handleDocument, highlight, loadAsciidoctor } from './util'
 
 const MinimalDocument = ({ document }: { document: DocumentBlock }) => (
   <div id="content" className="asciidoc-body w-full">
@@ -25,4 +25,4 @@ const AsciiDocBlocks = {
   MinimalDocument,
 }
 
-export { AsciiDocBlocks, handleDocument, highlight, loadAsciidoctor }
+export { AsciiDocBlocks, handleDocument, highlight, loadAsciidoctor, attrs }
