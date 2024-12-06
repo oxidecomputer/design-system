@@ -111,7 +111,7 @@ const highlight = async (block: Block): Promise<Block> => {
   return block
 }
 
-export const attrs = {
+const attrs = {
   sectlinks: 'true',
   stem: 'latexmath',
   stylesheet: false,
@@ -163,4 +163,4 @@ const handleDocument = async (document: Document) => {
   return await processDocument(doc, highlight)
 }
 
-export { handleDocument, highlight, loadAsciidoctor }
+export { handleDocument, highlight, loadAsciidoctor, attrs }
