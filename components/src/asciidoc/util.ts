@@ -111,7 +111,11 @@ const highlight = async (block: Block): Promise<Block> => {
   return block
 }
 
-const loadAsciidoctor = ({ extensions }: { extensions: ((this: Registry) => void)[] }) => {
+const loadAsciidoctor = ({
+  extensions = [],
+}: {
+  extensions?: ((this: Registry) => void)[]
+}) => {
   const ad = asciidoctor()
 
   /*
