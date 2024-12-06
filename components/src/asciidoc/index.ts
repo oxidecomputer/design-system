@@ -7,8 +7,11 @@
  */
 import Admonition from './Admonition'
 import Table from './Table'
+import { handleDocument, highlight, loadAsciidoctor } from './util'
 
-export const AsciiDocBlocks = {
+const AsciiDocBlocks = {
   Admonition,
   Table,
 }
+
+export { AsciiDocBlocks, handleDocument, highlight, loadAsciidoctor }

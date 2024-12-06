@@ -61,6 +61,7 @@
     "zx": "^7.2.0"
   },
   "peerDependencies": {
+    "@asciidoctor/core": "^3.0.0",
     "@oxide/react-asciidoc": "^1.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
@@ -69,7 +70,8 @@
     "@floating-ui/react": "^0.25.1",
     "@headlessui/react": "^1.7.17",
     "@radix-ui/react-tabs": "^1.0.4",
-    "classnames": "^2.5.1"
+    "classnames": "^2.5.1",
+    "shiki": "^1.24.0"
   },
   "files": [
     "styles/dist/*.css",
