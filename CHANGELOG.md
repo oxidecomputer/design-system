@@ -1,3 +1,15 @@
+# v1.7.6 (Mon Dec 09 2024)
+
+#### 🐛 Bug Fix
+
+- Make asciidoc summary title brighter [#101](https://github.com/oxidecomputer/design-system/pull/101) ([@david-crespo](https://github.com/david-crespo))
+
+#### Authors: 1
+
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+
+---
+
 # v1.7.5 (Thu Dec 05 2024)
 
 #### 🐛 Bug Fix
