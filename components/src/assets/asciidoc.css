@@ -528,7 +528,7 @@
   }
 
   .asciidoc-body summary.title {
-    @apply not-italic text-sans-xl text-raise;
+    @apply not-italic text-raise;
   }
 
   .asciidoc-body .conum {
