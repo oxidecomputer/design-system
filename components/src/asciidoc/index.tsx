@@ -9,7 +9,6 @@ import asciidoctor, { Block, Html5Converter, Inline } from '@asciidoctor/core'
 import { Content, type DocumentBlock } from '@oxide/react-asciidoc'
 
 import Admonition from './Admonition'
-import Listing from './Listing'
 import Section from './Section'
 import Table from './Table'
 import {
@@ -30,7 +29,6 @@ const AsciiDocBlocks = {
   Admonition,
   Table,
   Section,
-  Listing,
   MinimalDocument,
 }
 
