@@ -1,10 +1,16 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, you can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * Copyright Oxide Computer Company
+ */
+import { DirectionRightIcon } from '@/icons/react'
 import type { DocumentSection } from '@oxide/react-asciidoc'
 import * as Accordion from '@radix-ui/react-accordion'
 import { Link } from '@remix-run/react'
 import cn from 'classnames'
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
-import { Icon } from '../icon'
 
 export function useIntersectionObserver(
   elements: Element[],
@@ -340,7 +346,7 @@ export const SmallScreenOutline = ({
           <Accordion.Header>
             <Accordion.Trigger className="flex h-[--toc-header-height] w-full items-center justify-between px-4 text-sans-md text-default hover:bg-hover 400:px-6 600:px-8 [&>svg]:data-[state=open]:rotate-90">
               Table of Contents{' '}
-              <Icon name="carat-right" size={12} className="transition-all text-tertiary" />
+              <DirectionRightIcon className="transition-all text-tertiary" />
             </Accordion.Trigger>
           </Accordion.Header>
 
