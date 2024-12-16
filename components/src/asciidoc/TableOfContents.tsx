@@ -291,7 +291,7 @@ export const DesktopOutline = ({
   }
 
   if (toc && toc.length > 0) {
-    return <ul className="toc">{renderToc(toc)}</ul>
+    return <ul className="1200:block hidden">{renderToc(toc)}</ul>
   }
 
   return null
