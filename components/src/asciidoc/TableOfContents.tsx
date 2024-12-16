@@ -310,10 +310,7 @@ export const SmallScreenOutline = ({
       <Fragment key={item.id}>
         <li
           data-level={item.level}
-          className={cn(
-            'AccordionContent hydrated list-none text-sans-sm',
-            item.level > 2 && 'hidden',
-          )}
+          className={cn('list-none text-sans-sm', item.level > 2 && 'hidden')}
         >
           <Link
             to={`#${item.id}`}
@@ -350,7 +347,7 @@ export const SmallScreenOutline = ({
             </Accordion.Trigger>
           </Accordion.Header>
 
-          <Accordion.Content className="AccordionContent hydrated w-full border-t px-4 border-secondary 400:px-6 600:px-8">
+          <Accordion.Content className="animated-accordion hydrated w-full border-t px-4 border-secondary 400:px-6 600:px-8">
             <div className="py-4">{renderToc(toc)}</div>
           </Accordion.Content>
         </Accordion.Item>
