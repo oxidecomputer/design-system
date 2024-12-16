@@ -259,9 +259,11 @@ export function useActiveSectionTracking(
 export const DesktopOutline = ({
   toc,
   activeItem,
+  className,
 }: {
   toc: DocumentSection[]
   activeItem: string
+  className?: string
 }) => {
   const renderToc = (sections: DocumentSection[]) => {
     return sections.map((item) => (
@@ -291,7 +293,7 @@ export const DesktopOutline = ({
   }
 
   if (toc && toc.length > 0) {
-    return <ul className="1200:block hidden">{renderToc(toc)}</ul>
+    return <ul className={className}>{renderToc(toc)}</ul>
   }
 
   return null
@@ -300,10 +302,12 @@ export const SmallScreenOutline = ({
   toc,
   activeItem,
   title,
+  className,
 }: {
   toc: DocumentSection[]
   activeItem: string
   title: string
+  className?: string
 }) => {
   const renderToc = (sections: DocumentSection[]) => {
     return sections.map((item) => (
@@ -336,7 +340,10 @@ export const SmallScreenOutline = ({
     return (
       <Accordion.Root
         type="single"
-        className="sticky top-[calc(var(--header-height)-1px)] z-10 -mt-px mb-10 block max-h-[calc(100vh-var(--header-height)+1px)] w-full overflow-y-scroll border-b border-t bg-default border-secondary 1200:hidden print:hidden"
+        className={cn(
+          'sticky top-[calc(var(--header-height)-1px)] z-10 -mt-px mb-10 block max-h-2/3 w-full overflow-y-scroll border-b border-t bg-default border-secondary print:hidden',
+          className,
+        )}
         collapsible
       >
         <Accordion.Item value={`small-toc-${title}`}>
