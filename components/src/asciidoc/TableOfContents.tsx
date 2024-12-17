@@ -309,6 +309,8 @@ export const SmallScreenOutline = ({
   title: string
   className?: string
 }) => {
+  const [value, setValue] = useState('')
+
   const renderToc = (sections: DocumentSection[]) => {
     return sections.map((item) => (
       <Fragment key={item.id}>
@@ -318,6 +320,7 @@ export const SmallScreenOutline = ({
         >
           <Link
             to={`#${item.id}`}
+            onClick={() => setValue('')}
             className={cn(
               'block border-l py-[4px]',
               activeItem === item.id
@@ -341,20 +344,22 @@ export const SmallScreenOutline = ({
       <Accordion.Root
         type="single"
         className={cn(
-          'sticky top-[calc(var(--header-height)-1px)] z-10 -mt-px mb-10 block max-h-2/3 w-full overflow-y-scroll border-b border-t bg-default border-secondary print:hidden',
+          'sticky top-[calc(var(--header-height)-1px)] z-10 -mt-px mb-10 block w-full border-b border-t bg-default border-secondary print:hidden',
           className,
         )}
         collapsible
+        value={value}
+        onValueChange={setValue}
       >
-        <Accordion.Item value={`small-toc-${title}`}>
+        <Accordion.Item value="toc">
           <Accordion.Header>
-            <Accordion.Trigger className="flex h-[--toc-header-height] w-full items-center justify-between px-4 text-sans-md text-default hover:bg-hover 400:px-6 600:px-8 [&>svg]:data-[state=open]:rotate-90">
+            <Accordion.Trigger className="flex h-12 w-full items-center justify-between px-4 text-sans-md text-default hover:bg-hover 400:px-6 600:px-8 [&>svg]:data-[state=open]:rotate-90">
               Table of Contents{' '}
               <DirectionRightIcon className="transition-all text-tertiary" />
             </Accordion.Trigger>
           </Accordion.Header>
 
-          <Accordion.Content className="animated-accordion hydrated w-full border-t px-4 border-secondary 400:px-6 600:px-8">
+          <Accordion.Content className="animated-accordion hydrated max-h-[66.6vh] overflow-y-scroll w-full border-t px-4 border-secondary 400:px-6 600:px-8">
             <div className="py-4">{renderToc(toc)}</div>
           </Accordion.Content>
         </Accordion.Item>
