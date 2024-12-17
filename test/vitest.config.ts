@@ -5,10 +5,7 @@
  *
  * Copyright Oxide Computer Company
  */
-import Admonition from './Admonition'
-import Table from './Table'
+import tsconfigPaths from 'vite-tsconfig-paths'
+import { defineConfig } from 'vitest/config'
 
-export const AsciiDocBlocks = {
-  Admonition,
-  Table,
-}
+export default defineConfig({ plugins: [tsconfigPaths()] })
