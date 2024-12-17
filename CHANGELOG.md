@@ -1,3 +1,15 @@
+# v1.8.2 (Tue Dec 17 2024)
+
+#### 🐛 Bug Fix
+
+- Tweak code size to use `em` not `rem` [#103](https://github.com/oxidecomputer/design-system/pull/103) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.8.1 (Tue Dec 17 2024)
 
 #### 🐛 Bug Fix
