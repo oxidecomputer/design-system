@@ -14,7 +14,7 @@ function useDelegatedReactRouterLinks(nodeRef: React.RefObject<HTMLElement>, key
 
       if (!(event.target instanceof HTMLElement)) return
 
-      let a = event.target.closest('a')
+      const a = event.target.closest('a')
 
       if (
         a && // is anchor or has anchor parent
