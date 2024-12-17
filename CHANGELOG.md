@@ -1,3 +1,15 @@
+# v1.8.0 (Tue Dec 17 2024)
+
+#### 🚀 Enhancement
+
+- Reusable AsciiDoc utils [#100](https://github.com/oxidecomputer/design-system/pull/100) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.7.6 (Mon Dec 09 2024)
 
 #### 🐛 Bug Fix
