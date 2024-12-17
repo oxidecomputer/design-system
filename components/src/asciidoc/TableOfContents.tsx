@@ -357,7 +357,7 @@ export const SmallScreenOutline = ({
             </Accordion.Trigger>
           </Accordion.Header>
 
-          <Accordion.Content className="animated-accordion hydrated max-h-[66.6vh] overflow-y-scroll w-full border-t border-secondary px-5 600:px-10">
+          <Accordion.Content className="animated-accordion hydrated max-h-[60vh] overflow-y-scroll w-full border-t border-secondary px-5 600:px-10">
             <div className="py-4">{renderToc(toc)}</div>
           </Accordion.Content>
         </Accordion.Item>
