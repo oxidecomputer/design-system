@@ -301,12 +301,10 @@ export const DesktopOutline = ({
 export const SmallScreenOutline = ({
   toc,
   activeItem,
-  title,
   className,
 }: {
   toc: DocumentSection[]
   activeItem: string
-  title: string
   className?: string
 }) => {
   const [value, setValue] = useState('')
