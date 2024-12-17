@@ -1,3 +1,15 @@
+# v1.8.1 (Tue Dec 17 2024)
+
+#### 🐛 Bug Fix
+
+- Shared link and code styles [#102](https://github.com/oxidecomputer/design-system/pull/102) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.8.0 (Tue Dec 17 2024)
 
 #### 🚀 Enhancement
