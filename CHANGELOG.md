@@ -1,3 +1,15 @@
+# v1.8.3 (Tue Dec 17 2024)
+
+#### 🐛 Bug Fix
+
+- Move dev deps to dev deps, remove some unneeded deps [#104](https://github.com/oxidecomputer/design-system/pull/104) ([@david-crespo](https://github.com/david-crespo))
+
+#### Authors: 1
+
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+
+---
+
 # v1.8.2 (Tue Dec 17 2024)
 
 #### 🐛 Bug Fix
