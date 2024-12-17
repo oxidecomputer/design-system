@@ -15,5 +15,6 @@ header:
     - '**/dist/*'
     - '**/*.md'
     - 'LICENSE'
+    - 'components/src/asciidoc/use-delegated-links.ts'
 
   comment: on-failure

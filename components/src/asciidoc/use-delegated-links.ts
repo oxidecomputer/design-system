@@ -1,7 +1,8 @@
 /**
  * MIT License
  *
- * Copyright (c) [year] [copyright holder]
+ * Copyright (c) React Training LLC 2015-2021
+ * Copyright (c) Shopify Inc. 2022-2023
  * From https://github.com/remix-run/react-router-website/blob/main/app/ui/delegate-markdown-links.ts
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
