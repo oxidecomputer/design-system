@@ -17,6 +17,7 @@ import {
   useActiveSectionTracking,
   useIntersectionObserver,
 } from './TableOfContents'
+import { useDelegatedReactRouterLinks } from './use-delegated-links'
 import { attrs, handleDocument, highlight, loadAsciidoctor } from './util'
 
 const MinimalDocument = ({ document }: { document: DocumentBlock }) => (
@@ -139,4 +140,5 @@ export {
   useActiveSectionTracking,
   useIntersectionObserver,
   InlineConverter,
+  useDelegatedReactRouterLinks,
 }

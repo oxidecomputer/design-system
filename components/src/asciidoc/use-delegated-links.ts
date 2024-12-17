@@ -1,7 +1,10 @@
+/*
+ * MIT License
+ * From https://github.com/remix-run/react-router-website/blob/main/app/ui/delegate-markdown-links.ts
+ */
 import { useNavigate } from '@remix-run/react'
 import { useEffect } from 'react'
 
-// Grabbed from https://github.com/remix-run/react-router-website/blob/main/app/ui/delegate-markdown-links.ts
 // Converts regular AsciiDoc a tags and makes them React Routery
 // Added key so that this is reloaded when the user routes from one document to another directly
 function useDelegatedReactRouterLinks(nodeRef: React.RefObject<HTMLElement>, key: string) {
