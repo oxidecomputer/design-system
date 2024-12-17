@@ -293,7 +293,7 @@ export const DesktopOutline = ({
   }
 
   if (toc && toc.length > 0) {
-    return <ul className={className}>{renderToc(toc)}</ul>
+    return <ul className={cn('toc', className)}>{renderToc(toc)}</ul>
   }
 
   return null
@@ -342,7 +342,7 @@ export const SmallScreenOutline = ({
       <Accordion.Root
         type="single"
         className={cn(
-          'sticky top-[calc(var(--header-height)-1px)] z-10 -mt-px mb-10 block w-full border-b border-t bg-default border-secondary print:hidden',
+          'toc sticky top-[calc(var(--header-height)-1px)] z-10 -mt-px mb-10 block w-full border-b border-t bg-default border-secondary print:hidden',
           className,
         )}
         collapsible
