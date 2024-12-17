@@ -45,7 +45,6 @@
     "@typescript-eslint/eslint-plugin": "^5.47.0",
     "auto": "^11.0.5",
     "dedent": "^1.5.3",
-    "esbuild-register": "^3.3.3",
     "eslint": "^8.23.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.2.1",
@@ -58,8 +57,8 @@
     "tsup": "^7.1.0",
     "tsx": "^4.19.2",
     "typescript": "^5.1.6",
-    "vite": "^4.4.0",
     "vite-tsconfig-paths": "^5.1.4",
+    "vitest": "^3.0.0-beta.2",
     "zx": "^7.2.0"
   },
   "peerDependencies": {
@@ -75,9 +74,7 @@
     "@radix-ui/react-accordion": "^1.2.2",
     "@radix-ui/react-tabs": "^1.0.4",
     "classnames": "^2.5.1",
-    "remeda": "^2.17.4",
-    "shiki": "^1.24.0",
-    "vitest": "^2.1.8"
+    "shiki": "^1.24.0"
   },
   "files": [
     "styles/dist/*.css",
