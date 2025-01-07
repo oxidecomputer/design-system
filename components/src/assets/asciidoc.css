@@ -548,6 +548,10 @@
     @apply sticky left-0 text-left;
   }
 
+  .asciidoc-body .table-wrapper caption > a {
+    @apply no-underline;
+  }
+
   .asciidoc-body table {
     @apply w-full border-separate overflow-hidden rounded-lg border p-0 border-secondary;
     border-spacing: 0;
