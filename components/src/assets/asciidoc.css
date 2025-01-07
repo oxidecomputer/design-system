@@ -288,7 +288,8 @@
   .asciidoc-body h2 code,
   .asciidoc-body h3 code,
   .asciidoc-body h4 code,
-  .asciidoc-body h5 code {
+  .asciidoc-body h5 code,
+  .asciidoc-body .title code {
     @apply text-[0.825em] text-default;
     @apply ml-[1px] mr-[1px] rounded border px-[4px] py-[1px] align-[1px] bg-raise border-secondary;
   }
@@ -544,7 +545,7 @@
   }
 
   .asciidoc-body .table-wrapper caption {
-    @apply sticky left-0;
+    @apply sticky left-0 text-left;
   }
 
   .asciidoc-body table {
