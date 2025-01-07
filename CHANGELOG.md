@@ -1,3 +1,15 @@
+# v1.8.4 (Tue Jan 07 2025)
+
+#### 🐛 Bug Fix
+
+- Table title tweaks [#105](https://github.com/oxidecomputer/design-system/pull/105) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.8.3 (Tue Dec 17 2024)
 
 #### 🐛 Bug Fix
