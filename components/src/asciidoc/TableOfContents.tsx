@@ -8,7 +8,6 @@
 import { DirectionRightIcon } from '@/icons/react'
 import type { DocumentSection } from '@oxide/react-asciidoc'
 import * as Accordion from '@radix-ui/react-accordion'
-import { Link } from '@remix-run/react'
 import cn from 'classnames'
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
@@ -272,8 +271,8 @@ export const DesktopOutline = ({
           data-level={item.level}
           className={cn('mb-0 list-none text-sans-sm', item.level > 2 && 'hidden')}
         >
-          <Link
-            to={`#${item.id}`}
+          <a
+            href={`#${item.id}`}
             className={cn(
               'block border-l py-[4px] pr-4',
               activeItem === item.id
@@ -285,7 +284,7 @@ export const DesktopOutline = ({
             }}
           >
             <span dangerouslySetInnerHTML={{ __html: item.title }} />
-          </Link>
+          </a>
         </li>
         {item.sections && renderToc(item.sections)}
       </Fragment>
@@ -316,8 +315,8 @@ export const SmallScreenOutline = ({
           data-level={item.level}
           className={cn('list-none text-sans-sm', item.level > 2 && 'hidden')}
         >
-          <Link
-            to={`#${item.id}`}
+          <a
+            href={`#${item.id}`}
             onClick={() => setValue('')}
             className={cn(
               'block border-l py-[4px]',
@@ -330,7 +329,7 @@ export const SmallScreenOutline = ({
             }}
           >
             <span dangerouslySetInnerHTML={{ __html: item.title }} />
-          </Link>
+          </a>
         </li>
         {item.sections && renderToc(item.sections)}
       </Fragment>
