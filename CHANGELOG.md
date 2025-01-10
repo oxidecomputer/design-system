@@ -1,3 +1,20 @@
+# v2.0.0 (Fri Jan 10 2025)
+
+#### 💥 Breaking Change
+
+- Update remix peer-dependency [#107](https://github.com/oxidecomputer/design-system/pull/107) ([@augustuswm](https://github.com/augustuswm))
+
+#### 🐛 Bug Fix
+
+- Table title tweaks [#105](https://github.com/oxidecomputer/design-system/pull/105) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 2
+
+- Augustus Mayo ([@augustuswm](https://github.com/augustuswm))
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v1.8.4 (Tue Jan 07 2025)
 
 #### 🐛 Bug Fix
