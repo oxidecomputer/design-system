@@ -15,14 +15,28 @@
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
  */
-import { useNavigate } from '@remix-run/react'
 import { useEffect } from 'react'
+
+// copied from React Router, unlikely to change
+// https://github.com/remix-run/react-router/blob/7b041811/packages/react-router/lib/router/history.ts#L32-L50
+interface Path {
+  pathname: string
+  search: string
+  hash: string
+}
+
+// https://github.com/remix-run/react-router/blob/7b041811/packages/react-router/lib/router/history.ts#L101-L105
+type To = string | Partial<Path>
 
 // Converts regular AsciiDoc a tags and makes them React Routery
 // Added key so that this is reloaded when the user routes from one document to another directly
-function useDelegatedReactRouterLinks(nodeRef: React.RefObject<HTMLElement>, key: string) {
-  const navigate = useNavigate()
-
+function useDelegatedReactRouterLinks(
+  // this is to avoid a dependency on remix/react router
+  /** Pass in the result of `useNavigate()` in the calling application. */
+  navigate: (to: To) => void,
+  nodeRef: React.RefObject<HTMLElement>,
+  key: string,
+) {
   useEffect(() => {
     const node = nodeRef.current
     const handler = (event: MouseEvent) => {

@@ -64,7 +64,6 @@
   "peerDependencies": {
     "@asciidoctor/core": "^3.0.0",
     "@oxide/react-asciidoc": "^1.0.0",
-    "@remix-run/react": "2.15.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
