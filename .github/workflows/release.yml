@@ -23,8 +23,17 @@ jobs:
         uses: bahmutov/npm-install@v1
 
       - name: Create Release
+        if: github.ref != 'refs/heads/master'
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           npm run build && npm run release
+
+      - name: Dry Run Release
+        if: github.ref == 'refs/heads/master'
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm run build && npm run release --dry-run
