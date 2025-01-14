@@ -5,7 +5,7 @@
  *
  * Copyright Oxide Computer Company
  */
-import { SVGProps } from 'react'
+import type { SVGProps } from 'react'
 
 interface SVGRProps {
   title?: string
@@ -17,20 +17,20 @@ const Folder24Icon = ({
   ...props
 }: SVGProps<SVGSVGElement> & SVGRProps) => (
   <svg
+    xmlns="http://www.w3.org/2000/svg"
     width={24}
     height={24}
     viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
     role="img"
     aria-labelledby={titleId}
     {...props}
   >
     {title ? <title id={titleId}>{title}</title> : null}
     <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M2 3h10a1 1 0 0 1 1 1v2H1V4a1 1 0 0 1 1-1ZM1 8h21a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V8Z"
       fill="currentColor"
+      fillRule="evenodd"
+      d="M2 3h10a1 1 0 0 1 1 1v2H1V4a1 1 0 0 1 1-1M1 8h21a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1z"
+      clipRule="evenodd"
     />
   </svg>
 )
