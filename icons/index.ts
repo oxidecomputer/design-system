@@ -15,6 +15,7 @@ export type Icon =
   | { name: 'add-roundel'; size: 12 }
   | { name: 'add-roundel'; size: 16 }
   | { name: 'add-roundel'; size: 24 }
+  | { name: 'auto-restart'; size: 12 }
   | { name: 'calendar'; size: 16 }
   | { name: 'calendar'; size: 24 }
   | { name: 'carat-down'; size: 12 }
@@ -33,6 +34,7 @@ export type Icon =
   | { name: 'cloud'; size: 16 }
   | { name: 'cloud'; size: 24 }
   | { name: 'compability'; size: 16 }
+  | { name: 'compass'; size: 16 }
   | { name: 'compatibility'; size: 24 }
   | { name: 'contrast'; size: 16 }
   | { name: 'contrast'; size: 24 }
@@ -46,6 +48,7 @@ export type Icon =
   | { name: 'dislike'; size: 24 }
   | { name: 'document'; size: 16 }
   | { name: 'document'; size: 24 }
+  | { name: 'document-api'; size: 16 }
   | { name: 'dots'; size: 16 }
   | { name: 'dots'; size: 24 }
   | { name: 'download'; size: 24 }

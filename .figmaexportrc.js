@@ -5,12 +5,12 @@
  *
  * Copyright Oxide Computer Company
  */
+import svgOutputter from '@figma-export/output-components-as-svg'
+import svgrOutputter from '@figma-export/output-components-as-svgr'
+import svgoTransformer from '@figma-export/transform-svg-with-svgo'
+import { pascalCase } from '@figma-export/utils'
 
-// @ts-check
-
-const { pascalCase } = require('@figma-export/utils')
-
-module.exports = {
+export default {
   commands: [
     [
       'components',
@@ -18,7 +18,7 @@ module.exports = {
         fileId: 'iMVpYGoNGpwMEL9gd0oeYF',
         onlyFromPages: ['Icons'],
         transformers: [
-          require('@figma-export/transform-svg-with-svgo')({
+          svgoTransformer({
             plugins: [
               {
                 name: 'preset-default',
@@ -38,24 +38,20 @@ module.exports = {
           }),
         ],
         outputters: [
-          require('@figma-export/output-components-as-svg')({
+          svgOutputter({
             output: './icons/svg',
             getDirname: () => '',
             getBasename: ({ basename, dirname }) => {
-              // Special handing for the directional arrows which have an odd export naming convention
               if (basename.includes('Direction=')) {
                 basename = `carat-${basename.split('=')[1].toLowerCase()}-12`
               }
-
-              // Add the icon's size category as a postfix, if present
               if (!isNaN(parseInt(dirname))) {
                 return `${basename}-${dirname}.svg`
               }
-
               return `${basename}.svg`
             },
           }),
-          require('@figma-export/output-components-as-svgr')({
+          svgrOutputter({
             output: './icons/react',
             getFileExtension: () => '.tsx',
             getDirname: () => '',
@@ -67,16 +63,17 @@ module.exports = {
                   .reverse()
                   .join('') + 'Icon',
               ),
-            getSvgrConfig: () => {
-              return {
-                jsxRuntime: 'automatic',
-                typescript: true,
-                titleProp: true,
-                svgProps: {
-                  role: 'img',
-                },
-              }
-            },
+            getSvgrConfig: () => ({
+              jsxRuntime: 'automatic',
+              typescript: true,
+              titleProp: true,
+              plugins: ['@svgr/plugin-jsx'],
+              svgProps: {
+                role: 'img',
+              },
+              expandProps: 'end',
+              exportType: 'default',
+            }),
           }),
         ],
       },

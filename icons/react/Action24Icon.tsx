@@ -5,7 +5,7 @@
  *
  * Copyright Oxide Computer Company
  */
-import { SVGProps } from 'react'
+import type { SVGProps } from 'react'
 
 interface SVGRProps {
   title?: string
@@ -17,18 +17,18 @@ const Action24Icon = ({
   ...props
 }: SVGProps<SVGSVGElement> & SVGRProps) => (
   <svg
+    xmlns="http://www.w3.org/2000/svg"
     width={24}
     height={24}
     viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
     role="img"
     aria-labelledby={titleId}
     {...props}
   >
     {title ? <title id={titleId}>{title}</title> : null}
     <path
-      d="M14 11h5.863a.5.5 0 0 1 .369.838l-9.363 10.214a.5.5 0 0 1-.869-.337V13H4.137a.5.5 0 0 1-.369-.838l9.363-10.214a.5.5 0 0 1 .869.337V11Z"
       fill="currentColor"
+      d="M14 11h5.863a.5.5 0 0 1 .369.838l-9.363 10.215a.5.5 0 0 1-.869-.338V13H4.137a.5.5 0 0 1-.369-.838l9.363-10.214a.5.5 0 0 1 .869.337z"
     />
   </svg>
 )

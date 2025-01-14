@@ -5,7 +5,7 @@
  *
  * Copyright Oxide Computer Company
  */
-import { SVGProps } from 'react'
+import type { SVGProps } from 'react'
 
 interface SVGRProps {
   title?: string
@@ -13,20 +13,20 @@ interface SVGRProps {
 }
 const Logs24Icon = ({ title, titleId, ...props }: SVGProps<SVGSVGElement> & SVGRProps) => (
   <svg
+    xmlns="http://www.w3.org/2000/svg"
     width={24}
     height={24}
     viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
     role="img"
     aria-labelledby={titleId}
     {...props}
   >
     {title ? <title id={titleId}>{title}</title> : null}
     <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M1 4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H5v3.973l4 .054V11a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H10a1 1 0 0 1-1-.973l-4-.054V18h4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H10a1 1 0 0 1-1-1H4a1 1 0 0 1-1-1V7H2a1 1 0 0 1-1-1V4Zm8 0a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H10a1 1 0 0 1-1-1V4Z"
       fill="currentColor"
+      fillRule="evenodd"
+      d="M1 4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H5v3.973l4 .054V11a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H10a1 1 0 0 1-1-.973l-4-.054V18h4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H10a1 1 0 0 1-1-1H4a1 1 0 0 1-1-1V7H2a1 1 0 0 1-1-1zm8 0a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H10a1 1 0 0 1-1-1z"
+      clipRule="evenodd"
     />
   </svg>
 )

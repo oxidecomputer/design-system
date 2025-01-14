@@ -5,7 +5,7 @@
  *
  * Copyright Oxide Computer Company
  */
-import { SVGProps } from 'react'
+import type { SVGProps } from 'react'
 
 interface SVGRProps {
   title?: string
@@ -17,20 +17,20 @@ const IpLocal16Icon = ({
   ...props
 }: SVGProps<SVGSVGElement> & SVGRProps) => (
   <svg
+    xmlns="http://www.w3.org/2000/svg"
     width={16}
     height={16}
     viewBox="0 0 16 16"
-    xmlns="http://www.w3.org/2000/svg"
     role="img"
     aria-labelledby={titleId}
     {...props}
   >
     {title ? <title id={titleId}>{title}</title> : null}
     <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M8.736 6.909a3.006 3.006 0 0 1-1.07.073L6.038 9.799a3 3 0 1 1-1.32-.713l1.53-2.65a3 3 0 1 1 3.804-.247l1.632 2.827a3 3 0 1 1-1.422.537L8.736 6.91Z"
       fill="currentColor"
+      fillRule="evenodd"
+      d="M8.736 6.909a3 3 0 0 1-1.07.073L6.038 9.799a3 3 0 1 1-1.32-.713l1.53-2.65a3 3 0 1 1 3.804-.247l1.632 2.827Q11.84 9.001 12 9a3 3 0 1 1-1.737.554z"
+      clipRule="evenodd"
     />
   </svg>
 )

@@ -3,6 +3,7 @@
     "target": "ESNext",
     "useDefineForClassFields": true,
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "types": [],
     "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -21,6 +22,5 @@
     },
     "allowImportingTsExtensions": true
   },
-  "include": ["components/**/*.ts", "components/**/*.tsx"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["components/**/*.ts", "components/**/*.tsx"]
 }
