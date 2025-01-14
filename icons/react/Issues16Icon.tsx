@@ -5,7 +5,7 @@
  *
  * Copyright Oxide Computer Company
  */
-import { SVGProps } from 'react'
+import type { SVGProps } from 'react'
 
 interface SVGRProps {
   title?: string
@@ -17,20 +17,20 @@ const Issues16Icon = ({
   ...props
 }: SVGProps<SVGSVGElement> & SVGRProps) => (
   <svg
+    xmlns="http://www.w3.org/2000/svg"
     width={16}
     height={16}
     viewBox="0 0 16 16"
-    xmlns="http://www.w3.org/2000/svg"
     role="img"
     aria-labelledby={titleId}
     {...props}
   >
     {title ? <title id={titleId}>{title}</title> : null}
     <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M2.75 1a.75.75 0 0 0-.75.75V13h-.25a.75.75 0 0 0-.75.75v.5c0 .414.336.75.75.75h2.5a.75.75 0 0 0 .75-.75v-.5a.75.75 0 0 0-.75-.75H4V8h3v1.25c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-4.5a.75.75 0 0 0-.75-.75H9V2.75A.75.75 0 0 0 8.25 2H4v-.25A.75.75 0 0 0 3.25 1h-.5Z"
       fill="currentColor"
+      fillRule="evenodd"
+      d="M2.75 1a.75.75 0 0 0-.75.75V13h-.25a.75.75 0 0 0-.75.75v.5c0 .414.336.75.75.75h2.5a.75.75 0 0 0 .75-.75v-.5a.75.75 0 0 0-.75-.75H4V8h3v1.25c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75v-4.5a.75.75 0 0 0-.75-.75H9V2.75A.75.75 0 0 0 8.25 2H4v-.25A.75.75 0 0 0 3.25 1z"
+      clipRule="evenodd"
     />
   </svg>
 )

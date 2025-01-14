@@ -5,7 +5,7 @@
  *
  * Copyright Oxide Computer Company
  */
-import { SVGProps } from 'react'
+import type { SVGProps } from 'react'
 
 interface SVGRProps {
   title?: string
@@ -17,20 +17,20 @@ const LoadBalancer24Icon = ({
   ...props
 }: SVGProps<SVGSVGElement> & SVGRProps) => (
   <svg
+    xmlns="http://www.w3.org/2000/svg"
     width={24}
     height={24}
     viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
     role="img"
     aria-labelledby={titleId}
     {...props}
   >
     {title ? <title id={titleId}>{title}</title> : null}
     <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M10 2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h1v4H4a1 1 0 0 0-1 1v5a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1v-4h6v4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1v-4h6v4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1v-5a1 1 0 0 0-1-1h-7V8h1a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1h-4Z"
       fill="currentColor"
+      fillRule="evenodd"
+      d="M10 2a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h1v4H4a1 1 0 0 0-1 1v5a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1v-4h6v4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1v-4h6v4a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1v-5a1 1 0 0 0-1-1h-7V8h1a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"
+      clipRule="evenodd"
     />
   </svg>
 )
