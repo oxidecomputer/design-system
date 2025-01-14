@@ -11,7 +11,7 @@ interface SVGRProps {
   title?: string
   titleId?: string
 }
-const AutoRefresh12Icon = ({
+const AutoRestart12Icon = ({
   title,
   titleId,
   ...props
@@ -32,4 +32,4 @@ const AutoRefresh12Icon = ({
     />
   </svg>
 )
-export default AutoRefresh12Icon
+export default AutoRestart12Icon
