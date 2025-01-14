@@ -6,6 +6,29 @@
 
 #### 🚀 Enhancement
 
+- Update icons (and `@figma-export`) [#108](https://github.com/oxidecomputer/design-system/pull/108) ([@benjaminleonard](https://github.com/benjaminleonard))
+- Don't depend on React Router or Remix directly [#106](https://github.com/oxidecomputer/design-system/pull/106) ([@david-crespo](https://github.com/david-crespo))
+
+#### 🐛 Bug Fix
+
+- Table title tweaks [#105](https://github.com/oxidecomputer/design-system/pull/105) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 3
+
+- Augustus Mayo ([@augustuswm](https://github.com/augustuswm))
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+
+---
+
+# v2.0.0 (Tue Jan 14 2025)
+
+#### 💥 Breaking Change
+
+- Update remix peer-dependency [#107](https://github.com/oxidecomputer/design-system/pull/107) ([@augustuswm](https://github.com/augustuswm))
+
+#### 🚀 Enhancement
+
 - Don't depend on React Router or Remix directly [#106](https://github.com/oxidecomputer/design-system/pull/106) ([@david-crespo](https://github.com/david-crespo))
 
 #### 🐛 Bug Fix
