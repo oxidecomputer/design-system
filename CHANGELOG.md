@@ -1,3 +1,28 @@
+# v2.1.0 (Tue Jan 14 2025)
+
+#### 🚀 Enhancement
+
+- Update icons (and `@figma-export`) [#108](https://github.com/oxidecomputer/design-system/pull/108) ([@benjaminleonard](https://github.com/benjaminleonard))
+- Don't depend on React Router or Remix directly [#106](https://github.com/oxidecomputer/design-system/pull/106) ([@david-crespo](https://github.com/david-crespo))
+
+#### 🐛 Bug Fix
+
+- Bump [#111](https://github.com/oxidecomputer/design-system/pull/111) ([@benjaminleonard](https://github.com/benjaminleonard))
+- Bump [#110](https://github.com/oxidecomputer/design-system/pull/110) ([@benjaminleonard](https://github.com/benjaminleonard))
+- Bump [#109](https://github.com/oxidecomputer/design-system/pull/109) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### ⚠️ Pushed to `master`
+
+- Undo dry run ([@benjaminleonard](https://github.com/benjaminleonard))
+- Dry run release on master branch ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 2
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+
+---
+
 # v2.0.0 (Tue Jan 14 2025)
 
 #### 💥 Breaking Change
