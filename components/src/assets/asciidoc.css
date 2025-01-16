@@ -6,13 +6,21 @@
  * Copyright Oxide Computer Company
  */
 
-@layer components {
+@layer utility {
+  .text-mono-code {
+    @apply !text-[0.825em] !normal-case;
+    font-feature-settings: 'calt' 0;
+    letter-spacing: 0;
+  }
+
   .accent-link {
     @apply text-accent-secondary hover:text-accent;
     text-decoration: underline;
     text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
   }
+}
 
+@layer components {
   .asciidoc-body {
     .line-through {
       text-decoration: line-through;
@@ -276,12 +284,6 @@
 
     ol p {
       @apply normal-case text-default;
-    }
-
-    .text-mono-code {
-      @apply !text-[0.825em] !normal-case;
-      font-feature-settings: 'calt' 0;
-      letter-spacing: 0;
     }
 
     .inline-code {
