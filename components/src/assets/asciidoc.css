@@ -10,7 +10,7 @@
   .accent-link {
     @apply text-accent-secondary hover:text-accent;
     text-decoration: underline;
-    text-decoration-color: var(--content-accent-tertiary);
+    text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
   }
 
   .asciidoc-body {
@@ -168,7 +168,12 @@
 
     ul,
     ol {
-      @apply mb-4 list-disc text-mono-sm text-secondary;
+      @apply mb-4 list-disc text-mono-sm;
+    }
+
+    li::marker,
+    ol::marker {
+      color: color-mix(in srgb, currentColor 60%, transparent);
     }
 
     ul p,
@@ -365,20 +370,7 @@
     }
 
     .admonitionblock a {
-      text-decoration-color: var(--content-success-tertiary);
-    }
-
-    .admonitionblock.tip a {
-      text-decoration-color: var(--base-purple-600);
-    }
-
-    .admonitionblock.warning a {
-      text-decoration-color: var(--content-error-tertiary);
-    }
-
-    .admonitionblock.caution a,
-    .admonitionblock.important a {
-      text-decoration-color: var(--content-notice-tertiary);
+      text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
     }
 
     .admonitionblock strong {
@@ -425,16 +417,16 @@
       @apply text-destructive bg-destructive-secondary border-destructive-tertiary;
     }
 
-    .admonitionblock.caution p,
-    .admonitionblock.important p {
+    .admonitionblock.caution,
+    .admonitionblock.important {
       @apply text-notice;
     }
 
-    .admonitionblock.warning p {
+    .admonitionblock.warning {
       @apply text-destructive;
     }
 
-    .admonitionblock.tip p {
+    .admonitionblock.tip {
       color: var(--base-purple-800);
     }
 
@@ -699,7 +691,7 @@
   }
 
   a:not(:is(h1, h2, h3, h4, h5, h6) a) {
-    text-decoration-color: rgba(var(--content-accent-tertiary-rgb), 0.8);
+    text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
     @apply underline text-accent-secondary;
   }
 
