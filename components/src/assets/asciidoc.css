@@ -366,6 +366,10 @@
       @apply my-[1.5rem] flex px-3 py-3;
     }
 
+    .admonition-content p {
+      @apply text-[currentColor];
+    }
+
     .admonitionblock a {
       text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
     }
