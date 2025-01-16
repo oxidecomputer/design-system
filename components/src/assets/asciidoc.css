@@ -782,14 +782,6 @@
       line-height: 1 !important;
     }
 
-    #content {
-      max-width: 80vw;
-    }
-
-    .asciidoc-body .paragraph {
-      max-width: 80vw;
-    }
-
     @page {
       margin-top: 2cm;
       margin-bottom: 2cm;
@@ -842,7 +834,19 @@
       h3[data-sectnum]::before,
       h4[data-sectnum]::before,
       h5[data-sectnum]::before {
-        @apply hidden;
+        @apply !hidden;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      h5 {
+        @apply ml-0 pl-0;
+      }
+
+      .paragraph {
+        max-width: 80vw;
       }
     }
   }
