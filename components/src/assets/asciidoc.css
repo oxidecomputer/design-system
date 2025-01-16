@@ -6,7 +6,7 @@
  * Copyright Oxide Computer Company
  */
 
-@layer utility {
+@layer utilities {
   .text-mono-code {
     @apply !text-[0.825em] !normal-case;
     font-feature-settings: 'calt' 0;
