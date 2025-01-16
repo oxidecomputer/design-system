@@ -672,7 +672,7 @@
     }
 
     .paragraph.lead p {
-      font-size: 1.25rem;
+      @apply text-sans-xl;
     }
 
     a:not(:is(h1, h2, h3, h4, h5, h6) a) {
