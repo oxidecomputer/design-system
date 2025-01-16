@@ -46,11 +46,6 @@
       @apply mb-2 mt-2 pl-[0.75rem] border-success-secondary;
     }
 
-    .admonitionblock p,
-    .admonitionblock blockquote {
-      @apply text-success;
-    }
-
     .admonition-content .paragraph {
       @apply mb-1 last:mb-0;
     }
@@ -400,6 +395,11 @@
       color: var(--base-purple-800);
     }
 
+    .admonitionblock,
+    .admonitionblock blockquote {
+      @apply text-success;
+    }
+
     .admonitionblock.tip,
     .admonitionblock.tip blockquote {
       background-color: var(--base-purple-200);
@@ -674,6 +674,11 @@
     .paragraph.lead p {
       font-size: 1.25rem;
     }
+
+    a:not(:is(h1, h2, h3, h4, h5, h6) a) {
+      text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
+      @apply underline text-accent-secondary;
+    }
   }
 
   #footnotes p a {
@@ -690,11 +695,6 @@
 
   .toc code {
     @apply ml-[1px] mr-[1px] rounded border px-[3px] align-[1px] border-secondary;
-  }
-
-  a:not(:is(h1, h2, h3, h4, h5, h6) a) {
-    text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
-    @apply underline text-accent-secondary;
   }
 
   @media screen and (min-width: 720px) {
