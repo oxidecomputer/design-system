@@ -171,7 +171,7 @@
 
     ul,
     ol {
-      @apply mb-4 list-disc text-mono-sm;
+      @apply mb-3 list-disc text-mono-sm;
     }
 
     li::marker,
@@ -488,7 +488,7 @@
     }
 
     .imageblock.inlineimage {
-      @apply my-4;
+      @apply my-3;
     }
 
     table.tableblock table.tableblock {
