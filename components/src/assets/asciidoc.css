@@ -13,7 +13,7 @@
     text-decoration-color: var(--content-accent-tertiary);
   }
 
-   {
+  .asciidoc-body {
     .line-through {
       text-decoration: line-through;
     }
