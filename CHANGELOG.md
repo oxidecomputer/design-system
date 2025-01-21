@@ -1,3 +1,16 @@
+# v2.2.0 (Tue Jan 21 2025)
+
+#### 🚀 Enhancement
+
+- Print style improvements [#116](https://github.com/oxidecomputer/design-system/pull/116) ([@benjaminleonard](https://github.com/benjaminleonard))
+- Update icons (and `@figma-export`) [#108](https://github.com/oxidecomputer/design-system/pull/108) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v2.1.0 (Tue Jan 14 2025)
 
 #### 🚀 Enhancement
