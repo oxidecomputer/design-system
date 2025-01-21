@@ -6,650 +6,689 @@
  * Copyright Oxide Computer Company
  */
 
-@layer components {
-  .accent-link {
-    @apply text-accent-secondary hover:text-accent;
-    text-decoration: underline;
-    text-decoration-color: var(--content-accent-tertiary);
-  }
-
-  .asciidoc-body .line-through {
-    text-decoration: line-through;
-  }
-
-  .asciidoc-body .quoteblock {
-    @apply mb-8 mt-8 border-l pl-[1.6rem] text-secondary border-default;
-  }
-
-  .asciidoc-body .quoteblock p {
-    @apply text-secondary;
-  }
-
-  .asciidoc-body .quoteblock .attribution {
-    @apply mt-8 text-raise;
-  }
-
-  .asciidoc-body .attribution cite {
-    @apply block;
-  }
-
-  .asciidoc-body .admonitionblock .quoteblock {
-    @apply mb-2 mt-2 pl-[0.75rem] border-success-secondary;
-  }
-
-  .asciidoc-body .admonitionblock p,
-  .asciidoc-body .admonitionblock blockquote {
-    @apply text-success;
-  }
-
-  .asciidoc-body .admonition-content .paragraph {
-    @apply mb-1 last:mb-0;
-  }
-
-  .asciidoc-body .admonition-content > div:first-of-type {
-    @apply normal-case text-sans-semi-md;
-  }
-
-  .asciidoc-body .imageblock img {
-    @apply mx-auto h-auto w-auto w-full rounded-lg border border-tertiary object-contain;
-    max-height: max(500px, 75vh);
-  }
-
-  .asciidoc-body span img {
-    @apply inline;
-  }
-
-  .asciidoc-body img.transparent-dark {
-    @apply bg-secondary;
-  }
-
-  .asciidoc-body p a {
-    @apply text-accent-secondary hover:text-accent;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-
-    text-decoration: underline;
-    text-decoration-color: var(--content-accent-tertiary);
-  }
-
-  /* Use semi-bold for strong */
-  .asciidoc-body strong {
-    @apply font-[500] text-raise;
-  }
-
-  .asciidoc-body a strong {
-    @apply text-accent-secondary;
-  }
-
-  .asciidoc-body h2,
-  .asciidoc-body h3,
-  .asciidoc-body h4,
-  .asciidoc-body h5 {
-    @apply relative mb-3 mt-10 text-raise;
-  }
-
-  /* Removes top spacing from header if it is the first element */
-  .asciidoc-body#content > .sect1:first-of-type > h1:nth-child(1),
-  .asciidoc-body#content > .sect1:first-of-type > h2:nth-child(1),
-  .asciidoc-body#content > .sect1:first-of-type > h3:nth-child(1),
-  .asciidoc-body#content > .sect1:first-of-type > h4:nth-child(1),
-  .asciidoc-body#content > .sect1:first-of-type > h5:nth-child(1) {
-    @apply mt-0;
-  }
-
-  .asciidoc-body h1 a,
-  .asciidoc-body h2 a,
-  .asciidoc-body h3 a,
-  .asciidoc-body h4 a,
-  .asciidoc-body h5 a {
-    @apply flex items-center text-raise;
-  }
-
-  .asciidoc-body h1[data-sectnum]:before,
-  .asciidoc-body h2[data-sectnum]:before,
-  .asciidoc-body h3[data-sectnum]:before,
-  .asciidoc-body h4[data-sectnum]:before,
-  .asciidoc-body h5[data-sectnum]:before {
-    @apply bottom-0 mr-2 inline-block text-tertiary 800:absolute 800:-left-[72px] 800:mr-0 800:w-[60px] 800:text-right 800:text-sans-lg;
-  }
-
-  .asciidoc-body h3[data-sectnum]:before,
-  .asciidoc-body h2[data-sectnum]:before {
-    @apply 800:bottom-[2px];
-  }
-
-  .asciidoc-body h2 {
-    @apply text-sans-2xl;
-  }
-
-  .asciidoc-body h3 {
-    @apply text-sans-xl;
-  }
-
-  .asciidoc-body h4,
-  .asciidoc-body h5 {
-    @apply mb-2 mt-8 text-sans-lg text-raise;
-  }
-
-  .asciidoc-body .anchor {
-    position: absolute;
-    margin-top: calc(var(--header-height) * -1 - 20px);
-    visibility: hidden;
-    user-select: none;
-  }
-
-  .asciidoc-body .dlist dt {
-    @apply text-sans-lg text-raise;
-  }
-
-  .asciidoc-body .dlist dt:after {
-    content: ':';
-    @apply text-sans-lg text-tertiary;
-  }
-
-  .asciidoc-body {
-    @apply text-sans-lg;
-  }
-
-  /* Fix overflow text in mermaid */
-  .asciidoc-body figure svg {
-    line-height: 1 !important;
-  }
-
-  .asciidoc-body p {
-    @apply mb-[1.25rem] !leading-[1.5] text-sans-lg 800:mb-4;
-  }
-
-  .asciidoc-body ul li,
-  .asciidoc-body ol li {
-    @apply mt-[0.5rem];
-  }
-
-  .asciidoc-body ul,
-  .asciidoc-body ol {
-    @apply mb-4 list-disc text-mono-sm text-secondary;
-  }
-
-  .asciidoc-body ul p,
-  .asciidoc-body ol p {
-    @apply normal-case;
-  }
-
-  .asciidoc-body ul ul,
-  .asciidoc-body ul ol,
-  .asciidoc-body ol ol,
-  .asciidoc-body ol ul {
-    @apply mb-0;
-  }
-
-  .asciidoc-body ul ul li {
-    list-style-type: circle;
-  }
-
-  .asciidoc-body ul ul ul li {
-    list-style-type: square;
-  }
-
-  .asciidoc-body ul ul ul ul li {
-    list-style-type: disc;
-  }
-
-  .asciidoc-body ul {
-    @apply list-disc;
-  }
-
-  .asciidoc-body ol {
-    @apply list-decimal;
-  }
-
-  .asciidoc-body ul,
-  .asciidoc-body ol {
-    @apply list-inside 800:list-outside;
-  }
-
-  .asciidoc-body ul:first-of-type,
-  .github-markdown > ul {
-    @apply 800:ml-4;
-  }
-
-  .asciidoc-body ol:first-of-type,
-  .github-markdown > ol {
-    @apply 800:ml-6;
-  }
-
-  .asciidoc-body .tableblock ul,
-  .asciidoc-body .tableblock ol {
-    @apply list-inside;
-  }
-
-  .asciidoc-body .quoteblock ul,
-  .asciidoc-body .quoteblock ol {
-    @apply list-inside;
-  }
-
-  .asciidoc-body .ulist .ulist,
-  .asciidoc-body .ulist .olist,
-  .asciidoc-body .olist .ulist,
-  .asciidoc-body .olist .olist {
-    @apply ml-[2rem] 800:ml-2;
-  }
-
-  .asciidoc-body .exampleblock ul,
-  .asciidoc-body .exampleblock ol {
-    @apply list-inside;
-  }
-
-  .asciidoc-body ul p,
-  .asciidoc-body ol p {
-    @apply inline;
-  }
-
-  .asciidoc-body p {
-    @apply text-default;
-  }
-
-  .asciidoc-body .arabic {
-    list-style-type: decimal;
-  }
-
-  .asciidoc-body .loweralpha {
-    list-style-type: lower-alpha;
-  }
-
-  .asciidoc-body .lowerroman {
-    list-style-type: lower-roman;
-  }
-
-  .asciidoc-body .upperalpha {
-    list-style-type: upper-alpha;
-  }
-
-  .asciidoc-body .upperroman {
-    list-style-type: upper-roman;
-  }
-
-  .asciidoc-body ol p {
-    @apply normal-case text-default;
-  }
-
+@layer utilities {
   .text-mono-code {
     @apply !text-[0.825em] !normal-case;
     font-feature-settings: 'calt' 0;
     letter-spacing: 0;
   }
 
-  .inline-code {
-    @apply text-secondary;
-    @apply ml-[1px] mr-[1px] rounded border px-[4px] py-[1px] align-[1px] text-[0.825em] bg-raise border-secondary;
-  }
-
-  .asciidoc-body p code,
-  .asciidoc-body h1 code,
-  .asciidoc-body h2 code,
-  .asciidoc-body h3 code,
-  .asciidoc-body h4 code,
-  .asciidoc-body h5 code,
-  .asciidoc-body .title code {
-    @apply text-[0.825em] text-default;
-    @apply ml-[1px] mr-[1px] rounded border px-[4px] py-[1px] align-[1px] bg-raise border-secondary;
-  }
-
-  .asciidoc-body p a code {
-    @apply text-accent-secondary;
-  }
-
-  .asciidoc-body table p code {
-    @apply break-normal;
-  }
-
-  .asciidoc-body .admonitionblock p code {
-    @apply border-none text-inverse bg-success;
-  }
-
-  .asciidoc-body pre {
-    @apply rounded-lg border px-[1.25rem] py-[1rem] border-secondary 800:px-[1.75rem] 800:py-[1.5rem];
-    @apply overflow-x-auto !text-[13px] text-mono-code;
-  }
-
-  .asciidoc-body code {
-    font-feature-settings: 'calt' 0;
-  }
-
-  .asciidoc-body .listingblock .content {
-    @apply relative;
-  }
-
-  .asciidoc-body .listingblock pre:not(.highlight) {
-    @apply text-default;
-  }
-
-  .asciidoc-body .listingblock code[data-lang]:before {
-    @apply absolute right-2 top-2 block text-mono-xs text-secondary;
-    content: attr(data-lang);
-  }
-
-  .asciidoc-body pre .conum[data-value] {
-    @apply relative -top-[0.125rem] inline-block h-[1rem] min-w-[1rem] rounded-full text-center not-italic text-mono-xs text-secondary bg-raise;
-  }
-
-  .asciidoc-body pre .conum[data-value]:after {
-    @apply pl-[1px];
-    content: attr(data-value);
-  }
-
-  .asciidoc-body pre .conum[data-value] + b {
-    @apply hidden;
-  }
-
-  .asciidoc-body .exampleblock {
-    @apply overflow-x-auto rounded-lg px-[1.5rem] py-[1.25rem] bg-raise;
-  }
-
-  .asciidoc-body .exampleblock p {
-    @apply mb-2 text-sans-md;
-  }
-
-  .asciidoc-body .exampleblock .content,
-  .asciidoc-body .exampleblock .paragraph:last-of-type p {
-    @apply m-0;
-  }
-
-  .exampleblock > .content {
-    @apply my-[1rem];
-  }
-
-  .asciidoc-body .admonitionblock {
-    @apply rounded-lg border text-success bg-success-secondary border-success-tertiary;
-    @apply my-[1.5rem] flex px-3 py-3;
-  }
-
-  .asciidoc-body .admonitionblock a {
-    text-decoration-color: var(--content-success-tertiary);
-  }
-
-  .asciidoc-body .admonitionblock.tip a {
-    text-decoration-color: var(--base-purple-600);
-  }
-
-  .asciidoc-body .admonitionblock.warning a {
-    text-decoration-color: var(--content-error-tertiary);
-  }
-
-  .asciidoc-body .admonitionblock.caution a,
-  .asciidoc-body .admonitionblock.important a {
-    text-decoration-color: var(--content-notice-tertiary);
-  }
-
-  .asciidoc-body .admonitionblock strong {
-    @apply text-success;
-  }
-
-  .asciidoc-body .admonitionblock.caution strong,
-  .asciidoc-body .admonitionblock.important strong {
-    @apply text-notice;
-  }
-
-  .asciidoc-body .admonitionblock.caution .quoteblock {
-    @apply border-notice-secondary;
-  }
-
-  .asciidoc-body .admonitionblock.warning .quoteblock {
-    @apply border-destructive-secondary;
-  }
-
-  .asciidoc-body .admonitionblock.warning strong {
-    @apply text-destructive;
-  }
-
-  .asciidoc-body .admonitionblock.tip strong {
-    color: var(--base-purple-800);
-  }
-
-  .asciidoc-body .admonitionblock.tip,
-  .asciidoc-body .admonitionblock.tip blockquote {
-    background-color: var(--base-purple-200);
-    color: var(--base-purple-800);
-    border-color: var(--base-purple-400);
-  }
-
-  .asciidoc-body .admonitionblock.caution,
-  .asciidoc-body .admonitionblock.important,
-  .asciidoc-body .admonitionblock.caution blockquote,
-  .asciidoc-body .admonitionblock.important blockquote {
-    @apply text-notice bg-notice-secondary border-notice-tertiary;
-  }
-
-  .asciidoc-body .admonitionblock.warning,
-  .asciidoc-body .admonitionblock.warning blockquote {
-    @apply text-destructive bg-destructive-secondary border-destructive-tertiary;
-  }
-
-  .asciidoc-body .admonitionblock.caution p,
-  .asciidoc-body .admonitionblock.important p {
-    @apply text-notice;
-  }
-
-  .asciidoc-body .admonitionblock.warning p {
-    @apply text-destructive;
-  }
-
-  .asciidoc-body .admonitionblock.tip p {
-    color: var(--base-purple-800);
-  }
-
-  .asciidoc-body .admonitionblock.caution p code,
-  .asciidoc-body .admonitionblock.important p code {
-    @apply bg-notice;
-  }
-
-  .asciidoc-body .admonitionblock.warning p code {
-    @apply bg-error;
-  }
-
-  .asciidoc-body .admonitionblock.tip p code {
-    background-color: var(--base-purple-800);
-  }
-
-  .asciidoc-body .admonitionblock a {
-    @apply underline;
-  }
-
-  .asciidoc-body .admonitionblock a {
-    @apply text-success;
-  }
-
-  .asciidoc-body .admonitionblock.caution a,
-  .asciidoc-body .admonitionblock.important a {
-    @apply text-notice;
-  }
-
-  .asciidoc-body .admonitionblock.warning a {
-    @apply text-destructive;
-  }
-
-  .asciidoc-body .admonitionblock.tip a {
-    color: var(--base-purple-800);
-  }
-
-  .asciidoc-body .admonition-icon svg {
-    @apply mr-2 mt-0.5 h-3 w-3;
-  }
-
-  .asciidoc-body .admonition-content {
-    @apply text-sans-md 800:mr-[1.25rem];
-  }
-
-  .asciidoc-body .admonition-content p {
-    @apply mb-0 text-sans-md;
-  }
-
-  .asciidoc-body .imageblock,
-  .asciidoc-body table.tableblock {
-    @apply my-6;
-  }
-
-  .asciidoc-body .imageblock.inlineimage {
-    @apply my-4;
-  }
-
-  .asciidoc-body table.tableblock table.tableblock {
-    @apply my-2;
-  }
-
-  .asciidoc-body table.tableblock .imageblock {
-    @apply my-0;
-  }
-
-  .asciidoc-body .imageblock .title {
-    @apply mt-3 max-w-full text-center not-italic text-mono-xs text-secondary;
-  }
-
-  .asciidoc-body img.wide {
-    max-width: none;
-    width: calc(100% / 8 * 10);
-    margin-left: calc(100% / 8 * -1);
-  }
-
-  .asciidoc-body sup.footnote {
-    @apply text-mono-xs text-secondary;
-  }
-
-  .asciidoc-body sup.footnote a {
-    padding-top: calc(var(--header-height) + 20px);
-    margin-top: calc(var(--header-height) * -1 - 20px);
-  }
-
-  .asciidoc-body .imageblock,
-  .asciidoc-body .literalblock,
-  .asciidoc-body .listingblock,
-  .asciidoc-body .stemblock,
-  .asciidoc-body .videoblock,
-  .asciidoc-body .exampleblock {
-    @apply my-[2rem];
-  }
-
-  .asciidoc-body .title {
-    @apply mb-2 max-w-[40rem] text-left italic text-sans-lg text-secondary;
-  }
-
-  .asciidoc-body summary.title {
-    @apply not-italic text-raise;
-  }
-
-  .asciidoc-body .conum {
-    @apply inline-block;
-  }
-
-  .asciidoc-body .table-wrapper {
-    @apply relative overflow-x-auto;
-  }
-
-  .asciidoc-body .table-wrapper caption {
-    @apply sticky left-0 text-left;
-  }
-
-  .asciidoc-body .table-wrapper caption > a {
-    @apply no-underline;
-  }
-
-  .asciidoc-body table {
-    @apply w-full border-separate overflow-hidden rounded-lg border p-0 border-secondary;
-    border-spacing: 0;
-  }
-
-  .asciidoc-body .valign-middle {
-    vertical-align: middle;
-  }
-
-  .asciidoc-body .halign-center {
-    text-align: center;
-  }
-
-  .asciidoc-body table p {
-    @apply text-left text-sans-md;
-  }
-
-  .asciidoc-body table td,
-  .asciidoc-body table th {
-    @apply border-b border-r px-[0.75rem] py-[0.625rem] align-top border-secondary;
-  }
-
-  .asciidoc-body table tr th:last-child {
-    @apply border-r-0;
-  }
-
-  /*
+  .accent-link {
+    @apply text-accent-secondary hover:text-accent;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
+  }
+
+  .link-with-underline {
+    @apply text-default hover:text-raise;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
+  }
+}
+
+@layer components {
+  .asciidoc-body {
+    .line-through {
+      text-decoration: line-through;
+    }
+
+    .quoteblock {
+      @apply mb-8 mt-8 border-l pl-[1.6rem] text-secondary border-default;
+    }
+
+    .quoteblock p {
+      @apply text-secondary;
+    }
+
+    .quoteblock .attribution {
+      @apply mt-8 text-raise;
+    }
+
+    .attribution cite {
+      @apply block;
+    }
+
+    .admonitionblock .quoteblock {
+      @apply mb-2 mt-2 pl-[0.75rem] border-success-secondary;
+    }
+
+    .admonition-content .paragraph {
+      @apply mb-1 last:mb-0;
+    }
+
+    .admonition-content > div:first-of-type {
+      @apply normal-case text-sans-semi-md;
+    }
+
+    .imageblock img {
+      @apply mx-auto h-auto w-auto w-full rounded-lg border border-tertiary object-contain;
+      max-height: max(500px, 75vh);
+    }
+
+    span img {
+      @apply inline;
+    }
+
+    img.transparent-dark {
+      @apply bg-secondary;
+    }
+
+    p a {
+      @apply text-accent-secondary hover:text-accent;
+      overflow-wrap: break-word;
+      word-wrap: break-word;
+
+      text-decoration: underline;
+      text-decoration-color: var(--content-accent-tertiary);
+    }
+
+    /* Use semi-bold for strong */
+    strong {
+      @apply font-[500] text-raise;
+    }
+
+    a strong {
+      @apply text-accent-secondary;
+    }
+
+    h2,
+    h3,
+    h4,
+    h5 {
+      @apply relative mb-3 mt-10 text-raise;
+    }
+
+    /* Removes top spacing from header if it is the first element */
+    &#content > .sect1:first-of-type > h1:nth-child(1),
+    &#content > .sect1:first-of-type > h2:nth-child(1),
+    &#content > .sect1:first-of-type > h3:nth-child(1),
+    &#content > .sect1:first-of-type > h4:nth-child(1),
+    &#content > .sect1:first-of-type > h5:nth-child(1) {
+      @apply mt-0;
+    }
+
+    h1 a,
+    h2 a,
+    h3 a,
+    h4 a,
+    h5 a {
+      @apply flex items-center text-raise;
+    }
+
+    h1[data-sectnum]:before,
+    h2[data-sectnum]:before,
+    h3[data-sectnum]:before,
+    h4[data-sectnum]:before,
+    h5[data-sectnum]:before {
+      @apply bottom-0 mr-2 inline-block text-tertiary 800:absolute 800:-left-[72px] 800:mr-0 800:w-[60px] 800:text-right 800:text-sans-lg;
+    }
+
+    h3[data-sectnum]:before,
+    h2[data-sectnum]:before {
+      @apply 800:bottom-[2px];
+    }
+
+    h2 {
+      @apply text-sans-2xl;
+    }
+
+    h3 {
+      @apply text-sans-xl;
+    }
+
+    h4,
+    h5 {
+      @apply mb-2 mt-8 text-sans-lg text-raise;
+    }
+
+    .anchor {
+      position: absolute;
+      margin-top: calc(var(--header-height) * -1 - 20px);
+      visibility: hidden;
+      user-select: none;
+    }
+
+    .dlist dt {
+      @apply text-sans-lg text-raise;
+    }
+
+    .dlist dt:after {
+      content: ':';
+      @apply text-sans-lg text-tertiary;
+    }
+
+     {
+      @apply text-sans-lg;
+    }
+
+    /* Fix overflow text in mermaid */
+    figure svg {
+      line-height: 1 !important;
+    }
+
+    p {
+      @apply mb-[1.25rem] !leading-[1.5] text-sans-lg 800:mb-3;
+    }
+
+    ul li,
+    ol li {
+      @apply mt-[0.325rem];
+    }
+
+    ul,
+    ol {
+      @apply mb-3 list-disc text-mono-sm;
+    }
+
+    li::marker,
+    ol::marker {
+      color: color-mix(in srgb, currentColor 60%, transparent);
+    }
+
+    ul p,
+    ol p {
+      @apply normal-case;
+    }
+
+    ul ul,
+    ul ol,
+    ol ol,
+    ol ul {
+      @apply mb-0;
+    }
+
+    ul ul li {
+      list-style-type: circle;
+    }
+
+    ul ul ul li {
+      list-style-type: square;
+    }
+
+    ul ul ul ul li {
+      list-style-type: disc;
+    }
+
+    ul {
+      @apply list-disc;
+    }
+
+    ol {
+      @apply list-decimal;
+    }
+
+    ul,
+    ol {
+      @apply list-inside 800:list-outside;
+    }
+
+    ul:first-of-type,
+    .github-markdown > ul {
+      @apply 800:ml-4;
+    }
+
+    ol:first-of-type,
+    .github-markdown > ol {
+      @apply 800:ml-6;
+    }
+
+    .tableblock ul,
+    .tableblock ol {
+      @apply list-inside;
+    }
+
+    .quoteblock ul,
+    .quoteblock ol {
+      @apply list-inside;
+    }
+
+    .ulist .ulist,
+    .ulist .olist,
+    .olist .ulist,
+    .olist .olist {
+      @apply ml-[2rem] 800:ml-2;
+    }
+
+    .exampleblock ul,
+    .exampleblock ol {
+      @apply list-inside;
+    }
+
+    ul p,
+    ol p {
+      @apply inline;
+    }
+
+    p {
+      @apply text-default;
+    }
+
+    .arabic {
+      list-style-type: decimal;
+    }
+
+    .loweralpha {
+      list-style-type: lower-alpha;
+    }
+
+    .lowerroman {
+      list-style-type: lower-roman;
+    }
+
+    .upperalpha {
+      list-style-type: upper-alpha;
+    }
+
+    .upperroman {
+      list-style-type: upper-roman;
+    }
+
+    ol p {
+      @apply normal-case text-default;
+    }
+
+    .inline-code {
+      @apply text-secondary;
+      @apply ml-[1px] mr-[1px] rounded border px-[4px] py-[1px] align-[1px] text-[0.825em] bg-raise border-secondary;
+    }
+
+    p code,
+    h1 code,
+    h2 code,
+    h3 code,
+    h4 code,
+    h5 code,
+    .title code {
+      @apply text-[0.825em] text-default;
+      @apply ml-[1px] mr-[1px] rounded border px-[4px] py-[1px] align-[1px] bg-raise border-secondary;
+    }
+
+    p a code {
+      @apply text-accent-secondary;
+    }
+
+    table p code {
+      @apply break-normal;
+    }
+
+    .admonitionblock p code {
+      @apply border-none text-inverse bg-success;
+    }
+
+    pre {
+      @apply rounded-lg border px-[1.25rem] py-[1rem] border-secondary 800:px-[1.75rem] 800:py-[1.5rem];
+      @apply overflow-x-auto !text-[13px] text-mono-code;
+    }
+
+    code {
+      font-feature-settings: 'calt' 0;
+    }
+
+    .listingblock .content {
+      @apply relative;
+    }
+
+    .listingblock pre:not(.highlight) {
+      @apply text-default;
+    }
+
+    .listingblock code[data-lang]:before {
+      @apply absolute right-2 top-2 block text-mono-xs text-secondary;
+      content: attr(data-lang);
+    }
+
+    pre .conum[data-value] {
+      @apply relative -top-[0.125rem] inline-block h-[1rem] min-w-[1rem] rounded-full text-center not-italic text-mono-xs text-secondary bg-raise;
+    }
+
+    pre .conum[data-value]:after {
+      @apply pl-[1px];
+      content: attr(data-value);
+    }
+
+    pre .conum[data-value] + b {
+      @apply hidden;
+    }
+
+    .exampleblock {
+      @apply overflow-x-auto rounded-lg px-[1.5rem] py-[1.25rem] bg-raise;
+    }
+
+    .exampleblock p {
+      @apply mb-2 text-sans-md;
+    }
+
+    .exampleblock .content,
+    .exampleblock .paragraph:last-of-type p {
+      @apply m-0;
+    }
+
+    .exampleblock > .content {
+      @apply my-[1rem];
+    }
+
+    .admonitionblock {
+      @apply rounded-lg border text-success bg-success-secondary border-success-tertiary;
+      @apply my-[1.5rem] flex px-3 py-3;
+    }
+
+    .admonition-content p {
+      @apply text-[currentColor];
+    }
+
+    .admonitionblock a {
+      text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
+    }
+
+    .admonitionblock strong {
+      @apply text-success;
+    }
+
+    .admonitionblock.caution strong,
+    .admonitionblock.important strong {
+      @apply text-notice;
+    }
+
+    .admonitionblock.caution .quoteblock {
+      @apply border-notice-secondary;
+    }
+
+    .admonitionblock.warning .quoteblock {
+      @apply border-destructive-secondary;
+    }
+
+    .admonitionblock.warning strong {
+      @apply text-destructive;
+    }
+
+    .admonitionblock.tip strong {
+      color: var(--base-purple-800);
+    }
+
+    .admonitionblock,
+    .admonitionblock blockquote {
+      @apply text-success;
+    }
+
+    .admonitionblock.tip,
+    .admonitionblock.tip blockquote {
+      background-color: var(--base-purple-200);
+      color: var(--base-purple-800);
+      border-color: var(--base-purple-400);
+    }
+
+    .admonitionblock.caution,
+    .admonitionblock.important,
+    .admonitionblock.caution blockquote,
+    .admonitionblock.important blockquote {
+      @apply text-notice bg-notice-secondary border-notice-tertiary;
+    }
+
+    .admonitionblock.warning,
+    .admonitionblock.warning blockquote {
+      @apply text-destructive bg-destructive-secondary border-destructive-tertiary;
+    }
+
+    .admonitionblock.caution,
+    .admonitionblock.important {
+      @apply text-notice;
+    }
+
+    .admonitionblock.warning {
+      @apply text-destructive;
+    }
+
+    .admonitionblock.tip {
+      color: var(--base-purple-800);
+    }
+
+    .admonitionblock.caution p code,
+    .admonitionblock.important p code {
+      @apply bg-notice;
+    }
+
+    .admonitionblock.warning p code {
+      @apply bg-error;
+    }
+
+    .admonitionblock.tip p code {
+      background-color: var(--base-purple-800);
+    }
+
+    .admonitionblock a {
+      @apply underline;
+    }
+
+    .admonitionblock a {
+      @apply text-success;
+    }
+
+    .admonitionblock.caution a,
+    .admonitionblock.important a {
+      @apply text-notice;
+    }
+
+    .admonitionblock.warning a {
+      @apply text-destructive;
+    }
+
+    .admonitionblock.tip a {
+      color: var(--base-purple-800);
+    }
+
+    .admonition-icon svg {
+      @apply mr-2 mt-0.5 h-3 w-3;
+    }
+
+    .admonition-content {
+      @apply text-sans-md 800:mr-[1.25rem];
+    }
+
+    .admonition-content p {
+      @apply mb-0 text-sans-md;
+    }
+
+    .imageblock,
+    .table-wrapper {
+      @apply my-6;
+    }
+
+    .imageblock.inlineimage {
+      @apply my-3;
+    }
+
+    table.tableblock table.tableblock {
+      @apply my-2;
+    }
+
+    table.tableblock .imageblock {
+      @apply my-0;
+    }
+
+    .imageblock .title {
+      @apply mt-3 max-w-full text-center not-italic text-mono-xs text-secondary;
+    }
+
+    img.wide {
+      max-width: none;
+      width: calc(100% / 8 * 10);
+      margin-left: calc(100% / 8 * -1);
+    }
+
+    sup.footnote {
+      @apply text-mono-xs text-secondary;
+    }
+
+    sup.footnote a {
+      padding-top: calc(var(--header-height) + 20px);
+      margin-top: calc(var(--header-height) * -1 - 20px);
+    }
+
+    .imageblock,
+    .literalblock,
+    .listingblock,
+    .stemblock,
+    .videoblock,
+    .exampleblock {
+      @apply my-[2rem];
+    }
+
+    .title {
+      @apply mb-2 max-w-[40rem] text-left italic text-sans-lg text-secondary;
+    }
+
+    summary.title {
+      @apply not-italic text-raise;
+    }
+
+    .conum {
+      @apply inline-block;
+    }
+
+    .table-wrapper {
+      @apply relative overflow-x-auto;
+    }
+
+    .table-wrapper caption {
+      @apply sticky left-0 text-left;
+    }
+
+    .table-wrapper caption > a {
+      @apply no-underline;
+    }
+
+    table {
+      @apply w-full border-separate overflow-hidden rounded-lg border p-0 border-secondary;
+      border-spacing: 0;
+    }
+
+    .valign-middle {
+      vertical-align: middle;
+    }
+
+    .halign-center {
+      text-align: center;
+    }
+
+    table p {
+      @apply text-sans-md;
+    }
+
+    table td,
+    table th {
+      @apply border-b border-r px-[0.5rem] py-[0.5rem] align-top border-secondary;
+    }
+
+    table tr th:last-child {
+      @apply border-r-0;
+    }
+
+    /*
     specificity to handle nested tables
     todo: check if it's needed in any of the other table styles
   */
-  .asciidoc-body tbody > tr:last-child > td,
-  .asciidoc-body tbody > tr:last-child > th {
-    @apply border-b-0;
-  }
+    tbody > tr:last-child > td,
+    tbody > tr:last-child > th {
+      @apply border-b-0;
+    }
 
-  .asciidoc-body tbody tr td:last-child {
-    @apply border-r-0;
-  }
+    tbody tr td:last-child {
+      @apply border-r-0;
+    }
 
-  .asciidoc-body table th {
-    @apply text-left text-mono-xs text-secondary bg-raise;
-  }
+    table th {
+      @apply text-left text-mono-xs text-secondary bg-raise;
+    }
 
-  .asciidoc-body table th p {
-    @apply text-mono-xs;
-  }
+    table th p {
+      @apply text-mono-xs;
+    }
 
-  .asciidoc-body table td {
-    @apply py-[0.75rem];
-  }
+    table td {
+      @apply py-[0.5rem];
+    }
 
-  .asciidoc-body table pre {
-    @apply border-0 p-0;
-  }
+    table pre {
+      @apply border-0 p-0;
+    }
 
-  .asciidoc-body table p {
-    @apply m-0 p-0;
-  }
+    table p {
+      @apply m-0 p-0;
+    }
 
-  .asciidoc-body .colist table {
-    @apply my-[1.5rem];
-  }
+    .colist table {
+      @apply my-[1.5rem];
+    }
 
-  .asciidoc-body .colist table td {
-    @apply text-sans-md;
-  }
+    .colist table td {
+      @apply text-sans-md;
+    }
 
-  .asciidoc-body .colist table tr td:first-of-type {
-    @apply w-[1%] whitespace-nowrap text-tertiary;
-  }
+    .colist table tr td:first-of-type {
+      @apply w-[1%] whitespace-nowrap text-tertiary;
+    }
 
-  .asciidoc-body .colist table b {
-    @apply text-mono-sm;
-  }
+    .colist table b {
+      @apply text-mono-sm;
+    }
 
-  .asciidoc-body div.bibliography ~ h2 {
-    @apply mt-12 800:mt-16;
-  }
+    div.bibliography ~ h2 {
+      @apply mt-12 800:mt-16;
+    }
 
-  .asciidoc-body .bibliography ul,
-  .asciidoc-body .bibliography ol {
-    @apply space-y-2;
-  }
+    .bibliography ul,
+    .bibliography ol {
+      @apply space-y-2;
+    }
 
-  .asciidoc-body mark {
-    @apply rounded px-[2px] text-notice bg-notice-secondary;
-  }
+    mark {
+      @apply rounded px-[2px] text-notice bg-notice-secondary;
+    }
 
-  .asciidoc-body .steminline svg {
-    @apply inline;
-  }
+    .steminline svg {
+      @apply inline;
+    }
 
-  .asciidoc-body hr {
-    @apply my-3 border-default;
-  }
+    hr {
+      @apply my-3 border-default;
+    }
 
-  .asciidoc-body .sidebarblock {
-    @apply bg-raise p-4 rounded-lg my-8 px-6 py-5;
+    .sidebarblock {
+      @apply bg-raise p-4 rounded-lg my-8 px-6 py-5;
+    }
+
+    .halign-left {
+      text-align: left;
+    }
+
+    .halign-right {
+      text-align: right;
+    }
+
+    .halign-center {
+      text-align: center;
+    }
+
+    .valign-top {
+      vertical-align: top;
+    }
+
+    .valign-bottom {
+      vertical-align: bottom;
+    }
+
+    .valign-middle {
+      vertical-align: middle;
+    }
+
+    .paragraph.lead p {
+      @apply text-sans-xl;
+    }
+
+    a:not(:is(h1, h2, h3, h4, h5, h6) a) {
+      text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
+      @apply underline text-accent-secondary;
+    }
   }
 
   #footnotes p a {
@@ -666,11 +705,6 @@
 
   .toc code {
     @apply ml-[1px] mr-[1px] rounded border px-[3px] align-[1px] border-secondary;
-  }
-
-  .asciidoc-body a:not(:is(h1, h2, h3, h4, h5, h6) a) {
-    text-decoration-color: rgba(var(--content-accent-tertiary-rgb), 0.8);
-    @apply underline text-accent-secondary;
   }
 
   @media screen and (min-width: 720px) {
@@ -748,12 +782,8 @@
     }
 
     h1 {
-      font-size: 3rem !important;
+      font-size: 2.5rem !important;
       line-height: 1 !important;
-    }
-
-    #content {
-      max-width: 80vw;
     }
 
     @page {
@@ -775,7 +805,9 @@
       --content-secondary-p3: var(--content-secondary);
       --content-tertiary: var(--content-secondary);
       --content-tertiary-p3: var(--content-secondary);
-      --surface-raise: rgb(0, 0, 0, 0.025);
+      --content-raise: var(--content-default);
+      --content-raise-p3: var(--content-default);
+      --surface-raise: rgb(0, 0, 0, 0.1);
       --surface-raise-p3: var(--surface-raise);
       --surface-inverse: var(--surface-raise);
       --surface-inverse-p3: var(--surface-raise);
@@ -783,21 +815,43 @@
       --stroke-default-p3: var(--content-secondary);
     }
 
-    .asciidoc-body p a {
+    p a {
       text-decoration-color: black !important;
     }
 
-    .asciidoc-body p {
+    p {
       color: black !important;
     }
 
-    .asciidoc-body .imageblock img {
+    .imageblock img {
       border: 0;
     }
 
-    .asciidoc-body .admonitionblock {
+    .admonitionblock {
       color: var(--content-raise) !important;
       background-color: var(--surface-raise) !important;
+    }
+
+    .asciidoc-body {
+      h1[data-sectnum]::before,
+      h2[data-sectnum]::before,
+      h3[data-sectnum]::before,
+      h4[data-sectnum]::before,
+      h5[data-sectnum]::before {
+        @apply !hidden;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      h5 {
+        @apply ml-0 pl-0;
+      }
+
+      .paragraph {
+        max-width: 80vw;
+      }
     }
   }
 }
