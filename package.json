@@ -40,8 +40,8 @@
     "@figma-export/transform-svg-with-svgo": "^6.0.2",
     "@svgr/plugin-jsx": "^8.1.0",
     "@trivago/prettier-plugin-sort-imports": "^3.3.0",
-    "@types/react": "^19.0.10",
-    "@types/react-dom": "^19.0.4",
+    "@types/react": "^18.0.28",
+    "@types/react-dom": "^18.0.11",
     "@types/svg-sprite": "^0.0.34",
     "@typescript-eslint/eslint-plugin": "^5.47.0",
     "auto": "^11.0.5",
@@ -65,8 +65,8 @@
   "peerDependencies": {
     "@asciidoctor/core": "^3.0.0",
     "@oxide/react-asciidoc": "^1.0.4",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.4",
