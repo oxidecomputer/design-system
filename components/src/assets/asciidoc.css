@@ -112,7 +112,7 @@
     h3 a,
     h4 a,
     h5 a {
-      @apply flex items-center text-raise;
+      @apply inline text-raise;
     }
 
     h1[data-sectnum]:before,
