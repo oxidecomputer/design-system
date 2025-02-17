@@ -64,7 +64,7 @@
   },
   "peerDependencies": {
     "@asciidoctor/core": "^3.0.0",
-    "@oxide/react-asciidoc": "1.0.4--canary.e003b73.0",
+    "@oxide/react-asciidoc": "^1.0.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
