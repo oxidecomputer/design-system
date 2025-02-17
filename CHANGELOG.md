@@ -1,3 +1,15 @@
+# v2.2.1 (Mon Feb 17 2025)
+
+#### 🐛 Bug Fix
+
+- Use inline for header titles (fix blog title spacing issue) [#117](https://github.com/oxidecomputer/design-system/pull/117) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v2.2.0 (Tue Jan 21 2025)
 
 #### 🚀 Enhancement
