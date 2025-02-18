@@ -8,7 +8,7 @@
 import { Link16Icon } from '@/icons/react'
 import { Content, type SectionBlock, parse } from '@oxide/react-asciidoc'
 import cn from 'classnames'
-import { createElement } from 'react'
+import { type JSX, createElement } from 'react'
 
 // We need to remove anchors from the section title (and table of contents) because having
 // an anchor within an anchor causes a client/server render mismatch

@@ -6,7 +6,7 @@
  * Copyright Oxide Computer Company
  */
 import cn from 'classnames'
-import { createElement } from 'react'
+import { type JSX, createElement } from 'react'
 
 const titleCase = (text: string): string => {
   return text.replace(
