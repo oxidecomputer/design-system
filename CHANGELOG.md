@@ -1,3 +1,15 @@
+# v2.2.2 (Tue Feb 18 2025)
+
+#### 🐛 Bug Fix
+
+- Allow React 19 in peer deps [#118](https://github.com/oxidecomputer/design-system/pull/118) ([@david-crespo](https://github.com/david-crespo))
+
+#### Authors: 1
+
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+
+---
+
 # v2.2.1 (Mon Feb 17 2025)
 
 #### 🐛 Bug Fix
