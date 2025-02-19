@@ -19,7 +19,7 @@ const Section = ({ node }: { node: SectionBlock }) => {
   let title: JSX.Element | string = ''
 
   let sectNum = node.num
-  sectNum = sectNum === '.' ? '' : sectNum
+  sectNum = sectNum && sectNum[0] === '.' ? '' : sectNum
 
   title = (
     <>
