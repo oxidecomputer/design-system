@@ -6,7 +6,12 @@
  * Copyright Oxide Computer Company
  */
 import { Link16Icon } from '@/icons/react'
-import { Content, type SectionBlock, parse } from '@oxide/react-asciidoc'
+import {
+  Content,
+  type SectionBlock,
+  parse,
+  useConverterContext,
+} from '@oxide/react-asciidoc'
 import cn from 'classnames'
 import { type JSX, createElement } from 'react'
 
@@ -15,11 +20,16 @@ import { type JSX, createElement } from 'react'
 export const stripAnchors = (str: string) => str.replace(/<a[^>]*>(.*?)<\/a>/gi, '$1')
 
 const Section = ({ node }: { node: SectionBlock }) => {
+  const { document } = useConverterContext()
+  const docAttrs = document.attributes || {}
+
   const level = node.level
   let title: JSX.Element | string = ''
 
+  const hideSectnums = docAttrs.sectnums === 'false'
+
   let sectNum = node.num
-  sectNum = sectNum === '.' ? '' : sectNum
+  sectNum = sectNum === '.' || sectNum === '..' || hideSectnums ? '' : sectNum
 
   title = (
     <>
