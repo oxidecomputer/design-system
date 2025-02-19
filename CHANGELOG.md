@@ -1,3 +1,15 @@
+# v2.2.3 (Wed Feb 19 2025)
+
+#### 🐛 Bug Fix
+
+- More robust sectnum hiding [#119](https://github.com/oxidecomputer/design-system/pull/119) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v2.2.2 (Tue Feb 18 2025)
 
 #### 🐛 Bug Fix
