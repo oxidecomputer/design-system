@@ -1,6 +1,6 @@
 {
   "name": "@oxide/design-system",
-  "version": "2.2.2",
+  "version": "2.2.3",
   "description": "Home of reusable design assets and token for oxide internal sites",
   "type": "module",
   "sideEffects": false,
