@@ -1,3 +1,15 @@
+# v2.2.4 (Thu Feb 20 2025)
+
+#### 🐛 Bug Fix
+
+- Fix pre font size [#120](https://github.com/oxidecomputer/design-system/pull/120) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v2.2.3 (Wed Feb 19 2025)
 
 #### 🐛 Bug Fix
