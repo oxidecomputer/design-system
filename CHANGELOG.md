@@ -1,3 +1,15 @@
+# v2.2.5 (Tue Feb 25 2025)
+
+#### 🐛 Bug Fix
+
+- Section anchor fix [#121](https://github.com/oxidecomputer/design-system/pull/121) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v2.2.4 (Thu Feb 20 2025)
 
 #### 🐛 Bug Fix
