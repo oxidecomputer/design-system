@@ -6,10 +6,12 @@
  * Copyright Oxide Computer Company
  */
 import { DirectionRightIcon } from '@/icons/react'
-import type { DocumentSection } from '@oxide/react-asciidoc'
+import { type DocumentSection, parse } from '@oxide/react-asciidoc'
 import * as Accordion from '@radix-ui/react-accordion'
 import cn from 'classnames'
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
+import { stripAnchors } from './Section'
 
 export function useIntersectionObserver(
   elements: Element[],
@@ -283,7 +285,7 @@ export const DesktopOutline = ({
               paddingLeft: `${0.5 + item.level * 0.5}rem`,
             }}
           >
-            <span dangerouslySetInnerHTML={{ __html: item.title }} />
+            {parse(stripAnchors(item.title))}
           </a>
         </li>
         {item.sections && renderToc(item.sections)}
@@ -328,7 +330,7 @@ export const SmallScreenOutline = ({
               paddingLeft: `${0.5 + item.level * 0.5}rem`,
             }}
           >
-            <span dangerouslySetInnerHTML={{ __html: item.title }} />
+            {parse(stripAnchors(item.title))}
           </a>
         </li>
         {item.sections && renderToc(item.sections)}
