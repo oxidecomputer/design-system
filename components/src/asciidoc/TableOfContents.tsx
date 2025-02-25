@@ -330,7 +330,7 @@ export const SmallScreenOutline = ({
               paddingLeft: `${0.5 + item.level * 0.5}rem`,
             }}
           >
-            <span dangerouslySetInnerHTML={{ __html: item.title }} />
+            {parse(stripAnchors(item.title))}
           </a>
         </li>
         {item.sections && renderToc(item.sections)}
