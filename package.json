@@ -79,6 +79,7 @@
   "files": [
     "styles/dist/*.css",
     "styles/dist/tailwind-tokens.ts",
+    "icons/**/*.svg",
     "dist/**"
   ],
   "repository": {
