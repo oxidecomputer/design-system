@@ -1,3 +1,15 @@
+# v2.3.0 (Tue Mar 04 2025)
+
+#### 🚀 Enhancement
+
+- Actually build the icons, move output [#126](https://github.com/oxidecomputer/design-system/pull/126) ([@david-crespo](https://github.com/david-crespo))
+
+#### Authors: 1
+
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+
+---
+
 # v2.2.6 (Tue Mar 04 2025)
 
 #### 🐛 Bug Fix
