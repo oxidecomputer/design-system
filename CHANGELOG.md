@@ -1,3 +1,15 @@
+# v2.2.6 (Tue Mar 04 2025)
+
+#### 🐛 Bug Fix
+
+- Upgrade tsup and vitest to latest [#125](https://github.com/oxidecomputer/design-system/pull/125) ([@david-crespo](https://github.com/david-crespo))
+
+#### Authors: 1
+
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+
+---
+
 # v2.2.5 (Tue Feb 25 2025)
 
 #### 🐛 Bug Fix
