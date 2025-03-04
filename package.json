@@ -55,11 +55,11 @@
     "style-dictionary": "^3.7.1",
     "svg-sprite": "^2.0.2",
     "token-transformer": "^0.0.26",
-    "tsup": "^7.1.0",
+    "tsup": "^8.4.0",
     "tsx": "^4.19.2",
     "typescript": "^5.1.6",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.0.0-beta.2",
+    "vitest": "^3.0.7",
     "zx": "^7.2.0"
   },
   "peerDependencies": {
