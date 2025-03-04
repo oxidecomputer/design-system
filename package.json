@@ -9,13 +9,13 @@
   "exports": {
     "./styles/dist/*": "./styles/dist/*",
     "./components/dist/*.css": "./components/dist/*.css",
-    "./components/dist": "./components/dist/index.js",
-    "./icons": "./icons/index.js",
-    "./icons/react": "./icons/react/index.js",
+    "./components/dist": "./dist/components/src/index.js",
+    "./icons": "./dist/icons/index.js",
+    "./icons/react": "./dist/icons/react/index.js",
     ".": {
       "import": {
-        "types": "./components/dist/index.d.ts",
-        "default": "./components/dist/index.js"
+        "types": "./dist/components/src/index.d.ts",
+        "default": "./dist/components/src/index.js"
       }
     }
   },
@@ -79,8 +79,7 @@
   "files": [
     "styles/dist/*.css",
     "styles/dist/tailwind-tokens.ts",
-    "icons/**",
-    "components/dist/**"
+    "dist/**"
   ],
   "repository": {
     "type": "git",

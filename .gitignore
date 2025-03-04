@@ -37,3 +37,4 @@ scripts/*.md.mjs
 
 styles/dist
 components/dist
+dist/
