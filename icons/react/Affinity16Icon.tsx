@@ -1,0 +1,37 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, you can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * Copyright Oxide Computer Company
+ */
+import type { SVGProps } from 'react'
+
+interface SVGRProps {
+  title?: string
+  titleId?: string
+}
+const Affinity16Icon = ({
+  title,
+  titleId,
+  ...props
+}: SVGProps<SVGSVGElement> & SVGRProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={16}
+    height={16}
+    viewBox="0 0 16 16"
+    role="img"
+    aria-labelledby={titleId}
+    {...props}
+  >
+    {title ? <title id={titleId}>{title}</title> : null}
+    <path
+      fill="currentColor"
+      fillRule="evenodd"
+      d="M16 9.75v4.5a.75.75 0 0 1-.75.75h-3.5a.75.75 0 0 1-.75-.75v-4.5a.75.75 0 0 1 .75-.75h3.5a.75.75 0 0 1 .75.75M4.25 7A.75.75 0 0 0 5 6.25v-4.5A.75.75 0 0 0 4.25 1H.75a.75.75 0 0 0-.75.75v4.5c0 .414.336.75.75.75zm0 8a.75.75 0 0 0 .75-.75v-4.5A.75.75 0 0 0 4.25 9H.75a.75.75 0 0 0-.75.75v4.5c0 .414.336.75.75.75zM16 6.25v-4.5a.75.75 0 0 0-.75-.75h-3.5a.75.75 0 0 0-.75.75v4.5c0 .414.336.75.75.75h3.5a.75.75 0 0 0 .75-.75M8.25 4h-.5A.75.75 0 0 1 7 3.25V.75A.75.75 0 0 1 7.75 0h.5A.75.75 0 0 1 9 .75v2.5a.75.75 0 0 1-.75.75m-.5 6h.5A.75.75 0 0 0 9 9.25v-2.5A.75.75 0 0 0 8.25 6h-.5a.75.75 0 0 0-.75.75v2.5c0 .414.336.75.75.75m.5 6h-.5a.75.75 0 0 1-.75-.75v-2.5a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-.75.75"
+      clipRule="evenodd"
+    />
+  </svg>
+)
+export default Affinity16Icon
