@@ -1,3 +1,15 @@
+# v2.4.0 (Tue Mar 11 2025)
+
+#### 🚀 Enhancement
+
+- Add affinity icon [#128](https://github.com/oxidecomputer/design-system/pull/128) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v2.3.0 (Tue Mar 04 2025)
 
 #### 🚀 Enhancement
