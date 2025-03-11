@@ -368,7 +368,7 @@ StyleDictionary.registerTransform({
   },
 })
 
-const makeConfig = (theme: typeof THEMES[number]) => {
+const makeConfig = (theme: (typeof THEMES)[number]) => {
   const config: Config = {
     source: [`styles/src/.tokens/${theme}.json`],
     platforms: {
