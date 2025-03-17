@@ -1,3 +1,15 @@
+# v2.5.0 (Mon Mar 17 2025)
+
+#### 🚀 Enhancement
+
+- Fixing dist exports [#129](https://github.com/oxidecomputer/design-system/pull/129) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v2.4.0 (Tue Mar 11 2025)
 
 #### 🚀 Enhancement
