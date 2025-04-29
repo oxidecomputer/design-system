@@ -1,3 +1,15 @@
+# v2.5.1 (Tue Apr 29 2025)
+
+#### 🐛 Bug Fix
+
+- ToC vars [#132](https://github.com/oxidecomputer/design-system/pull/132) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v2.5.0 (Mon Mar 17 2025)
 
 #### 🚀 Enhancement
