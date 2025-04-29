@@ -352,7 +352,7 @@ export const SmallScreenOutline = ({
       >
         <Accordion.Item value="toc">
           <Accordion.Header>
-            <Accordion.Trigger className="flex h-12 w-full items-center justify-between text-sans-md text-default hover:bg-hover px-[var(--container-px)] [&>svg]:data-[state=open]:rotate-90">
+            <Accordion.Trigger className="flex h-12 w-full items-center justify-between text-sans-md text-default hover:bg-hover px-[--container-px] [&>svg]:data-[state=open]:rotate-90">
               Table of Contents{' '}
               <DirectionRightIcon className="transition-all text-tertiary" />
             </Accordion.Trigger>
