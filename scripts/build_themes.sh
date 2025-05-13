@@ -24,4 +24,5 @@ npx token-transformer --preserveRawValue $STYLES_PATH/tokens.json $TOKENS_PATH/r
 # npx token-transformer $STYLES_PATH/tokens.json $TOKENS_PATH/<theme>.json colors,<theme>
 
 tsx ./scripts/convert-tokens.ts
+cp ./styles/src/tailwind.css ./styles/dist/tailwind.css
 prettier -w styles
