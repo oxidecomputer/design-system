@@ -24,6 +24,11 @@
   text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
 }
 
+@utility inline-code {
+  @apply text-secondary;
+  @apply ml-[1px] mr-[1px] rounded border px-[4px] py-[1px] align-[1px] text-[0.825em] bg-raise border-secondary;
+}
+
 @layer components {
   .asciidoc-body {
     .line-through {
@@ -284,11 +289,6 @@
 
     ol p {
       @apply normal-case text-default;
-    }
-
-    .inline-code {
-      @apply text-secondary;
-      @apply ml-[1px] mr-[1px] rounded border px-[4px] py-[1px] align-[1px] text-[0.825em] bg-raise border-secondary;
     }
 
     p code,
