@@ -23,6 +23,8 @@ Make sure disabled buttons don't get the pointer cursor.
 }
 
 @theme {
+  --color-*: initial; /* disable default colors */
+
   --breakpoint-300: 300px;
   --breakpoint-400: 400px;
   --breakpoint-500: 500px;
