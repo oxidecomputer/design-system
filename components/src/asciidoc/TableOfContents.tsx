@@ -294,7 +294,7 @@ export const DesktopOutline = ({
   }
 
   if (toc && toc.length > 0) {
-    return <ul className={cn('toc w-[--toc-width]', className)}>{renderToc(toc)}</ul>
+    return <ul className={cn('toc w-[var(--toc-width)]', className)}>{renderToc(toc)}</ul>
   }
 
   return null
@@ -352,13 +352,13 @@ export const SmallScreenOutline = ({
       >
         <Accordion.Item value="toc">
           <Accordion.Header>
-            <Accordion.Trigger className="flex h-12 w-full items-center justify-between text-sans-md text-default hover:bg-hover px-[--container-px] [&>svg]:data-[state=open]:rotate-90">
+            <Accordion.Trigger className="flex h-12 w-full items-center justify-between text-sans-md text-default hover:bg-hover px-[var(--container-px)] [&>svg]:data-[state=open]:rotate-90">
               Table of Contents{' '}
               <DirectionRightIcon className="transition-all text-tertiary" />
             </Accordion.Trigger>
           </Accordion.Header>
 
-          <Accordion.Content className="animated-accordion hydrated max-h-[60vh] overflow-y-scroll w-full border-t border-secondary px-[--container-px]">
+          <Accordion.Content className="animated-accordion hydrated max-h-[60vh] overflow-y-scroll w-full border-t border-secondary px-[var(--container-px)]">
             <div className="py-4">{renderToc(toc)}</div>
           </Accordion.Content>
         </Accordion.Item>
