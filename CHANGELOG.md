@@ -1,3 +1,15 @@
+# v2.6.0 (Tue May 20 2025)
+
+#### 🚀 Enhancement
+
+- Add extra neutral step [#134](https://github.com/oxidecomputer/design-system/pull/134) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v2.5.1 (Tue Apr 29 2025)
 
 #### 🐛 Bug Fix
