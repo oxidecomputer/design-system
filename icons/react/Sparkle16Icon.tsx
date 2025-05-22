@@ -11,7 +11,7 @@ interface SVGRProps {
   title?: string
   titleId?: string
 }
-const NewWindow16Icon = ({
+const Sparkle16Icon = ({
   title,
   titleId,
   ...props
@@ -26,12 +26,9 @@ const NewWindow16Icon = ({
     {...props}
   >
     {title ? <title id={titleId}>{title}</title> : null}
-    <path
-      fill="currentColor"
-      fillRule="evenodd"
-      d="M14.25 1h-8.5a.75.75 0 0 0-.75.75v8.5c0 .414.336.75.75.75h8.5a.75.75 0 0 0 .75-.75v-8.5a.75.75 0 0 0-.75-.75M7 3.75A.75.75 0 0 1 7.75 3h4.5a.75.75 0 0 1 .75.75v.5a.75.75 0 0 1-.75.75h-4.5A.75.75 0 0 1 7 4.25zM1.75 5H4v2H3v6h6v-1h2v2.25a.75.75 0 0 1-.75.75h-8.5l-.077-.004A.75.75 0 0 1 1 14.25v-8.5A.75.75 0 0 1 1.75 5"
-      clipRule="evenodd"
-    />
+    <g fill="currentColor">
+      <path d="m9.28 7.929 1.372-3.134a.38.38 0 0 1 .696 0L12.72 7.93a.75.75 0 0 0 .31.348l2.404 1.394a.38.38 0 0 1 0 .658l-2.404 1.394a.75.75 0 0 0-.31.348l-1.372 3.134a.38.38 0 0 1-.696 0L9.28 12.07a.75.75 0 0 0-.31-.348l-2.404-1.394a.38.38 0 0 1 0-.658L8.97 8.277a.75.75 0 0 0 .31-.348M2.65 2.892 3.656.737a.38.38 0 0 1 .688 0L5.35 2.892a.75.75 0 0 0 .321.341l1.715.933a.38.38 0 0 1 0 .668l-1.715.933a.75.75 0 0 0-.32.341L4.343 8.263a.38.38 0 0 1-.688 0L2.65 6.108a.75.75 0 0 0-.321-.341L.614 4.834a.38.38 0 0 1 0-.668l1.715-.933a.75.75 0 0 0 .32-.341" />
+    </g>
   </svg>
 )
-export default NewWindow16Icon
+export default Sparkle16Icon
