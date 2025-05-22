@@ -11,7 +11,11 @@ interface SVGRProps {
   title?: string
   titleId?: string
 }
-const Cpu16Icon = ({ title, titleId, ...props }: SVGProps<SVGSVGElement> & SVGRProps) => (
+const Submit16Icon = ({
+  title,
+  titleId,
+  ...props
+}: SVGProps<SVGSVGElement> & SVGRProps) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={16}
@@ -24,10 +28,8 @@ const Cpu16Icon = ({ title, titleId, ...props }: SVGProps<SVGSVGElement> & SVGRP
     {title ? <title id={titleId}>{title}</title> : null}
     <path
       fill="currentColor"
-      fillRule="evenodd"
-      d="M7 0v3h2V0h2v3h1.25a.75.75 0 0 1 .75.75V5h3v2h-3v2h3v2h-3v1.25a.75.75 0 0 1-.75.75H11v3H9v-3H7v3H5v-3H3.75a.75.75 0 0 1-.75-.75V11H0V9h3V7H0V5h3V3.75A.75.75 0 0 1 3.75 3H5V0zM5.4 10.99l.1.01h5a.5.5 0 0 0 .5-.5v-5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0-.5.5v5a.5.5 0 0 0 .4.49M9 9H7V7h2z"
-      clipRule="evenodd"
+      d="M1.332 2.853a.38.38 0 0 1 .506-.486c2.168.946 8.082 3.518 12.33 5.288a.38.38 0 0 1 .001.701L1.832 13.643a.38.38 0 0 1-.504-.486l1.9-4.885a.75.75 0 0 0 0-.544z"
     />
   </svg>
 )
-export default Cpu16Icon
+export default Submit16Icon

@@ -155,10 +155,12 @@ export type Icon =
   | { name: 'software-update'; size: 16 }
   | { name: 'software-update'; size: 24 }
   | { name: 'sort'; size: 16 }
+  | { name: 'sparkle'; size: 16 }
   | { name: 'speaker'; size: 24 }
   | { name: 'ssd'; size: 16 }
   | { name: 'storage'; size: 16 }
   | { name: 'storage'; size: 24 }
+  | { name: 'submit'; size: 16 }
   | { name: 'subnet'; size: 16 }
   | { name: 'subnet'; size: 24 }
   | { name: 'success'; size: 12 }
@@ -170,4 +172,6 @@ export type Icon =
   | { name: 'transmit'; size: 24 }
   | { name: 'unauthorized'; size: 12 }
   | { name: 'warning'; size: 12 }
+  | { name: 'webhooks'; size: 16 }
+  | { name: 'webhooks'; size: 24 }
   | { name: 'wireless'; size: 24 }
