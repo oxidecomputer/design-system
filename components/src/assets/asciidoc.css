@@ -451,7 +451,7 @@
     }
 
     .admonitionblock.tip p code {
-      background-color: var(--color-purple-800);
+      @apply bg-purple-800;
     }
 
     .admonitionblock a {
@@ -472,7 +472,7 @@
     }
 
     .admonitionblock.tip a {
-      color: var(--color-purple-800);
+      @apply text-purple-800;
     }
 
     .admonition-icon svg {
