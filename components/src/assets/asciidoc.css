@@ -401,7 +401,7 @@
     }
 
     .admonitionblock.tip strong {
-      color: var(--base-purple-800);
+      color: var(--color-purple-800);
     }
 
     .admonitionblock,
@@ -411,9 +411,9 @@
 
     .admonitionblock.tip,
     .admonitionblock.tip blockquote {
-      background-color: var(--base-purple-200);
-      color: var(--base-purple-800);
-      border-color: var(--base-purple-400);
+      background-color: var(--color-purple-200);
+      color: var(--color-purple-800);
+      border-color: var(--color-purple-400);
     }
 
     .admonitionblock.caution,
@@ -438,7 +438,7 @@
     }
 
     .admonitionblock.tip {
-      color: var(--base-purple-800);
+      color: var(--color-purple-800);
     }
 
     .admonitionblock.caution p code,
@@ -451,7 +451,7 @@
     }
 
     .admonitionblock.tip p code {
-      background-color: var(--base-purple-800);
+      background-color: var(--color-purple-800);
     }
 
     .admonitionblock a {
@@ -472,7 +472,7 @@
     }
 
     .admonitionblock.tip a {
-      color: var(--base-purple-800);
+      color: var(--color-purple-800);
     }
 
     .admonition-icon svg {

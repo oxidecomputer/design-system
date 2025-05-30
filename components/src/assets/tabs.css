@@ -11,7 +11,7 @@
 }
 
 .ox-tabs.full-width .ox-tabs-panel {
-  @apply mx-[var(--content-gutter)];
+  @apply mx-(--content-gutter);
 }
 
 .ox-tabs-list {

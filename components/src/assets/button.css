@@ -44,7 +44,7 @@ label {
     @apply text-secondary hover:bg-hover disabled:bg-transparent disabled:text-disabled;
   }
   &.btn-ghost:after {
-    @apply text-[var(--base-neutral-300)] opacity-100;
+    @apply text-(--color-neutral-300) opacity-100;
   }
 
   &.btn-accent-ghost {
