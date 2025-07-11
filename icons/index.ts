@@ -56,6 +56,7 @@ export type Icon =
   | { name: 'dots'; size: 16 }
   | { name: 'dots'; size: 24 }
   | { name: 'download'; size: 24 }
+  | { name: 'download-outline'; size: 16 }
   | { name: 'download-roundel'; size: 16 }
   | { name: 'edit'; size: 16 }
   | { name: 'email'; size: 16 }
@@ -152,6 +153,7 @@ export type Icon =
   | { name: 'settings'; size: 24 }
   | { name: 'show'; size: 16 }
   | { name: 'sign-out'; size: 16 }
+  | { name: 'size-outline'; size: 16 }
   | { name: 'snapshots'; size: 16 }
   | { name: 'snapshots'; size: 24 }
   | { name: 'software-update'; size: 16 }
@@ -170,6 +172,7 @@ export type Icon =
   | { name: 'terminal'; size: 16 }
   | { name: 'terminal'; size: 24 }
   | { name: 'time'; size: 16 }
+  | { name: 'time-outline'; size: 16 }
   | { name: 'transmit'; size: 16 }
   | { name: 'transmit'; size: 24 }
   | { name: 'unauthorized'; size: 12 }
