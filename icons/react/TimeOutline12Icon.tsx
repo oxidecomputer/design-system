@@ -11,7 +11,7 @@ interface SVGRProps {
   title?: string
   titleId?: string
 }
-const TimeOutline16Icon = ({
+const TimeOutline12Icon = ({
   title,
   titleId,
   ...props
@@ -32,4 +32,4 @@ const TimeOutline16Icon = ({
     />
   </svg>
 )
-export default TimeOutline16Icon
+export default TimeOutline12Icon

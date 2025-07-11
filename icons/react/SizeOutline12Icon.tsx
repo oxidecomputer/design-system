@@ -11,7 +11,7 @@ interface SVGRProps {
   title?: string
   titleId?: string
 }
-const DownloadOutline16Icon = ({
+const SizeOutline12Icon = ({
   title,
   titleId,
   ...props
@@ -28,8 +28,8 @@ const DownloadOutline16Icon = ({
     {title ? <title id={titleId}>{title}</title> : null}
     <path
       fill="currentColor"
-      d="M.67 8a.33.33 0 0 1 .33.33V11h10V8.33a.33.33 0 0 1 .33-.33h.34a.33.33 0 0 1 .33.33v3l-.014.135a.67.67 0 0 1-.521.521L11.33 12H.67l-.135-.014a.67.67 0 0 1-.521-.521L0 11.33v-3A.33.33 0 0 1 .33 8zm5.5-8a.33.33 0 0 1 .33.33v6.46l1.913-1.913a.33.33 0 0 1 .467 0l.24.24a.33.33 0 0 1 0 .467L6.233 8.471a.33.33 0 0 1-.466 0L2.88 5.584a.33.33 0 0 1 0-.467l.24-.24a.33.33 0 0 1 .467 0L5.5 6.79V.33A.33.33 0 0 1 5.83 0z"
+      d="M8.547 1a.67.67 0 0 1 .577.33l.045.09 1.783 4.46q.024.06.036.122l.012.127v4.201c0 .37-.3.67-.67.67H1.67l-.135-.014A.67.67 0 0 1 1 10.33V6.13l.012-.127a1 1 0 0 1 .036-.122L2.83 1.42l.045-.09a.67.67 0 0 1 .477-.322l.1-.008zM2 10h8V7H2zm2.67-2a.33.33 0 0 1 .33.33v.34a.33.33 0 0 1-.33.33H3.33A.33.33 0 0 1 3 8.67v-.34A.33.33 0 0 1 3.33 8zM2.077 6h7.846l-1.6-4H3.677z"
     />
   </svg>
 )
-export default DownloadOutline16Icon
+export default SizeOutline12Icon
