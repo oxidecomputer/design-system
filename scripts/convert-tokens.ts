@@ -145,22 +145,22 @@ ${dictionary.allProperties
     const name = toColorName(prop.name)
     const colorRef = toColorName(prop.attributes?.ref)
     color.alpha = alpha
-    if (prop.name.startsWith('theme-')) {
+    if (prop.name.startsWith('theme-') && prop.attributes?.ref) {
       return `  --${name}: var(--${colorRef});`
     }
-    if (prop.name.startsWith('surface-')) {
+    if (prop.name.startsWith('surface-') && prop.attributes?.ref) {
       return createUtilityVar(prop, ['background'], 'surface-')
     }
-    if (prop.name.startsWith('content-')) {
+    if (prop.name.startsWith('content-') && prop.attributes?.ref) {
       return createUtilityVar(prop, ['text'], 'content-')
     }
-    if (prop.name.startsWith('stroke-')) {
+    if (prop.name.startsWith('stroke-') && prop.attributes?.ref) {
       return createUtilityVar(prop, ['border', 'ring', 'outline'], 'stroke-')
     }
-    if (prop.name.startsWith('chart-fill-')) {
+    if (prop.name.startsWith('chart-fill-') && prop.attributes?.ref) {
       return createUtilityVar(prop, ['fill'], 'chart-fill-')
     }
-    if (prop.name.startsWith('chart-stroke-')) {
+    if (prop.name.startsWith('chart-stroke-') && prop.attributes?.ref) {
       return createUtilityVar(prop, ['stroke'], 'chart-stroke-')
     }
 
