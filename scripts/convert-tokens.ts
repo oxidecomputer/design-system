@@ -101,6 +101,14 @@ const formatTypographyStyles = (name: string, value: any): [string, string] | nu
 const toP3 = toGamut('p3', 'oklch')
 const toColorName = (name?: string) => (name ? name.replace('base', 'color') : '')
 
+const semanticPrefixMap = {
+  'surface-': { prefixes: ['background'], replacement: 'surface-' },
+  'content-': { prefixes: ['text'], replacement: 'content-' },
+  'stroke-': { prefixes: ['border', 'ring', 'outline'], replacement: 'stroke-' },
+  'chart-fill-': { prefixes: ['fill'], replacement: 'chart-fill-' },
+  'chart-stroke-': { prefixes: ['stroke'], replacement: 'chart-stroke-' },
+}
+
 StyleDictionary.registerFormat({
   name: 'theme',
   formatter({ dictionary, options }) {
@@ -148,20 +156,10 @@ ${dictionary.allProperties
     if (prop.name.startsWith('theme-') && prop.attributes?.ref) {
       return `  --${name}: var(--${colorRef});`
     }
-    if (prop.name.startsWith('surface-') && prop.attributes?.ref) {
-      return createUtilityVar(prop, ['background'], 'surface-')
-    }
-    if (prop.name.startsWith('content-') && prop.attributes?.ref) {
-      return createUtilityVar(prop, ['text'], 'content-')
-    }
-    if (prop.name.startsWith('stroke-') && prop.attributes?.ref) {
-      return createUtilityVar(prop, ['border', 'ring', 'outline'], 'stroke-')
-    }
-    if (prop.name.startsWith('chart-fill-') && prop.attributes?.ref) {
-      return createUtilityVar(prop, ['fill'], 'chart-fill-')
-    }
-    if (prop.name.startsWith('chart-stroke-') && prop.attributes?.ref) {
-      return createUtilityVar(prop, ['stroke'], 'chart-stroke-')
+    for (const [prefix, config] of Object.entries(semanticPrefixMap)) {
+      if (prop.name.startsWith(prefix) && prop.attributes?.ref) {
+        return createUtilityVar(prop, config.prefixes, config.replacement)
+      }
     }
 
     return `  --${name}: ${formatCss(toP3(prop.value))}; /* ${prop.value} */`
