@@ -23,11 +23,13 @@
   text-decoration: underline;
   text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
 }
-@layer components {
-  .inline-code {
-    @apply text-secondary ml-[1px] mr-[1px] rounded border px-[4px] py-[1px] align-[1px] text-[0.825em] bg-raise border-secondary;
-  }
 
+@utility inline-code {
+  @apply text-secondary;
+  @apply ml-[1px] mr-[1px] rounded border px-[4px] py-[1px] align-[1px] text-[0.825em] bg-raise border-secondary;
+}
+
+@layer components {
   .asciidoc-body {
     .line-through {
       text-decoration: line-through;
