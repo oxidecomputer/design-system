@@ -101,6 +101,19 @@ const formatTypographyStyles = (name: string, value: any): [string, string] | nu
 const toP3 = toGamut('p3', 'oklch')
 const toColorName = (name?: string) => (name ? name.replace('base', 'color') : '')
 
+const formatColorValue = (prop: TransformedToken) => {
+  const { withAlpha } = prop.attributes || {}
+  const color = parse(prop.value)
+  if (!color) {
+    throw new Error(
+      `Invalid color for ${prop.name}. Expected a hex value, got '${prop.value}'`,
+    )
+  }
+  return `${formatCss(toP3(color))}; /* ${prop.value}${
+    withAlpha ? ` with alpha ${color.alpha}` : ''
+  } */`
+}
+
 const semanticPrefixMap = {
   'surface-': { prefixes: ['background'], replacement: 'surface-' },
   'content-': { prefixes: ['text'], replacement: 'content-' },
@@ -121,7 +134,7 @@ StyleDictionary.registerFormat({
       prefixes: string[],
       replacement: string,
     ) => {
-      const { alpha, hasAlpha } = prop.attributes || {}
+      const { hasAlpha } = prop.attributes || {}
       prefixes.forEach((prefix) => {
         colorVars.push(
           `  --${prefix}-color-${prop.name.replace(replacement, '')}: var(--${toColorName(
@@ -130,8 +143,10 @@ StyleDictionary.registerFormat({
         )
       })
       const colorName = toColorName(prop.attributes?.ref)
+      // We are combining the color var with the alpha value if it exists
+      // but we can't use the color reference directly and need to grab the value
       return `  --${prop.name}: ${
-        hasAlpha ? `rgba(var(--${colorName}), ${alpha})` : `var(--${colorName})`
+        hasAlpha ? formatColorValue(prop) : `var(--${colorName})`
       };`
     }
 
@@ -162,7 +177,7 @@ ${dictionary.allProperties
       }
     }
 
-    return `  --${name}: ${formatCss(toP3(prop.value))}; /* ${prop.value} */`
+    return `  --${name}: ${formatColorValue(prop)}`
   })
   .join('\n')}
 }
