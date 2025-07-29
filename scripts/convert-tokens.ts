@@ -102,15 +102,18 @@ const toP3 = toGamut('p3', 'oklch')
 const toColorName = (name?: string) => (name ? name.replace('base', 'color') : '')
 
 const formatColorValue = (prop: TransformedToken) => {
-  const { withAlpha } = prop.attributes || {}
+  const { hasAlpha } = prop.attributes || {}
   const color = parse(prop.value)
   if (!color) {
     throw new Error(
       `Invalid color for ${prop.name}. Expected a hex value, got '${prop.value}'`,
     )
   }
+  if (hasAlpha && color.alpha) {
+    color.alpha = parseFloat(color.alpha?.toFixed(2))
+  }
   return `${formatCss(toP3(color))}; /* ${prop.value}${
-    withAlpha ? ` with alpha ${color.alpha}` : ''
+    hasAlpha ? ` with alpha ${color.alpha}` : ''
   } */`
 }
 
