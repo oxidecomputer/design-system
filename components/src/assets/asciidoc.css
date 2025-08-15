@@ -6,24 +6,27 @@
  * Copyright Oxide Computer Company
  */
 
-@layer utilities {
-  .text-mono-code {
-    @apply text-[0.825em] !normal-case;
-    font-feature-settings: 'calt' 0;
-    letter-spacing: 0;
-  }
+@utility text-mono-code {
+  @apply text-[0.825em] !normal-case;
+  font-feature-settings: 'calt' 0;
+  letter-spacing: 0;
+}
 
-  .accent-link {
-    @apply text-accent-secondary hover:text-accent;
-    text-decoration: underline;
-    text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
-  }
+@utility accent-link {
+  @apply text-accent-secondary hover:text-accent;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
+}
 
-  .link-with-underline {
-    @apply text-default hover:text-raise;
-    text-decoration: underline;
-    text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
-  }
+@utility link-with-underline {
+  @apply text-default hover:text-raise;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
+}
+
+@utility inline-code {
+  @apply text-secondary;
+  @apply ml-[1px] mr-[1px] rounded border px-[4px] py-[1px] align-[1px] text-[0.825em] bg-raise border-secondary;
 }
 
 @layer components {
@@ -288,11 +291,6 @@
       @apply normal-case text-default;
     }
 
-    .inline-code {
-      @apply text-secondary;
-      @apply ml-[1px] mr-[1px] rounded border px-[4px] py-[1px] align-[1px] text-[0.825em] bg-raise border-secondary;
-    }
-
     p code,
     h1 code,
     h2 code,
@@ -403,7 +401,7 @@
     }
 
     .admonitionblock.tip strong {
-      color: var(--base-purple-800);
+      color: var(--color-purple-800);
     }
 
     .admonitionblock,
@@ -413,9 +411,9 @@
 
     .admonitionblock.tip,
     .admonitionblock.tip blockquote {
-      background-color: var(--base-purple-200);
-      color: var(--base-purple-800);
-      border-color: var(--base-purple-400);
+      background-color: var(--color-purple-200);
+      color: var(--color-purple-800);
+      border-color: var(--color-purple-400);
     }
 
     .admonitionblock.caution,
@@ -440,7 +438,7 @@
     }
 
     .admonitionblock.tip {
-      color: var(--base-purple-800);
+      color: var(--color-purple-800);
     }
 
     .admonitionblock.caution p code,
@@ -453,7 +451,7 @@
     }
 
     .admonitionblock.tip p code {
-      background-color: var(--base-purple-800);
+      @apply bg-purple-800;
     }
 
     .admonitionblock a {
@@ -474,7 +472,7 @@
     }
 
     .admonitionblock.tip a {
-      color: var(--base-purple-800);
+      @apply text-purple-800;
     }
 
     .admonition-icon svg {
