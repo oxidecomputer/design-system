@@ -11,7 +11,7 @@ interface SVGRProps {
   title?: string
   titleId?: string
 }
-const OpenLink12Icon = ({
+const TimeOutline12Icon = ({
   title,
   titleId,
   ...props
@@ -28,8 +28,8 @@ const OpenLink12Icon = ({
     {title ? <title id={titleId}>{title}</title> : null}
     <path
       fill="currentColor"
-      d="M6.02 2H2v8h8V5.98l.01.01.99.99v3.353l-.014.135a.67.67 0 0 1-.518.518l-.135.014H1.667l-.135-.014a.67.67 0 0 1-.518-.518L1 10.333V1.667c0-.322.228-.591.532-.653L1.667 1H5.02zm4.448-.986q.06.012.117.036l.036.018a1 1 0 0 1 .071.038l.04.03a.7.7 0 0 1 .136.137q.014.017.026.036.024.037.043.079l.012.028q.016.041.028.085l.01.04q.012.06.013.126V5l-1-1v-.033a.7.7 0 0 1-.139-.106L8.14 2.14A.7.7 0 0 1 8.033 2H8L7 1h3.333z"
+      d="M6 0a6 6 0 1 1 0 12A6 6 0 0 1 6 0m0 1a5 5 0 1 0 0 10A5 5 0 0 0 6 1m.17 2a.33.33 0 0 1 .33.33v2.326a.33.33 0 0 0 .097.234L7.62 6.913a.33.33 0 0 1 0 .467l-.24.24a.33.33 0 0 1-.467 0L5.597 6.304A.33.33 0 0 1 5.5 6.07V3.33A.33.33 0 0 1 5.83 3z"
     />
   </svg>
 )
-export default OpenLink12Icon
+export default TimeOutline12Icon
