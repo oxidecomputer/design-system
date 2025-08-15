@@ -219,9 +219,13 @@ ${dictionary.allProperties
     color.alpha = alpha
 
     // Only output variable references, not the base color definitions
+    // unless it needs the alpha in which case it gets precomputed
     if (prop.attributes?.ref) {
+      const { hasAlpha } = prop.attributes || {}
       const colorRef = toColorName(prop.attributes.ref)
-      return `  --${prop.name}: var(--${colorRef});`
+      return `  --${prop.name}: ${
+        hasAlpha ? formatColorValue(prop) : `var(--${colorRef})`
+      };`
     }
 
     return `  --${prop.name}: ${formatCss(toP3(prop.value))}; /* ${prop.value} */`
