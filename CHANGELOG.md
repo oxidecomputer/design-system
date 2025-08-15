@@ -1,3 +1,15 @@
+# v2.8.0 (Fri Aug 15 2025)
+
+#### 🚀 Enhancement
+
+- Add outline icons [#137](https://github.com/oxidecomputer/design-system/pull/137) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v2.7.0 (Wed Jun 04 2025)
 
 #### 🚀 Enhancement
