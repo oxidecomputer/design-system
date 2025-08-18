@@ -9,7 +9,7 @@
 /**
  * Utilized by `build_themes.sh` to convert theme token files to generate the files in `styles/themes`
  */
-import { formatCss, parse, toGamut } from 'culori'
+import { converter, parse } from 'culori'
 import type { Config, TransformedToken } from 'style-dictionary'
 import StyleDictionary from 'style-dictionary'
 import { Dictionary } from 'style-dictionary/types/Dictionary'
@@ -98,23 +98,31 @@ const formatTypographyStyles = (name: string, value: any): [string, string] | nu
   }
 }
 
-const toP3 = toGamut('p3', 'oklch')
 const toColorName = (name?: string) => (name ? name.replace('base', 'color') : '')
+const toRgb = converter('rgb')
+
+const formatP3Color = (value: string, name: string, alpha?: number) => {
+  const color = parse(value)
+  if (!color) {
+    throw new Error(`Invalid color for ${name}. Expected a hex value, got '${value}'`)
+  }
+
+  const rgbColor = toRgb(color)
+  const r = (rgbColor.r || 0).toFixed(4)
+  const g = (rgbColor.g || 0).toFixed(4)
+  const b = (rgbColor.b || 0).toFixed(4)
+
+  return alpha !== undefined
+    ? `color(display-p3 ${r} ${g} ${b} / ${alpha.toFixed(2)})`
+    : `color(display-p3 ${r} ${g} ${b})`
+}
 
 const formatColorValue = (prop: TransformedToken) => {
   const { hasAlpha } = prop.attributes || {}
-  const color = parse(prop.value)
-  if (!color) {
-    throw new Error(
-      `Invalid color for ${prop.name}. Expected a hex value, got '${prop.value}'`,
-    )
-  }
-  if (hasAlpha && color.alpha) {
-    color.alpha = parseFloat(color.alpha?.toFixed(2))
-  }
-  return `${formatCss(toP3(color))}; /* ${prop.value}${
-    hasAlpha ? ` with alpha ${color.alpha}` : ''
-  } */`
+  const alpha = hasAlpha && prop.attributes?.alpha ? prop.attributes.alpha : undefined
+  const p3Value = formatP3Color(prop.value, prop.name, alpha)
+
+  return `${p3Value}; /* ${prop.value}${hasAlpha ? ` with alpha ${alpha}` : ''} */`
 }
 
 const semanticPrefixMap = {
@@ -228,7 +236,8 @@ ${dictionary.allProperties
       };`
     }
 
-    return `  --${prop.name}: ${formatCss(toP3(prop.value))}; /* ${prop.value} */`
+    const p3Value = formatP3Color(prop.value, prop.name)
+    return `  --${prop.name}: ${p3Value}; /* ${prop.value} */`
   })
   .join('\n')}
 }`
