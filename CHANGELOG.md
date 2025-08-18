@@ -1,3 +1,23 @@
+# v3.0.0 (Mon Aug 18 2025)
+
+#### 💥 Breaking Change
+
+- Tailwind 4 upgrade [#133](https://github.com/oxidecomputer/design-system/pull/133) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### 🐛 Bug Fix
+
+- Bump commit [#139](https://github.com/oxidecomputer/design-system/pull/139) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### ⚠️ Pushed to `master`
+
+- Bump commit ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v2.8.0 (Fri Aug 15 2025)
 
 #### 🚀 Enhancement
