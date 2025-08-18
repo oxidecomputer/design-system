@@ -10,8 +10,6 @@
 Set the default cursor for buttons.
 */
 
-/* bump */
-
 button,
 [role='button'] {
   cursor: pointer;
