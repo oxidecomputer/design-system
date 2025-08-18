@@ -1,3 +1,15 @@
+# v3.0.2 (Mon Aug 18 2025)
+
+#### 🐛 Bug Fix
+
+- Use SRGB values in P3 space [#142](https://github.com/oxidecomputer/design-system/pull/142) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v3.0.0 (Mon Aug 18 2025)
 
 #### 💥 Breaking Change
