@@ -7,6 +7,7 @@ on:
       - 'styles/src/tokens.json'
       - 'styles/src/**'
       - 'scripts/build_themes.sh'
+      - '.github/workflows/build-themes.yaml'
 
 jobs:
   build-themes:
