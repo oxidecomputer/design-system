@@ -35,6 +35,5 @@ Thumbs.db
 # Ignore temporary script files
 scripts/*.md.mjs
 
-styles/dist
 components/dist
-dist/
+/dist/
