@@ -54,9 +54,10 @@ jobs:
   release:
     runs-on: ubuntu-latest
     environment: production
-    if:
-      "!contains(github.event.head_commit.message, 'ci skip') &&
-      !contains(github.event.head_commit.message, 'skip ci')"
+    if: |
+      !contains(github.event.head_commit.message, 'ci skip') &&
+      !contains(github.event.head_commit.message, 'skip ci') &&
+      github.event.head_commit.author.email != '41898282+github-actions[bot]@users.noreply.github.com'
     steps:
       - uses: actions/checkout@v5
         with:
@@ -78,7 +79,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add ./styles/dist
           if ! git diff --staged --quiet; then
-            git commit -m "Update themes from token file [ci skip]"
+            git commit -m "Update themes from token file"
             git push
           else
             echo "No changes to commit"
