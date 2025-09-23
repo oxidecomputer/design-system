@@ -125,7 +125,7 @@ const formatColorValue = (prop: TransformedToken) => {
     hasAlpha && prop.attributes?.alpha ? (prop.attributes.alpha as number) : undefined
   const p3Value = formatP3Color(prop.value, prop.name, alpha)
 
-  return `${p3Value}; /* ${prop.value}${hasAlpha ? ` with alpha ${alpha}` : ''} */`
+  return `${p3Value}; /* ${prop.value}${hasAlpha && alpha ? ` with alpha ${alpha.toFixed(2)}` : ''} */`
 }
 
 const semanticPrefixMap = {
