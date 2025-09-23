@@ -66,8 +66,24 @@ jobs:
           cache: 'npm'
       - run: npm install
       - run: npm install -g npm@latest
+
+      - name: Build
+        run: npm run build
+
+      - name: Commit theme changes if needed
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add ./styles/dist
+          if ! git diff --staged --quiet; then
+            git commit -m "Update themes from token file [ci skip]"
+            git push
+          else
+            echo "No changes to commit"
+          fi
+
       - name: Create Release
-        run: npm run build && npm run release
+        run: npm run release
         env:
           # auto expects GH_TOKEN in the environment
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
