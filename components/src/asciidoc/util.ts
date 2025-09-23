@@ -20,11 +20,11 @@ import {
 } from '@oxide/react-asciidoc'
 import {
   bundledLanguages,
-  getHighlighter,
   type BundledLanguage,
   type BundledTheme,
   type HighlighterGeneric,
   type LanguageInput,
+  createHighlighter,
 } from 'shiki'
 
 import oxqlLang from './langs/oxql.tmLanguage.json'
@@ -42,7 +42,7 @@ async function getOrCreateHighlighter() {
       ...oxqlLang,
     })
 
-    highlighter = await getHighlighter({
+    highlighter = await createHighlighter({
       themes: [theme],
       langs: langs,
     })
