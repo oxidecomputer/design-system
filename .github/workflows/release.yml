@@ -13,9 +13,7 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GH_TOKEN }}
+      - run: git fetch --unshallow --tags
 
       - name: Use Node.js 22.x
         uses: actions/setup-node@v4
