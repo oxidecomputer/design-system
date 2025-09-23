@@ -73,7 +73,7 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Commit theme changes if needed
+      - name: Check theme changes
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -81,12 +81,12 @@ jobs:
           if ! git diff --staged --quiet; then
             git commit -m "Update themes from token file"
             git push
-          else
-            echo "No changes to commit"
+            echo "Theme changes committed. Exiting to trigger new workflow run."
+            exit 0
           fi
+          echo "No theme changes detected. Continuing with release."
 
       - name: Create Release
         run: npm run release
         env:
-          # auto expects GH_TOKEN in the environment
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
