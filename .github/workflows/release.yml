@@ -71,8 +71,9 @@ jobs:
           if ! git diff --staged --quiet; then
             git commit -m "Update themes from token file"
             git push
+          else
+            echo "No theme changes detected. Continuing with release."
           fi
-          echo "No theme changes detected. Continuing with release."
 
       - name: Create Release
         run: npm run release
