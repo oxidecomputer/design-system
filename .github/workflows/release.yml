@@ -2,6 +2,9 @@ name: Release
 
 on:
   push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 # Enabled permissions on GITHUB_TOKEN
 permissions:
@@ -39,26 +42,28 @@ jobs:
           npx auto pr-check
           --url=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
 
-  build-and-prepare:
+  release:
     runs-on: ubuntu-latest
+    environment: production
     if: |
       !contains(github.event.head_commit.message, 'ci skip') &&
       !contains(github.event.head_commit.message, 'skip ci')
-    outputs:
-      should_release: ${{ steps.check.outputs.should_release }}
     steps:
       - uses: actions/checkout@v5
         with:
           ref: ${{ github.head_ref || github.ref_name }}
+      - run: git fetch --unshallow --tags
       - uses: actions/setup-node@v5
         with:
           node-version: 22.x
-          cache: 'npm'
+          cache: npm
       - run: npm install
-      - run: npm run build
+      - run: npm install -g npm@latest
+
+      - name: Build
+        run: npm run build
 
       - name: Check theme changes
-        id: check
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
@@ -66,26 +71,8 @@ jobs:
           if ! git diff --staged --quiet; then
             git commit -m "Update themes from token file"
             git push
-            echo "should_release=false" >> $GITHUB_OUTPUT
-            echo "Theme changes committed. Release will run on next workflow."
-          else
-            echo "should_release=true" >> $GITHUB_OUTPUT
-            echo "No theme changes. Ready for release."
           fi
-
-  release:
-    runs-on: ubuntu-latest
-    environment: production
-    needs: build-and-prepare
-    if: needs.build-and-prepare.outputs.should_release == 'true'
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22.x
-          cache: 'npm'
-      - run: npm install
-      - run: npm install -g npm@latest
+          echo "No theme changes detected. Continuing with release."
 
       - name: Create Release
         run: npm run release
