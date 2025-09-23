@@ -2,9 +2,6 @@ name: Release
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    types: [opened, synchronize, reopened]
 
 # Enabled permissions on GITHUB_TOKEN
 permissions:
@@ -22,16 +19,6 @@ permissions:
   id-token: write
 
 jobs:
-  install:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22.x
-      - run: npm install
-      - run: npm run tsc
-
   validate-labels:
     runs-on: ubuntu-latest
     if:
@@ -43,6 +30,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22.x
+          cache: npm
       - run: npm install
       - name: Verify Release
         env:
