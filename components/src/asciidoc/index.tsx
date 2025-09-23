@@ -7,7 +7,6 @@
  */
 import asciidoctor, { Block, Html5Converter, Inline } from '@asciidoctor/core'
 import { Content, type DocumentBlock } from '@oxide/react-asciidoc'
-
 import Admonition from './Admonition'
 import Section from './Section'
 import Table from './Table'

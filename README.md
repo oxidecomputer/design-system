@@ -46,7 +46,6 @@ icon component as shown below:
 
 ```tsx
 import { type Icon as IconType } from '@oxide/design-system/icons'
-
 // Cannot be imported through '@oxide/design-system'
 import sprite from '../../node_modules/@oxide/design-system/icons/sprite.svg'
 

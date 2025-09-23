@@ -7,11 +7,10 @@
  */
 import { Checkmark12Icon } from '@/icons/react'
 import cn from 'classnames'
-
 import { classed } from '../../utils'
 
 const Check = () => (
-  <Checkmark12Icon className="pointer-events-none absolute left-0.5 top-0.5 h-3 w-3 fill-current text-accent" />
+  <Checkmark12Icon className="text-accent pointer-events-none absolute left-0.5 top-0.5 h-3 w-3 fill-current" />
 )
 
 const Indeterminate = classed.div`absolute w-2 h-0.5 left-1 top-[7px] bg-accent pointer-events-none`
@@ -57,6 +56,6 @@ export const Checkbox = ({
       {indeterminate && <Indeterminate />}
     </span>
 
-    {children && <span className="ml-2.5 text-sans-md text-secondary">{children}</span>}
+    {children && <span className="text-sans-md text-secondary ml-2.5">{children}</span>}
   </label>
 )

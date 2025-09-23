@@ -5,8 +5,7 @@
  *
  * Copyright Oxide Computer Company
  */
-import { type AdmonitionBlock, Content, Title, parse } from '@oxide/react-asciidoc'
-
+import { Content, parse, Title, type AdmonitionBlock } from '@oxide/react-asciidoc'
 import { titleCase } from '../utils'
 
 const Admonition = ({ node }: { node: AdmonitionBlock }) => {

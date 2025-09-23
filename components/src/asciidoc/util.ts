@@ -19,14 +19,13 @@ import {
   processDocument,
 } from '@oxide/react-asciidoc'
 import {
+  bundledLanguages,
+  getHighlighter,
   type BundledLanguage,
   type BundledTheme,
   type HighlighterGeneric,
   type LanguageInput,
-  bundledLanguages,
-  getHighlighter,
 } from 'shiki'
-
 import oxqlLang from './langs/oxql.tmLanguage.json'
 import theme from './oxide-dark.json'
 

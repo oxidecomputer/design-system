@@ -6,9 +6,9 @@
  * Copyright Oxide Computer Company
  */
 import { Link16Icon } from '@/icons/react'
-import { Content, type SectionBlock, parse } from '@oxide/react-asciidoc'
+import { Content, parse, type SectionBlock } from '@oxide/react-asciidoc'
 import cn from 'classnames'
-import { type JSX, createElement } from 'react'
+import { createElement, type JSX } from 'react'
 
 // We need to remove anchors from the section title (and table of contents) because having
 // an anchor within an anchor causes a client/server render mismatch
@@ -26,7 +26,7 @@ const Section = ({ node }: { node: SectionBlock }) => {
       <span className="anchor" id={node.id || ''} aria-hidden="true" />
       <a className="link group" href={`#${node.id}`}>
         {parse(stripAnchors(node.title))}
-        <Link16Icon className="ml-2 hidden text-accent-secondary group-hover:inline-block" />
+        <Link16Icon className="text-accent-secondary ml-2 hidden group-hover:inline-block" />
       </a>
     </>
   )

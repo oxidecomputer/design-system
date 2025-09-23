@@ -4,7 +4,7 @@
   "semi": false,
   "singleQuote": true,
   "trailingComma": "all",
-  "plugins": ["./node_modules/@trivago/prettier-plugin-sort-imports"],
+  "plugins": ["@ianvs/prettier-plugin-sort-imports", "prettier-plugin-tailwindcss"],
   "importOrder": ["^~/(.*)$", "^[./]"],
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true
