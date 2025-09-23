@@ -7,6 +7,7 @@
  */
 import { Checkmark12Icon } from '@/icons/react'
 import cn from 'classnames'
+
 import { classed } from '../../utils'
 
 const Check = () => (

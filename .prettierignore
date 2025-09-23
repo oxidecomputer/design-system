@@ -1,1 +1,3 @@
-CHANGELOG.md
+**/*.json
+*.md
+*.css

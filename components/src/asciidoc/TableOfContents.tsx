@@ -10,6 +10,7 @@ import { parse, type DocumentSection } from '@oxide/react-asciidoc'
 import * as Accordion from '@radix-ui/react-accordion'
 import cn from 'classnames'
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
 import { stripAnchors } from './Section'
 
 export function useIntersectionObserver(

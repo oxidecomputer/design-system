@@ -8,6 +8,7 @@
 import cn from 'classnames'
 import type { MouseEventHandler } from 'react'
 import { forwardRef } from 'react'
+
 import { Spinner } from '../'
 
 export const buttonSizes = ['sm', 'icon', 'base'] as const

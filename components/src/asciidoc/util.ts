@@ -26,6 +26,7 @@ import {
   type HighlighterGeneric,
   type LanguageInput,
 } from 'shiki'
+
 import oxqlLang from './langs/oxql.tmLanguage.json'
 import theme from './oxide-dark.json'
 
