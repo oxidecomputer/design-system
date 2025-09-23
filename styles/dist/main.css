@@ -60,7 +60,7 @@
   --surface-secondary: var(--color-neutral-100);
   --surface-tertiary: var(--color-neutral-200);
   --surface-disabled: var(--color-neutral-100);
-  --surface-scrim: color(display-p3 0.0314 0.0588 0.0667 / 0.40); /* #080f1166 with alpha 0.4 */;
+  --surface-scrim: color(display-p3 0.0314 0.0588 0.0667 / 0.40); /* #080f1166 with alpha 0.40 */;
   --surface-accent: var(--theme-accent-800);
   --surface-accent-hover: var(--theme-accent-700);
   --surface-accent-secondary: var(--theme-accent-200);
@@ -147,10 +147,10 @@
   --stroke-info-secondary: var(--theme-info-600);
   --stroke-info-tertiary: var(--theme-info-400);
   --stroke-info-quaternary: var(--theme-info-300);
-  --chart-fill-area-primary: color(display-p3 0.1255 0.6392 0.4235 / 0.70); /* #20a36cb3 with alpha 0.7019607843137254 */;
-  --chart-fill-area-secondary: color(display-p3 0.1373 0.5412 0.3686 / 0.70); /* #238a5eb3 with alpha 0.7019607843137254 */;
-  --chart-fill-area-tertiary: color(display-p3 0.1373 0.4157 0.2980 / 0.70); /* #236a4cb3 with alpha 0.7019607843137254 */;
-  --chart-fill-area-quaternary: color(display-p3 0.1255 0.3020 0.2314 / 0.20); /* #204d3b33 with alpha 0.2 */;
+  --chart-fill-area-primary: color(display-p3 0.1255 0.6392 0.4235 / 0.70); /* #20a36cb3 with alpha 0.70 */;
+  --chart-fill-area-secondary: color(display-p3 0.1373 0.5412 0.3686 / 0.70); /* #238a5eb3 with alpha 0.70 */;
+  --chart-fill-area-tertiary: color(display-p3 0.1373 0.4157 0.2980 / 0.70); /* #236a4cb3 with alpha 0.70 */;
+  --chart-fill-area-quaternary: color(display-p3 0.1255 0.3020 0.2314 / 0.20); /* #204d3b33 with alpha 0.20 */;
   --chart-fill-item-primary: var(--theme-accent-700);
   --chart-fill-item-secondary: var(--theme-accent-600);
   --chart-fill-item-tertiary: var(--theme-accent-500);
@@ -164,10 +164,10 @@
   --chart-stroke-line-secondary: var(--color-yellow-600);
   --chart-stroke-line-tertiary: var(--color-red-600);
   --chart-stroke-line-quaternary: var(--color-blue-600);
-  --chart-stroke-y-axis: color(display-p3 0.1765 0.2000 0.2078 / 0.40); /* #2d333566 with alpha 0.4 */;
-  --chart-stroke-item: color(display-p3 0.1255 0.6392 0.4235 / 0.40); /* #20a36c66 with alpha 0.4 */;
+  --chart-stroke-y-axis: color(display-p3 0.1765 0.2000 0.2078 / 0.40); /* #2d333566 with alpha 0.40 */;
+  --chart-stroke-item: color(display-p3 0.1255 0.6392 0.4235 / 0.40); /* #20a36c66 with alpha 0.40 */;
   --chart-stroke-item-inactive: var(--color-neutral-200);
-  --chart-stroke-error: color(display-p3 0.8549 0.3804 0.4667 / 0.40); /* #da617766 with alpha 0.4 */;
+  --chart-stroke-error: color(display-p3 0.8549 0.3804 0.4667 / 0.40); /* #da617766 with alpha 0.40 */;
   --theme-accent-100: var(--color-green-100);
   --theme-accent-200: var(--color-green-200);
   --theme-accent-300: var(--color-green-300);
