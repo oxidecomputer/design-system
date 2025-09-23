@@ -12,7 +12,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v5
         with:
           fetch-depth: 2
 
@@ -20,6 +20,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22.x
+          cache: npm
 
       - name: Install dependencies
         run: npm install
@@ -27,8 +28,14 @@ jobs:
       - name: Build themes
         run: npm run build:themes
 
-      - uses: EndBug/add-and-commit@v7
-        with:
-          add: ./styles/dist
-          message: 'Update themes from token file'
-          default_author: github_actions
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add ./styles/dist
+          if ! git diff --staged --quiet; then
+            git commit -m "Update themes from token file"
+            git push
+          else
+            echo "No changes to commit"
+          fi
