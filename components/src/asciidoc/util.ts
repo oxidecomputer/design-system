@@ -20,11 +20,11 @@ import {
 } from '@oxide/react-asciidoc'
 import {
   bundledLanguages,
+  createHighlighter,
   type BundledLanguage,
   type BundledTheme,
   type HighlighterGeneric,
   type LanguageInput,
-  createHighlighter,
 } from 'shiki'
 
 import oxqlLang from './langs/oxql.tmLanguage.json'
