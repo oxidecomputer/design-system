@@ -59,6 +59,8 @@ jobs:
       !contains(github.event.head_commit.message, 'skip ci')"
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
       - run: git fetch --unshallow --tags
       - uses: actions/setup-node@v5
         with:
