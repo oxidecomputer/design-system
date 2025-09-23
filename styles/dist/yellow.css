@@ -5,9 +5,7 @@
   --surface-secondary: var(--color-neutral-100);
   --surface-tertiary: var(--color-neutral-200);
   --surface-disabled: var(--color-neutral-100);
-  --surface-scrim: color(
-    display-p3 0.036760063071504825 0.05804576716456642 0.06562718269807541 / 0.4
-  ); /* #080f1166 with alpha 0.4 */
+  --surface-scrim: color(display-p3 0.0314 0.0588 0.0667 / 0.40); /* #080f1166 with alpha 0.4 */;
   --surface-accent: var(--theme-accent-800);
   --surface-accent-hover: var(--theme-accent-700);
   --surface-accent-secondary: var(--theme-accent-200);
@@ -94,18 +92,10 @@
   --stroke-info-secondary: var(--theme-info-600);
   --stroke-info-tertiary: var(--theme-info-400);
   --stroke-info-quaternary: var(--theme-info-300);
-  --chart-fill-area-primary: color(
-    display-p3 0.7625685956908921 0.60767449881825 0.2994621129781391 / 0.7
-  ); /* #ca993bb3 with alpha 0.7 */
-  --chart-fill-area-secondary: color(
-    display-p3 0.577577081670476 0.46066704465450065 0.23478898502532436 / 0.7
-  ); /* #997430b3 with alpha 0.7 */
-  --chart-fill-area-tertiary: color(
-    display-p3 0.4456676007915647 0.3572643913038676 0.1862111103866858 / 0.7
-  ); /* #765a27b3 with alpha 0.7 */
-  --chart-fill-area-quaternary: color(
-    display-p3 0.32158715205107063 0.26170195700266397 0.14269771287346764 / 0.2
-  ); /* #55421f33 with alpha 0.2 */
+  --chart-fill-area-primary: color(display-p3 0.7922 0.6000 0.2314 / 0.70); /* #ca993bb3 with alpha 0.7019607843137254 */;
+  --chart-fill-area-secondary: color(display-p3 0.6000 0.4549 0.1882 / 0.70); /* #997430b3 with alpha 0.7019607843137254 */;
+  --chart-fill-area-tertiary: color(display-p3 0.4627 0.3529 0.1529 / 0.70); /* #765a27b3 with alpha 0.7019607843137254 */;
+  --chart-fill-area-quaternary: color(display-p3 0.3333 0.2588 0.1216 / 0.20); /* #55421f33 with alpha 0.2 */;
   --chart-fill-item-primary: var(--theme-accent-700);
   --chart-fill-item-secondary: var(--theme-accent-600);
   --chart-fill-item-tertiary: var(--theme-accent-500);
@@ -119,16 +109,10 @@
   --chart-stroke-line-secondary: var(--color-yellow-600);
   --chart-stroke-line-tertiary: var(--color-red-600);
   --chart-stroke-line-quaternary: var(--color-blue-600);
-  --chart-stroke-y-axis: color(
-    display-p3 0.18088995487994503 0.1992673051921286 0.20679231365610162 / 0.4
-  ); /* #2d333566 with alpha 0.4 */
-  --chart-stroke-item: color(
-    display-p3 0.7625685956908921 0.60767449881825 0.2994621129781391 / 0.4
-  ); /* #ca993b66 with alpha 0.4 */
+  --chart-stroke-y-axis: color(display-p3 0.1765 0.2000 0.2078 / 0.40); /* #2d333566 with alpha 0.4 */;
+  --chart-stroke-item: color(display-p3 0.7922 0.6000 0.2314 / 0.40); /* #ca993b66 with alpha 0.4 */;
   --chart-stroke-item-inactive: var(--color-neutral-200);
-  --chart-stroke-error: color(
-    display-p3 0.7964645558620367 0.40841569441043135 0.47149465440441213 / 0.4
-  ); /* #da617766 with alpha 0.4 */
+  --chart-stroke-error: color(display-p3 0.8549 0.3804 0.4667 / 0.40); /* #da617766 with alpha 0.4 */;
   --theme-accent-100: var(--color-yellow-100);
   --theme-accent-200: var(--color-yellow-200);
   --theme-accent-300: var(--color-yellow-300);
