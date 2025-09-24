@@ -11,8 +11,7 @@
  */
 import { converter, parse } from 'culori'
 import type { Config, TransformedToken } from 'style-dictionary'
-import StyleDictionary from 'style-dictionary'
-import { Dictionary } from 'style-dictionary/types/Dictionary'
+import StyleDictionary, { Dictionary } from 'style-dictionary'
 
 const THEMES = ['main', 'blue', 'yellow', 'purple', 'red', 'green'] as const
 
@@ -72,8 +71,11 @@ const formatTypographyStyles = (name: string, value: any): [string, string] | nu
   name = kebabCase(name)
   if (value === 'none') return null
   switch (name) {
-    case 'font-family':
-      return [name, FONT_VARS[value]]
+    case 'font-family': {
+      const fontVar =
+        value in FONT_VARS ? FONT_VARS[value as keyof typeof FONT_VARS] : value
+      return [name, fontVar]
+    }
     case 'line-height':
       return value === 'AUTO' ? null : [name, valueToRem(value)]
     case 'font-weight': {
@@ -119,10 +121,11 @@ const formatP3Color = (value: string, name: string, alpha?: number) => {
 
 const formatColorValue = (prop: TransformedToken) => {
   const { hasAlpha } = prop.attributes || {}
-  const alpha = hasAlpha && prop.attributes?.alpha ? prop.attributes.alpha : undefined
+  const alpha =
+    hasAlpha && prop.attributes?.alpha ? (prop.attributes.alpha as number) : undefined
   const p3Value = formatP3Color(prop.value, prop.name, alpha)
 
-  return `${p3Value}; /* ${prop.value}${hasAlpha ? ` with alpha ${alpha}` : ''} */`
+  return `${p3Value}; /* ${prop.value}${hasAlpha && alpha ? ` with alpha ${alpha.toFixed(2)}` : ''} */`
 }
 
 const semanticPrefixMap = {
@@ -135,7 +138,7 @@ const semanticPrefixMap = {
 
 StyleDictionary.registerFormat({
   name: 'theme',
-  formatter({ dictionary, options }) {
+  async format({ dictionary, options }) {
     /** Used with the `??` operator when you only want to include styles on the root stylesheet */
     const root = options.selector === ':root' ? undefined : ''
     const colorVars: string[] = []
@@ -153,7 +156,7 @@ StyleDictionary.registerFormat({
           )});`,
         )
       })
-      const colorName = toColorName(prop.attributes?.ref)
+      const colorName = toColorName(prop.attributes?.ref as string)
       // We are combining the color var with the alpha value if it exists
       // but we can't use the color reference directly and need to grab the value
       return `  --${prop.name}: ${
@@ -165,7 +168,7 @@ StyleDictionary.registerFormat({
 @import "tailwindcss";
 
 ${options.selector} {
-${dictionary.allProperties
+${dictionary.allTokens
   .filter((prop) => typeof prop.value !== 'object' && prop.type === 'color')
   .sort(({ name }) => (name.startsWith('base-') ? -1 : 1))
   .map((prop) => {
@@ -177,8 +180,8 @@ ${dictionary.allProperties
       )
     }
     const name = toColorName(prop.name)
-    const colorRef = toColorName(prop.attributes?.ref)
-    color.alpha = alpha
+    const colorRef = toColorName(prop.attributes?.ref as string)
+    color.alpha = alpha as number
     if (prop.name.startsWith('theme-') && prop.attributes?.ref) {
       return `  --${name}: var(--${colorRef});`
     }
@@ -203,9 +206,9 @@ ${generateTypographyUtilities(!root, dictionary)}`
 
 StyleDictionary.registerFormat({
   name: 'themeOverride',
-  formatter({ dictionary, options }) {
+  async format({ dictionary, options }) {
     return `${options.selector} {
-${dictionary.allProperties
+${dictionary.allTokens
   .filter((prop) => typeof prop.value !== 'object' && prop.type === 'color')
   .filter(
     (prop) =>
@@ -224,13 +227,13 @@ ${dictionary.allProperties
         `Invalid color for ${prop.name}. Expected a hex value, got '${prop.value}'`,
       )
     }
-    color.alpha = alpha
+    color.alpha = alpha as number
 
     // Only output variable references, not the base color definitions
     // unless it needs the alpha in which case it gets precomputed
     if (prop.attributes?.ref) {
       const { hasAlpha } = prop.attributes || {}
-      const colorRef = toColorName(prop.attributes.ref)
+      const colorRef = toColorName(prop.attributes.ref as string)
       return `  --${prop.name}: ${
         hasAlpha ? formatColorValue(prop) : `var(--${colorRef})`
       };`
@@ -253,7 +256,7 @@ function generateThemeInline(root: boolean, dictionary: Dictionary, colorVars: s
 
 ${colorVars.join('\n')}
 
-${dictionary.allProperties
+${dictionary.allTokens
   .filter((prop) => prop.type === 'borderRadius')
   .map((prop) => `  --${prop.name.replace('border-', '')}: ${prop.value};`)
   .join('\n')}
@@ -263,7 +266,7 @@ ${dictionary.allProperties
 function generateBoxShadowUtilities(root: boolean, dictionary: Dictionary) {
   if (!root) return ''
 
-  return dictionary.allProperties
+  return dictionary.allTokens
     .filter((prop) => prop.type === 'boxShadow')
     .map((prop) => {
       return `@utility ${prop.name} {
@@ -278,7 +281,7 @@ function generateBoxShadowUtilities(root: boolean, dictionary: Dictionary) {
 function generateTypographyUtilities(root: boolean, dictionary: Dictionary) {
   if (!root) return ''
 
-  return dictionary.allProperties
+  return dictionary.allTokens
     .filter((prop) => prop.type === 'typography')
     .map((prop) => {
       const fontFeatures =
@@ -305,7 +308,7 @@ ${Object.entries(prop.value)
  */
 StyleDictionary.registerFilter({
   name: 'unused-theme-tokens',
-  matcher: (prop) => {
+  filter: (prop) => {
     return (
       ![
         'fontFamilies',
@@ -316,7 +319,7 @@ StyleDictionary.registerFilter({
         'textCase',
         'textDecoration',
         'lineHeights',
-      ].includes(prop.original.type) &&
+      ].includes(prop.original.type || '') &&
       !prop.path.some((i) => i.includes('*')) &&
       !prop.name.endsWith('-uncased')
     )
@@ -326,7 +329,7 @@ StyleDictionary.registerFilter({
 StyleDictionary.registerTransform({
   name: 'name/strip-default',
   type: 'name',
-  transformer(token) {
+  transform(token) {
     return token.name.replace(/(\w+-\w+)-default/, '$1')
   },
 })
@@ -334,8 +337,8 @@ StyleDictionary.registerTransform({
 StyleDictionary.registerTransform({
   name: 'attribute/reference',
   type: 'attribute',
-  matcher: (token) => token.original.type === 'color',
-  transformer(token) {
+  filter: (token) => token.original.type === 'color',
+  transform(token) {
     const ref = token.original.rawValue.match(/{(.+)}/)?.[1]?.replace(/\./g, '-')
     return { ...token.attributes, ref }
   },
@@ -348,8 +351,8 @@ const hexToRGB = (hexColor: string) => {
 StyleDictionary.registerTransform({
   name: 'attribute/alpha',
   type: 'attribute',
-  matcher: (token) => token.original.type === 'color',
-  transformer(token) {
+  filter: (token) => token.original.type === 'color',
+  transform(token) {
     const alphaText = token.value.slice(7, 9)
     const alpha = alphaText && hexToRGB(alphaText)[0] / 255
     return { ...token.attributes, alpha, hasAlpha: typeof alpha === 'number' }
@@ -359,8 +362,8 @@ StyleDictionary.registerTransform({
 StyleDictionary.registerTransform({
   name: 'pxToRem',
   type: 'value',
-  matcher: (token) => ['borderRadius'].includes(token.original.type),
-  transformer(token) {
+  filter: (token) => ['borderRadius'].includes(token.original.type || ''),
+  transform(token) {
     return `${token.value / 16}rem`
   },
 })
@@ -372,7 +375,7 @@ const makeConfig = (theme: (typeof THEMES)[number]) => {
       web: {
         transforms: [
           'attribute/cti',
-          'name/cti/kebab',
+          'name/kebab',
           'name/strip-default',
           'attribute/reference',
           'attribute/alpha',
@@ -396,7 +399,8 @@ const makeConfig = (theme: (typeof THEMES)[number]) => {
   return config
 }
 
-THEMES.forEach((theme) => {
-  const sd = StyleDictionary.extend(makeConfig(theme))
-  sd.buildAllPlatforms()
+THEMES.forEach(async (theme) => {
+  const sd = new StyleDictionary(makeConfig(theme))
+  await sd.hasInitialized
+  await sd.buildAllPlatforms()
 })

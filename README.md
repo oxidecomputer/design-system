@@ -24,10 +24,7 @@ For more information checkout [auto's docs](https://intuit.github.io/auto/docs).
 
 To ensure consistency between our designs and implementation we use the
 [Design Tokens Plugin](https://www.figma.com/community/plugin/888356646278934516/Design-Tokens)
-inside of figma to export a [json tokens file](styles/src/tokens.json) to the repo. When
-that file is changed the [build-themes](.github/workflows/build-themes.yaml) workflow runs
-to generate theme stylesheets, a tailwind token file, and other artifacts in
-[dist](styles/dist/).
+inside of figma to export a [json tokens file](styles/src/tokens.json) to the repo. The user can then run `npm run build` to generate theme files. This is not automatic, the user should then commit the changes.
 
 The design tokens plugin is two way so token changes made in the json file can be synced
 back with figma.
@@ -46,7 +43,6 @@ icon component as shown below:
 
 ```tsx
 import { type Icon as IconType } from '@oxide/design-system/icons'
-
 // Cannot be imported through '@oxide/design-system'
 import sprite from '../../node_modules/@oxide/design-system/icons/sprite.svg'
 

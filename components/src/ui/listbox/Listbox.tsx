@@ -6,11 +6,10 @@
  * Copyright Oxide Computer Company
  */
 import { SelectArrows6Icon } from '@/icons/react'
-import { FloatingPortal, flip, offset, size, useFloating } from '@floating-ui/react'
+import { flip, FloatingPortal, offset, size, useFloating } from '@floating-ui/react'
 import { Listbox as Select } from '@headlessui/react'
 import cn from 'classnames'
 import type { ReactNode } from 'react'
-
 import { SpinnerLoader } from '~/src'
 
 export type ListboxItem<Value extends string = string> = {
@@ -82,15 +81,14 @@ export const Listbox = <Value extends string = string>({
               name={name}
               ref={refs.setReference}
               className={cn(
-                `flex h-10 w-full items-center justify-between
-                    rounded border text-sans-md`,
+                `text-sans-md flex h-10 w-full items-center justify-between rounded border`,
                 hasError
                   ? 'focus-error border-error-secondary hover:border-error'
                   : 'border-default hover:border-hover',
-                open && 'ring-2 ring-accent-secondary',
+                open && 'ring-accent-secondary ring-2',
                 open && hasError && 'ring-error-secondary',
                 isDisabled
-                  ? 'cursor-not-allowed text-disabled bg-disabled !border-default'
+                  ? 'text-disabled bg-disabled !border-default cursor-not-allowed'
                   : 'bg-default',
                 isDisabled && hasError && '!border-error-secondary',
               )}
@@ -108,10 +106,10 @@ export const Listbox = <Value extends string = string>({
               </div>
               {!isDisabled && <SpinnerLoader isLoading={isLoading} />}
               <div
-                className="ml-3 flex h-[calc(100%-12px)] items-center border-l px-3 border-secondary"
+                className="border-secondary ml-3 flex h-[calc(100%-12px)] items-center border-l px-3"
                 aria-hidden
               >
-                <SelectArrows6Icon className="h-[14px] w-2 text-tertiary" />
+                <SelectArrows6Icon className="text-tertiary h-[14px] w-2" />
               </div>
             </Select.Button>
             <FloatingPortal>
@@ -124,7 +122,7 @@ export const Listbox = <Value extends string = string>({
                   <Select.Option
                     key={item.value}
                     value={item.value}
-                    className="relative border-b border-secondary last:border-0"
+                    className="border-secondary relative border-b last:border-0"
                   >
                     {({ active, selected }) => (
                       <div

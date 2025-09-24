@@ -41,14 +41,14 @@ label {
   }
 
   &.btn-ghost {
-    @apply text-secondary hover:bg-hover disabled:bg-transparent disabled:text-disabled;
+    @apply text-secondary hover:bg-hover disabled:text-disabled disabled:bg-transparent;
   }
   &.btn-ghost:after {
     @apply text-neutral-300 opacity-100;
   }
 
   &.btn-accent-ghost {
-    @apply border text-accent border-accent-secondary hover:bg-accent-secondary-hover;
+    @apply text-accent border-accent-secondary hover:bg-accent-secondary-hover border;
   }
 
   &.btn-accent-ghost:after {

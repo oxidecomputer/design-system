@@ -19,21 +19,20 @@
 }
 
 .ox-tabs-list:after {
-  @apply block w-full border-b border-secondary;
+  @apply border-secondary block w-full border-b;
   content: ' ';
 }
 .ox-tabs.full-width .ox-tabs-list:before {
-  @apply block w-10 min-w-max flex-shrink-0 border-b border-secondary;
+  @apply border-secondary block w-10 min-w-max flex-shrink-0 border-b;
   content: ' ';
 }
 
 .ox-tabs-panel:focus-visible {
-  @apply outline outline-2 outline-offset-[1rem] outline-accent-secondary;
+  @apply outline-accent-secondary outline outline-2 outline-offset-[1rem];
 }
 
 .ox-tab {
-  @apply h-10 space-x-2 whitespace-nowrap border-b px-1.5 pb-1 pt-2
-	uppercase !no-underline text-mono-sm text-tertiary border-secondary;
+  @apply text-mono-sm text-tertiary border-secondary h-10 space-x-2 whitespace-nowrap border-b px-1.5 pb-1 pt-2 uppercase !no-underline;
 }
 
 .ox-tab[data-state='active'],

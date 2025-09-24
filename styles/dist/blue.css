@@ -5,9 +5,7 @@
   --surface-secondary: var(--color-neutral-100);
   --surface-tertiary: var(--color-neutral-200);
   --surface-disabled: var(--color-neutral-100);
-  --surface-scrim: color(
-    display-p3 0.036760063071504825 0.05804576716456642 0.06562718269807541 / 0.4
-  ); /* #080f1166 with alpha 0.4 */
+  --surface-scrim: color(display-p3 0.0314 0.0588 0.0667 / 0.40); /* #080f1166 with alpha 0.40 */;
   --surface-accent: var(--theme-accent-800);
   --surface-accent-hover: var(--theme-accent-700);
   --surface-accent-secondary: var(--theme-accent-200);
@@ -94,18 +92,10 @@
   --stroke-info-secondary: var(--theme-info-600);
   --stroke-info-tertiary: var(--theme-info-400);
   --stroke-info-quaternary: var(--theme-info-300);
-  --chart-fill-area-primary: color(
-    display-p3 0.4840760759909391 0.5390189657729598 0.8433696459850775 / 0.7
-  ); /* #788addb3 with alpha 0.7 */
-  --chart-fill-area-secondary: color(
-    display-p3 0.4151256342009877 0.46094099659707627 0.713805186697585 / 0.7
-  ); /* #6776bbb3 with alpha 0.7 */
-  --chart-fill-area-tertiary: color(
-    display-p3 0.32502672686325673 0.3556441327376487 0.5459647947277517 / 0.7
-  ); /* #515b8fb3 with alpha 0.7 */
-  --chart-fill-area-quaternary: color(
-    display-p3 0.24043055576084826 0.2618867246658045 0.3897751920628703 / 0.2
-  ); /* #3c436633 with alpha 0.2 */
+  --chart-fill-area-primary: color(display-p3 0.4706 0.5412 0.8667 / 0.70); /* #788addb3 with alpha 0.70 */;
+  --chart-fill-area-secondary: color(display-p3 0.4039 0.4627 0.7333 / 0.70); /* #6776bbb3 with alpha 0.70 */;
+  --chart-fill-area-tertiary: color(display-p3 0.3176 0.3569 0.5608 / 0.70); /* #515b8fb3 with alpha 0.70 */;
+  --chart-fill-area-quaternary: color(display-p3 0.2353 0.2627 0.4000 / 0.20); /* #3c436633 with alpha 0.20 */;
   --chart-fill-item-primary: var(--theme-accent-700);
   --chart-fill-item-secondary: var(--theme-accent-600);
   --chart-fill-item-tertiary: var(--theme-accent-500);
@@ -119,16 +109,10 @@
   --chart-stroke-line-secondary: var(--color-yellow-600);
   --chart-stroke-line-tertiary: var(--color-red-600);
   --chart-stroke-line-quaternary: var(--color-blue-600);
-  --chart-stroke-y-axis: color(
-    display-p3 0.18088995487994503 0.1992673051921286 0.20679231365610162 / 0.4
-  ); /* #2d333566 with alpha 0.4 */
-  --chart-stroke-item: color(
-    display-p3 0.4840760759909391 0.5390189657729598 0.8433696459850775 / 0.4
-  ); /* #788add66 with alpha 0.4 */
+  --chart-stroke-y-axis: color(display-p3 0.1765 0.2000 0.2078 / 0.40); /* #2d333566 with alpha 0.40 */;
+  --chart-stroke-item: color(display-p3 0.4706 0.5412 0.8667 / 0.40); /* #788add66 with alpha 0.40 */;
   --chart-stroke-item-inactive: var(--color-neutral-200);
-  --chart-stroke-error: color(
-    display-p3 0.7964645558620367 0.40841569441043135 0.47149465440441213 / 0.4
-  ); /* #da617766 with alpha 0.4 */
+  --chart-stroke-error: color(display-p3 0.8549 0.3804 0.4667 / 0.40); /* #da617766 with alpha 0.40 */;
   --theme-accent-100: var(--color-blue-100);
   --theme-accent-200: var(--color-blue-200);
   --theme-accent-300: var(--color-blue-300);
