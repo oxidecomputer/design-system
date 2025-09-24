@@ -1,3 +1,22 @@
+# v3.1.0 (Wed Sep 24 2025)
+
+#### 🚀 Enhancement
+
+- Release / npm / repo hardening [#148](https://github.com/oxidecomputer/design-system/pull/148) ([@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### 🐛 Bug Fix
+
+- Fix branch name on workflow [#149](https://github.com/oxidecomputer/design-system/pull/149) ([@benjaminleonard](https://github.com/benjaminleonard))
+- Include Tailwind config CSS files [#140](https://github.com/oxidecomputer/design-system/pull/140) ([@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]) [@actions-user](https://github.com/actions-user))
+
+#### Authors: 3
+
+- [@actions-user](https://github.com/actions-user)
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v3.0.2 (Mon Aug 18 2025)
 
 #### 🐛 Bug Fix
