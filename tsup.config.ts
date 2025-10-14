@@ -9,7 +9,12 @@ import { defineConfig } from 'tsup'
 
 export default defineConfig({
   publicDir: 'components/src/assets/',
-  entry: ['components/src/index.ts', 'icons/index.ts', 'icons/react/index.ts'],
+  entry: [
+    'components/src/index.ts',
+    'components/src/ui/index.ts',
+    'icons/index.ts',
+    'icons/react/index.ts',
+  ],
   sourcemap: true,
   clean: true,
   format: ['esm'],
