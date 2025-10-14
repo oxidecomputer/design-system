@@ -10,7 +10,7 @@ import { defineConfig } from 'tsup'
 export default defineConfig({
   publicDir: 'components/src/assets/',
   entry: [
-    'components/src/index.ts',
+    'components/src/asciidoc/index.tsx',
     'components/src/ui/index.ts',
     'icons/index.ts',
     'icons/react/index.ts',
@@ -18,6 +18,4 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   format: ['esm'],
-  // prevent ui export from including stuff from asciidoc
-  splitting: false,
 })

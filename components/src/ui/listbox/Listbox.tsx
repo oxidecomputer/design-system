@@ -10,7 +10,8 @@ import { flip, FloatingPortal, offset, size, useFloating } from '@floating-ui/re
 import { Listbox as Select } from '@headlessui/react'
 import cn from 'classnames'
 import type { ReactNode } from 'react'
-import { SpinnerLoader } from '~/src'
+
+import { SpinnerLoader } from '../'
 
 export type ListboxItem<Value extends string = string> = {
   value: Value
