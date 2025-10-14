@@ -4,21 +4,13 @@
   "description": "Home of reusable design assets and token for oxide internal sites",
   "type": "module",
   "sideEffects": false,
-  "typings": "./dist/components/src/asciidoc/index.d.ts",
-  "module": "./dist/components/src/asciidoc/index.js",
   "exports": {
     "./styles/*": "./styles/dist/*",
     "./components/*.css": "./dist/*.css",
     "./asciidoc": "./dist/components/src/asciidoc/index.js",
     "./ui": "./dist/components/src/ui/index.js",
     "./icons": "./dist/icons/index.js",
-    "./icons/react": "./dist/icons/react/index.js",
-    ".": {
-      "import": {
-        "types": "./dist/components/src/asciidoc/index.d.ts",
-        "default": "./dist/components/src/asciidoc/index.js"
-      }
-    }
+    "./icons/react": "./dist/icons/react/index.js"
   },
   "scripts": {
     "export-icons": "npx zx ./scripts/export-icons.md && npm run fmt",
