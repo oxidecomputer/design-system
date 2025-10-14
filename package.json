@@ -10,7 +10,7 @@
     "./styles/*": "./styles/dist/*",
     "./components/*.css": "./dist/*.css",
     "./components": "./dist/components/src/index.js",
-    "./components/ui": "./dist/components/src/ui/index.js",
+    "./ui": "./dist/components/src/ui/index.js",
     "./icons": "./dist/icons/index.js",
     "./icons/react": "./dist/icons/react/index.js",
     ".": {
