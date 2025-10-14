@@ -18,4 +18,6 @@ export default defineConfig({
   sourcemap: true,
   clean: true,
   format: ['esm'],
+  // prevent ui export from including stuff from asciidoc
+  splitting: false,
 })
