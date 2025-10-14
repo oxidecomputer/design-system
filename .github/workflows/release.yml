@@ -57,8 +57,8 @@ jobs:
         with:
           node-version: 22.x
           cache: npm
-      - run: npm install
       - run: npm install -g npm@latest
+      - run: npm install
 
       - name: Build
         run: npm run build
