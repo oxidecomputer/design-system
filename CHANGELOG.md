@@ -1,3 +1,29 @@
+# v4.0.0 (Wed Oct 15 2025)
+
+#### 💥 Breaking Change
+
+- Split `/components` export into `/asciidoc` and `/ui` [#151](https://github.com/oxidecomputer/design-system/pull/151) ([@david-crespo](https://github.com/david-crespo) [@benjaminleonard](https://github.com/benjaminleonard))
+
+#### 🚀 Enhancement
+
+- Add AI icons [#135](https://github.com/oxidecomputer/design-system/pull/135) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### 🐛 Bug Fix
+
+- Manually bump to 4.0.1 [#153](https://github.com/oxidecomputer/design-system/pull/153) ([@david-crespo](https://github.com/david-crespo))
+- Bump typescript (dummy to try to force patch release) [#152](https://github.com/oxidecomputer/design-system/pull/152) ([@david-crespo](https://github.com/david-crespo))
+
+#### ⚠️ Pushed to `master`
+
+- Ship specific version (4.0.2) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 2
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+- David Crespo ([@david-crespo](https://github.com/david-crespo))
+
+---
+
 # v3.1.0 (Wed Sep 24 2025)
 
 #### 🚀 Enhancement
