@@ -69,10 +69,12 @@ type Props = {
   minTime?: number
 }
 
+type Timeout = ReturnType<typeof setTimeout>
+
 /** Loading spinner that shows for a minimum of `minTime` */
 export const SpinnerLoader = ({ isLoading, children = null, minTime = 500 }: Props) => {
   const [isVisible, setIsVisible] = useState(isLoading)
-  const hideTimeout = useRef<NodeJS.Timeout | null>(null)
+  const hideTimeout = useRef<Timeout | null>(null)
   const loadingStartTime = useRef<number>(0)
 
   useEffect(() => {
