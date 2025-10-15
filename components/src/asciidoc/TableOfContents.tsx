@@ -6,7 +6,7 @@
  * Copyright Oxide Computer Company
  */
 import { DirectionRightIcon } from '@/icons/react'
-import { type DocumentSection, parse } from '@oxide/react-asciidoc'
+import { parse, type DocumentSection } from '@oxide/react-asciidoc'
 import * as Accordion from '@radix-ui/react-accordion'
 import cn from 'classnames'
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -271,7 +271,7 @@ export const DesktopOutline = ({
       <Fragment key={item.id}>
         <li
           data-level={item.level}
-          className={cn('mb-0 list-none text-sans-sm', item.level > 2 && 'hidden')}
+          className={cn('text-sans-sm mb-0 list-none', item.level > 2 && 'hidden')}
         >
           <a
             href={`#${item.id}`}
@@ -294,7 +294,7 @@ export const DesktopOutline = ({
   }
 
   if (toc && toc.length > 0) {
-    return <ul className={cn('toc w-[--toc-width]', className)}>{renderToc(toc)}</ul>
+    return <ul className={cn('toc w-(--toc-width)', className)}>{renderToc(toc)}</ul>
   }
 
   return null
@@ -315,7 +315,7 @@ export const SmallScreenOutline = ({
       <Fragment key={item.id}>
         <li
           data-level={item.level}
-          className={cn('list-none text-sans-sm', item.level > 2 && 'hidden')}
+          className={cn('text-sans-sm list-none', item.level > 2 && 'hidden')}
         >
           <a
             href={`#${item.id}`}
@@ -343,7 +343,7 @@ export const SmallScreenOutline = ({
       <Accordion.Root
         type="single"
         className={cn(
-          'toc sticky top-[calc(var(--header-height)-1px)] z-10 -mt-px mb-10 block w-full border-b border-t bg-default border-secondary print:hidden',
+          'toc bg-default border-secondary sticky top-[calc(var(--header-height)-1px)] z-10 -mt-px mb-10 block w-full border-b border-t print:hidden',
           className,
         )}
         collapsible
@@ -352,13 +352,13 @@ export const SmallScreenOutline = ({
       >
         <Accordion.Item value="toc">
           <Accordion.Header>
-            <Accordion.Trigger className="flex h-12 w-full items-center justify-between text-sans-md text-default hover:bg-hover px-[--container-px] [&>svg]:data-[state=open]:rotate-90">
+            <Accordion.Trigger className="text-sans-md text-default hover:bg-hover px-(--container-px) flex h-12 w-full items-center justify-between [&>svg]:data-[state=open]:rotate-90">
               Table of Contents{' '}
-              <DirectionRightIcon className="transition-all text-tertiary" />
+              <DirectionRightIcon className="text-tertiary transition-all" />
             </Accordion.Trigger>
           </Accordion.Header>
 
-          <Accordion.Content className="animated-accordion hydrated max-h-[60vh] overflow-y-scroll w-full border-t border-secondary px-[--container-px]">
+          <Accordion.Content className="animated-accordion hydrated border-secondary px-(--container-px) max-h-[60vh] w-full overflow-y-scroll border-t">
             <div className="py-4">{renderToc(toc)}</div>
           </Accordion.Content>
         </Accordion.Item>

@@ -24,10 +24,7 @@ For more information checkout [auto's docs](https://intuit.github.io/auto/docs).
 
 To ensure consistency between our designs and implementation we use the
 [Design Tokens Plugin](https://www.figma.com/community/plugin/888356646278934516/Design-Tokens)
-inside of figma to export a [json tokens file](styles/src/tokens.json) to the repo. When
-that file is changed the [build-themes](.github/workflows/build-themes.yaml) workflow runs
-to generate theme stylesheets, a tailwind token file, and other artifacts in
-[dist](styles/dist/).
+inside of figma to export a [json tokens file](styles/src/tokens.json) to the repo. The user can then run `npm run build` to generate theme files. This is not automatic, the user should then commit the changes.
 
 The design tokens plugin is two way so token changes made in the json file can be synced
 back with figma.
@@ -46,7 +43,6 @@ icon component as shown below:
 
 ```tsx
 import { type Icon as IconType } from '@oxide/design-system/icons'
-
 // Cannot be imported through '@oxide/design-system'
 import sprite from '../../node_modules/@oxide/design-system/icons/sprite.svg'
 
@@ -75,24 +71,33 @@ Subsequently, you can use it as follows:
 
 This is type-checked, and will throw an error if the corresponding icon doesn't exist.
 
-## AsciiDoc Components
+## Usage
 
-This repository includes various
-[`@oxide/react-asciidoc`](https://github.com/oxidecomputer/react-asciidoc) components that
-are reused across multiple internal sites such as docs.oxide.computer, oxide.computer, and
-eventually the rfd.shared.oxide.computer (when its conversion to `react-asciidoc` is
-complete). The associated stylesheet `asciidoc.css` is also included.
+This package provides two main entry points:
 
-They can be imported and used as follows:
+### UI Components (`@oxide/design-system/ui`)
+
+Basic UI components like Badge, Button, Checkbox, Listbox, Spinner, and Tabs. These are
+lightweight components without dependencies on AsciiDoc processing.
 
 ```ts
-import { AsciiDocBlocks } from '@oxide/design-system/components/dist'
+import { Button, Badge } from '@oxide/design-system/ui'
+```
+
+### AsciiDoc Components (`@oxide/design-system/asciidoc`)
+
+[`@oxide/react-asciidoc`](https://github.com/oxidecomputer/react-asciidoc) components for
+rendering AsciiDoc content, reused across docs.oxide.computer, oxide.computer, and
+rfd.shared.oxide.computer. The associated stylesheet `asciidoc.css` is also included.
+
+```ts
+import { AsciiDocBlocks } from '@oxide/design-system/asciidoc'
 
 export const opts: Options = {
   overrides: {
     admonition: AsciiDocBlocks.Admonition,
     table: AsciiDocBlocks.Table,
-    listing: AsciiDocBlocks.Listing,
+    section: AsciiDocBlocks.Section,
   },
 }
 ```
@@ -101,11 +106,7 @@ export const opts: Options = {
 <Asciidoc content={document} options={opts} />
 ```
 
-## React Components
-
-The full UI library is housed within the web console repo. The components included in this
-package are those reused across other Oxide sites. When using them, remember to also import
-their associated stylesheets.
+When using these components, remember to also import their associated stylesheets.
 
 Be sure to add the components path to the `tailwind.config.js` to ensure the appropriate
 styles are included. For example:

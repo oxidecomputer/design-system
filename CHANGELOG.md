@@ -1,3 +1,78 @@
+# v3.1.0 (Wed Sep 24 2025)
+
+#### 🚀 Enhancement
+
+- Release / npm / repo hardening [#148](https://github.com/oxidecomputer/design-system/pull/148) ([@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### 🐛 Bug Fix
+
+- Fix branch name on workflow [#149](https://github.com/oxidecomputer/design-system/pull/149) ([@benjaminleonard](https://github.com/benjaminleonard))
+- Include Tailwind config CSS files [#140](https://github.com/oxidecomputer/design-system/pull/140) ([@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]) [@actions-user](https://github.com/actions-user))
+
+#### Authors: 3
+
+- [@actions-user](https://github.com/actions-user)
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v3.0.2 (Mon Aug 18 2025)
+
+#### 🐛 Bug Fix
+
+- Use SRGB values in P3 space [#142](https://github.com/oxidecomputer/design-system/pull/142) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v3.0.0 (Mon Aug 18 2025)
+
+#### 💥 Breaking Change
+
+- Tailwind 4 upgrade [#133](https://github.com/oxidecomputer/design-system/pull/133) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### 🐛 Bug Fix
+
+- Bump commit [#139](https://github.com/oxidecomputer/design-system/pull/139) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### ⚠️ Pushed to `master`
+
+- Bump commit ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v2.8.0 (Fri Aug 15 2025)
+
+#### 🚀 Enhancement
+
+- Add outline icons [#137](https://github.com/oxidecomputer/design-system/pull/137) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
+# v2.7.0 (Wed Jun 04 2025)
+
+#### 🚀 Enhancement
+
+- Add access token icon (and others) [#136](https://github.com/oxidecomputer/design-system/pull/136) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v2.6.0 (Tue May 20 2025)
 
 #### 🚀 Enhancement

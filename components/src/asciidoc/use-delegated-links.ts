@@ -34,7 +34,7 @@ function useDelegatedReactRouterLinks(
   // this is to avoid a dependency on remix/react router
   /** Pass in the result of `useNavigate()` in the calling application. */
   navigate: (to: To) => void,
-  nodeRef: React.RefObject<HTMLElement>,
+  nodeRef: React.RefObject<HTMLElement | null>,
   key: string,
 ) {
   useEffect(() => {
