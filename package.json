@@ -18,7 +18,7 @@
     "prebuild:tokens": "token-transformer --preserveRawValue ./styles/src/tokens.json ./styles/src/.tokens/main.json global,colors,core,main",
     "build:themes": "./scripts/build_themes.sh",
     "build:components": "tsup --dts",
-    "release": "auto shipit",
+    "release": "auto shipit --use-version 4.0.2",
     "lint": "eslint --ext .js,.ts,.tsx,.json .",
     "fmt": "prettier --cache --write . && npm run lint -- --fix",
     "test": "vitest --config test/vitest.config.ts",
