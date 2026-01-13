@@ -460,14 +460,14 @@
   font-weight: 400;
   line-height: 1.125rem;
   font-size: 0.875rem;
-  letter-spacing: 0.04rem;
+  letter-spacing: 0.03rem;
 }
 @utility text-sans-lg {
   font-family: var(--font-sans);
   font-weight: 400;
-  line-height: 1.5rem;
+  line-height: 1.375rem;
   font-size: 1rem;
-  letter-spacing: 0.03rem;
+  letter-spacing: 0.0175rem;
 }
 @utility text-sans-xl {
   font-family: var(--font-sans);
@@ -509,14 +509,14 @@
   font-weight: 500;
   line-height: 1.125rem;
   font-size: 0.875rem;
-  letter-spacing: 0.04rem;
+  letter-spacing: 0.03rem;
 }
 @utility text-sans-semi-lg {
   font-family: var(--font-sans);
   font-weight: 500;
-  line-height: 1.5rem;
+  line-height: 1.375rem;
   font-size: 1rem;
-  letter-spacing: 0.03rem;
+  letter-spacing: 0.0175rem;
 }
 @utility text-sans-semi-xl {
   font-family: var(--font-sans);
