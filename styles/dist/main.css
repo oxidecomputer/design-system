@@ -472,9 +472,9 @@
 @utility text-sans-xl {
   font-family: var(--font-sans);
   font-weight: 400;
-  line-height: 1.625rem;
+  line-height: 1.5rem;
   font-size: 1.125rem;
-  letter-spacing: 0.02rem;
+  letter-spacing: 0.0125rem;
 }
 @utility text-sans-2xl {
   font-family: var(--font-sans);
@@ -521,7 +521,7 @@
 @utility text-sans-semi-xl {
   font-family: var(--font-sans);
   font-weight: 500;
-  line-height: 1.625rem;
+  line-height: 1.5rem;
   font-size: 1.125rem;
-  letter-spacing: 0.02rem;
+  letter-spacing: 0.0125rem;
 }
