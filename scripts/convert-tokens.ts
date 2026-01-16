@@ -286,7 +286,7 @@ function generateTypographyUtilities(root: boolean, dictionary: Dictionary) {
     .map((prop) => {
       const fontFeatures =
         prop.value['fontFamily'] === 'GT America Mono'
-          ? `  font-feature-settings: "ss02" on,"ss03" on,"ss09" on,"ss06" on,"ss07" on,"ss08" on,"calt" off;`
+          ? `\n  font-feature-settings: "ss02" on,"ss03" on,"ss09" on,"ss06" on,"ss07" on,"ss08" on,"calt" off;`
           : ''
 
       return `@utility text-${formatFontClass(prop.name)} {
