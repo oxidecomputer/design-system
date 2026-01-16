@@ -161,10 +161,6 @@
       @apply text-sans-lg text-tertiary;
     }
 
-     {
-      @apply text-sans-lg;
-    }
-
     /* Fix overflow text in mermaid */
     figure svg {
       line-height: 1 !important;
