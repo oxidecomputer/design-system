@@ -91,6 +91,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         onMouseDown={isDisabled ? noop : undefined}
         onClick={isDisabled ? noop : onClick}
         aria-disabled={isDisabled}
+        disabled={isDisabled}
         {...rest}
       >
         {loading && <Spinner className="absolute" variant={variant} />}
