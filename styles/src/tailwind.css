@@ -53,15 +53,3 @@ Make sure disabled buttons don't get the pointer cursor.
   --container-1400: 1400px;
   --container-1600: 1600px;
 }
-
-
-/* Set default border color */
-@layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--stroke-default, currentColor);
-  }
-}

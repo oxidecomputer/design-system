@@ -25,4 +25,5 @@ npx token-transformer --preserveRawValue $STYLES_PATH/tokens.json $TOKENS_PATH/r
 
 tsx ./scripts/convert-tokens.ts
 cp ./styles/src/tailwind.css ./styles/dist/tailwind.css
+cp ./styles/src/preflight.css ./styles/dist/preflight.css
 prettier -w styles
