@@ -26,7 +26,7 @@
 
 @utility inline-code {
   @apply text-secondary;
-  @apply ml-[1px] mr-[1px] rounded border px-[4px] py-[1px] align-[1px] text-[0.825em] bg-raise border-secondary;
+  @apply ml-[1px] mr-[1px] rounded-md border px-[4px] py-[1px] align-[1px] text-[0.825em] bg-raise border-secondary;
 }
 
 @layer components {
@@ -295,7 +295,7 @@
     h5 code,
     .title code {
       @apply text-[0.825em] text-default;
-      @apply ml-[1px] mr-[1px] rounded border px-[4px] py-[1px] align-[1px] bg-raise border-secondary;
+      @apply ml-[1px] mr-[1px] rounded-md border px-[4px] py-[1px] align-[1px] bg-raise border-secondary;
     }
 
     p a code {
@@ -637,7 +637,7 @@
     }
 
     mark {
-      @apply rounded px-[2px] text-notice bg-notice-secondary;
+      @apply rounded-md px-[2px] text-notice bg-notice-secondary;
     }
 
     .steminline svg {
@@ -699,7 +699,7 @@
   }
 
   .toc code {
-    @apply ml-[1px] mr-[1px] rounded border px-[3px] align-[1px] border-secondary;
+    @apply ml-[1px] mr-[1px] rounded-md border px-[3px] align-[1px] border-secondary;
   }
 
   @media screen and (min-width: 720px) {
