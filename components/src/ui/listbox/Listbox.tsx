@@ -82,7 +82,7 @@ export const Listbox = <Value extends string = string>({
               name={name}
               ref={refs.setReference}
               className={cn(
-                `text-sans-md flex h-10 w-full items-center justify-between rounded border`,
+                `text-sans-md flex h-10 w-full items-center justify-between rounded-md border`,
                 hasError
                   ? 'focus-error border-error-secondary hover:border-error'
                   : 'border-default hover:border-hover',
