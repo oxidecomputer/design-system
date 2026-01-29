@@ -38,18 +38,4 @@ Make sure disabled buttons don't get the pointer cursor.
   --breakpoint-1300: 1300px;
   --breakpoint-1400: 1400px;
   --breakpoint-1600: 1600px;
-
-  --container-300: 300px;
-  --container-400: 400px;
-  --container-500: 500px;
-  --container-600: 600px;
-  --container-700: 700px;
-  --container-800: 800px;
-  --container-900: 900px;
-  --container-1000: 1000px;
-  --container-1100: 1100px;
-  --container-1200: 1200px;
-  --container-1300: 1300px;
-  --container-1400: 1400px;
-  --container-1600: 1600px;
 }
