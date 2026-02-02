@@ -263,6 +263,10 @@
       @apply text-default;
     }
 
+    .lead p {
+      @apply text-raise;
+    }
+
     .arabic {
       list-style-type: decimal;
     }
