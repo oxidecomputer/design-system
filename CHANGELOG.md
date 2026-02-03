@@ -1,3 +1,15 @@
+# v4.0.3 (Tue Feb 03 2026)
+
+#### 🐛 Bug Fix
+
+- Fix missing badge token [#158](https://github.com/oxidecomputer/design-system/pull/158) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v4.0.0 (Wed Oct 15 2025)
 
 #### 💥 Breaking Change
