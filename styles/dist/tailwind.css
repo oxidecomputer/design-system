@@ -24,6 +24,7 @@ Make sure disabled buttons don't get the pointer cursor.
 
 @theme {
   --color-*: initial; /* disable default colors */
+  --radius: initial; /* disable default rounded */
 
   --breakpoint-300: 300px;
   --breakpoint-400: 400px;
