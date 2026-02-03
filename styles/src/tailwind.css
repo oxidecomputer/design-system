@@ -24,7 +24,12 @@ Make sure disabled buttons don't get the pointer cursor.
 
 @theme {
   --color-*: initial; /* disable default colors */
-  --radius-*: initial; /* disable default rounded */
+
+  /* disabled default rounding
+     but explicity set the default to the md
+     otherwise it seems to select a fallback */
+  --radius-*: initial;
+  --radius: var(--radius-md);
 
   --breakpoint-300: 300px;
   --breakpoint-400: 400px;
