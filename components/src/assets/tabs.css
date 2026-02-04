@@ -41,7 +41,7 @@
 }
 
 .ox-tab > * {
-  @apply rounded bg-transparent px-1.5 py-1;
+  @apply rounded-md bg-transparent px-1.5 py-1;
 }
 .ox-tab:hover > * {
   @apply bg-hover;

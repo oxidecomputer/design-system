@@ -25,6 +25,12 @@ Make sure disabled buttons don't get the pointer cursor.
 @theme {
   --color-*: initial; /* disable default colors */
 
+  /* disabled default rounding
+     but explicity set the default to the md
+     otherwise it seems to select a fallback */
+  --radius-*: initial;
+  --radius: var(--radius-md);
+
   --breakpoint-300: 300px;
   --breakpoint-400: 400px;
   --breakpoint-500: 500px;
@@ -33,19 +39,9 @@ Make sure disabled buttons don't get the pointer cursor.
   --breakpoint-800: 800px;
   --breakpoint-900: 900px;
   --breakpoint-1000: 1000px;
+  --breakpoint-1100: 1100px;
   --breakpoint-1200: 1200px;
+  --breakpoint-1300: 1300px;
   --breakpoint-1400: 1400px;
   --breakpoint-1600: 1600px;
-
-  --container-300: 300px;
-  --container-400: 400px;
-  --container-500: 500px;
-  --container-600: 600px;
-  --container-700: 700px;
-  --container-800: 800px;
-  --container-900: 900px;
-  --container-1000: 1000px;
-  --container-1200: 1200px;
-  --container-1400: 1400px;
-  --container-1600: 1600px;
 }
