@@ -1,3 +1,22 @@
+# v4.1.0 (Wed Feb 04 2026)
+
+#### 🚀 Enhancement
+
+- Tighter type, smaller radii, marketing site tweaks [#156](https://github.com/oxidecomputer/design-system/pull/156) ([@dependabot[bot]](https://github.com/dependabot[bot]) [@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### 🐛 Bug Fix
+
+- Fix/sync v4.0.3 [#160](https://github.com/oxidecomputer/design-system/pull/160) ([@github-actions[bot]](https://github.com/github-actions[bot]) [@benjaminleonard](https://github.com/benjaminleonard))
+- Fix missing badge token [#158](https://github.com/oxidecomputer/design-system/pull/158) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 3
+
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v4.0.3 (Tue Feb 03 2026)
 
 #### 🐛 Bug Fix
