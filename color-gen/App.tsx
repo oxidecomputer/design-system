@@ -13,10 +13,14 @@ import {
   BASE_INDEX,
   bases,
   generateColor,
+  generateNeutral,
+  NEUTRAL_STEPS,
+  neutralPalette,
   palette,
   STEPS,
   type GeneratedColor,
   type GeneratedStep,
+  type NeutralPaletteConfig,
   type PaletteConfig,
 } from './lib'
 
@@ -28,6 +32,15 @@ function clonePalette(p: PaletteConfig): PaletteConfig {
     chromaCurve: [...p.chromaCurve],
     hueShift: { ...p.hueShift },
     colors: p.colors.map((c) => ({ ...c })),
+  }
+}
+
+function cloneNeutralPalette(p: NeutralPaletteConfig): NeutralPaletteConfig {
+  return {
+    lightnessCurve: [...p.lightnessCurve],
+    chromaCurve: [...p.chromaCurve],
+    hueShift: { ...p.hueShift },
+    baseHue: p.baseHue,
   }
 }
 
@@ -267,13 +280,17 @@ const CSS = `
 
 function CurveSliders({
   curve,
-  fixedIndex,
-  fixedValue,
+  stepLabels,
+  fixedIndex = -1,
+  fixedValue = 0,
+  max = 1,
   onChange,
 }: {
   curve: number[]
-  fixedIndex: number
-  fixedValue: number
+  stepLabels: number[]
+  fixedIndex?: number
+  fixedValue?: number
+  max?: number
   onChange: (index: number, value: number) => void
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -298,7 +315,7 @@ function CurveSliders({
   const points = displayCurve
     .map((v, i) => {
       const x = colWidth * (i + 0.5)
-      const y = size.h - v * size.h // 0 at bottom, 1 at top
+      const y = size.h - (v / max) * size.h // 0 at bottom, max at top
       return `${x},${y}`
     })
     .join(' ')
@@ -317,19 +334,19 @@ function CurveSliders({
         )}
         {displayCurve.map((v, i) => (
           <div key={i} className={`curve-col ${i === fixedIndex ? 'disabled' : ''}`}>
-            <span className="curve-label">{STEPS[i]}</span>
+            <span className="curve-label">{stepLabels[i]}</span>
             <div className="curve-slider-wrap">
               <input
                 type="range"
                 min={0}
-                max={1}
-                step={0.001}
+                max={max}
+                step={max < 0.1 ? 0.0001 : 0.001}
                 value={v}
                 onChange={(e) => onChange(i, parseFloat(e.target.value))}
                 disabled={i === fixedIndex}
               />
             </div>
-            <span className="curve-val">{v.toFixed(3)}</span>
+            <span className="curve-val">{v.toFixed(max < 0.1 ? 4 : 3)}</span>
           </div>
         ))}
       </div>
@@ -394,7 +411,11 @@ export default function App() {
   const [bgName, setBgName] = useState(bgNames[0])
   const [comparisonBg, setComparisonBg] = useState(backgrounds[bgNames[0]])
   const [config, setConfig] = useState<PaletteConfig>(() => clonePalette(palette))
+  const [neutralConfig, setNeutralConfig] = useState<NeutralPaletteConfig>(() =>
+    cloneNeutralPalette(neutralPalette),
+  )
   const [copyLabel, setCopyLabel] = useState('Copy JSON')
+  const [activePalette, setActivePalette] = useState<'chromatic' | 'neutral'>('chromatic')
   const [activeTab, setActiveTab] = useState<'lightness' | 'chroma' | 'hue'>('lightness')
 
   const handleBgChange = useCallback((name: string) => {
@@ -403,6 +424,7 @@ export default function App() {
   }, [])
 
   const generated = config.colors.map((c) => generateColor(c, config, comparisonBg))
+  const generatedNeutral = generateNeutral(neutralConfig, comparisonBg)
 
   // Average base lightness across all colors for the curve editor display
   const baseValues = config.colors.map((c) => bases[c.name])
@@ -434,8 +456,40 @@ export default function App() {
     })
   }, [])
 
+  const updateNeutralLightness = useCallback((i: number, v: number) => {
+    setNeutralConfig((prev) => {
+      const next = cloneNeutralPalette(prev)
+      next.lightnessCurve[i] = v
+      return next
+    })
+  }, [])
+
+  const updateNeutralChroma = useCallback((i: number, v: number) => {
+    setNeutralConfig((prev) => {
+      const next = cloneNeutralPalette(prev)
+      next.chromaCurve[i] = v
+      return next
+    })
+  }, [])
+
+  const updateNeutralHue = useCallback(
+    (field: 'darkEnd' | 'lightEnd' | 'baseHue', v: number) => {
+      setNeutralConfig((prev) => {
+        const next = cloneNeutralPalette(prev)
+        if (field === 'baseHue') {
+          next.baseHue = v
+        } else {
+          next.hueShift[field] = v
+        }
+        return next
+      })
+    },
+    [],
+  )
+
   const handleReset = useCallback(() => {
     setConfig(clonePalette(palette))
+    setNeutralConfig(cloneNeutralPalette(neutralPalette))
     setBgName(bgNames[0])
     setComparisonBg(backgrounds[bgNames[0]])
   }, [])
@@ -453,11 +507,16 @@ export default function App() {
       }
     }
 
-    const out = { bases, palette: serializePalette(config), backgrounds }
+    const out = {
+      bases,
+      palette: serializePalette(config),
+      neutralPalette: neutralConfig,
+      backgrounds,
+    }
     await navigator.clipboard.writeText(JSON.stringify(out, null, 2))
     setCopyLabel('Copied!')
     setTimeout(() => setCopyLabel('Copy JSON'), 1200)
-  }, [config])
+  }, [config, neutralConfig])
 
   const tabs = [
     { id: 'lightness' as const, label: 'Lightness' },
@@ -488,6 +547,13 @@ export default function App() {
               className="comparison-swatch-inline"
               style={{ background: comparisonBg }}
             />
+            <select
+              value={activePalette}
+              onChange={(e) => setActivePalette(e.target.value as 'chromatic' | 'neutral')}
+            >
+              <option value="chromatic">Chromatic</option>
+              <option value="neutral">Neutral</option>
+            </select>
           </div>
           <div className="toolbar-right">
             <button onClick={handleReset}>Reset</button>
@@ -506,58 +572,128 @@ export default function App() {
           ))}
         </div>
         <div className="tab-panel">
-          {activeTab === 'lightness' && (
-            <CurveSliders
-              curve={config.lightnessCurve}
-              fixedIndex={BASE_INDEX}
-              fixedValue={avgBaseL}
-              onChange={updateLightness}
-            />
+          {activePalette === 'chromatic' && (
+            <>
+              {activeTab === 'lightness' && (
+                <CurveSliders
+                  curve={config.lightnessCurve}
+                  stepLabels={STEPS}
+                  fixedIndex={BASE_INDEX}
+                  fixedValue={avgBaseL}
+                  onChange={updateLightness}
+                />
+              )}
+              {activeTab === 'chroma' && (
+                <CurveSliders
+                  curve={config.chromaCurve}
+                  stepLabels={STEPS}
+                  fixedIndex={BASE_INDEX}
+                  fixedValue={1}
+                  onChange={updateChroma}
+                />
+              )}
+              {activeTab === 'hue' && (
+                <div className="curve-section">
+                  <div className="hue-row">
+                    <label>
+                      Dark end
+                      <input
+                        type="number"
+                        min={-60}
+                        max={60}
+                        step={0.5}
+                        value={config.hueShift.darkEnd}
+                        onChange={(e) =>
+                          updateHueShift('darkEnd', parseFloat(e.target.value) || 0)
+                        }
+                      />
+                    </label>
+                    <label>
+                      Light end
+                      <input
+                        type="number"
+                        min={-60}
+                        max={60}
+                        step={0.5}
+                        value={config.hueShift.lightEnd}
+                        onChange={(e) =>
+                          updateHueShift('lightEnd', parseFloat(e.target.value) || 0)
+                        }
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
+            </>
           )}
-          {activeTab === 'chroma' && (
-            <CurveSliders
-              curve={config.chromaCurve}
-              fixedIndex={BASE_INDEX}
-              fixedValue={1}
-              onChange={updateChroma}
-            />
-          )}
-          {activeTab === 'hue' && (
-            <div className="curve-section">
-              <div className="hue-row">
-                <label>
-                  Dark end
-                  <input
-                    type="number"
-                    min={-60}
-                    max={60}
-                    step={0.5}
-                    value={config.hueShift.darkEnd}
-                    onChange={(e) =>
-                      updateHueShift('darkEnd', parseFloat(e.target.value) || 0)
-                    }
-                  />
-                </label>
-                <label>
-                  Light end
-                  <input
-                    type="number"
-                    min={-60}
-                    max={60}
-                    step={0.5}
-                    value={config.hueShift.lightEnd}
-                    onChange={(e) =>
-                      updateHueShift('lightEnd', parseFloat(e.target.value) || 0)
-                    }
-                  />
-                </label>
-              </div>
-            </div>
+          {activePalette === 'neutral' && (
+            <>
+              {activeTab === 'lightness' && (
+                <CurveSliders
+                  curve={neutralConfig.lightnessCurve}
+                  stepLabels={NEUTRAL_STEPS}
+                  onChange={updateNeutralLightness}
+                />
+              )}
+              {activeTab === 'chroma' && (
+                <CurveSliders
+                  curve={neutralConfig.chromaCurve}
+                  stepLabels={NEUTRAL_STEPS}
+                  max={0.02}
+                  onChange={updateNeutralChroma}
+                />
+              )}
+              {activeTab === 'hue' && (
+                <div className="curve-section">
+                  <div className="hue-row">
+                    <label>
+                      Base hue
+                      <input
+                        type="number"
+                        min={0}
+                        max={360}
+                        step={0.5}
+                        value={neutralConfig.baseHue}
+                        onChange={(e) =>
+                          updateNeutralHue('baseHue', parseFloat(e.target.value) || 0)
+                        }
+                      />
+                    </label>
+                    <label>
+                      Dark end
+                      <input
+                        type="number"
+                        min={-60}
+                        max={60}
+                        step={0.5}
+                        value={neutralConfig.hueShift.darkEnd}
+                        onChange={(e) =>
+                          updateNeutralHue('darkEnd', parseFloat(e.target.value) || 0)
+                        }
+                      />
+                    </label>
+                    <label>
+                      Light end
+                      <input
+                        type="number"
+                        min={-60}
+                        max={60}
+                        step={0.5}
+                        value={neutralConfig.hueShift.lightEnd}
+                        onChange={(e) =>
+                          updateNeutralHue('lightEnd', parseFloat(e.target.value) || 0)
+                        }
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
 
-      <ColorGrid generated={generated} comparisonBg={comparisonBg} />
+      <ColorGrid generated={[...generated, generatedNeutral]} comparisonBg={comparisonBg} />
     </>
   )
 }

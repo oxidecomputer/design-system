@@ -5,7 +5,7 @@
   --surface-secondary: var(--color-neutral-100);
   --surface-tertiary: var(--color-neutral-200);
   --surface-disabled: var(--color-neutral-100);
-  --surface-scrim: #080f1166;
+  --surface-scrim: oklch(0.162 0.0100 220.0 / 0.4);
   --surface-accent: var(--theme-accent-800);
   --surface-accent-hover: var(--theme-accent-700);
   --surface-accent-secondary: var(--theme-accent-200);
@@ -109,7 +109,7 @@
   --chart-stroke-line-secondary: var(--color-yellow-600);
   --chart-stroke-line-tertiary: var(--color-red-600);
   --chart-stroke-line-quaternary: var(--color-blue-600);
-  --chart-stroke-y-axis: #2d333566;
+  --chart-stroke-y-axis: oklch(0.316 0.0100 220.0 / 0.4);
   --chart-stroke-item: oklch(0.670 0.1336 78.3 / 0.4);
   --chart-stroke-item-inactive: var(--color-neutral-200);
   --chart-stroke-error: oklch(0.670 0.1588 14.7 / 0.4);

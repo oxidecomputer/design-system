@@ -28,6 +28,13 @@ export interface PaletteConfig {
   colors: ColorEntry[]
 }
 
+export interface NeutralPaletteConfig {
+  lightnessCurve: Curve
+  chromaCurve: Curve
+  hueShift: { darkEnd: number; lightEnd: number }
+  baseHue: number
+}
+
 export interface GeneratedStep {
   step: number
   l: number
@@ -51,6 +58,9 @@ export const bases = themesData.bases as unknown as Record<string, [number, numb
 
 export const palette: PaletteConfig = themesData.palette as unknown as PaletteConfig
 
+export const neutralPalette: NeutralPaletteConfig =
+  themesData.neutralPalette as unknown as NeutralPaletteConfig
+
 export const backgrounds: Record<string, string> = themesData.backgrounds as Record<
   string,
   string
@@ -63,6 +73,10 @@ export const backgrounds: Record<string, string> = themesData.backgrounds as Rec
 export const STEPS = [200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300]
 
 export const BASE_INDEX = 6 // index of 800
+
+export const NEUTRAL_STEPS = [
+  0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100,
+]
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -142,6 +156,44 @@ export function generateColor(
   })
 
   return { name: colorEntry.name, steps }
+}
+
+// ---------------------------------------------------------------------------
+// Neutral generator
+// ---------------------------------------------------------------------------
+
+export function generateNeutral(
+  config: NeutralPaletteConfig,
+  comparisonBg: string,
+): GeneratedColor {
+  const bgLum = srgbRelativeLuminance(comparisonBg)
+  const midIndex = Math.floor((NEUTRAL_STEPS.length - 1) / 2)
+
+  const steps: GeneratedStep[] = NEUTRAL_STEPS.map((step, i) => {
+    const l = config.lightnessCurve[i]
+    const c = config.chromaCurve[i]
+
+    // Hue shift: interpolate from darkEnd/lightEnd to 0 at midpoint
+    let hueOffset: number
+    if (i < midIndex) {
+      hueOffset = (config.hueShift.darkEnd * (midIndex - i)) / midIndex
+    } else if (i > midIndex) {
+      const lightSteps = NEUTRAL_STEPS.length - 1 - midIndex
+      hueOffset = (config.hueShift.lightEnd * (i - midIndex)) / lightSteps
+    } else {
+      hueOffset = 0
+    }
+    const h = config.baseHue + hueOffset
+
+    const oklch = `oklch(${l.toFixed(3)} ${c.toFixed(4)} ${h.toFixed(1)})`
+    const hex = formatHex({ mode: 'oklch', l, c, h }) || '#000000'
+    const lum = srgbRelativeLuminance(hex)
+    const contrast = contrastRatio(lum, bgLum)
+
+    return { step, l, c, h, oklch, hex, contrast }
+  })
+
+  return { name: 'neutral', steps }
 }
 
 // ---------------------------------------------------------------------------
