@@ -92,10 +92,10 @@
   --stroke-info-secondary: var(--theme-info-600);
   --stroke-info-tertiary: var(--theme-info-400);
   --stroke-info-quaternary: var(--theme-info-300);
-  --chart-fill-area-primary: oklch(0.670 0.1431 277.7 / 0.7);
-  --chart-fill-area-secondary: oklch(0.563 0.1339 280.6 / 0.7);
-  --chart-fill-area-tertiary: oklch(0.474 0.1158 283.4 / 0.7);
-  --chart-fill-area-quaternary: oklch(0.379 0.0914 286.3 / 0.2);
+  --chart-fill-area-primary: oklch(0.670 0.1431 275.3 / 0.7);
+  --chart-fill-area-secondary: oklch(0.563 0.1339 278.7 / 0.7);
+  --chart-fill-area-tertiary: oklch(0.474 0.1158 282.0 / 0.7);
+  --chart-fill-area-quaternary: oklch(0.379 0.0914 285.3 / 0.2);
   --chart-fill-item-primary: var(--theme-accent-700);
   --chart-fill-item-secondary: var(--theme-accent-600);
   --chart-fill-item-tertiary: var(--theme-accent-500);
@@ -110,9 +110,9 @@
   --chart-stroke-line-tertiary: var(--color-red-600);
   --chart-stroke-line-quaternary: var(--color-blue-600);
   --chart-stroke-y-axis: #2d333566;
-  --chart-stroke-item: oklch(0.670 0.1431 277.7 / 0.4);
+  --chart-stroke-item: oklch(0.670 0.1431 275.3 / 0.4);
   --chart-stroke-item-inactive: var(--color-neutral-200);
-  --chart-stroke-error: oklch(0.670 0.1588 17.1 / 0.4);
+  --chart-stroke-error: oklch(0.670 0.1588 14.7 / 0.4);
   --theme-accent-200: var(--color-blue-200);
   --theme-accent-300: var(--color-blue-300);
   --theme-accent-400: var(--color-blue-400);

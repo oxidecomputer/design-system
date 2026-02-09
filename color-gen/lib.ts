@@ -1,0 +1,159 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, you can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * Copyright Oxide Computer Company
+ */
+
+import { formatHex } from 'culori'
+
+import themesData from './themes.json'
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export type Curve = number[]
+
+export interface ColorEntry {
+  name: string
+  chromaScale?: number
+}
+
+export interface PaletteConfig {
+  lightnessCurve: Curve
+  chromaCurve: Curve
+  hueShift: { darkEnd: number; lightEnd: number }
+  colors: ColorEntry[]
+}
+
+export interface GeneratedStep {
+  step: number
+  l: number
+  c: number
+  h: number
+  oklch: string
+  hex: string
+  contrast: number
+}
+
+export interface GeneratedColor {
+  name: string
+  steps: GeneratedStep[]
+}
+
+// ---------------------------------------------------------------------------
+// Data from JSON
+// ---------------------------------------------------------------------------
+
+export const bases = themesData.bases as unknown as Record<string, [number, number, number]>
+
+export const palette: PaletteConfig = themesData.palette as unknown as PaletteConfig
+
+export const backgrounds: Record<string, string> = themesData.backgrounds as Record<
+  string,
+  string
+>
+
+// ---------------------------------------------------------------------------
+// Steps
+// ---------------------------------------------------------------------------
+
+export const STEPS = [200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300]
+
+export const BASE_INDEX = 6 // index of 800
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+export const scaleCurve = (curve: Curve, factor: number): Curve =>
+  curve.map((v) => v * factor)
+
+function srgbRelativeLuminance(hex: string): number {
+  const r = parseInt(hex.slice(1, 3), 16) / 255
+  const g = parseInt(hex.slice(3, 5), 16) / 255
+  const b = parseInt(hex.slice(5, 7), 16) / 255
+
+  const toLinear = (c: number) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
+
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b)
+}
+
+function contrastRatio(lum1: number, lum2: number): number {
+  const lighter = Math.max(lum1, lum2)
+  const darker = Math.min(lum1, lum2)
+  return (lighter + 0.05) / (darker + 0.05)
+}
+
+// ---------------------------------------------------------------------------
+// Generator
+// ---------------------------------------------------------------------------
+
+export function generateColor(
+  colorEntry: ColorEntry,
+  config: PaletteConfig,
+  comparisonBg: string,
+): GeneratedColor {
+  const base = bases[colorEntry.name]
+  if (!base) throw new Error(`Unknown base colour: ${colorEntry.name}`)
+
+  const [baseL, baseC, baseH] = base
+
+  const lCurve = config.lightnessCurve
+  const cCurve = colorEntry.chromaScale
+    ? scaleCurve(config.chromaCurve, colorEntry.chromaScale)
+    : config.chromaCurve
+  const hShift = config.hueShift
+  const bgLum = srgbRelativeLuminance(comparisonBg)
+
+  const steps: GeneratedStep[] = STEPS.map((step, i) => {
+    // Base step passes through unmodified
+    if (i === BASE_INDEX) {
+      const oklch = `oklch(${baseL.toFixed(3)} ${baseC.toFixed(4)} ${baseH.toFixed(1)})`
+      const hex = formatHex({ mode: 'oklch', l: baseL, c: baseC, h: baseH }) || '#000000'
+      const lum = srgbRelativeLuminance(hex)
+      const contrast = contrastRatio(lum, bgLum)
+      return { step, l: baseL, c: baseC, h: baseH, oklch, hex, contrast }
+    }
+
+    const l = lCurve[i]
+    const c = baseC * cCurve[i]
+
+    // Hue shift: interpolate from darkEnd/lightEnd to 0 at base
+    let hueOffset: number
+    if (i < BASE_INDEX) {
+      // Dark side: darkEnd at index 0, lerps to 0 at base
+      hueOffset = (hShift.darkEnd * (BASE_INDEX - i)) / BASE_INDEX
+    } else {
+      // Light side: lightEnd at last index, lerps to 0 at base
+      const lightSteps = STEPS.length - 1 - BASE_INDEX
+      hueOffset = (hShift.lightEnd * (i - BASE_INDEX)) / lightSteps
+    }
+    const h = baseH + hueOffset
+
+    const oklch = `oklch(${l.toFixed(3)} ${c.toFixed(4)} ${h.toFixed(1)})`
+    const hex = formatHex({ mode: 'oklch', l, c, h }) || '#000000'
+    const lum = srgbRelativeLuminance(hex)
+    const contrast = contrastRatio(lum, bgLum)
+
+    return { step, l, c, h, oklch, hex, contrast }
+  })
+
+  return { name: colorEntry.name, steps }
+}
+
+// ---------------------------------------------------------------------------
+// CSS output
+// ---------------------------------------------------------------------------
+
+export function buildCSS(generated: GeneratedColor[]): string {
+  const vars = generated
+    .flatMap((color) =>
+      color.steps.map((s) => `  --color-${color.name}-${s.step}: ${s.oklch};`),
+    )
+    .join('\n')
+
+  return `:root {\n${vars}\n}\n`
+}

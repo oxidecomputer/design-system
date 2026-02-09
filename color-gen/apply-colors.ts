@@ -7,21 +7,35 @@
  */
 
 /**
- * Reads color-gen.css and applies matching colour values into tokens.json.
- *
- * CSS vars like `--color-green-800: oklch(...)` are matched to
- * `colors.base.green.800.value` in tokens.json.
+ * Generates colours from the palette config and writes them to both
+ * color-gen.css and tokens.json in a single step.
  */
 
 import { readFileSync, writeFileSync } from 'fs'
 import { resolve } from 'path'
 
+import { backgrounds, buildCSS, generateColor, palette } from './lib'
+
 const dir = import.meta.dirname!
+
+// ---------------------------------------------------------------------------
+// 1. Generate
+// ---------------------------------------------------------------------------
+
+const comparisonBg = backgrounds.dark
+const generated = palette.colors.map((c) => generateColor(c, palette, comparisonBg))
+const css = buildCSS(generated)
 const cssPath = resolve(dir, 'color-gen.css')
+writeFileSync(cssPath, css, 'utf-8')
+console.log(`Written CSS to ${cssPath}`)
+
+// ---------------------------------------------------------------------------
+// 2. Apply to tokens.json
+// ---------------------------------------------------------------------------
+
 const tokensPath = resolve(dir, '..', 'styles', 'src', 'tokens.json')
 
 // Parse CSS custom properties: --color-{name}-{step}: {value};
-const css = readFileSync(cssPath, 'utf-8')
 const varPattern = /--color-(\w+)-(\d+):\s*([^;]+);/g
 
 const updates = new Map<string, Map<string, string>>()
@@ -32,7 +46,7 @@ for (const match of css.matchAll(varPattern)) {
 }
 
 if (updates.size === 0) {
-  console.error('No colour variables found in color-gen.css')
+  console.error('No colour variables found in generated CSS')
   process.exit(1)
 }
 
@@ -53,7 +67,9 @@ for (const [name, steps] of updates) {
   }
   for (const [step, value] of steps) {
     if (!base[name][step]) {
-      console.warn(`Skipping ${name}.${step} — not found in tokens.json`)
+      base[name][step] = { value, type: 'color' }
+      console.log(`  ${name}.${step}: (new) ${value}`)
+      changed++
       continue
     }
     const old = base[name][step].value
@@ -66,7 +82,7 @@ for (const [name, steps] of updates) {
 }
 
 if (changed === 0) {
-  console.log('No changes — tokens.json already matches color-gen.css')
+  console.log('No changes — tokens.json already matches generated colours')
 } else {
   writeFileSync(tokensPath, JSON.stringify(tokens, null, 2) + '\n', 'utf-8')
   console.log(`\nUpdated ${changed} colour(s) in tokens.json`)
