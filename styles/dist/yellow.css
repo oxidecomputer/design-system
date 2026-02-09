@@ -5,7 +5,7 @@
   --surface-secondary: var(--color-neutral-100);
   --surface-tertiary: var(--color-neutral-200);
   --surface-disabled: var(--color-neutral-100);
-  --surface-scrim: color(display-p3 0.0314 0.0588 0.0667 / 0.40); /* #080f1166 with alpha 0.40 */;
+  --surface-scrim: #080f1166;
   --surface-accent: var(--theme-accent-800);
   --surface-accent-hover: var(--theme-accent-700);
   --surface-accent-secondary: var(--theme-accent-200);
@@ -92,10 +92,10 @@
   --stroke-info-secondary: var(--theme-info-600);
   --stroke-info-tertiary: var(--theme-info-400);
   --stroke-info-quaternary: var(--theme-info-300);
-  --chart-fill-area-primary: color(display-p3 0.7922 0.6000 0.2314 / 0.70); /* #ca993bb3 with alpha 0.70 */;
-  --chart-fill-area-secondary: color(display-p3 0.6000 0.4549 0.1882 / 0.70); /* #997430b3 with alpha 0.70 */;
-  --chart-fill-area-tertiary: color(display-p3 0.4627 0.3529 0.1529 / 0.70); /* #765a27b3 with alpha 0.70 */;
-  --chart-fill-area-quaternary: color(display-p3 0.3333 0.2588 0.1216 / 0.20); /* #55421f33 with alpha 0.20 */;
+  --chart-fill-area-primary: oklch(0.670 0.1336 80.7 / 0.7);
+  --chart-fill-area-secondary: oklch(0.563 0.1250 83.6 / 0.7);
+  --chart-fill-area-tertiary: oklch(0.474 0.1081 86.4 / 0.7);
+  --chart-fill-area-quaternary: oklch(0.379 0.0853 89.3 / 0.2);
   --chart-fill-item-primary: var(--theme-accent-700);
   --chart-fill-item-secondary: var(--theme-accent-600);
   --chart-fill-item-tertiary: var(--theme-accent-500);
@@ -109,11 +109,10 @@
   --chart-stroke-line-secondary: var(--color-yellow-600);
   --chart-stroke-line-tertiary: var(--color-red-600);
   --chart-stroke-line-quaternary: var(--color-blue-600);
-  --chart-stroke-y-axis: color(display-p3 0.1765 0.2000 0.2078 / 0.40); /* #2d333566 with alpha 0.40 */;
-  --chart-stroke-item: color(display-p3 0.7922 0.6000 0.2314 / 0.40); /* #ca993b66 with alpha 0.40 */;
+  --chart-stroke-y-axis: #2d333566;
+  --chart-stroke-item: oklch(0.670 0.1336 80.7 / 0.4);
   --chart-stroke-item-inactive: var(--color-neutral-200);
-  --chart-stroke-error: color(display-p3 0.8549 0.3804 0.4667 / 0.40); /* #da617766 with alpha 0.40 */;
-  --theme-accent-100: var(--color-yellow-100);
+  --chart-stroke-error: oklch(0.670 0.1588 17.1 / 0.4);
   --theme-accent-200: var(--color-yellow-200);
   --theme-accent-300: var(--color-yellow-300);
   --theme-accent-400: var(--color-yellow-400);
@@ -121,7 +120,6 @@
   --theme-accent-600: var(--color-yellow-600);
   --theme-accent-700: var(--color-yellow-700);
   --theme-accent-800: var(--color-yellow-800);
-  --theme-destructive-100: var(--color-red-100);
   --theme-destructive-200: var(--color-red-200);
   --theme-destructive-300: var(--color-red-300);
   --theme-destructive-400: var(--color-red-400);
@@ -129,7 +127,6 @@
   --theme-destructive-600: var(--color-red-600);
   --theme-destructive-700: var(--color-red-700);
   --theme-destructive-800: var(--color-red-800);
-  --theme-success-100: var(--color-green-100);
   --theme-success-200: var(--color-green-200);
   --theme-success-300: var(--color-green-300);
   --theme-success-400: var(--color-green-400);
@@ -137,7 +134,6 @@
   --theme-success-600: var(--color-green-600);
   --theme-success-700: var(--color-green-700);
   --theme-success-800: var(--color-green-800);
-  --theme-error-100: var(--color-red-100);
   --theme-error-200: var(--color-red-200);
   --theme-error-300: var(--color-red-300);
   --theme-error-400: var(--color-red-400);
@@ -145,7 +141,6 @@
   --theme-error-600: var(--color-red-600);
   --theme-error-700: var(--color-red-700);
   --theme-error-800: var(--color-red-800);
-  --theme-notice-100: var(--color-yellow-100);
   --theme-notice-200: var(--color-yellow-200);
   --theme-notice-300: var(--color-yellow-300);
   --theme-notice-400: var(--color-yellow-400);
@@ -153,7 +148,6 @@
   --theme-notice-600: var(--color-yellow-600);
   --theme-notice-700: var(--color-yellow-700);
   --theme-notice-800: var(--color-yellow-800);
-  --theme-info-100: var(--color-blue-100);
   --theme-info-200: var(--color-blue-200);
   --theme-info-300: var(--color-blue-300);
   --theme-info-400: var(--color-blue-400);

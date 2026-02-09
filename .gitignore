@@ -37,3 +37,6 @@ scripts/*.md.mjs
 
 components/dist
 /dist/
+
+/color-gen/color-gen.html
+/color-gen/color-gen.css

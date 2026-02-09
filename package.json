@@ -22,7 +22,10 @@
     "lint": "eslint --ext .js,.ts,.tsx,.json .",
     "fmt": "prettier --cache --write . && npm run lint -- --fix",
     "test": "vitest --config test/vitest.config.ts",
-    "tsc": "tsc"
+    "tsc": "tsc",
+    "color-gen": "tsx color-gen/color-gen.tsx",
+    "color-gen:watch": "tsx watch color-gen/color-gen.tsx",
+    "color-gen:apply": "tsx color-gen/apply-colors.ts"
   },
   "author": "Oxide Computer Company <bots@oxidecomputer.com>",
   "license": "MPL 2.0",
