@@ -50,7 +50,6 @@ const CSS = `
     position: sticky;
     top: 0;
     z-index: 10;
-    padding: 1rem 0 0.75rem;
     border-bottom: 1px solid rgba(128,128,128,0.2);
   }
   body.dark .sticky-controls { background: #080F11; }
@@ -60,8 +59,7 @@ const CSS = `
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    margin-bottom: 0.75rem;
-    padding: 0 1rem;
+    padding: 0.5rem 1rem;
   }
   .toolbar-left, .toolbar-right {
     display: flex;
@@ -100,7 +98,6 @@ const CSS = `
   .tabs {
     display: flex;
     gap: 0;
-    margin-bottom: 0.5rem;
     border-bottom: 1px solid rgba(128,128,128,0.2);
   }
   .tab {
@@ -123,7 +120,7 @@ const CSS = `
     border-bottom-color: currentColor;
   }
   .tab-panel {
-  padding: 0 1rem;
+    padding: 1rem;
   }
   .curve-section h3 {
     font-size: 0.75rem;
@@ -138,11 +135,12 @@ const CSS = `
     align-items: flex-end;
     gap: 0;
     height: 6rem;
-    padding: 0 0.25rem;
   }
   .curve-editor .curve-svg {
     position: absolute;
     inset: 0;
+    top: 16px;
+    bottom: 16px;
     pointer-events: none;
   }
   .curve-editor .curve-svg polyline {
@@ -164,7 +162,8 @@ const CSS = `
     font-size: 0.5625rem;
     opacity: 0.45;
     flex-shrink: 0;
-    margin-bottom: 0.125rem;
+    height: 1rem;
+    line-height: 1rem;
   }
   .curve-col .curve-slider-wrap {
     flex: 1;
@@ -187,7 +186,8 @@ const CSS = `
     font-variant-numeric: tabular-nums;
     opacity: 0.7;
     flex-shrink: 0;
-    margin-top: 0.125rem;
+    height: 1rem;
+    line-height: 1rem;
   }
   .curve-col.disabled {
     opacity: 0.3;
@@ -284,7 +284,7 @@ function CurveSliders({
     if (!el) return
     const ro = new ResizeObserver(([entry]) => {
       const { width, height } = entry.contentRect
-      setSize({ w: width, h: height })
+      setSize({ w: width, h: height - 32 })
     })
     ro.observe(el)
     return () => ro.disconnect()
