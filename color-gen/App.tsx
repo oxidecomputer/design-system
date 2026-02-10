@@ -14,6 +14,7 @@ import {
   bases,
   generateColor,
   generateNeutral,
+  interpolateCurve,
   NEUTRAL_STEPS,
   neutralPalette,
   palette,
@@ -52,11 +53,11 @@ const CSS = `
     transition: background 0.2s, color 0.2s;
   }
   body.dark {
-    background: #080F11;
+    background: oklch(0.162 0.0100 220.0);
     color: #fff;
   }
   body.light {
-    background: #F5F5F5;
+    background: oklch(0.986 0.0100 220.0);
     color: #111;
   }
   .sticky-controls {
@@ -206,6 +207,23 @@ const CSS = `
     opacity: 0.3;
     pointer-events: none;
   }
+  .curve-col.interpolated {
+    opacity: 0.45;
+  }
+  .curve-col.interpolated input[type="range"] {
+    accent-color: #555;
+  }
+  .curve-col .curve-label {
+    cursor: pointer;
+    user-select: none;
+  }
+  .curve-col .curve-label:hover {
+    opacity: 1;
+    text-decoration: underline;
+  }
+  .curve-col.interpolated .curve-label {
+    font-style: italic;
+  }
   .hue-row {
     display: flex;
     gap: 1rem;
@@ -286,12 +304,12 @@ function CurveSliders({
   max = 1,
   onChange,
 }: {
-  curve: number[]
+  curve: (number | null)[]
   stepLabels: number[]
   fixedIndex?: number
   fixedValue?: number
   max?: number
-  onChange: (index: number, value: number) => void
+  onChange: (index: number, value: number | null) => void
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ w: 0, h: 0 })
@@ -307,8 +325,9 @@ function CurveSliders({
     return () => ro.disconnect()
   }, [])
 
-  // Use fixedValue for the pinned index in both display and SVG
-  const displayCurve = curve.map((v, i) => (i === fixedIndex ? fixedValue : v))
+  // Resolve interpolated values, then override the fixed index
+  const interpolated = interpolateCurve(curve)
+  const displayCurve = interpolated.map((v, i) => (i === fixedIndex ? fixedValue : v))
 
   // Build polyline points: x = center of each column, y = value mapped to height
   const colWidth = displayCurve.length > 0 ? size.w / displayCurve.length : 0
@@ -319,6 +338,17 @@ function CurveSliders({
       return `${x},${y}`
     })
     .join(' ')
+
+  const handleToggleInterpolated = (i: number) => {
+    if (i === fixedIndex) return
+    if (curve[i] === null) {
+      // Restore to the current interpolated value
+      onChange(i, interpolated[i])
+    } else {
+      // Set to null to mark as interpolated
+      onChange(i, null)
+    }
+  }
 
   return (
     <div className="curve-section">
@@ -332,23 +362,42 @@ function CurveSliders({
             <polyline points={points} />
           </svg>
         )}
-        {displayCurve.map((v, i) => (
-          <div key={i} className={`curve-col ${i === fixedIndex ? 'disabled' : ''}`}>
-            <span className="curve-label">{stepLabels[i]}</span>
-            <div className="curve-slider-wrap">
-              <input
-                type="range"
-                min={0}
-                max={max}
-                step={max < 0.1 ? 0.0001 : 0.001}
-                value={v}
-                onChange={(e) => onChange(i, parseFloat(e.target.value))}
-                disabled={i === fixedIndex}
-              />
+        {displayCurve.map((v, i) => {
+          const isInterpolated = curve[i] === null
+          const isFixed = i === fixedIndex
+          return (
+            <div
+              key={i}
+              className={`curve-col ${isFixed ? 'disabled' : ''} ${isInterpolated ? 'interpolated' : ''}`}
+            >
+              <span
+                className="curve-label"
+                onClick={() => handleToggleInterpolated(i)}
+                title={
+                  isFixed
+                    ? 'Base step (fixed)'
+                    : isInterpolated
+                      ? 'Click to set explicit value'
+                      : 'Click to interpolate'
+                }
+              >
+                {stepLabels[i]}
+              </span>
+              <div className="curve-slider-wrap">
+                <input
+                  type="range"
+                  min={0}
+                  max={max}
+                  step={max < 0.1 ? 0.0001 : 0.001}
+                  value={v}
+                  onChange={(e) => onChange(i, parseFloat(e.target.value))}
+                  disabled={isFixed || isInterpolated}
+                />
+              </div>
+              <span className="curve-val">{v.toFixed(max < 0.1 ? 4 : 3)}</span>
             </div>
-            <span className="curve-val">{v.toFixed(max < 0.1 ? 4 : 3)}</span>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
@@ -432,7 +481,7 @@ export default function App() {
 
   document.body.className = bgName
 
-  const updateLightness = useCallback((i: number, v: number) => {
+  const updateLightness = useCallback((i: number, v: number | null) => {
     setConfig((prev) => {
       const next = clonePalette(prev)
       next.lightnessCurve[i] = v
@@ -440,7 +489,7 @@ export default function App() {
     })
   }, [])
 
-  const updateChroma = useCallback((i: number, v: number) => {
+  const updateChroma = useCallback((i: number, v: number | null) => {
     setConfig((prev) => {
       const next = clonePalette(prev)
       next.chromaCurve[i] = v
@@ -456,7 +505,7 @@ export default function App() {
     })
   }, [])
 
-  const updateNeutralLightness = useCallback((i: number, v: number) => {
+  const updateNeutralLightness = useCallback((i: number, v: number | null) => {
     setNeutralConfig((prev) => {
       const next = cloneNeutralPalette(prev)
       next.lightnessCurve[i] = v
@@ -464,7 +513,7 @@ export default function App() {
     })
   }, [])
 
-  const updateNeutralChroma = useCallback((i: number, v: number) => {
+  const updateNeutralChroma = useCallback((i: number, v: number | null) => {
     setNeutralConfig((prev) => {
       const next = cloneNeutralPalette(prev)
       next.chromaCurve[i] = v

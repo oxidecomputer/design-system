@@ -14,7 +14,7 @@ import themesData from './themes.json'
 // Types
 // ---------------------------------------------------------------------------
 
-export type Curve = number[]
+export type Curve = (number | null)[]
 
 export interface ColorEntry {
   name: string
@@ -75,7 +75,7 @@ export const STEPS = [200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 
 export const BASE_INDEX = 6 // index of 800
 
 export const NEUTRAL_STEPS = [
-  0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100,
+  0, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200,
 ]
 
 // ---------------------------------------------------------------------------
@@ -83,7 +83,57 @@ export const NEUTRAL_STEPS = [
 // ---------------------------------------------------------------------------
 
 export const scaleCurve = (curve: Curve, factor: number): Curve =>
-  curve.map((v) => v * factor)
+  curve.map((v) => (v === null ? null : v * factor))
+
+/** Replace null sentinel values with linearly interpolated values from neighbors */
+export function interpolateCurve(curve: Curve): number[] {
+  const result: (number | null)[] = [...curve]
+  const len = result.length
+
+  // Find all defined (non-null) indices
+  const defined: number[] = []
+  for (let i = 0; i < len; i++) {
+    if (result[i] !== null) defined.push(i)
+  }
+
+  if (defined.length === 0) return result.map(() => 0)
+  if (defined.length === 1) {
+    const val = result[defined[0]] as number
+    return result.map(() => val)
+  }
+
+  for (let i = 0; i < len; i++) {
+    if (result[i] !== null) continue
+
+    // Find nearest defined neighbors
+    let left = -1
+    let right = -1
+    for (const d of defined) {
+      if (d < i) left = d
+      if (d > i && right === -1) right = d
+    }
+
+    if (left === -1) {
+      // Before the first defined point: extrapolate from first two defined
+      const [a, b] = [defined[0], defined[1]]
+      const slope = ((result[b] as number) - (result[a] as number)) / (b - a)
+      result[i] = (result[a] as number) + slope * (i - a)
+    } else if (right === -1) {
+      // After the last defined point: extrapolate from last two defined
+      const [a, b] = [defined[defined.length - 2], defined[defined.length - 1]]
+      const slope = ((result[b] as number) - (result[a] as number)) / (b - a)
+      result[i] = (result[b] as number) + slope * (i - b)
+    } else {
+      // Between two defined points: linear interpolation
+      const t = (i - left) / (right - left)
+      result[i] =
+        (result[left] as number) +
+        t * ((result[right] as number) - (result[left] as number))
+    }
+  }
+
+  return result as number[]
+}
 
 function srgbRelativeLuminance(hex: string): number {
   const r = parseInt(hex.slice(1, 3), 16) / 255
@@ -115,10 +165,12 @@ export function generateColor(
 
   const [baseL, baseC, baseH] = base
 
-  const lCurve = config.lightnessCurve
-  const cCurve = colorEntry.chromaScale
-    ? scaleCurve(config.chromaCurve, colorEntry.chromaScale)
-    : config.chromaCurve
+  const lCurve = interpolateCurve(config.lightnessCurve)
+  const cCurve = interpolateCurve(
+    colorEntry.chromaScale
+      ? scaleCurve(config.chromaCurve, colorEntry.chromaScale)
+      : config.chromaCurve,
+  )
   const hShift = config.hueShift
   const bgLum = srgbRelativeLuminance(comparisonBg)
 
@@ -169,9 +221,12 @@ export function generateNeutral(
   const bgLum = srgbRelativeLuminance(comparisonBg)
   const midIndex = Math.floor((NEUTRAL_STEPS.length - 1) / 2)
 
+  const lCurve = interpolateCurve(config.lightnessCurve)
+  const cCurve = interpolateCurve(config.chromaCurve)
+
   const steps: GeneratedStep[] = NEUTRAL_STEPS.map((step, i) => {
-    const l = config.lightnessCurve[i]
-    const c = config.chromaCurve[i]
+    const l = lCurve[i]
+    const c = cCurve[i]
 
     // Hue shift: interpolate from darkEnd/lightEnd to 0 at midpoint
     let hueOffset: number

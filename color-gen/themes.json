@@ -80,13 +80,13 @@
     ]
   },
   "neutralPalette": {
-    "lightnessCurve": [0.162, 0.1949, 0.216, 0.2472, 0.3161, 0.389, 0.4826, 0.6064, 0.7166, 0.79, 0.8817, 0.93, 0.9861],
-    "chromaCurve": [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01],
+    "lightnessCurve": [0.162, 0.1949, 0.216, 0.2472, 0.3161, 0.389, 0.4826, 0.6064, 0.7166, 0.79, 0.925, 0.95, 0.975, 0.995],
+    "chromaCurve": [0.01, null, null, null, null, null, null, null, null, null, 0.0001, null, null, 0.0001],
     "hueShift": { "darkEnd": 0, "lightEnd": 0 },
-    "baseHue": 220
+    "baseHue": 260
   },
   "backgrounds": {
     "dark": "#080F11",
-    "light": "#F8FBFC"
+    "light": "#FCFCFF"
   }
 }
