@@ -378,7 +378,7 @@ function ColorCell({ s, comparisonBg }: { s: GeneratedStep; comparisonBg: string
       <span className="contrast">
         {s.contrast.toFixed(2)}:1 vs {comparisonBg}
       </span>
-      <div className={`toast${showToast ? 'show' : ''}`}>Copied</div>
+      <div className={`toast ${showToast ? 'show' : ''}`}>Copied</div>
     </div>
   )
 }
