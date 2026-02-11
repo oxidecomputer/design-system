@@ -1,0 +1,67 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, you can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * Copyright Oxide Computer Company
+ */
+
+@layer base, components, utilities;
+@import 'tailwindcss';
+
+@import '../styles/dist/preflight.css' layer(base);
+@import '../styles/dist/tailwind.css';
+@import '../styles/dist/main.css';
+@import '../components/src/assets/button.css';
+@import '../components/src/assets/spinner.css';
+@import '../components/src/assets/tabs.css';
+
+@source '../components';
+@custom-variant light (&:where([data-theme=light], [data-theme=light] *));
+
+/* GT America Mono */
+/* Source: https://www.grillitype.com/typeface/gt-america */
+@font-face {
+  font-family: 'GT America Mono';
+  src:
+    url('/fonts/GT-America-Mono-Regular-OCC.woff2') format('woff2'),
+    url('/fonts/GT-America-Mono-Regular-OCC.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'GT America Mono';
+  src:
+    url('/fonts/GT-America-Mono-Medium.woff2') format('woff2'),
+    url('/fonts/GT-America-Mono-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'SuisseIntl';
+  src:
+    url('/fonts/SuisseIntl-Regular-WebS.woff2') format('woff2'),
+    url('/fonts/SuisseIntl-Regular-WebS.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'SuisseIntl';
+  src:
+    url('/fonts/SuisseIntl-RegularItalic-WebS.woff2') format('woff2'),
+    url('/fonts/SuisseIntl-RegularItalic-WebS.woff') format('woff');
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'SuisseIntl';
+  src:
+    url('/fonts/SuisseIntl-Medium-WebS.woff2') format('woff2'),
+    url('/fonts/SuisseIntl-Medium-WebS.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+}

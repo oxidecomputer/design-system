@@ -25,7 +25,8 @@
     "tsc": "tsc",
     "color-gen:watch": "tsx watch color-gen/generate.ts",
     "color-gen:dev": "vite --config color-gen/vite.config.ts color-gen",
-    "color-gen:apply": "tsx color-gen/apply-colors.ts"
+    "color-gen:apply": "tsx color-gen/apply-colors.ts",
+    "preview:dev": "vite --config preview/vite.config.ts"
   },
   "author": "Oxide Computer Company <bots@oxidecomputer.com>",
   "license": "MPL 2.0",
@@ -38,6 +39,7 @@
     "@figma-export/transform-svg-with-svgo": "^6.2.3",
     "@ianvs/prettier-plugin-sort-imports": "^4.4.1",
     "@svgr/plugin-jsx": "^8.1.0",
+    "@tailwindcss/vite": "^4.1.18",
     "@types/culori": "^4.0.1",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",

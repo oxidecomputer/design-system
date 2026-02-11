@@ -12,7 +12,7 @@
 import type { Config, TransformedToken } from 'style-dictionary'
 import StyleDictionary, { Dictionary } from 'style-dictionary'
 
-const THEMES = ['main', 'blue', 'yellow', 'purple', 'red', 'green'] as const
+const THEMES = ['main', 'light', 'blue', 'yellow', 'purple', 'red', 'green'] as const
 
 const FONT_FAMILIES = {
   'GT America Mono': '"GT America Mono", monospace',
@@ -185,8 +185,6 @@ ${dictionary.allTokens
 
 ${generateThemeInline(!root, dictionary, colorVars, baseColorVars)}
 
-${generateBoxShadowUtilities(!root, dictionary)}
-
 ${generateTypographyUtilities(!root, dictionary)}`
   },
 })
@@ -247,21 +245,6 @@ ${dictionary.allTokens
 }`
 }
 
-function generateBoxShadowUtilities(root: boolean, dictionary: Dictionary) {
-  if (!root) return ''
-
-  return dictionary.allTokens
-    .filter((prop) => prop.type === 'boxShadow')
-    .map((prop) => {
-      return `@utility ${prop.name} {
-  box-shadow: ${[prop.value]
-    .flat()
-    .map((v) => (typeof v === 'object' ? `${v.x}px ${v.y}px ${v.blur}px ${v.color}` : v))};
-}`
-    })
-    .join('\n')
-}
-
 function generateTypographyUtilities(root: boolean, dictionary: Dictionary) {
   if (!root) return ''
 
@@ -303,6 +286,7 @@ StyleDictionary.registerFilter({
         'textCase',
         'textDecoration',
         'lineHeights',
+        'boxShadow',
       ].includes(prop.original.type || '') &&
       !prop.path.some((i) => i.includes('*')) &&
       !prop.name.endsWith('-uncased')
@@ -389,7 +373,12 @@ const makeConfig = (theme: (typeof THEMES)[number]) => {
             destination: `${theme}.css`,
             format: theme === 'main' ? 'theme' : 'themeOverride',
             options: {
-              selector: theme === 'main' ? ':root' : `.${theme}-theme`,
+              selector:
+                theme === 'main'
+                  ? ':root'
+                  : theme === 'light'
+                    ? '.light'
+                    : `.${theme}-theme`,
             },
           },
         ],

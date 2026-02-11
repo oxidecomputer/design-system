@@ -11,17 +11,17 @@ import cn from 'classnames'
 import { classed } from '../../utils'
 
 const Check = () => (
-  <Checkmark12Icon className="text-accent pointer-events-none absolute left-0.5 top-0.5 h-3 w-3 fill-current" />
+  <Checkmark12Icon className="text-accent pointer-events-none absolute top-0.5 left-0.5 h-3 w-3 fill-current" />
 )
 
-const Indeterminate = classed.div`absolute w-2 h-0.5 left-1 top-[7px] bg-accent pointer-events-none`
+const Indeterminate = classed.div`absolute w-2 h-0.5 left-1 top-[7px] bg-accent-inverse light:bg-green-400 pointer-events-none`
 
 const inputStyle = `
   appearance-none border border-default bg-default h-4 w-4 rounded-sm absolute left-0 outline-none
   disabled:cursor-not-allowed
   hover:border-hover hover:cursor-pointer
-  checked:bg-accent-secondary checked:border-accent-secondary checked:hover:border-accent
-  indeterminate:bg-accent-secondary indeterminate:border-accent hover:indeterminate:bg-accent-secondary-hover
+  checked:bg-accent checked:light:bg-accent-secondary checked:border-accent-secondary checked:hover:border-accent
+  indeterminate:bg-accent indeterminate:light:bg-accent-secondary indeterminate:border-accent hover:indeterminate:bg-accent-hover
 `
 
 export type CheckboxProps = {
