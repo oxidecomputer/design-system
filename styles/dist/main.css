@@ -684,7 +684,7 @@
   --content-info-secondary: var(--theme-info-500);
   --content-info-tertiary: var(--theme-info-600);
   --content-info-disabled: var(--theme-info-1000);
-  --stroke-default: var(--color-neutral-800);
+  --stroke-default: var(--color-neutral-900);
   --stroke-hover: var(--color-neutral-700);
   --stroke-secondary: var(--color-neutral-1000);
   --stroke-tertiary: var(--color-neutral-1100);
@@ -735,7 +735,7 @@
   --chart-stroke-line-secondary: var(--color-yellow-600);
   --chart-stroke-line-tertiary: var(--color-red-600);
   --chart-stroke-line-quaternary: var(--color-blue-600);
-  --chart-stroke-y-axis: oklch(0.790 0.0011 260.0 / 0.4);
+  --chart-stroke-y-axis: oklch(0.900 0.0001 260.0 / 0.4);
   --chart-stroke-item: oklch(0.670 0.1831 167.0 / 0.4);
   --chart-stroke-item-inactive: var(--color-neutral-200);
   --chart-stroke-error: oklch(0.670 0.1588 14.7 / 0.4);
