@@ -30,15 +30,15 @@ export const badgeColors: Record<BadgeVariant, Record<BadgeColor, string>> = {
     notice: 'bg-notice text-notice ring-current/15',
     blue: 'bg-info text-info ring-current/15',
     purple: 'bg-accent-alt text-accent-alt ring-current/15',
-    neutral: 'bg-secondary text-default ring-current/25',
+    neutral: 'bg-secondary text-default ring-current/15',
   },
   solid: {
-    default: 'bg-accent-secondary text-accent ring-current/20',
-    destructive: 'bg-destructive-secondary text-destructive ring-current/20',
-    notice: 'bg-notice-secondary text-notice ring-current/20',
-    blue: 'bg-info-secondary text-info ring-current/20',
-    purple: 'bg-accent-alt-secondary text-accent-alt ring-current/20',
-    neutral: 'bg-tertiary text-default ring-raise/35',
+    default: 'bg-accent-secondary text-accent ring-current/15',
+    destructive: 'bg-destructive-secondary text-destructive ring-current/15',
+    notice: 'bg-notice-secondary text-notice ring-current/15',
+    blue: 'bg-info-secondary text-info ring-current/15',
+    purple: 'bg-accent-alt-secondary text-accent-alt ring-current/15',
+    neutral: 'bg-tertiary text-default ring-raise/25',
   },
 }
 

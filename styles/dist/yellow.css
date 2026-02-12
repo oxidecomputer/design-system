@@ -22,11 +22,9 @@
   --surface-notice: var(--theme-notice-200);
   --surface-notice-hover: var(--theme-notice-300);
   --surface-notice-secondary: var(--theme-notice-400);
-  --surface-success-inverse: var(--theme-success-800);
-  --surface-success: var(--theme-success-200);
-  --surface-success-secondary: var(--theme-success-400);
   --surface-error-inverse: var(--theme-error-800);
   --surface-error: var(--theme-error-200);
+  --surface-error-hover: var(--theme-error-300);
   --surface-error-secondary: var(--theme-error-400);
   --surface-inverse-raise: var(--content-raise);
   --surface-inverse-primary: var(--content-default);
@@ -73,10 +71,9 @@
   --content-info-tertiary: var(--theme-info-600);
   --content-info-disabled: var(--theme-info-500);
   --stroke-default: var(--color-neutral-300);
-  --stroke-hover: var(--color-neutral-400);
+  --stroke-raise: var(--color-neutral-400);
   --stroke-secondary: var(--color-neutral-200);
   --stroke-tertiary: var(--color-neutral-100);
-  --stroke-raise: var(--color-neutral-500);
   --stroke-surface: var(--surface-default);
   --stroke-accent: var(--theme-accent-800);
   --stroke-accent-secondary: var(--theme-accent-600);
