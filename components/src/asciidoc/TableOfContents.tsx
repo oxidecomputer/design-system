@@ -278,7 +278,7 @@ export const DesktopOutline = ({
             className={cn(
               'block border-l py-[4px] pr-4',
               activeItem === item.id
-                ? 'active text-accent-secondary border-accent-secondary hover:text-accent'
+                ? 'active text-accent-secondary light:text-default light:border-green-800 border-accent-secondary hover:text-accent hover:light:text-raise'
                 : 'text-tertiary border-secondary hover:text-secondary',
             )}
             style={{
