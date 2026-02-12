@@ -192,7 +192,7 @@ ${generateTypographyUtilities(!root, dictionary)}`
 StyleDictionary.registerFormat({
   name: 'themeOverride',
   async format({ dictionary, options }) {
-    return `${options.selector} {
+    return `\n${options.selector} {
 ${dictionary.allTokens
   .filter((prop) => typeof prop.value !== 'object' && prop.type === 'color')
   .filter(
@@ -377,7 +377,7 @@ const makeConfig = (theme: (typeof THEMES)[number]) => {
                 theme === 'main'
                   ? ':root'
                   : theme === 'light'
-                    ? '.light'
+                    ? '[data-theme="light"]'
                     : `.${theme}-theme`,
             },
           },
