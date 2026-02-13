@@ -64,6 +64,8 @@ Make sure disabled buttons don't get the pointer cursor.
   --shadow-menu:
     var(--shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a,
     0px 16px 24px -8px #0000000f, var(--shadow-border-bg);
+  --shadow-menu-inset: 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a,
+    0px 16px 24px -8px #0000000f;
   --shadow-toast: 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a, 0px 16px 24px -8px #0000000f;
   --shadow-modal:
     var(--shadow-border-base), 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a,
@@ -89,6 +91,8 @@ Make sure disabled buttons don't get the pointer cursor.
   --shadow-menu:
     var(--shadow-border-base), 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a,
     0px 16px 24px -8px #0000000f, var(--shadow-border-bg);
+  --shadow-menu-inset: 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a,
+    0px 16px 24px -8px #0000000f;
   --shadow-toast: 0px 1px 1px #00000005, 0px 4px 8px -4px #0000000a, 0px 16px 24px -8px #0000000f;
   --shadow-modal:
     var(--shadow-border-base), 0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a,
@@ -112,6 +116,13 @@ Make sure disabled buttons don't get the pointer cursor.
 }
 @utility shadow-menu {
   box-shadow: var(--shadow-menu);
+}
+/* Used for dropdowns since we want our ring outline to overlap with
+   the outside border without the overflow clipping it */
+@utility shadow-menu-inset {
+  box-shadow: var(--shadow-menu-inset);
+  outline: 1px solid #ffffff10;
+  outline-offset: -1px;
 }
 @utility shadow-toast {
   box-shadow: var(--shadow-toast);
