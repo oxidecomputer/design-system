@@ -55,6 +55,14 @@
   stroke: var(--content-destructive);
 }
 
+.light .spinner-danger .path {
+    stroke: var(--color-red-700);
+}
+
+.light .spinner-primary .path {
+    stroke: var(--color-green-700);
+}
+
 @keyframes rotate {
   100% {
     transform: rotate(360deg);

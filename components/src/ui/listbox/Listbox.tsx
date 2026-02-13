@@ -85,7 +85,7 @@ export const Listbox = <Value extends string = string>({
                 `text-sans-md flex h-10 w-full items-center justify-between rounded-md border`,
                 hasError
                   ? 'focus-error border-error-secondary hover:border-error'
-                  : 'border-default hover:border-hover',
+                  : 'border-default hover:border-raise',
                 open && 'ring-accent-secondary ring-2',
                 open && hasError && 'ring-error-secondary',
                 isDisabled

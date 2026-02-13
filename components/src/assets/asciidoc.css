@@ -311,7 +311,7 @@
     }
 
     .admonitionblock p code {
-      @apply border-none text-inverse bg-success;
+      @apply border-none text-inverse bg-success-inverse;
     }
 
     pre {
@@ -367,7 +367,7 @@
     }
 
     .admonitionblock {
-      @apply rounded-lg border text-success bg-success-secondary border-success-tertiary;
+      @apply rounded-lg border text-success bg-success border-success-tertiary;
       @apply my-[1.5rem] flex px-3 py-3;
     }
 
@@ -420,12 +420,12 @@
     .admonitionblock.important,
     .admonitionblock.caution blockquote,
     .admonitionblock.important blockquote {
-      @apply text-notice bg-notice-secondary border-notice-tertiary;
+      @apply text-notice bg-notice border-notice-tertiary;
     }
 
     .admonitionblock.warning,
     .admonitionblock.warning blockquote {
-      @apply text-destructive bg-destructive-secondary border-destructive-tertiary;
+      @apply text-destructive bg-destructive border-destructive-tertiary;
     }
 
     .admonitionblock.caution,
@@ -443,11 +443,11 @@
 
     .admonitionblock.caution p code,
     .admonitionblock.important p code {
-      @apply bg-notice;
+      @apply bg-notice-inverse;
     }
 
     .admonitionblock.warning p code {
-      @apply bg-error;
+      @apply bg-error-inverse;
     }
 
     .admonitionblock.tip p code {
@@ -641,7 +641,7 @@
     }
 
     mark {
-      @apply rounded-md px-[2px] text-notice bg-notice-secondary;
+      @apply rounded-md px-[2px] text-notice bg-notice;
     }
 
     .steminline svg {

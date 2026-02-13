@@ -278,7 +278,7 @@ export const DesktopOutline = ({
             className={cn(
               'block border-l py-[4px] pr-4',
               activeItem === item.id
-                ? 'active text-accent-secondary border-accent-secondary hover:text-accent'
+                ? 'active text-accent-secondary light:text-default light:border-green-800 border-accent-secondary hover:text-accent hover:light:text-raise'
                 : 'text-tertiary border-secondary hover:text-secondary',
             )}
             style={{
@@ -343,7 +343,7 @@ export const SmallScreenOutline = ({
       <Accordion.Root
         type="single"
         className={cn(
-          'toc bg-default border-secondary sticky top-[calc(var(--header-height)-1px)] z-10 -mt-px mb-10 block w-full border-b border-t print:hidden',
+          'toc bg-default border-secondary sticky top-[calc(var(--header-height)-1px)] z-10 -mt-px mb-10 block w-full border-t border-b print:hidden',
           className,
         )}
         collapsible
@@ -352,13 +352,13 @@ export const SmallScreenOutline = ({
       >
         <Accordion.Item value="toc">
           <Accordion.Header>
-            <Accordion.Trigger className="text-sans-md text-default hover:bg-hover px-(--container-px) flex h-12 w-full items-center justify-between [&>svg]:data-[state=open]:rotate-90">
+            <Accordion.Trigger className="text-sans-md text-default hover:bg-hover flex h-12 w-full items-center justify-between px-(--container-px) [&>svg]:data-[state=open]:rotate-90">
               Table of Contents{' '}
               <DirectionRightIcon className="text-tertiary transition-all" />
             </Accordion.Trigger>
           </Accordion.Header>
 
-          <Accordion.Content className="animated-accordion hydrated border-secondary px-(--container-px) max-h-[60vh] w-full overflow-y-scroll border-t">
+          <Accordion.Content className="animated-accordion hydrated border-secondary max-h-[60vh] w-full overflow-y-scroll border-t px-(--container-px)">
             <div className="py-4">{renderToc(toc)}</div>
           </Accordion.Content>
         </Accordion.Item>
