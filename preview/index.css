@@ -9,9 +9,9 @@
 @layer base, components, utilities;
 @import 'tailwindcss';
 
-@import '../styles/dist/preflight.css' layer(base);
-@import '../styles/dist/tailwind.css';
-@import '../styles/dist/main.css';
+@import '../styles/preflight.css' layer(base);
+@import '../styles/tailwind.css';
+@import '../styles/main.css';
 @import '../components/src/assets/button.css';
 @import '../components/src/assets/spinner.css';
 @import '../components/src/assets/tabs.css';

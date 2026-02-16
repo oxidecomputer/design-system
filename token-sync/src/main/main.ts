@@ -1,5 +1,5 @@
 import { compareTokens } from '../shared/compare'
-import { flattenTokens, mergeAndResolve } from '../shared/flatten-tokens'
+import { parseCSSTokens } from '../shared/parse-css'
 import type { ApplySettings, DiffResult, FlatToken, PluginMessage } from '../shared/types'
 import { readFigmaTextStyles, readFigmaVariables } from './read-figma-styles'
 import { createVariable, removeVariable, updateVariable } from './write-figma-variables'
@@ -11,8 +11,8 @@ export default function () {
   figma.showUI(__html__, { width: 800, height: 700, themeColors: true })
 
   figma.ui.onmessage = (msg: PluginMessage) => {
-    if (msg.type === 'COMPARE_WITH_TOKENS') {
-      runComparison(msg.tokens)
+    if (msg.type === 'COMPARE_WITH_CSS') {
+      runComparison(msg.css)
     }
     if (msg.type === 'APPLY') {
       applyChanges(msg.settings)
@@ -20,14 +20,13 @@ export default function () {
   }
 }
 
-async function runComparison(rawTokens: Record<string, unknown>) {
+async function runComparison(css: string) {
   const send = (msg: PluginMessage) => figma.ui.postMessage(msg)
 
   send({ type: 'LOADING' })
 
   try {
-    const resolved = mergeAndResolve(rawTokens)
-    const fileTokens = flattenTokens(resolved)
+    const fileTokens = parseCSSTokens(css)
     const variables = await readFigmaVariables()
     const textStyles = await readFigmaTextStyles()
     const figmaTokens = new Map([...variables, ...textStyles])

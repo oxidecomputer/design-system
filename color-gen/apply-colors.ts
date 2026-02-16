@@ -7,8 +7,11 @@
  */
 
 /**
- * Generates colours from the palette config and writes them to both
- * color-gen.css and tokens.json in a single step.
+ * Generates colours from the palette config and applies them directly
+ * to the CSS files in styles/.
+ *
+ * - Updates the --color-* variables in main.css
+ * - Writes minimal accent override files ({color}.css)
  */
 
 import { readFileSync, writeFileSync } from 'fs'
@@ -16,82 +19,63 @@ import { resolve } from 'path'
 
 import {
   backgrounds,
-  buildCSS,
   generateColor,
   generateNeutral,
   neutralPalette,
   palette,
+  STEPS,
 } from './lib'
 
-const dir = import.meta.dirname!
+const stylesDir = resolve(import.meta.dirname!, '..', 'styles')
 
 // ---------------------------------------------------------------------------
-// 1. Generate
+// 1. Generate colours
 // ---------------------------------------------------------------------------
 
 const comparisonBg = backgrounds.dark
 const generated = palette.colors.map((c) => generateColor(c, palette, comparisonBg))
 generated.push(generateNeutral(neutralPalette, comparisonBg))
-const css = buildCSS(generated)
-const cssPath = resolve(dir, 'color-gen.css')
-writeFileSync(cssPath, css, 'utf-8')
-console.log(`Written CSS to ${cssPath}`)
 
 // ---------------------------------------------------------------------------
-// 2. Apply to tokens.json
+// 2. Update --color-* vars in main.css
 // ---------------------------------------------------------------------------
 
-const tokensPath = resolve(dir, '..', 'styles', 'src', 'tokens.json')
+const mainCssPath = resolve(stylesDir, 'main.css')
+let mainCss = readFileSync(mainCssPath, 'utf-8')
 
-// Parse CSS custom properties: --color-{name}-{step}: {value};
-const varPattern = /--color-(\w+)-(\d+):\s*([^;]+);/g
-
-const updates = new Map<string, Map<string, string>>()
-for (const match of css.matchAll(varPattern)) {
-  const [, name, step, value] = match
-  if (!updates.has(name)) updates.set(name, new Map())
-  updates.get(name)!.set(step, value.trim())
-}
-
-if (updates.size === 0) {
-  console.error('No colour variables found in generated CSS')
-  process.exit(1)
-}
-
-// Load and update tokens.json
-const tokens = JSON.parse(readFileSync(tokensPath, 'utf-8'))
-const base = tokens.colors?.base
-
-if (!base) {
-  console.error('Could not find colors.base in tokens.json')
-  process.exit(1)
-}
-
-let changed = 0
-for (const [name, steps] of updates) {
-  if (!base[name]) {
-    console.warn(`Skipping unknown colour "${name}" — not found in tokens.json`)
-    continue
-  }
-  for (const [step, value] of steps) {
-    if (!base[name][step]) {
-      base[name][step] = { value, type: 'color' }
-      console.log(`  ${name}.${step}: (new) ${value}`)
-      changed++
-      continue
-    }
-    const old = base[name][step].value
-    if (old !== value) {
-      base[name][step].value = value
-      console.log(`  ${name}.${step}: ${old} -> ${value}`)
-      changed++
-    }
+const colorVarMap = new Map<string, string>()
+for (const color of generated) {
+  for (const step of color.steps) {
+    colorVarMap.set(`--color-${color.name}-${step.step}`, step.oklch)
   }
 }
 
-if (changed === 0) {
-  console.log('No changes — tokens.json already matches generated colours')
-} else {
-  writeFileSync(tokensPath, JSON.stringify(tokens, null, 2) + '\n', 'utf-8')
-  console.log(`\nUpdated ${changed} colour(s) in tokens.json`)
+let updated = 0
+mainCss = mainCss.replace(
+  /^([ \t]*)(--color-\w+-\d+):\s*[^;]+;/gm,
+  (_match, indent, varName) => {
+    const newValue = colorVarMap.get(varName)
+    if (newValue) {
+      updated++
+      return `${indent}${varName}: ${newValue};`
+    }
+    return _match
+  },
+)
+
+writeFileSync(mainCssPath, mainCss, 'utf-8')
+console.log(`Updated ${updated} colour variable(s) in main.css`)
+
+// ---------------------------------------------------------------------------
+// 3. Write accent override CSS files
+// ---------------------------------------------------------------------------
+
+for (const { name } of palette.colors) {
+  const vars = STEPS.map(
+    (step) => `  --theme-accent-${step}: var(--color-${name}-${step});`,
+  ).join('\n')
+
+  const filePath = resolve(stylesDir, `${name}.css`)
+  writeFileSync(filePath, `.${name}-theme {\n${vars}\n}\n`, 'utf-8')
+  console.log(`Written ${filePath}`)
 }

@@ -63,18 +63,6 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Check theme changes
-        run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add ./styles/dist
-          if ! git diff --staged --quiet; then
-            git commit -m "Update themes from token file"
-            git push
-          else
-            echo "No theme changes detected. Continuing with release."
-          fi
-
       - name: Create Release
         run: npm run release
         env:

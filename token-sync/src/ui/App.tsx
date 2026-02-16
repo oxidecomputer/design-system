@@ -3,8 +3,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ApplySettings, DiffResult, DiffStatus, PluginMessage } from '../shared/types'
 import DiffList from './components/DiffList'
 
-const TOKEN_URL = (branch: string) =>
-  `https://raw.githubusercontent.com/oxidecomputer/design-system/${encodeURIComponent(branch)}/styles/src/tokens.json`
+const CSS_URL = (branch: string) =>
+  `https://raw.githubusercontent.com/oxidecomputer/design-system/${encodeURIComponent(branch)}/styles/main.css`
 
 type State =
   | { status: 'idle' }
@@ -36,12 +36,12 @@ const App = () => {
           : undefined,
     }))
     try {
-      const res = await fetch(TOKEN_URL(branchName))
+      const res = await fetch(CSS_URL(branchName))
       if (!res.ok) {
         const msg =
           res.status === 404
             ? `Branch "${branchName}" not found`
-            : `Failed to fetch tokens (${res.status})`
+            : `Failed to fetch CSS (${res.status})`
         setFetchError(msg)
         setState((prev) => ({
           status: prev.data ? 'ready' : 'error',
@@ -50,8 +50,8 @@ const App = () => {
         }))
         return
       }
-      const tokens = await res.json()
-      parent.postMessage({ pluginMessage: { type: 'COMPARE_WITH_TOKENS', tokens } }, '*')
+      const css = await res.text()
+      parent.postMessage({ pluginMessage: { type: 'COMPARE_WITH_CSS', css } }, '*')
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       setFetchError(msg)

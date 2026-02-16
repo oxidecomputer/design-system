@@ -1,0 +1,14 @@
+.green-theme {
+  --theme-accent-200: var(--color-green-200);
+  --theme-accent-300: var(--color-green-300);
+  --theme-accent-400: var(--color-green-400);
+  --theme-accent-500: var(--color-green-500);
+  --theme-accent-600: var(--color-green-600);
+  --theme-accent-700: var(--color-green-700);
+  --theme-accent-800: var(--color-green-800);
+  --theme-accent-900: var(--color-green-900);
+  --theme-accent-1000: var(--color-green-1000);
+  --theme-accent-1100: var(--color-green-1100);
+  --theme-accent-1200: var(--color-green-1200);
+  --theme-accent-1300: var(--color-green-1300);
+}

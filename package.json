@@ -5,7 +5,7 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
-    "./styles/*": "./styles/dist/*",
+    "./styles/*": "./styles/*",
     "./components/*.css": "./dist/*.css",
     "./asciidoc": "./dist/components/src/asciidoc/index.js",
     "./ui": "./dist/components/src/ui/index.js",
@@ -14,10 +14,7 @@
   },
   "scripts": {
     "export-icons": "npx zx ./scripts/export-icons.md && npm run fmt",
-    "build": "run-s build:*",
-    "prebuild:tokens": "token-transformer --preserveRawValue ./styles/src/tokens.json ./styles/src/.tokens/main.json global,colors,core,main",
-    "build:themes": "./scripts/build_themes.sh",
-    "build:components": "tsup --dts",
+    "build": "tsup --dts",
     "release": "auto shipit",
     "lint": "eslint --ext .js,.ts,.tsx,.json .",
     "fmt": "prettier --cache --write . && npm run lint -- --fix",
@@ -54,11 +51,8 @@
     "eslint-plugin-prettier": "^5.5.4",
     "glob": "^11.0.3",
     "globals": "^16.4.0",
-    "npm-run-all": "^4.1.5",
     "prettier": "^3.6.2",
-    "style-dictionary": "^5.0.4",
     "svg-sprite": "^2.0.4",
-    "token-transformer": "^0.0.33",
     "tsup": "^8.5.0",
     "tsx": "^4.20.5",
     "typescript": "^5.9.3",
@@ -83,8 +77,7 @@
     "shiki": "^3.13.0"
   },
   "files": [
-    "styles/dist/*.css",
-    "styles/dist/tailwind-tokens.ts",
+    "styles/*.css",
     "icons/**/*.svg",
     "dist/**"
   ],

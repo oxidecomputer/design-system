@@ -36,7 +36,7 @@ export interface ApplySettings {
 
 export type PluginMessage =
   | { type: 'COMPARE_RESULT'; data: DiffResult }
-  | { type: 'COMPARE_WITH_TOKENS'; tokens: Record<string, unknown> }
+  | { type: 'COMPARE_WITH_CSS'; css: string }
   | { type: 'LOADING' }
   | { type: 'APPLYING' }
   | { type: 'ERROR'; message: string }
