@@ -1,0 +1,421 @@
+:root {
+  font-family: Inter, system-ui, Helvetica, Arial, sans-serif;
+  font-display: optional;
+  font-size: 11px;
+}
+
+html {
+  background-color: var(--figma-color-bg);
+  color: var(--figma-color-text);
+  scrollbar-width: thin;
+  scrollbar-color: var(--figma-color-bg-tertiary) var(--figma-color-bg);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #app {
+  height: 100%;
+}
+
+/* Layout */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+
+
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  height: 100%;
+  gap: 8px;
+}
+
+/* Buttons */
+.btn {
+  border: 1px solid var(--figma-color-border);
+  background: var(--figma-color-bg);
+  color: var(--figma-color-text);
+  border-radius: 5px;
+  padding: 2px 8px;
+  line-height: 20px;
+  cursor: pointer;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.btn:hover {
+  background: var(--figma-color-bg-hover);
+}
+
+.btn-refresh {
+  margin-left: auto;
+  align-self: center;
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+
+
+
+/* Branch bar */
+.branch-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--figma-color-border);
+  flex-shrink: 0;
+}
+
+.branch-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--figma-color-text-secondary);
+  flex-shrink: 0;
+}
+
+.branch-input {
+  flex: 1;
+  min-width: 0;
+  border: 1px solid var(--figma-color-border);
+  background: var(--figma-color-bg);
+  color: var(--figma-color-text);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-family: "SF Mono", "Menlo", monospace;
+  line-height: 18px;
+  outline: none;
+}
+
+.branch-input:focus {
+  border-color: var(--figma-color-border-brand);
+}
+
+.branch-error {
+  font-size: 11px;
+  color: var(--figma-color-text-danger);
+  flex-shrink: 0;
+}
+
+/* Tabs */
+.diff-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--figma-color-border);
+  padding: 0 16px;
+  flex-shrink: 0;
+}
+
+.diff-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: none;
+  color: var(--figma-color-text-secondary);
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 11px;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.diff-tab:hover {
+  color: var(--figma-color-text);
+}
+
+.diff-tab.active {
+  color: var(--figma-color-text);
+  border-bottom-color: var(--figma-color-text-brand);
+}
+
+/* Tab badges */
+.tab-badge {
+  font-size: 9px;
+  font-weight: 600;
+  min-width: 16px;
+  padding: 0 4px;
+  line-height: 14px;
+  border-radius: 7px;
+  text-align: center;
+  background: var(--figma-color-bg-secondary);
+  color: var(--figma-color-text-secondary);
+}
+
+.tab-badge-modified {
+  background: rgba(255, 180, 0, 0.15);
+  color: rgb(200, 140, 0);
+}
+
+.tab-badge-added {
+  background: rgba(0, 180, 100, 0.15);
+  color: rgb(0, 160, 80);
+}
+
+.tab-badge-removed {
+  background: rgba(255, 60, 60, 0.15);
+  color: rgb(220, 60, 60);
+}
+
+.tab-badge-unchanged {
+  background: var(--figma-color-bg-secondary);
+  color: var(--figma-color-text-tertiary);
+}
+
+.tab-badge-all {
+  background: var(--figma-color-bg-secondary);
+  color: var(--figma-color-text-secondary);
+}
+
+/* Diff list */
+.diff-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.diff-entries {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+.diff-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--figma-color-text-secondary);
+}
+
+/* Diff entry */
+.diff-entry {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--figma-color-border);
+}
+
+.diff-entry:last-child {
+  border-bottom: none;
+}
+
+.diff-entry-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.diff-entry-name {
+  font-family: "SF Mono", "Menlo", monospace;
+  font-size: 10.5px;
+  color: var(--figma-color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Status badges */
+.status-badge {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.status-modified {
+  background: rgba(255, 180, 0, 0.15);
+  color: rgb(200, 140, 0);
+}
+
+.status-added {
+  background: rgba(0, 180, 100, 0.15);
+  color: rgb(0, 160, 80);
+}
+
+.status-removed {
+  background: rgba(255, 60, 60, 0.15);
+  color: rgb(220, 60, 60);
+}
+
+.status-unchanged {
+  background: var(--figma-color-bg-secondary);
+  color: var(--figma-color-text-tertiary);
+}
+
+/* Values */
+.diff-entry-values {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.diff-entry-values.side-by-side {
+  flex-direction: row;
+  gap: 8px;
+}
+
+.diff-entry-values.side-by-side .diff-value-col {
+  flex: 1;
+  min-width: 0;
+}
+
+.diff-value-col {
+  background: var(--figma-color-bg-secondary);
+  border-radius: 4px;
+  padding: 6px 8px;
+}
+
+.diff-value-label {
+  display: block;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--figma-color-text-tertiary);
+  margin-bottom: 4px;
+}
+
+.diff-value-text {
+  font-family: "SF Mono", "Menlo", monospace;
+  font-size: 10px;
+  color: var(--figma-color-text-secondary);
+  word-break: break-all;
+}
+
+.diff-entry-type {
+  margin-left: auto;
+  font-size: 9px;
+  color: var(--figma-color-text-tertiary);
+  flex-shrink: 0;
+}
+
+/* Formatted JSON */
+.formatted-json {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.json-row {
+  display: flex;
+  gap: 6px;
+  font-family: "SF Mono", "Menlo", monospace;
+  font-size: 10px;
+  line-height: 16px;
+}
+
+.json-key {
+  color: var(--figma-color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.json-key::after {
+  content: ":";
+}
+
+.json-value {
+  color: var(--figma-color-text-secondary);
+  word-break: break-all;
+}
+
+/* Color value */
+.color-value {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.color-raw {
+  font-family: "SF Mono", "Menlo", monospace;
+  font-size: 10px;
+  color: var(--figma-color-text-tertiary);
+}
+
+.color-arrow {
+  font-family: "SF Mono", "Menlo", monospace;
+  font-size: 9px;
+  color: var(--figma-color-text-tertiary);
+}
+
+.color-swatch {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  border: 1px solid var(--figma-color-border);
+  flex-shrink: 0;
+}
+
+/* Apply footer */
+.apply-footer {
+  flex-shrink: 0;
+  border-top: 1px solid var(--figma-color-border);
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.apply-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.apply-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--figma-color-text);
+  cursor: pointer;
+  user-select: none;
+}
+
+.apply-checkbox input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.apply-checkbox-danger {
+  color: rgb(220, 60, 60);
+}
+
+.btn-apply {
+  margin-left: auto;
+  background: var(--figma-color-bg-brand);
+  color: var(--figma-color-text-onbrand);
+  border-color: var(--figma-color-bg-brand);
+  font-weight: 600;
+  padding: 4px 16px;
+}
+
+.btn-apply:hover {
+  opacity: 0.9;
+}
+
+.btn-apply:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.apply-result {
+  font-size: 10px;
+  color: var(--figma-color-text-secondary);
+  padding: 4px 0;
+}
+
+/* Error */
+.error-text {
+  color: var(--figma-color-text-danger);
+}

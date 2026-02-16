@@ -1,0 +1,10 @@
+{
+	"documentAccess": "dynamic-page",
+	"api": "1.0.0",
+	"networkAccess": { "allowedDomains": ["https://raw.githubusercontent.com"] },
+	"id": "com.Token Sync",
+	"name": "Token Sync",
+	"main": "src/main/main.ts",
+	"ui": "src/ui/ui.tsx",
+	"editorType": ["figma"]
+}
