@@ -446,6 +446,7 @@
   --radius-full: 624.9375rem;
 }
 
+/* @figma mono/regular/xs */
 @utility text-mono-xs {
   font-family: var(--font-mono);
   font-weight: 400;
@@ -455,6 +456,7 @@
   text-transform: uppercase;
   font-feature-settings: "ss02" on,"ss03" on,"ss09" on,"ss06" on,"ss07" on,"ss08" on,"calt" off;
 }
+/* @figma mono/regular/sm */
 @utility text-mono-sm {
   font-family: var(--font-mono);
   font-weight: 400;
@@ -464,6 +466,7 @@
   text-transform: uppercase;
   font-feature-settings: "ss02" on,"ss03" on,"ss09" on,"ss06" on,"ss07" on,"ss08" on,"calt" off;
 }
+/* @figma mono/regular/code */
 @utility text-mono-code {
   font-family: var(--font-mono);
   font-weight: 400;
@@ -472,6 +475,7 @@
   letter-spacing: 0rem;
   font-feature-settings: "ss02" on,"ss03" on,"ss09" on,"ss06" on,"ss07" on,"ss08" on,"calt" off;
 }
+/* @figma mono/regular/md */
 @utility text-mono-md {
   font-family: var(--font-mono);
   font-weight: 400;
@@ -481,6 +485,7 @@
   text-transform: uppercase;
   font-feature-settings: "ss02" on,"ss03" on,"ss09" on,"ss06" on,"ss07" on,"ss08" on,"calt" off;
 }
+/* @figma sans/regular/sm */
 @utility text-sans-sm {
   font-family: var(--font-sans);
   font-weight: 400;
@@ -488,6 +493,7 @@
   font-size: 0.75rem;
   letter-spacing: 0.04rem;
 }
+/* @figma sans/regular/md */
 @utility text-sans-md {
   font-family: var(--font-sans);
   font-weight: 400;
@@ -495,6 +501,7 @@
   font-size: 0.875rem;
   letter-spacing: 0.03rem;
 }
+/* @figma sans/regular/lg */
 @utility text-sans-lg {
   font-family: var(--font-sans);
   font-weight: 400;
@@ -502,6 +509,7 @@
   font-size: 1rem;
   letter-spacing: 0.0175rem;
 }
+/* @figma sans/regular/xl */
 @utility text-sans-xl {
   font-family: var(--font-sans);
   font-weight: 400;
@@ -509,6 +517,7 @@
   font-size: 1.125rem;
   letter-spacing: 0.0125rem;
 }
+/* @figma sans/regular/2xl */
 @utility text-sans-2xl {
   font-family: var(--font-sans);
   font-weight: 400;
@@ -516,6 +525,7 @@
   font-size: 1.5625rem;
   letter-spacing: 0.015rem;
 }
+/* @figma sans/regular/3xl */
 @utility text-sans-3xl {
   font-family: var(--font-sans);
   font-weight: 400;
@@ -523,6 +533,7 @@
   font-size: 2.25rem;
   letter-spacing: 0.005rem;
 }
+/* @figma sans/regular/4xl */
 @utility text-sans-4xl {
   font-family: var(--font-sans);
   font-weight: 400;
@@ -530,6 +541,7 @@
   font-size: 3.25rem;
   letter-spacing: -0.01rem;
 }
+/* @figma sans/semi/sm */
 @utility text-sans-semi-sm {
   font-family: var(--font-sans);
   font-weight: 500;
@@ -537,6 +549,7 @@
   font-size: 0.75rem;
   letter-spacing: 0.04rem;
 }
+/* @figma sans/semi/md */
 @utility text-sans-semi-md {
   font-family: var(--font-sans);
   font-weight: 500;
@@ -544,6 +557,7 @@
   font-size: 0.875rem;
   letter-spacing: 0.03rem;
 }
+/* @figma sans/semi/lg */
 @utility text-sans-semi-lg {
   font-family: var(--font-sans);
   font-weight: 500;
@@ -551,6 +565,7 @@
   font-size: 1rem;
   letter-spacing: 0.0175rem;
 }
+/* @figma sans/semi/xl */
 @utility text-sans-semi-xl {
   font-family: var(--font-sans);
   font-weight: 500;
