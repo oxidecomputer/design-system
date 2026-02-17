@@ -15,16 +15,17 @@ export function compareTokens(
   const entries: DiffEntry[] = []
 
   // Check all file tokens against Figma
-  for (const [name, fileToken] of fileTokens) {
-    const figmaToken = figmaTokens.get(name)
+  for (const [key, fileToken] of fileTokens) {
+    const figmaToken = figmaTokens.get(key)
 
     if (!figmaToken) {
       entries.push({
-        name,
+        name: fileToken.name,
         type: fileToken.type,
         status: 'added',
         fileValue: formatValue(fileToken),
         fileRawValue: rawColorValue(fileToken),
+        mode: fileToken.mode,
       })
       continue
     }
@@ -32,23 +33,25 @@ export function compareTokens(
     // Both exist — compare values
     const match = valuesMatch(fileToken, figmaToken)
     entries.push({
-      name,
+      name: fileToken.name,
       type: fileToken.type,
       status: match ? 'unchanged' : 'modified',
       fileValue: formatValue(fileToken),
       fileRawValue: rawColorValue(fileToken),
       figmaValue: formatValue(figmaToken),
+      mode: fileToken.mode,
     })
   }
 
   // Check for Figma tokens not in file (removals)
-  for (const [name, figmaToken] of figmaTokens) {
-    if (!fileTokens.has(name)) {
+  for (const [key, figmaToken] of figmaTokens) {
+    if (!fileTokens.has(key)) {
       entries.push({
-        name,
+        name: figmaToken.name,
         type: figmaToken.type,
         status: 'removed',
         figmaValue: formatValue(figmaToken),
+        mode: figmaToken.mode,
       })
     }
   }
@@ -71,6 +74,12 @@ export function compareTokens(
 }
 
 function valuesMatch(file: FlatToken, figma: FlatToken): boolean {
+  // If either side is an alias, compare alias paths — a different reference
+  // means modified even if the resolved color is the same.
+  if (file.rawValue || figma.rawValue) {
+    return file.rawValue === figma.rawValue
+  }
+
   // Color comparison via sRGB with tolerance
   if (file.type === 'color' || figma.type === 'color') {
     const fileRgb = parseColor(file.value)
@@ -102,33 +111,65 @@ function typographyMatch(fileVal: string, figmaVal: string): boolean {
   try {
     const file = JSON.parse(fileVal)
     const figma = JSON.parse(figmaVal)
-    // Compare only the fields present in the Figma text style
-    const fieldsToCompare = [
-      'fontFamily',
-      'fontWeight',
-      'fontSize',
-      'lineHeight',
-      'letterSpacing',
-    ]
-    for (const field of fieldsToCompare) {
-      if (!(field in figma)) continue
-      const a = normalizeTypographyValue(String(file[field] ?? ''))
-      const b = normalizeTypographyValue(String(figma[field] ?? ''))
-      if (a !== b) return false
+
+    // fontFamily: direct string compare
+    if (file.fontFamily && figma.fontFamily) {
+      if (file.fontFamily !== figma.fontFamily) return false
     }
+
+    // fontWeight: CSS uses numbers ("400"), Figma uses style names ("Regular OCC")
+    if (file.fontWeight && figma.fontWeight) {
+      const fileNum = cssWeightToNumber(file.fontWeight)
+      const figmaNum = cssWeightToNumber(figma.fontWeight)
+      if (fileNum !== figmaNum) return false
+    }
+
+    // fontSize, lineHeight, letterSpacing: CSS may use rem, Figma uses px numbers
+    for (const field of ['fontSize', 'lineHeight', 'letterSpacing'] as const) {
+      const a = file[field]
+      const b = figma[field]
+      if (a === undefined || b === undefined) continue
+      if (Math.abs(toPixels(String(a)) - toPixels(String(b))) > 0.1) return false
+    }
+
     return true
   } catch {
     return fileVal === figmaVal
   }
 }
 
-/** Normalize a typography field value: parse numeric part so `.5%` equals `0.5%`. */
-function normalizeTypographyValue(val: string): string {
-  const match = val.match(/^(-?\d*\.?\d+)(.*)$/)
-  if (match) {
-    return String(Number(match[1])) + match[2]
-  }
-  return val
+/** Map CSS font-weight values or Figma style names to numeric weights. */
+const WEIGHT_MAP: Record<string, number> = {
+  thin: 100,
+  extralight: 200,
+  light: 300,
+  regular: 400,
+  normal: 400,
+  medium: 500,
+  semibold: 600,
+  semi: 500,
+  bold: 700,
+  extrabold: 800,
+  black: 900,
+}
+
+function cssWeightToNumber(val: string): number {
+  const num = Number(val)
+  if (!isNaN(num)) return num
+  // Figma style names like "Regular OCC" — take first word, lowercase
+  const firstWord = val.split(/\s+/)[0].toLowerCase()
+  return WEIGHT_MAP[firstWord] ?? -1
+}
+
+/** Convert a CSS length value to pixels. Handles rem, px, and plain numbers. */
+function toPixels(val: string): number {
+  if (val === 'auto') return -1
+  const remMatch = val.match(/^([\d.]+)rem$/)
+  if (remMatch) return Math.round(parseFloat(remMatch[1]) * 16 * 100) / 100
+  const pxMatch = val.match(/^([\d.]+)px$/)
+  if (pxMatch) return parseFloat(pxMatch[1])
+  const num = parseFloat(val)
+  return isNaN(num) ? -1 : num
 }
 
 /** Compare strings with numeric segments sorted by value (e.g. 200 < 1300). */

@@ -1,4 +1,5 @@
 import type { DiffEntry as DiffEntryType, DiffResult, DiffStatus } from '../../shared/types'
+import { tokenKey } from '../../shared/types'
 import DiffEntry from './DiffEntry'
 
 const TABS: { label: string; filter: DiffStatus | 'all' }[] = [
@@ -50,7 +51,9 @@ export default function DiffList({
         {filtered.length === 0 ? (
           <div className="diff-empty">No tokens in this category</div>
         ) : (
-          filtered.map((entry) => <DiffEntry key={entry.name} entry={entry} />)
+          filtered.map((entry) => (
+            <DiffEntry key={tokenKey(entry.name, entry.mode)} entry={entry} />
+          ))
         )}
       </div>
     </div>

@@ -231,6 +231,18 @@ html, body, #app {
   flex-shrink: 0;
 }
 
+.mode-badge {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  background: rgba(130, 130, 255, 0.15);
+  color: rgb(130, 130, 255);
+}
+
 .status-modified {
   background: rgba(255, 180, 0, 0.15);
   color: rgb(200, 140, 0);

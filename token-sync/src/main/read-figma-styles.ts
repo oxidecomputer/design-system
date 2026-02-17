@@ -1,4 +1,5 @@
 import type { FlatToken } from '../shared/types'
+import { tokenKey } from '../shared/types'
 
 /**
  * Read all local variables from the Figma file and return as flat tokens.
@@ -12,38 +13,52 @@ import type { FlatToken } from '../shared/types'
  */
 export async function readFigmaVariables(): Promise<Map<string, FlatToken>> {
   const variables = await figma.variables.getLocalVariablesAsync()
+  const collections = await figma.variables.getLocalVariableCollectionsAsync()
   const result = new Map<string, FlatToken>()
+
+  // Build a map of collectionId → ordered mode info
+  const collectionModes = new Map<string, { modeId: string; mode: string | undefined }[]>()
+  for (const col of collections) {
+    const modes = col.modes.map((m) => ({
+      modeId: m.modeId,
+      mode: m.name.toLowerCase(),
+    }))
+    collectionModes.set(col.id, modes)
+  }
 
   for (const variable of variables) {
     const name = variable.name.replace(/\//g, '.')
-    // Get the value from the first (and likely only) mode
-    const modeIds = Object.keys(variable.valuesByMode)
-    if (modeIds.length === 0) continue
-    const rawValue = variable.valuesByMode[modeIds[0]]
+    const modes = collectionModes.get(variable.variableCollectionId)
+    if (!modes) continue
 
-    // If the value is an alias, resolve it but also record the alias path
-    if (
-      typeof rawValue === 'object' &&
-      rawValue !== null &&
-      'type' in rawValue &&
-      rawValue.type === 'VARIABLE_ALIAS'
-    ) {
-      const aliasTarget = await figma.variables.getVariableByIdAsync(
-        (rawValue as VariableAlias).id,
-      )
-      const aliasPath = aliasTarget
-        ? `{${aliasTarget.name.replace(/\//g, '.')}}`
-        : undefined
+    for (const { modeId, mode } of modes) {
+      const rawValue = variable.valuesByMode[modeId]
+      if (rawValue === undefined) continue
 
-      const resolved = await resolveVariableAlias(rawValue as VariableAlias, modeIds[0])
-      if (!resolved) continue
-      const { value, type } = formatVariableValue(resolved.value, variable.resolvedType)
-      result.set(name, { name, value, type, rawValue: aliasPath })
-      continue
+      // If the value is an alias, resolve it but also record the alias path
+      if (
+        typeof rawValue === 'object' &&
+        rawValue !== null &&
+        'type' in rawValue &&
+        rawValue.type === 'VARIABLE_ALIAS'
+      ) {
+        const aliasTarget = await figma.variables.getVariableByIdAsync(
+          (rawValue as VariableAlias).id,
+        )
+        const aliasPath = aliasTarget
+          ? `{${aliasTarget.name.replace(/\//g, '.')}}`
+          : undefined
+
+        const resolved = await resolveVariableAlias(rawValue as VariableAlias, modeId)
+        if (!resolved) continue
+        const { value, type } = formatVariableValue(resolved.value, variable.resolvedType)
+        result.set(tokenKey(name, mode), { name, value, type, rawValue: aliasPath, mode })
+        continue
+      }
+
+      const { value, type } = formatVariableValue(rawValue, variable.resolvedType)
+      result.set(tokenKey(name, mode), { name, value, type, mode })
     }
-
-    const { value, type } = formatVariableValue(rawValue, variable.resolvedType)
-    result.set(name, { name, value, type })
   }
 
   return result
@@ -69,17 +84,16 @@ async function resolveVariableAlias(
   return { value: targetValue }
 }
 
-type VariableValue = RGBA | number | string | boolean | VariableAlias
-
 function formatVariableValue(
   rawValue: VariableValue,
   resolvedType: VariableResolvedDataType,
 ): { value: string; type: string } {
   switch (resolvedType) {
     case 'COLOR': {
-      const c = rawValue as RGBA
+      const c = rawValue as RGB | RGBA
+      const a = 'a' in c ? c.a : 1
       return {
-        value: `rgba(${c.r}, ${c.g}, ${c.b}, ${c.a})`,
+        value: `rgba(${c.r}, ${c.g}, ${c.b}, ${a})`,
         type: 'color',
       }
     }

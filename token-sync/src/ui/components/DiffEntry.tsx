@@ -17,6 +17,7 @@ export default function DiffEntry({ entry }: { entry: DiffEntryType }) {
         <span className={`status-badge status-${entry.status}`}>
           {statusLabels[entry.status]}
         </span>
+        {entry.mode && <span className="mode-badge">{entry.mode}</span>}
         <span className="diff-entry-name" title={entry.name}>
           {entry.name}
         </span>

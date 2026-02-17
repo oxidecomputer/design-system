@@ -1,4 +1,4 @@
-import { formatHex, formatHex8, parse, type Color } from 'culori'
+import { formatHex, parse, type Color } from 'culori'
 
 export interface RGB {
   r: number
@@ -76,7 +76,7 @@ export function rgbToHex(rgb: RGB): string {
 }
 
 /** Compare two color values with tolerance. */
-export function colorsMatch(a: RGB, b: RGB, tolerance = 0.02): boolean {
+export function colorsMatch(a: RGB, b: RGB, tolerance = 0.01): boolean {
   return (
     Math.abs(a.r - b.r) < tolerance &&
     Math.abs(a.g - b.g) < tolerance &&

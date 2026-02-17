@@ -3,11 +3,11 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ApplySettings, DiffResult, DiffStatus, PluginMessage } from '../shared/types'
 import DiffList from './components/DiffList'
 
-const CSS_URL = (branch: string) =>
-  `https://raw.githubusercontent.com/oxidecomputer/design-system/${encodeURIComponent(branch)}/styles/main.css`
+const CSS_URL = (branch: string, file: string) =>
+  `https://raw.githubusercontent.com/oxidecomputer/design-system/${encodeURIComponent(branch)}/styles/${file}`
 
 type State =
-  | { status: 'idle' }
+  | { status: 'idle'; data?: undefined }
   | { status: 'loading'; data?: DiffResult }
   | { status: 'applying'; data: DiffResult }
   | { status: 'error'; message: string; data?: DiffResult }
@@ -36,30 +36,42 @@ const App = () => {
           : undefined,
     }))
     try {
-      const res = await fetch(CSS_URL(branchName))
-      if (!res.ok) {
-        const msg =
-          res.status === 404
-            ? `Branch "${branchName}" not found`
-            : `Failed to fetch CSS (${res.status})`
-        setFetchError(msg)
-        setState((prev) => ({
-          status: prev.data ? 'ready' : 'error',
-          data: prev.data!,
-          message: msg,
-        }))
-        return
+      const files = ['main.css', 'dark.css', 'light.css'] as const
+      const responses = await Promise.all(files.map((f) => fetch(CSS_URL(branchName, f))))
+      for (let i = 0; i < responses.length; i++) {
+        const res = responses[i]
+        if (!res.ok) {
+          const msg =
+            res.status === 404
+              ? `File "${files[i]}" not found on branch "${branchName}"`
+              : `Failed to fetch ${files[i]} (${res.status})`
+          setFetchError(msg)
+          setState((prev) => ({
+            status: 'error',
+            data: prev.data,
+            message: msg,
+          }))
+          return
+        }
       }
-      const css = await res.text()
-      parent.postMessage({ pluginMessage: { type: 'COMPARE_WITH_CSS', css } }, '*')
+      const [mainCss, darkCss, lightCss] = await Promise.all(responses.map((r) => r.text()))
+      parent.postMessage(
+        {
+          pluginMessage: {
+            type: 'COMPARE_WITH_CSS',
+            css: { main: mainCss, dark: darkCss, light: lightCss },
+          },
+        },
+        '*',
+      )
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       setFetchError(msg)
-      setState((prev) => ({
-        status: prev.data ? 'ready' : 'error',
-        data: prev.data!,
-        message: msg,
-      }))
+      setState((prev) =>
+        prev.data
+          ? { status: 'ready' as const, data: prev.data, message: msg }
+          : { status: 'error' as const, message: msg },
+      )
     }
   }, [])
 
@@ -92,11 +104,11 @@ const App = () => {
           fetchAndCompare(branchRef.current)
           break
         case 'ERROR':
-          setState((prev) => ({
-            status: prev.data ? 'ready' : 'error',
-            data: prev.data!,
-            message: msg.message,
-          }))
+          setState((prev) =>
+            prev.data
+              ? { status: 'ready' as const, data: prev.data, message: msg.message }
+              : { status: 'error' as const, message: msg.message },
+          )
           break
       }
     }
@@ -108,7 +120,6 @@ const App = () => {
   // Fetch on initial load
   useEffect(() => {
     fetchAndCompare(branch)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const refresh = () => {
