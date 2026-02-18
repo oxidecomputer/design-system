@@ -311,7 +311,7 @@
     }
 
     .admonitionblock p code {
-      @apply border-none text-inverse bg-success-inverse;
+      @apply border-none text-inverse bg-accent-inverse;
     }
 
     pre {

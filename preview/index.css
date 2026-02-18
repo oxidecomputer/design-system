@@ -12,6 +12,8 @@
 @import '../styles/preflight.css' layer(base);
 @import '../styles/tailwind.css';
 @import '../styles/main.css';
+@import '../styles/dark.css';
+@import '../styles/light.css';
 @import '../components/src/assets/button.css';
 @import '../components/src/assets/spinner.css';
 @import '../components/src/assets/tabs.css';
