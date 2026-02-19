@@ -52,7 +52,7 @@
     }
 
     .admonitionblock .quoteblock {
-      @apply mb-2 mt-2 pl-[0.75rem] border-success-secondary;
+      @apply mb-2 mt-2 pl-[0.75rem] border-accent-secondary;
     }
 
     .admonition-content .paragraph {
@@ -367,7 +367,7 @@
     }
 
     .admonitionblock {
-      @apply rounded-lg border text-success bg-success border-success-tertiary;
+      @apply rounded-lg border text-accent bg-accent border-accent-tertiary;
       @apply my-[1.5rem] flex px-3 py-3;
     }
 
@@ -380,7 +380,7 @@
     }
 
     .admonitionblock strong {
-      @apply text-success;
+      @apply text-accent;
     }
 
     .admonitionblock.caution strong,
@@ -406,7 +406,7 @@
 
     .admonitionblock,
     .admonitionblock blockquote {
-      @apply text-success;
+      @apply text-accent;
     }
 
     .admonitionblock.tip,
@@ -459,7 +459,7 @@
     }
 
     .admonitionblock a {
-      @apply text-success;
+      @apply text-accent;
     }
 
     .admonitionblock.caution a,
