@@ -47,10 +47,9 @@ Make sure disabled buttons don't get the pointer cursor.
 }
 
 /* Add light mode variant */
-@custom-variant light (&:where([data-theme=light], [data-theme=light] *);
+@custom-variant light (&:where([data-theme=light], [data-theme=light] *));
 
 /* Shadow system */
-
 :root {
   --shadow-border-base: 0 0 0 1px #ffffff10;
   --shadow-border-bg: 0 0 0 1px var(--surface-secondary);
