@@ -6,10 +6,6 @@
   --surface-tertiary: var(--color-neutral-300);
   --surface-disabled: var(--color-neutral-100);
   --surface-scrim: oklch(0.162 0.0100 260.0 / 0.4);
-  --surface-accent-inverse: var(--theme-accent-800);
-  --surface-accent: var(--theme-accent-200);
-  --surface-accent-hover: var(--theme-accent-300);
-  --surface-accent-secondary: var(--theme-accent-400);
   --surface-accent-alt-inverse: var(--theme-accent-alt-800);
   --surface-accent-alt: var(--theme-accent-alt-200);
   --surface-accent-alt-hover: var(--theme-accent-alt-300);
@@ -39,10 +35,6 @@
   --content-tertiary: var(--color-neutral-600);
   --content-quaternary: var(--color-neutral-500);
   --content-disabled: var(--color-neutral-500);
-  --content-accent: var(--theme-accent-800);
-  --content-accent-secondary: var(--theme-accent-700);
-  --content-accent-tertiary: var(--theme-accent-600);
-  --content-accent-disabled: var(--theme-accent-500);
   --content-accent-alt: var(--theme-accent-alt-800);
   --content-accent-alt-secondary: var(--theme-accent-alt-700);
   --content-accent-alt-tertiary: var(--theme-accent-alt-600);
@@ -75,10 +67,6 @@
   --stroke-secondary: var(--color-neutral-200);
   --stroke-tertiary: var(--color-neutral-100);
   --stroke-surface: var(--surface-default);
-  --stroke-accent: var(--theme-accent-800);
-  --stroke-accent-secondary: var(--theme-accent-600);
-  --stroke-accent-tertiary: var(--theme-accent-400);
-  --stroke-accent-quaternary: var(--theme-accent-300);
   --stroke-accent-alt: var(--theme-accent-alt-800);
   --stroke-accent-alt-secondary: var(--theme-accent-alt-600);
   --stroke-accent-alt-tertiary: var(--theme-accent-alt-400);
@@ -103,4 +91,24 @@
   --stroke-info-secondary: var(--theme-info-600);
   --stroke-info-tertiary: var(--theme-info-400);
   --stroke-info-quaternary: var(--theme-info-300);
+}
+
+:root,
+.red-theme,
+.yellow-theme,
+.blue-theme,
+.green-theme,
+.purple-theme {
+  --surface-accent-inverse: var(--theme-accent-800);
+  --surface-accent: var(--theme-accent-200);
+  --surface-accent-hover: var(--theme-accent-300);
+  --surface-accent-secondary: var(--theme-accent-400);
+  --content-accent: var(--theme-accent-800);
+  --content-accent-secondary: var(--theme-accent-700);
+  --content-accent-tertiary: var(--theme-accent-600);
+  --content-accent-disabled: var(--theme-accent-500);
+  --stroke-accent: var(--theme-accent-800);
+  --stroke-accent-secondary: var(--theme-accent-600);
+  --stroke-accent-tertiary: var(--theme-accent-400);
+  --stroke-accent-quaternary: var(--theme-accent-300);
 }
