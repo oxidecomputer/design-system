@@ -51,7 +51,7 @@ Make sure disabled buttons don't get the pointer cursor.
 
 /* Shadow system */
 :root {
-  --shadow-border-base: 0 0 0 1px #ffffff10;
+  --shadow-border-base: 0 0 0 1px #ffffff0d;
   --shadow-border-bg: 0 0 0 1px var(--surface-secondary);
   --shadow-border: var(--shadow-border-base), var(--shadow-border-bg);
   --shadow-small: 0px 1px 2px #00000029;
