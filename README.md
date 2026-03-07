@@ -22,12 +22,11 @@ For more information checkout [auto's docs](https://intuit.github.io/auto/docs).
 
 ## Syncing with Figma
 
-To ensure consistency between our designs and implementation we use the
-[Design Tokens Plugin](https://www.figma.com/community/plugin/888356646278934516/Design-Tokens)
-inside of figma to export a [json tokens file](styles/src/tokens.json) to the repo. The user can then run `npm run build` to generate theme files. This is not automatic, the user should then commit the changes.
+The Token Sync Figma plugin reads the CSS files in `styles/` directly and compares them
+against Figma variables. Changes can be applied from the plugin UI.
 
-The design tokens plugin is two way so token changes made in the json file can be synced
-back with figma.
+To regenerate colour palettes, run `npm run color-gen:apply`. This updates the `--color-*`
+variables in `styles/main.css` and writes the accent override files.
 
 ## Exporting Icons
 

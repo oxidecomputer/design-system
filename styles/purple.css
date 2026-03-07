@@ -1,0 +1,14 @@
+.purple-theme {
+  --theme-accent-200: var(--color-purple-200);
+  --theme-accent-300: var(--color-purple-300);
+  --theme-accent-400: var(--color-purple-400);
+  --theme-accent-500: var(--color-purple-500);
+  --theme-accent-600: var(--color-purple-600);
+  --theme-accent-700: var(--color-purple-700);
+  --theme-accent-800: var(--color-purple-800);
+  --theme-accent-900: var(--color-purple-900);
+  --theme-accent-1000: var(--color-purple-1000);
+  --theme-accent-1100: var(--color-purple-1100);
+  --theme-accent-1200: var(--color-purple-1200);
+  --theme-accent-1300: var(--color-purple-1300);
+}

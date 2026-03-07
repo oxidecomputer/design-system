@@ -25,20 +25,20 @@ export interface BadgeProps {
 
 export const badgeColors: Record<BadgeVariant, Record<BadgeColor, string>> = {
   default: {
-    default: 'bg-accent-secondary text-accent ring-accent/15',
-    destructive: 'bg-destructive-secondary text-destructive ring-destructive/15',
-    notice: 'bg-notice-secondary text-notice ring-notice/15',
-    blue: 'bg-blue-200 text-blue-800 ring-blue-800/15',
-    purple: 'bg-purple-200 text-purple-800 ring-purple-800/15',
-    neutral: 'bg-secondary text-default ring-neutral-700/15',
+    default: 'bg-accent text-accent ring-current/15',
+    destructive: 'bg-destructive text-destructive ring-current/15',
+    notice: 'bg-notice text-notice ring-current/15',
+    blue: 'bg-info text-info ring-current/15',
+    purple: 'bg-accent-alt text-accent-alt ring-current/15',
+    neutral: 'bg-secondary text-default ring-current/15',
   },
   solid: {
-    default: 'bg-accent text-inverse',
-    destructive: 'bg-destructive text-inverse',
-    notice: 'bg-notice text-inverse',
-    neutral: 'bg-inverse-secondary text-inverse',
-    purple: 'bg-purple-700 text-inverse',
-    blue: 'bg-info text-inverse',
+    default: 'bg-green-800 text-green-200 light:bg-green-900 ring-current/15',
+    destructive: 'bg-red-800 text-red-200 light:bg-red-900 ring-current/15',
+    notice: 'bg-yellow-800 text-yellow-200 light:bg-yellow-900 ring-current/15',
+    blue: 'bg-blue-800 text-blue-200 light:bg-blue-900 ring-current/15',
+    purple: 'bg-purple-800 text-purple-200 light:bg-purple-900 ring-current/15',
+    neutral: 'bg-neutral-800 text-neutral-200 light:bg-neutral-900 ring-current/15',
   },
 }
 
@@ -53,7 +53,7 @@ export const Badge = ({
       className={cn(
         'ox-badge ring ring-inset',
         `variant-${variant}`,
-        'text-mono-sm inline-flex h-4 items-center whitespace-nowrap rounded-sm px-[3px] py-[1px] uppercase',
+        'text-mono-sm inline-flex h-4 items-center rounded-sm px-0.75 py-px whitespace-nowrap uppercase',
         badgeColors[variant][color],
         className,
       )}

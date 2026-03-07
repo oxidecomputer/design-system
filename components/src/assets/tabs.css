@@ -23,21 +23,21 @@
   content: ' ';
 }
 .ox-tabs.full-width .ox-tabs-list:before {
-  @apply border-secondary block w-10 min-w-max flex-shrink-0 border-b;
+  @apply border-secondary block w-10 min-w-max shrink-0 border-b;
   content: ' ';
 }
 
 .ox-tabs-panel:focus-visible {
-  @apply outline-accent-secondary outline outline-2 outline-offset-[1rem];
+  @apply outline-accent-secondary outline-2 outline-offset-[1rem];
 }
 
 .ox-tab {
-  @apply text-mono-sm text-tertiary border-secondary h-10 space-x-2 whitespace-nowrap border-b px-1.5 pb-1 pt-2 uppercase !no-underline;
+  @apply text-mono-sm text-tertiary border-secondary h-10 space-x-2 whitespace-nowrap border-b px-1.5 pb-1 pt-2 uppercase no-underline!;
 }
 
 .ox-tab[data-state='active'],
 .ox-tab.is-selected {
-  @apply text-accent border-accent;
+  @apply text-accent border-accent light:border-green-800 light:text-raise;
 }
 
 .ox-tab > * {
@@ -49,7 +49,7 @@
 
 .ox-tab[data-state='active']:hover > *,
 .ox-tab.is-selected:hover > * {
-  @apply !bg-accent-secondary;
+  @apply !bg-accent;
 }
 
 .ox-tab > .ox-badge {
@@ -63,5 +63,5 @@
 
 .ox-tab[data-state='active'] > .ox-badge,
 .ox-tab.is-selected > .ox-badge {
-  @apply bg-accent-secondary;
+  @apply bg-accent;
 }

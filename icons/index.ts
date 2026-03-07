@@ -109,8 +109,10 @@ export type Icon =
   | { name: 'menu-open'; size: 12 }
   | { name: 'metrics'; size: 16 }
   | { name: 'metrics'; size: 24 }
+  | { name: 'monitor'; size: 12 }
   | { name: 'monitoring'; size: 16 }
   | { name: 'monitoring'; size: 24 }
+  | { name: 'moon'; size: 12 }
   | { name: 'more'; size: 12 }
   | { name: 'networking'; size: 16 }
   | { name: 'networking'; size: 24 }
@@ -168,6 +170,7 @@ export type Icon =
   | { name: 'subnet'; size: 16 }
   | { name: 'subnet'; size: 24 }
   | { name: 'success'; size: 12 }
+  | { name: 'sun'; size: 12 }
   | { name: 'tags'; size: 16 }
   | { name: 'terminal'; size: 16 }
   | { name: 'terminal'; size: 24 }
