@@ -64,7 +64,8 @@
         "name": "green"
       },
       {
-        "name": "blue"
+        "name": "blue",
+        "chromaScale": 0.85
       },
       {
         "name": "purple",
