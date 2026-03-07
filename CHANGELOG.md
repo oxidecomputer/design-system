@@ -1,3 +1,32 @@
+# v5.0.0 (Sat Mar 07 2026)
+
+#### 💥 Breaking Change
+
+- OKLCH color palette rewrite + light mode + Figma token sync [#163](https://github.com/oxidecomputer/design-system/pull/163) ([@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### 🚀 Enhancement
+
+- Tighter type, smaller radii, marketing site tweaks [#156](https://github.com/oxidecomputer/design-system/pull/156) ([@dependabot[bot]](https://github.com/dependabot[bot]) [@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### 🐛 Bug Fix
+
+- Fix/sync v4.1.0 [#162](https://github.com/oxidecomputer/design-system/pull/162) ([@github-actions[bot]](https://github.com/github-actions[bot]) [@benjaminleonard](https://github.com/benjaminleonard))
+- Fix/sync v4.0.3 [#160](https://github.com/oxidecomputer/design-system/pull/160) ([@github-actions[bot]](https://github.com/github-actions[bot]) [@benjaminleonard](https://github.com/benjaminleonard))
+- Fix missing badge token [#158](https://github.com/oxidecomputer/design-system/pull/158) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### ⚠️ Pushed to `master`
+
+- Bump ([@benjaminleonard](https://github.com/benjaminleonard))
+- Bump version to 5.0.1 ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 3
+
+- [@dependabot[bot]](https://github.com/dependabot[bot])
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v5.0.1 (Fri Mar 07 2026)
 
 #### 💥 Breaking Change
