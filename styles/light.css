@@ -30,9 +30,9 @@
   --surface-info-hover: var(--theme-info-1100);
   --surface-info-secondary: var(--theme-info-1000);
   --content-raise: var(--color-neutral-0);
-  --content-default: var(--color-neutral-500);
-  --content-secondary: var(--color-neutral-600);
-  --content-tertiary: var(--color-neutral-700);
+  --content-default: var(--color-neutral-300);
+  --content-secondary: var(--color-neutral-500);
+  --content-tertiary: var(--color-neutral-600);
   --content-quaternary: var(--color-neutral-800);
   --content-disabled: var(--color-neutral-1000);
   --content-accent-alt: var(--theme-accent-alt-300);
