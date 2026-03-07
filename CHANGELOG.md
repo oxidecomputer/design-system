@@ -1,3 +1,16 @@
+# v6.0.1 (Fri Mar 07 2026)
+
+#### 💥 Breaking Change
+
+- OKLCH color palette rewrite + light mode + Figma token sync [#163](https://github.com/oxidecomputer/design-system/pull/163) ([@benjaminleonard](https://github.com/benjaminleonard) [@github-actions[bot]](https://github.com/github-actions[bot]))
+
+#### Authors: 2
+
+- [@github-actions[bot]](https://github.com/github-actions[bot])
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v4.1.0 (Wed Feb 04 2026)
 
 #### 🚀 Enhancement
