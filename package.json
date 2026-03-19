@@ -15,7 +15,7 @@
   "scripts": {
     "export-icons": "npx zx ./scripts/export-icons.md && npm run fmt",
     "build": "tsup --dts",
-    "release": "auto shipit",
+    "release": "npm publish --provenance",
     "lint": "eslint --ext .js,.ts,.tsx,.json .",
     "fmt": "prettier --cache --write . && npm run lint -- --fix",
     "test": "vitest --config test/vitest.config.ts",
@@ -43,7 +43,6 @@
     "@types/svg-sprite": "^0.0.39",
     "@typescript-eslint/eslint-plugin": "^8.44.1",
     "@vitejs/plugin-react": "^5.1.3",
-    "auto": "^11.3.0",
     "culori": "^4.0.2",
     "dedent": "^1.7.0",
     "eslint": "^9.36.0",
@@ -89,12 +88,6 @@
     "url": "https://github.com/oxidecomputer/design-system/issues"
   },
   "homepage": "https://github.com/oxidecomputer/design-system#readme",
-  "auto": {
-    "plugins": [
-      "npm",
-      "released"
-    ]
-  },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public"
