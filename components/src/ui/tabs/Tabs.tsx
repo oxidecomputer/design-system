@@ -13,11 +13,11 @@ import type {
 } from '@radix-ui/react-tabs'
 import { Content, List, Root, Trigger } from '@radix-ui/react-tabs'
 import cn from 'classnames'
-import type { SetRequired } from 'type-fest'
 
 // They don't require a default value, but without it there is no tab selected
 // by default.
-export type TabsRootProps = SetRequired<TabsProps, 'defaultValue'>
+export type TabsRootProps = Omit<TabsProps, 'defaultValue'> &
+  Required<Pick<TabsProps, 'defaultValue'>>
 
 export const Tabs = {
   Root: ({ className, ...props }: TabsRootProps) => (
