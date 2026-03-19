@@ -59,6 +59,7 @@ jobs:
           cache: npm
       - run: npm install -g npm@latest
       - run: npm install
+      - run: git checkout -- package-lock.json
 
       - name: Build
         run: npm run build
