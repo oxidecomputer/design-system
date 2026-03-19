@@ -1,4 +1,5 @@
-:root {
+:root,
+.dark {
   --surface-default: var(--color-neutral-0);
   --surface-hover: var(--color-neutral-200);
   --surface-raise: var(--color-neutral-50);
@@ -94,6 +95,12 @@
 }
 
 :root,
+.dark,
+.dark .red-theme,
+.dark .yellow-theme,
+.dark .blue-theme,
+.dark .green-theme,
+.dark .purple-theme,
 .red-theme,
 .yellow-theme,
 .blue-theme,
