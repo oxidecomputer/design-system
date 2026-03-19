@@ -22,7 +22,7 @@ jobs:
         with:
           node-version: 22.x
           cache: npm
-          registry-url: https://registry.npmjs.org
+      - run: npm install -g npm@latest
       - run: npm install
       - run: npm run build
 
@@ -30,9 +30,7 @@ jobs:
         run: npm version ${{ inputs.version }} --no-git-tag-version
 
       - name: Publish to npm
-        run: |
-          sed -i '/_authToken/d' "$NPM_CONFIG_USERCONFIG"
-          npm publish --provenance --access public
+        run: npm publish --provenance --access public
 
       - name: Commit version bump
         run: |
