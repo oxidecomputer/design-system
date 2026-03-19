@@ -1,3 +1,19 @@
+# v6.0.2 (Thu Mar 19 2026)
+
+#### 🐛 Bug Fix
+
+- Add .dark class to force dark mode on components [#168](https://github.com/oxidecomputer/design-system/pull/168) ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### ⚠️ Pushed to `master`
+
+- Fix release workflow: reset package-lock.json after npm install ([@benjaminleonard](https://github.com/benjaminleonard))
+
+#### Authors: 1
+
+- Benjamin Leonard ([@benjaminleonard](https://github.com/benjaminleonard))
+
+---
+
 # v6.0.1 (Fri Mar 07 2026)
 
 #### 💥 Breaking Change
