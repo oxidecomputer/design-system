@@ -42,17 +42,17 @@ jobs:
       - name: Update PR description with canary version
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CANARY_VERSION: ${{ steps.canary.outputs.version }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          CURRENT_BODY=$(gh pr view ${{ github.event.pull_request.number }} --json body -q .body)
-          CANARY_LINE="**Canary:** \`npm install @oxide/design-system@${{ steps.canary.outputs.version }}\`"
+          CURRENT_BODY=$(gh pr view "$PR_NUMBER" --json body -q .body)
+          CANARY_LINE="**Canary:** \`npm install @oxide/design-system@${CANARY_VERSION}\`"
           if echo "$CURRENT_BODY" | grep -q '^\*\*Canary:\*\*'; then
-            UPDATED_BODY=$(echo "$CURRENT_BODY" | sed 's|^\*\*Canary:\*\*.*|'"$CANARY_LINE"'|')
+            UPDATED_BODY=$(echo "$CURRENT_BODY" | sed "s|^\*\*Canary:\*\*.*|${CANARY_LINE}|")
           else
-            UPDATED_BODY="$CURRENT_BODY
-
-$CANARY_LINE"
+            UPDATED_BODY="${CURRENT_BODY}"$'\n\n'"${CANARY_LINE}"
           fi
-          gh pr edit ${{ github.event.pull_request.number }} --body "$UPDATED_BODY"
+          gh pr edit "$PR_NUMBER" --body "$UPDATED_BODY"
 
   release:
     if: github.event_name == 'workflow_dispatch'
