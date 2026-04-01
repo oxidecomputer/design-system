@@ -1,69 +1,47 @@
 name: Release
 
 on:
-  push:
-    branches: [master]
-  pull_request:
-    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release (e.g. 6.0.2)"
+        required: true
+        type: string
 
-# Enabled permissions on GITHUB_TOKEN
 permissions:
-  # To be able to push to the repo
   contents: write
-  # To update the pr description with canary info
-  pull-requests: write
-  # For pr-check to create a status
-  statuses: write
-  # Needed to create PR statuses/checks
-  checks: write
-  # To post comments on PRs
-  issues: write
-  # For trusted publishing
   id-token: write
 
 jobs:
-  validate-labels:
-    runs-on: ubuntu-latest
-    if:
-      "!contains(github.event.head_commit.message, 'ci skip') &&
-      !contains(github.event.head_commit.message, 'skip ci')"
-    steps:
-      - uses: actions/checkout@v5
-      - run: git fetch --unshallow --tags
-      - uses: actions/setup-node@v5
-        with:
-          node-version: 22.x
-          cache: npm
-      - run: npm install
-      - name: Verify Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run:
-          npx auto pr-check
-          --url=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
-
   release:
     runs-on: ubuntu-latest
     environment: production
-    if: |
-      !contains(github.event.head_commit.message, 'ci skip') &&
-      !contains(github.event.head_commit.message, 'skip ci')
     steps:
       - uses: actions/checkout@v5
-        with:
-          ref: ${{ github.head_ref || github.ref_name }}
-      - run: git fetch --unshallow --tags
       - uses: actions/setup-node@v5
         with:
           node-version: 22.x
           cache: npm
       - run: npm install -g npm@latest
       - run: npm install
+      - run: npm run build
 
-      - name: Build
-        run: npm run build
+      - name: Set version
+        run: npm version ${{ inputs.version }} --no-git-tag-version
 
-      - name: Create Release
-        run: npm run release
+      - name: Publish to npm
+        run: npm publish --provenance --access public --tag latest
+
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "Release v${{ inputs.version }} [skip ci]"
+          git tag "v${{ inputs.version }}"
+          git push origin master --tags
+
+      - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create "v${{ inputs.version }}" --generate-notes
