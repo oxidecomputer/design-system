@@ -7,12 +7,45 @@ on:
         description: "Version to release (e.g. 6.0.2)"
         required: true
         type: string
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
+  pull-requests: write
   id-token: write
 
 jobs:
+  canary:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm install -g npm@latest
+      - run: npm install
+      - run: npm run build
+
+      - name: Publish canary
+        id: canary
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          CANARY_VERSION="$(node -p "require('./package.json').version")-canary.${SHA}"
+          npm version "$CANARY_VERSION" --no-git-tag-version
+          npm publish --provenance --access public --tag canary
+          echo "version=$CANARY_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Comment on PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ github.event.pull_request.number }} \
+            --body "Canary published: \`npm install @oxide/design-system@${{ steps.canary.outputs.version }}\`"
+
   release:
     runs-on: ubuntu-latest
     environment: production
