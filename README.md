@@ -10,15 +10,15 @@ npm install --save @oxide/design-system
 
 ## Publishing
 
-This package uses [auto](https://github.com/intuit/auto/) to automatically publish new
-changes for any merged pull requests. Version bumps are determined by the GitHub labels
-added to the pull request. `major`, `minor`, and `patch` labels bumps the related semver
-version when the PR is merged. `documentation` and `internal` can be used instead to
-indicate that a version bump shouldn't happen. If you want to indiciate a version bump but
-don't want the release to happen yet you can use `major`, `minor`, or `patch` in conjunction
-with `skip-release`.
+Releases are managed via GitHub Actions workflows triggered from the Actions tab.
 
-For more information checkout [auto's docs](https://intuit.github.io/auto/docs).
+- **Full release**: Trigger the "Release" workflow manually with a version number (e.g.,
+  `6.0.3`). This publishes to npm under the `latest` tag, commits the version bump, creates
+  a git tag, and generates a GitHub Release.
+- **Canary release**: Automatically published on every pull request. Each push to a PR
+  publishes a prerelease version (e.g., `6.0.2-canary.a1b2c3d`) to npm under the `canary`
+  tag. Install it with `npm install @oxide/design-system@canary` to test changes before
+  merging.
 
 ## Syncing with Figma
 

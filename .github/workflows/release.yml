@@ -7,13 +7,55 @@ on:
         description: "Version to release (e.g. 6.0.2)"
         required: true
         type: string
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
+  pull-requests: write
   id-token: write
 
 jobs:
+  canary:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22.x
+          cache: npm
+      - run: npm install -g npm@latest
+      - run: npm install
+      - run: npm run build
+
+      - name: Publish canary
+        id: canary
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          CANARY_VERSION="$(node -p "require('./package.json').version")-canary.${SHA}"
+          npm version "$CANARY_VERSION" --no-git-tag-version
+          npm publish --provenance --access public --tag canary
+          echo "version=$CANARY_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Update PR description with canary version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CANARY_VERSION: ${{ steps.canary.outputs.version }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          CURRENT_BODY=$(gh pr view "$PR_NUMBER" --json body -q .body)
+          CANARY_LINE="**Canary:** \`npm install @oxide/design-system@${CANARY_VERSION}\`"
+          if echo "$CURRENT_BODY" | grep -q '^\*\*Canary:\*\*'; then
+            UPDATED_BODY=$(echo "$CURRENT_BODY" | sed "s|^\*\*Canary:\*\*.*|${CANARY_LINE}|")
+          else
+            UPDATED_BODY="${CURRENT_BODY}"$'\n\n'"${CANARY_LINE}"
+          fi
+          gh pr edit "$PR_NUMBER" --body "$UPDATED_BODY"
+
   release:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment: production
     steps:
