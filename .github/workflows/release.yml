@@ -39,14 +39,23 @@ jobs:
           npm publish --provenance --access public --tag canary
           echo "version=$CANARY_VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Comment on PR
+      - name: Update PR description with canary version
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} \
-            --body "Canary published: \`npm install @oxide/design-system@${{ steps.canary.outputs.version }}\`"
+          CURRENT_BODY=$(gh pr view ${{ github.event.pull_request.number }} --json body -q .body)
+          CANARY_LINE="**Canary:** \`npm install @oxide/design-system@${{ steps.canary.outputs.version }}\`"
+          if echo "$CURRENT_BODY" | grep -q '^\*\*Canary:\*\*'; then
+            UPDATED_BODY=$(echo "$CURRENT_BODY" | sed 's|^\*\*Canary:\*\*.*|'"$CANARY_LINE"'|')
+          else
+            UPDATED_BODY="$CURRENT_BODY
+
+$CANARY_LINE"
+          fi
+          gh pr edit ${{ github.event.pull_request.number }} --body "$UPDATED_BODY"
 
   release:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment: production
     steps:
