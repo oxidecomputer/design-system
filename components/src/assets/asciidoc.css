@@ -383,25 +383,8 @@
       @apply text-accent;
     }
 
-    .admonitionblock.caution strong,
-    .admonitionblock.important strong {
-      @apply text-notice;
-    }
-
-    .admonitionblock.caution .quoteblock {
-      @apply border-notice-secondary;
-    }
-
-    .admonitionblock.warning .quoteblock {
-      @apply border-destructive-secondary;
-    }
-
-    .admonitionblock.warning strong {
-      @apply text-destructive;
-    }
-
-    .admonitionblock.tip strong {
-      color: var(--color-purple-800);
+    .admonitionblock .quoteblock {
+      @apply border-accent-secondary;
     }
 
     .admonitionblock,
@@ -409,70 +392,8 @@
       @apply text-accent;
     }
 
-    .admonitionblock.tip,
-    .admonitionblock.tip blockquote {
-      background-color: var(--color-purple-200);
-      color: var(--color-purple-800);
-      border-color: var(--color-purple-400);
-    }
-
-    .admonitionblock.caution,
-    .admonitionblock.important,
-    .admonitionblock.caution blockquote,
-    .admonitionblock.important blockquote {
-      @apply text-notice bg-notice border-notice-tertiary;
-    }
-
-    .admonitionblock.warning,
-    .admonitionblock.warning blockquote {
-      @apply text-destructive bg-destructive border-destructive-tertiary;
-    }
-
-    .admonitionblock.caution,
-    .admonitionblock.important {
-      @apply text-notice;
-    }
-
-    .admonitionblock.warning {
-      @apply text-destructive;
-    }
-
-    .admonitionblock.tip {
-      color: var(--color-purple-800);
-    }
-
-    .admonitionblock.caution p code,
-    .admonitionblock.important p code {
-      @apply bg-notice-inverse;
-    }
-
-    .admonitionblock.warning p code {
-      @apply bg-error-inverse;
-    }
-
-    .admonitionblock.tip p code {
-      @apply bg-purple-800;
-    }
-
     .admonitionblock a {
-      @apply underline;
-    }
-
-    .admonitionblock a {
-      @apply text-accent;
-    }
-
-    .admonitionblock.caution a,
-    .admonitionblock.important a {
-      @apply text-notice;
-    }
-
-    .admonitionblock.warning a {
-      @apply text-destructive;
-    }
-
-    .admonitionblock.tip a {
-      @apply text-purple-800;
+      @apply underline text-accent;
     }
 
     .admonition-icon svg {

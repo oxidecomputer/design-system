@@ -9,8 +9,17 @@ import { Content, parse, Title, type AdmonitionBlock } from '@oxide/react-asciid
 
 import { titleCase } from '../utils'
 
+const themeForAdmonition: Record<string, string> = {
+  note: 'green-theme',
+  caution: 'yellow-theme',
+  important: 'yellow-theme',
+  warning: 'red-theme',
+  tip: 'purple-theme',
+}
+
 const Admonition = ({ node }: { node: AdmonitionBlock }) => {
   const attrs = node.attributes
+  const theme = themeForAdmonition[attrs.name] || ''
 
   let icon
   if (attrs.name === 'caution') {
@@ -22,7 +31,7 @@ const Admonition = ({ node }: { node: AdmonitionBlock }) => {
   }
 
   return (
-    <div className={`admonitionblock ${attrs.name}`}>
+    <div className={`admonitionblock ${attrs.name} ${theme}`}>
       <div className="admonition-icon">{icon}</div>
       <div className="admonition-content content">
         <Title text={node.title} />
