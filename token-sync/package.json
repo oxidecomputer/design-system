@@ -7,7 +7,7 @@
 		"release": "plugma release"
 	},
 	"devDependencies": {
-		"vite": "^7.0.0",
+		"vite": "^7.3.2",
 		"@figma/plugin-typings": "^1.100.2",
 		"plugma": "^2.2.3",
 		"globals": "^15.11.0",
