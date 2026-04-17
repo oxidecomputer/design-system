@@ -91,12 +91,8 @@
     }
 
     /* Use semi-bold for strong */
-    strong {
+    strong:not(a strong) {
       @apply text-raise font-[500];
-    }
-
-    a strong {
-      @apply text-accent-secondary;
     }
 
     h2,
