@@ -36,7 +36,7 @@ const Admonition = ({ node }: { node: AdmonitionBlock }) => {
       <div className="admonition-content content">
         <div>{titleCase(attrs.name.toString())}</div>
         <div>
-          <div className="admonition-title">{node.title}</div>
+          {node.title && <div className="admonition-title">{node.title}</div>}
           {node.content && parse(node.content)}
           <Content blocks={node.blocks} />
         </div>

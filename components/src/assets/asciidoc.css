@@ -61,7 +61,7 @@
     }
 
     .admonition-content > div:first-of-type {
-      @apply text-sans-semi-md;
+      @apply text-accent;
     }
 
     .admonition-content .admonition-title {
@@ -375,7 +375,7 @@
     }
 
     .admonitionblock {
-      @apply text-accent-secondary bg-accent rounded-md border-current/15;
+      @apply text-accent-secondary bg-accent rounded-md border-current/15 border;
       @apply my-[1.5rem] flex px-3 py-3;
     }
 
