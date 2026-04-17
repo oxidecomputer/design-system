@@ -91,6 +91,25 @@
   --stroke-success-secondary: var(--theme-success-600);
   --stroke-success-tertiary: var(--theme-success-400);
   --stroke-success-quaternary: var(--theme-success-300);
+
+  /* Syntax highlighting (consumed by oxide shiki theme) */
+  --syntax-bg: var(--color-neutral-1300);
+  --syntax-fg: var(--color-neutral-500);
+  --syntax-comment: var(--color-neutral-700);
+  --syntax-string: var(--color-green-600);
+  --syntax-operator: var(--color-green-500);
+  --syntax-number: var(--color-yellow-600);
+  --syntax-amber: var(--color-yellow-700);
+  --syntax-keyword: var(--color-purple-600);
+  --syntax-purple: var(--color-purple-700);
+  --syntax-function: var(--color-blue-600);
+  --syntax-blue: var(--color-blue-700);
+  --syntax-blue-pale: var(--color-blue-500);
+  --syntax-builtin: var(--color-red-600);
+  --syntax-parameter: var(--color-red-500);
+  --syntax-escape: var(--color-red-400);
+  --syntax-string-alias: var(--color-red-400);
+  --syntax-rose: var(--color-red-300);
 }
 
 [data-theme="light"],

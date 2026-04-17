@@ -1,8 +1,8 @@
 {
   "name": "Oxide Dark",
   "colors": {
-    "editor.background": "#080F11",
-    "editor.foreground": "#E7E7E8"
+    "editor.background": "var(--syntax-bg)",
+    "editor.foreground": "var(--syntax-fg)"
   },
   "tokenColors": [
     {
@@ -13,32 +13,32 @@
         "punctuation.definition.variable"
       ],
       "settings": {
-        "foreground": "#E7E7E8"
+        "foreground": "var(--syntax-fg)"
       }
     },
     {
       "scope": "punctuation",
       "settings": {
-        "foreground": "#A1A4A5",
+        "foreground": "var(--syntax-comment)",
         "fontStyle": ""
       }
     },
     {
       "scope": ["comment", "punctuation.definition.comment"],
       "settings": {
-        "foreground": "#A1A4A5"
+        "foreground": "var(--syntax-comment)"
       }
     },
     {
       "scope": ["string", "punctuation.definition.string"],
       "settings": {
-        "foreground": "#68D9A7"
+        "foreground": "var(--syntax-string)"
       }
     },
     {
       "scope": "constant.character.escape",
       "settings": {
-        "foreground": "#EFB7C2"
+        "foreground": "var(--syntax-escape)"
       }
     },
     {
@@ -53,7 +53,7 @@
         "keyword.other.unit.suffix.floating-point"
       ],
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
@@ -68,14 +68,14 @@
         "punctuation.definition.keyword"
       ],
       "settings": {
-        "foreground": "#C6A5EA",
+        "foreground": "var(--syntax-keyword)",
         "fontStyle": ""
       }
     },
     {
       "scope": "entity.name.tag.documentation",
       "settings": {
-        "foreground": "#C6A5EA"
+        "foreground": "var(--syntax-keyword)"
       }
     },
     {
@@ -88,7 +88,7 @@
         "punctuation.separator.key-value"
       ],
       "settings": {
-        "foreground": "#A7E0C8"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
@@ -100,7 +100,7 @@
         "variable.function"
       ],
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
@@ -112,31 +112,31 @@
         "entity.name.struct"
       ],
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "entity.name.enum",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": ["meta.enum variable.other.readwrite", "variable.other.enummember"],
       "settings": {
-        "foreground": "#A7E0C8"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
       "scope": "meta.property.object",
       "settings": {
-        "foreground": "#A7E0C8"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
       "scope": ["meta.type", "meta.type-alias", "support.type", "entity.name.type"],
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
@@ -148,49 +148,49 @@
         "punctuation.decorator"
       ],
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": ["variable.parameter", "meta.function.parameters"],
       "settings": {
-        "foreground": "#F39EAE"
+        "foreground": "var(--syntax-parameter)"
       }
     },
     {
       "scope": ["constant.language", "support.function.builtin"],
       "settings": {
-        "foreground": "#F7869B"
+        "foreground": "var(--syntax-builtin)"
       }
     },
     {
       "scope": "entity.other.attribute-name.documentation",
       "settings": {
-        "foreground": "#F7869B"
+        "foreground": "var(--syntax-builtin)"
       }
     },
     {
       "scope": ["keyword.control.directive", "punctuation.definition.directive"],
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "punctuation.definition.typeparameters",
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
       "scope": "entity.name.namespace",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "support.type.property-name.css",
       "settings": {
-        "foreground": "#9DAFFA",
+        "foreground": "var(--syntax-function)",
         "fontStyle": ""
       }
     },
@@ -200,19 +200,19 @@
         "variable.language.this punctuation.definition.variable"
       ],
       "settings": {
-        "foreground": "#F7869B"
+        "foreground": "var(--syntax-builtin)"
       }
     },
     {
       "scope": "variable.object.property",
       "settings": {
-        "foreground": "#E7E7E8"
+        "foreground": "var(--syntax-fg)"
       }
     },
     {
       "scope": ["string.template variable", "string variable"],
       "settings": {
-        "foreground": "#E7E7E8"
+        "foreground": "var(--syntax-fg)"
       }
     },
     {
@@ -224,7 +224,7 @@
     {
       "scope": "storage.modifier.specifier.extern.cpp",
       "settings": {
-        "foreground": "#C6A5EA"
+        "foreground": "var(--syntax-keyword)"
       }
     },
     {
@@ -235,7 +235,7 @@
         "entity.name.scope-resolution.function.definition.cpp"
       ],
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
@@ -247,19 +247,19 @@
     {
       "scope": ["storage.modifier.reference.cpp"],
       "settings": {
-        "foreground": "#A7E0C8"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
       "scope": "meta.interpolation.cs",
       "settings": {
-        "foreground": "#E7E7E8"
+        "foreground": "var(--syntax-fg)"
       }
     },
     {
       "scope": "comment.block.documentation.cs",
       "settings": {
-        "foreground": "#E7E7E8"
+        "foreground": "var(--syntax-fg)"
       }
     },
     {
@@ -268,38 +268,38 @@
         "entity.other.attribute-name.parent-selector.css punctuation.definition.entity.css"
       ],
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "punctuation.separator.operator.css",
       "settings": {
-        "foreground": "#A7E0C8"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
       "scope": "source.css entity.other.attribute-name.pseudo-class",
       "settings": {
-        "foreground": "#A7E0C8"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
       "scope": "source.css constant.other.unicode-range",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "source.css variable.parameter.url",
       "settings": {
-        "foreground": "#88DCB7",
+        "foreground": "var(--syntax-operator)",
         "fontStyle": ""
       }
     },
     {
       "scope": ["support.type.vendored.property-name"],
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
@@ -310,7 +310,7 @@
         "meta.definition.variable.scss"
       ],
       "settings": {
-        "foreground": "#F39EAE"
+        "foreground": "var(--syntax-parameter)"
       }
     },
     {
@@ -320,19 +320,19 @@
         "meta.property-list variable.other.less punctuation.definition.variable.less"
       ],
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
       "scope": "keyword.other.unit.percentage.css",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "source.css meta.attribute-selector",
       "settings": {
-        "foreground": "#88DCB7"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
@@ -347,51 +347,51 @@
         "support.type.property-name.yaml"
       ],
       "settings": {
-        "foreground": "#9DAFFA",
+        "foreground": "var(--syntax-function)",
         "fontStyle": ""
       }
     },
     {
       "scope": ["constant.language.json", "constant.language.yaml"],
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": ["entity.name.type.anchor.yaml", "variable.other.alias.yaml"],
       "settings": {
-        "foreground": "#EDD5A6",
+        "foreground": "var(--syntax-number)",
         "fontStyle": ""
       }
     },
     {
       "scope": ["support.type.property-name.table", "entity.name.section.group-title.ini"],
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "constant.other.time.datetime.offset.toml",
       "settings": {
-        "foreground": "#EFB7C2"
+        "foreground": "var(--syntax-escape)"
       }
     },
     {
       "scope": ["punctuation.definition.anchor.yaml", "punctuation.definition.alias.yaml"],
       "settings": {
-        "foreground": "#EFB7C2"
+        "foreground": "var(--syntax-escape)"
       }
     },
     {
       "scope": "entity.other.document.begin.yaml",
       "settings": {
-        "foreground": "#EFB7C2"
+        "foreground": "var(--syntax-escape)"
       }
     },
     {
       "scope": "markup.changed.diff",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
@@ -402,85 +402,85 @@
         "punctuation.definition.to-file.diff"
       ],
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
       "scope": "markup.inserted.diff",
       "settings": {
-        "foreground": "#88DCB7"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
       "scope": "markup.deleted.diff",
       "settings": {
-        "foreground": "#F7869B"
+        "foreground": "var(--syntax-builtin)"
       }
     },
     {
       "scope": ["variable.other.env"],
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
       "scope": ["string.quoted variable.other.env"],
       "settings": {
-        "foreground": "#E7E7E8"
+        "foreground": "var(--syntax-fg)"
       }
     },
     {
       "scope": "support.function.builtin.gdscript",
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
       "scope": "constant.language.gdscript",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "comment meta.annotation.go",
       "settings": {
-        "foreground": "#F39EAE"
+        "foreground": "var(--syntax-parameter)"
       }
     },
     {
       "scope": "comment meta.annotation.parameters.go",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "constant.language.go",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "variable.graphql",
       "settings": {
-        "foreground": "#E7E7E8"
+        "foreground": "var(--syntax-fg)"
       }
     },
     {
       "scope": "string.unquoted.alias.graphql",
       "settings": {
-        "foreground": "#F2CDCD"
+        "foreground": "var(--syntax-string-alias)"
       }
     },
     {
       "scope": "constant.character.enum.graphql",
       "settings": {
-        "foreground": "#A7E0C8"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
       "scope": "meta.objectvalues.graphql constant.object.key.graphql string.unquoted.graphql",
       "settings": {
-        "foreground": "#F2CDCD"
+        "foreground": "var(--syntax-string-alias)"
       }
     },
     {
@@ -491,13 +491,13 @@
         "meta.tag.metadata.doctype punctuation.definition.tag"
       ],
       "settings": {
-        "foreground": "#C6A5EA"
+        "foreground": "var(--syntax-keyword)"
       }
     },
     {
       "scope": ["entity.name.tag"],
       "settings": {
-        "foreground": "#9DAFFA",
+        "foreground": "var(--syntax-function)",
         "fontStyle": ""
       }
     },
@@ -513,13 +513,13 @@
         "constant.character.entity.tsx punctuation"
       ],
       "settings": {
-        "foreground": "#F7869B"
+        "foreground": "var(--syntax-builtin)"
       }
     },
     {
       "scope": ["entity.other.attribute-name"],
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
@@ -530,26 +530,26 @@
         "support.class.component.vue"
       ],
       "settings": {
-        "foreground": "#EFB7C2",
+        "foreground": "var(--syntax-escape)",
         "fontStyle": ""
       }
     },
     {
       "scope": ["punctuation.definition.annotation", "storage.type.annotation"],
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "constant.other.enum.java",
       "settings": {
-        "foreground": "#A7E0C8"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
       "scope": "storage.modifier.import.java",
       "settings": {
-        "foreground": "#E7E7E8"
+        "foreground": "var(--syntax-fg)"
       }
     },
     {
@@ -561,7 +561,7 @@
     {
       "scope": "meta.export variable.other.readwrite.js",
       "settings": {
-        "foreground": "#F39EAE"
+        "foreground": "var(--syntax-parameter)"
       }
     },
     {
@@ -572,13 +572,13 @@
         "variable.other.property.ts"
       ],
       "settings": {
-        "foreground": "#E7E7E8"
+        "foreground": "var(--syntax-fg)"
       }
     },
     {
       "scope": ["variable.other.jsdoc", "comment.block.documentation variable.other"],
       "settings": {
-        "foreground": "#F39EAE",
+        "foreground": "var(--syntax-parameter)",
         "fontStyle": ""
       }
     },
@@ -591,19 +591,19 @@
     {
       "scope": "support.type.object.console.js",
       "settings": {
-        "foreground": "#E7E7E8"
+        "foreground": "var(--syntax-fg)"
       }
     },
     {
       "scope": ["support.constant.node", "support.type.object.module.js"],
       "settings": {
-        "foreground": "#C6A5EA"
+        "foreground": "var(--syntax-keyword)"
       }
     },
     {
       "scope": "storage.modifier.implements",
       "settings": {
-        "foreground": "#C6A5EA"
+        "foreground": "var(--syntax-keyword)"
       }
     },
     {
@@ -615,25 +615,25 @@
         "support.type.builtin.ts"
       ],
       "settings": {
-        "foreground": "#C6A5EA"
+        "foreground": "var(--syntax-keyword)"
       }
     },
     {
       "scope": "variable.parameter.generic",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": ["keyword.declaration.function.arrow.js", "storage.type.function.arrow.ts"],
       "settings": {
-        "foreground": "#A7E0C8"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
       "scope": "punctuation.decorator.ts",
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
@@ -650,49 +650,49 @@
         "keyword.operator.expression.typeof.ts"
       ],
       "settings": {
-        "foreground": "#C6A5EA"
+        "foreground": "var(--syntax-keyword)"
       }
     },
     {
       "scope": "support.function.macro.julia",
       "settings": {
-        "foreground": "#A7E0C8"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
       "scope": "constant.language.julia",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "constant.other.symbol.julia",
       "settings": {
-        "foreground": "#F39EAE"
+        "foreground": "var(--syntax-parameter)"
       }
     },
     {
       "scope": "text.tex keyword.control.preamble",
       "settings": {
-        "foreground": "#A7E0C8"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
       "scope": "text.tex support.function.be",
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
       "scope": "constant.other.general.math.tex",
       "settings": {
-        "foreground": "#F2CDCD"
+        "foreground": "var(--syntax-string-alias)"
       }
     },
     {
       "scope": "comment.line.double-dash.documentation.lua storage.type.annotation.lua",
       "settings": {
-        "foreground": "#C6A5EA",
+        "foreground": "var(--syntax-keyword)",
         "fontStyle": ""
       }
     },
@@ -702,7 +702,7 @@
         "comment.line.double-dash.documentation.lua variable.lua"
       ],
       "settings": {
-        "foreground": "#E7E7E8"
+        "foreground": "var(--syntax-fg)"
       }
     },
     {
@@ -717,7 +717,7 @@
         "markup.heading.heading-0.asciidoc"
       ],
       "settings": {
-        "foreground": "#F7869B"
+        "foreground": "var(--syntax-builtin)"
       }
     },
     {
@@ -732,7 +732,7 @@
         "markup.heading.heading-1.asciidoc"
       ],
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
@@ -746,7 +746,7 @@
         "markup.heading.heading-2.asciidoc"
       ],
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
@@ -760,7 +760,7 @@
         "markup.heading.heading-3.asciidoc"
       ],
       "settings": {
-        "foreground": "#88DCB7"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
@@ -774,7 +774,7 @@
         "markup.heading.heading-4.asciidoc"
       ],
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
@@ -788,33 +788,33 @@
         "markup.heading.heading-5.asciidoc"
       ],
       "settings": {
-        "foreground": "#C6A5EA"
+        "foreground": "var(--syntax-keyword)"
       }
     },
     {
       "scope": "markup.bold",
       "settings": {
-        "foreground": "#F7869B",
+        "foreground": "var(--syntax-builtin)",
         "fontStyle": "bold"
       }
     },
     {
       "scope": "markup.italic",
       "settings": {
-        "foreground": "#F7869B"
+        "foreground": "var(--syntax-builtin)"
       }
     },
     {
       "scope": "markup.strikethrough",
       "settings": {
-        "foreground": "#A6ADC8",
+        "foreground": "var(--syntax-comment)",
         "fontStyle": "strikethrough"
       }
     },
     {
       "scope": ["punctuation.definition.link", "markup.underline.link"],
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
@@ -831,7 +831,7 @@
         "markup.substitution.attribute-reference"
       ],
       "settings": {
-        "foreground": "#B4BEFE"
+        "foreground": "var(--syntax-blue-pale)"
       }
     },
     {
@@ -844,13 +844,13 @@
         "markup.raw.block.quarto"
       ],
       "settings": {
-        "foreground": "#88DCB7"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
       "scope": "fenced_code.block.language",
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
@@ -859,19 +859,19 @@
         "markup.raw support.asciidoc"
       ],
       "settings": {
-        "foreground": "#A1A4A5"
+        "foreground": "var(--syntax-comment)"
       }
     },
     {
       "scope": ["markup.quote", "punctuation.definition.quote.begin"],
       "settings": {
-        "foreground": "#EFB7C2"
+        "foreground": "var(--syntax-escape)"
       }
     },
     {
       "scope": "meta.separator.markdown",
       "settings": {
-        "foreground": "#A7E0C8"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
@@ -881,7 +881,7 @@
         "markup.list.bullet"
       ],
       "settings": {
-        "foreground": "#A7E0C8"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
@@ -896,52 +896,52 @@
         "entity.other.attribute-name.single.nix"
       ],
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
       "scope": "variable.parameter.name.nix",
       "settings": {
-        "foreground": "#E7E7E8",
+        "foreground": "var(--syntax-fg)",
         "fontStyle": ""
       }
     },
     {
       "scope": "meta.embedded variable.parameter.name.nix",
       "settings": {
-        "foreground": "#B4BEFE",
+        "foreground": "var(--syntax-blue-pale)",
         "fontStyle": ""
       }
     },
     {
       "scope": "string.unquoted.path.nix",
       "settings": {
-        "foreground": "#EFB7C2",
+        "foreground": "var(--syntax-escape)",
         "fontStyle": ""
       }
     },
     {
       "scope": ["support.attribute.builtin", "meta.attribute.php"],
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "meta.function.parameters.php punctuation.definition.variable.php",
       "settings": {
-        "foreground": "#F39EAE"
+        "foreground": "var(--syntax-parameter)"
       }
     },
     {
       "scope": "constant.language.php",
       "settings": {
-        "foreground": "#C6A5EA"
+        "foreground": "var(--syntax-keyword)"
       }
     },
     {
       "scope": "text.html.php support.function",
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
@@ -953,13 +953,13 @@
     {
       "scope": ["support.variable.magic.python", "meta.function-call.arguments.python"],
       "settings": {
-        "foreground": "#E7E7E8"
+        "foreground": "var(--syntax-fg)"
       }
     },
     {
       "scope": ["support.function.magic.python"],
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
@@ -968,19 +968,19 @@
         "variable.language.special.self.python"
       ],
       "settings": {
-        "foreground": "#F7869B"
+        "foreground": "var(--syntax-builtin)"
       }
     },
     {
       "scope": ["keyword.control.flow.python", "keyword.operator.logical.python"],
       "settings": {
-        "foreground": "#C6A5EA"
+        "foreground": "var(--syntax-keyword)"
       }
     },
     {
       "scope": "storage.type.function.python",
       "settings": {
-        "foreground": "#C6A5EA"
+        "foreground": "var(--syntax-keyword)"
       }
     },
     {
@@ -989,13 +989,13 @@
         "meta.function.decorator.identifier.python"
       ],
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
       "scope": ["meta.function-call.python"],
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
@@ -1004,43 +1004,43 @@
         "punctuation.definition.decorator.python"
       ],
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "constant.character.format.placeholder.other.python",
       "settings": {
-        "foreground": "#EFB7C2"
+        "foreground": "var(--syntax-escape)"
       }
     },
     {
       "scope": ["support.type.exception.python", "support.function.builtin.python"],
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": ["support.type.python"],
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "constant.language.python",
       "settings": {
-        "foreground": "#C6A5EA"
+        "foreground": "var(--syntax-keyword)"
       }
     },
     {
       "scope": ["meta.indexed-name.python", "meta.item-access.python"],
       "settings": {
-        "foreground": "#F39EAE"
+        "foreground": "var(--syntax-parameter)"
       }
     },
     {
       "scope": "storage.type.string.python",
       "settings": {
-        "foreground": "#88DCB7"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
@@ -1055,19 +1055,19 @@
         "string.regexp punctuation.definition.string.end"
       ],
       "settings": {
-        "foreground": "#EFB7C2"
+        "foreground": "var(--syntax-escape)"
       }
     },
     {
       "scope": "keyword.control.anchor.regexp",
       "settings": {
-        "foreground": "#C6A5EA"
+        "foreground": "var(--syntax-keyword)"
       }
     },
     {
       "scope": "string.regexp.ts",
       "settings": {
-        "foreground": "#E7E7E8"
+        "foreground": "var(--syntax-fg)"
       }
     },
     {
@@ -1076,37 +1076,37 @@
         "keyword.other.back-reference.regexp"
       ],
       "settings": {
-        "foreground": "#88DCB7"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
       "scope": "punctuation.definition.character-class.regexp",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "constant.other.character-class.regexp",
       "settings": {
-        "foreground": "#EFB7C2"
+        "foreground": "var(--syntax-escape)"
       }
     },
     {
       "scope": "constant.other.character-class.range.regexp",
       "settings": {
-        "foreground": "#F5E0DC"
+        "foreground": "var(--syntax-rose)"
       }
     },
     {
       "scope": "keyword.operator.quantifier.regexp",
       "settings": {
-        "foreground": "#A7E0C8"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
       "scope": "constant.character.numeric.regexp",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
@@ -1116,7 +1116,7 @@
         "meta.assertion.negative-look-ahead.regexp"
       ],
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
@@ -1127,7 +1127,7 @@
         "punctuation.definition.attribute.rust"
       ],
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
@@ -1154,57 +1154,57 @@
         "storage.type.type.rust"
       ],
       "settings": {
-        "foreground": "#C6A5EA",
+        "foreground": "var(--syntax-keyword)",
         "fontStyle": ""
       }
     },
     {
       "scope": "entity.name.type.numeric.rust",
       "settings": {
-        "foreground": "#C6A5EA",
+        "foreground": "var(--syntax-keyword)",
         "fontStyle": ""
       }
     },
     {
       "scope": "meta.generic.rust",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "entity.name.impl.rust",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "entity.name.module.rust",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "entity.name.trait.rust",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "storage.type.source.rust",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "entity.name.union.rust",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": "meta.enum.rust storage.type.source.rust",
       "settings": {
-        "foreground": "#A7E0C8"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
@@ -1214,61 +1214,61 @@
         "entity.name.function.macro.rust"
       ],
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
       "scope": ["storage.modifier.lifetime.rust", "entity.name.type.lifetime"],
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
       "scope": "string.quoted.double.rust constant.other.placeholder.rust",
       "settings": {
-        "foreground": "#EFB7C2"
+        "foreground": "var(--syntax-escape)"
       }
     },
     {
       "scope": "meta.function.return-type.rust meta.generic.rust storage.type.rust",
       "settings": {
-        "foreground": "#E7E7E8"
+        "foreground": "var(--syntax-fg)"
       }
     },
     {
       "scope": "meta.function.call.rust",
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
       "scope": "punctuation.brackets.angle.rust",
       "settings": {
-        "foreground": "#9DAFFA"
+        "foreground": "var(--syntax-function)"
       }
     },
     {
       "scope": "constant.other.caps.rust",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
       "scope": ["meta.function.definition.rust variable.other.rust"],
       "settings": {
-        "foreground": "#F39EAE"
+        "foreground": "var(--syntax-parameter)"
       }
     },
     {
       "scope": "meta.function.call.rust variable.other.rust",
       "settings": {
-        "foreground": "#E7E7E8"
+        "foreground": "var(--syntax-fg)"
       }
     },
     {
       "scope": "variable.language.self.rust",
       "settings": {
-        "foreground": "#F7869B"
+        "foreground": "var(--syntax-builtin)"
       }
     },
     {
@@ -1277,7 +1277,7 @@
         "meta.macro.metavariable.rust keyword.operator.macro.dollar.rust"
       ],
       "settings": {
-        "foreground": "#EFB7C2"
+        "foreground": "var(--syntax-escape)"
       }
     },
     {
@@ -1289,13 +1289,13 @@
         "meta.shebang.shell"
       ],
       "settings": {
-        "foreground": "#EFB7C2"
+        "foreground": "var(--syntax-escape)"
       }
     },
     {
       "scope": "comment.line.shebang constant.language",
       "settings": {
-        "foreground": "#A7E0C8"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
@@ -1306,13 +1306,13 @@
         "meta.function-call.arguments.shell punctuation.section.interpolation"
       ],
       "settings": {
-        "foreground": "#F7869B"
+        "foreground": "var(--syntax-builtin)"
       }
     },
     {
       "scope": "meta.string meta.interpolation.parameter.shell variable.other.readwrite",
       "settings": {
-        "foreground": "#EDD5A6"
+        "foreground": "var(--syntax-number)"
       }
     },
     {
@@ -1321,43 +1321,43 @@
         "punctuation.definition.evaluation.backticks.shell"
       ],
       "settings": {
-        "foreground": "#A7E0C8"
+        "foreground": "var(--syntax-operator)"
       }
     },
     {
       "scope": "entity.name.tag.heredoc.shell",
       "settings": {
-        "foreground": "#C6A5EA"
+        "foreground": "var(--syntax-keyword)"
       }
     },
     {
       "scope": "string.quoted.double.shell variable.other.normal.shell",
       "settings": {
-        "foreground": "#E7E7E8"
+        "foreground": "var(--syntax-fg)"
       }
     },
     {
       "scope": "token.info-token",
       "settings": {
-        "foreground": "#8BA1FF"
+        "foreground": "var(--syntax-blue)"
       }
     },
     {
       "scope": "token.warn-token",
       "settings": {
-        "foreground": "#F5B944"
+        "foreground": "var(--syntax-amber)"
       }
     },
     {
       "scope": "token.error-token",
       "settings": {
-        "foreground": "#FB6E88"
+        "foreground": "var(--syntax-builtin)"
       }
     },
     {
       "scope": "token.debug-token",
       "settings": {
-        "foreground": "#BE95EB"
+        "foreground": "var(--syntax-purple)"
       }
     }
   ]

@@ -92,6 +92,25 @@
   --stroke-info-secondary: var(--theme-info-600);
   --stroke-info-tertiary: var(--theme-info-400);
   --stroke-info-quaternary: var(--theme-info-300);
+
+  /* Syntax highlighting (consumed by oxide shiki theme) */
+  --syntax-bg: var(--color-neutral-0);
+  --syntax-fg: var(--color-neutral-1000);
+  --syntax-comment: var(--color-neutral-700);
+  --syntax-string: var(--color-green-1000);
+  --syntax-operator: var(--color-green-1100);
+  --syntax-number: var(--color-yellow-1100);
+  --syntax-amber: var(--color-yellow-800);
+  --syntax-keyword: var(--color-purple-900);
+  --syntax-purple: var(--color-purple-800);
+  --syntax-function: var(--color-blue-900);
+  --syntax-blue: var(--color-blue-800);
+  --syntax-blue-pale: var(--color-blue-1000);
+  --syntax-builtin: var(--color-red-900);
+  --syntax-parameter: var(--color-red-1000);
+  --syntax-escape: var(--color-red-1100);
+  --syntax-string-alias: var(--color-red-1200);
+  --syntax-rose: var(--color-red-1300);
 }
 
 :root,

@@ -3,6 +3,7 @@ import './index.css'
 import { useState } from 'react'
 
 import { Badge, Button, Checkbox, Spinner, Tabs } from '../components/src/ui'
+import { CodeBlock } from './CodeBlock'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -117,6 +118,231 @@ function ComponentShowcase() {
             <p className="text-sans-md text-secondary">Content for tab three</p>
           </Tabs.Content>
         </Tabs.Root>
+      </Section>
+
+      <Section title="Syntax highlighting (Rust)">
+        <CodeBlock
+          lang="rust"
+          code={`fn main() {
+    let greeting = "Hello, world!";
+    let count: u32 = 42;
+    println!("{} ({})", greeting, count);
+
+    let nums = vec![1, 2, 3];
+    let sum: u32 = nums.iter().sum();
+    println!("sum = {}", sum);
+}`}
+        />
+      </Section>
+
+      <Section title="Syntax highlighting (TypeScript)">
+        <CodeBlock
+          lang="tsx"
+          code={`/**
+ * @module example
+ * Comprehensive syntax demo for the Oxide Dark theme.
+ */
+import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
+
+const PI = 3.14159
+const HEX = 0xff00aa
+const ENABLED = true
+const NAME: string = 'world\\n'
+const RE = /^[a-z]+\\d{2,}$/i
+
+enum Status {
+  Idle = 'idle',
+  Loading = 'loading',
+  Ready = 'ready',
+}
+
+interface Greeter<T extends string> {
+  readonly name: T
+  greet(loud?: boolean): string
+}
+
+type Props = {
+  message: string
+  count?: number
+  children?: ReactNode
+}
+
+class Hello implements Greeter<'hello'> {
+  readonly name = 'hello' as const
+  static #instances = 0
+
+  constructor(private prefix: string = '>>') {
+    Hello.#instances += 1
+  }
+
+  greet(loud = false): string {
+    const out = \`\${this.prefix} \${NAME.toUpperCase()}\`
+    return loud ? out.repeat(2) : out
+  }
+}
+
+async function load(url: string): Promise<Status> {
+  try {
+    const res = await fetch(url)
+    return res.ok ? Status.Ready : Status.Idle
+  } catch (err) {
+    console.error('failed', err)
+    return Status.Idle
+  }
+}
+
+export function Counter({ message, count = 0, children }: Props) {
+  const [n, setN] = useState<number>(count)
+  useEffect(() => { void load('/ping') }, [])
+
+  return (
+    <section className="counter" data-status={n > 0 ? 'on' : 'off'}>
+      <h1>{message}</h1>
+      <button onClick={() => setN((c) => c + 1)} disabled={n >= 10}>
+        Clicked {n} times
+      </button>
+      {children ?? <em>no children</em>}
+    </section>
+  )
+}`}
+        />
+      </Section>
+
+      <Section title="Syntax highlighting (JSON)">
+        <CodeBlock
+          lang="json"
+          code={`{
+  "name": "test/system",
+  "version": "6.0.5",
+  "private": false,
+  "dependencies": {
+    "shiki": "^3.13.0",
+    "react": "^18.0.0"
+  },
+  "scripts": {
+    "preview:dev": "vite --config preview/vite.config.ts"
+  }
+}`}
+        />
+      </Section>
+
+      <Section title="Syntax highlighting (YAML)">
+        <CodeBlock
+          lang="yaml"
+          code={`---
+# service config
+service: &svc web-api
+config:
+  enabled: true
+  retries: 3
+  hosts:
+    - example.com
+    - 127.0.0.1
+fallback: *svc`}
+        />
+      </Section>
+
+      <Section title="Syntax highlighting (TOML)">
+        <CodeBlock
+          lang="toml"
+          code={`# config
+title = "Example"
+enabled = true
+retries = 3
+created = 2026-04-17T08:00:00Z
+
+[server]
+host = "example.com"
+port = 8080`}
+        />
+      </Section>
+
+      <Section title="Syntax highlighting (CSS)">
+        <CodeBlock
+          lang="css"
+          code={`/* sample stylesheet */
+:root {
+  --brand: #ff6785;
+}
+
+.button[data-variant="primary"]:hover {
+  color: var(--brand);
+  font-size: 1.25rem;
+  padding: 8px 12px;
+  background: linear-gradient(90deg, #08f 0%, #80f 100%);
+}`}
+        />
+      </Section>
+
+      <Section title="Syntax highlighting (diff)">
+        <CodeBlock
+          lang="diff"
+          code={`--- a/file.ts
++++ b/file.ts
+@@ -1,4 +1,4 @@
+ export function greet(name) {
+-  return "hi " + name
++  return \`hello \${name}\`
+ }`}
+        />
+      </Section>
+
+      <Section title="Syntax highlighting (Markdown)">
+        <CodeBlock
+          lang="md"
+          code={`# Heading 1
+## Heading 2
+
+A paragraph with **bold**, *italic*, and \`inline code\`.
+
+> A blockquote.
+
+- list item one
+- list item two
+
+[link text](https://example.com)`}
+        />
+      </Section>
+
+      <Section title="Syntax highlighting (Go)">
+        <CodeBlock
+          lang="go"
+          code={`// Package main is a demo.
+package main
+
+import "fmt"
+
+//go:generate echo "hello"
+
+// Server holds connection settings.
+type Server struct {
+\tHost string
+\tPort int
+}
+
+func main() {
+\ts := Server{Host: "localhost", Port: 8080}
+\tfmt.Printf("server on %s:%d\\n", s.Host, s.Port)
+}`}
+        />
+      </Section>
+
+      <Section title="Syntax highlighting (GraphQL)">
+        <CodeBlock
+          lang="graphql"
+          code={`# fetch a user
+query GetUser($id: ID!) {
+  user(id: $id) {
+    name: fullName
+    role
+    posts(limit: 5) {
+      title
+      tags
+    }
+  }
+}`}
+        />
       </Section>
     </div>
   )
