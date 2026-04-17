@@ -326,7 +326,7 @@
     }
 
     pre {
-      @apply border-secondary 800:px-[1.75rem] 800:py-[1.5rem] rounded-lg border px-[1.25rem] py-[1rem];
+      @apply border-secondary 800:px-[1.75rem] 800:py-[1.5rem] rounded-lg border px-[1.25rem] py-[1rem] bg-default;
       @apply text-mono-code overflow-x-auto !text-[13px];
     }
 
@@ -461,7 +461,7 @@
     .stemblock,
     .videoblock,
     .exampleblock {
-      @apply my-[2rem];
+      @apply my-6;
     }
 
     .title {
