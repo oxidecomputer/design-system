@@ -53,7 +53,7 @@
     }
 
     .admonitionblock .quoteblock {
-      @apply border-accent-secondary mt-2 mb-2 pl-[0.75rem];
+      @apply border-0 p-3 bg-default rounded-md mt-2 mb-2;
     }
 
     .admonition-content .paragraph {
@@ -391,15 +391,6 @@
       @apply text-accent;
     }
 
-    .admonitionblock .quoteblock {
-      @apply border-accent-secondary;
-    }
-
-    .admonitionblock,
-    .admonitionblock blockquote {
-      @apply text-accent;
-    }
-
     .admonitionblock a {
       @apply text-accent underline;
     }
@@ -462,7 +453,7 @@
     }
 
     .title {
-      @apply text-sans-lg text-secondary mb-2 max-w-[40rem] text-left italic;
+      @apply text-sans-lg text-[1em]! text-current mb-1 max-w-[40rem] text-left italic;
     }
 
     summary.title {
