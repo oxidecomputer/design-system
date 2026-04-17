@@ -323,7 +323,7 @@ export const SmallScreenOutline = ({
             className={cn(
               'block border-l py-[4px]',
               activeItem === item.id
-                ? 'active text-accent-secondary border-accent-secondary hover:text-accent'
+                ? 'active text-accent-secondary light:text-default light:border-green-800 border-accent-secondary hover:text-accent'
                 : 'text-tertiary border-secondary hover:text-secondary',
             )}
             style={{

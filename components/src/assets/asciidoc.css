@@ -53,7 +53,7 @@
     }
 
     .admonitionblock .quoteblock {
-      @apply border-accent-secondary mt-2 mb-2 pl-[0.75rem];
+      @apply border-0 p-3 bg-default rounded-md mt-2 mb-2;
     }
 
     .admonition-content .paragraph {
@@ -73,7 +73,7 @@
     }
 
     .imageblock img {
-      @apply border-tertiary mx-auto h-auto w-auto w-full rounded-lg border object-contain;
+      @apply border-tertiary mx-auto h-auto w-auto w-full rounded-md border object-contain;
       max-height: max(500px, 75vh);
     }
 
@@ -216,10 +216,7 @@
       @apply normal-case;
     }
 
-    ul ul,
-    ul ol,
-    ol ol,
-    ol ul {
+    li:not(:last-child) :is(ul, ol) {
       @apply mb-0;
     }
 
@@ -326,7 +323,7 @@
     }
 
     pre {
-      @apply border-secondary 800:px-[1.75rem] 800:py-[1.5rem] rounded-lg border px-[1.25rem] py-[1rem];
+      @apply border-secondary 800:px-[1.75rem] 800:py-[1.5rem] rounded-md border px-[1.25rem] py-[1rem] bg-default;
       @apply text-mono-code overflow-x-auto !text-[13px];
     }
 
@@ -361,7 +358,7 @@
     }
 
     .exampleblock {
-      @apply bg-raise overflow-x-auto rounded-lg px-[1.5rem] py-[1.25rem];
+      @apply bg-raise overflow-x-auto rounded-md px-[1.5rem] py-[1.25rem];
     }
 
     .exampleblock p {
@@ -378,7 +375,7 @@
     }
 
     .admonitionblock {
-      @apply text-accent bg-accent border-accent-tertiary rounded-lg border;
+      @apply text-accent-secondary bg-accent rounded-md border-current/15;
       @apply my-[1.5rem] flex px-3 py-3;
     }
 
@@ -391,15 +388,6 @@
     }
 
     .admonitionblock strong {
-      @apply text-accent;
-    }
-
-    .admonitionblock .quoteblock {
-      @apply border-accent-secondary;
-    }
-
-    .admonitionblock,
-    .admonitionblock blockquote {
       @apply text-accent;
     }
 
@@ -421,7 +409,7 @@
 
     .imageblock,
     .table-wrapper {
-      @apply my-6;
+      @apply my-4;
     }
 
     .imageblock.inlineimage {
@@ -461,11 +449,11 @@
     .stemblock,
     .videoblock,
     .exampleblock {
-      @apply my-[2rem];
+      @apply my-4;
     }
 
     .title {
-      @apply text-sans-lg text-secondary mb-2 max-w-[40rem] text-left italic;
+      @apply text-sans-lg text-[1em]! text-current mb-1 max-w-[40rem] text-left italic;
     }
 
     summary.title {
@@ -493,7 +481,7 @@
     }
 
     table {
-      @apply border-secondary w-full border-separate overflow-hidden rounded-lg border p-0;
+      @apply border-secondary w-full border-separate overflow-hidden rounded-md border p-0;
       border-spacing: 0;
     }
 
@@ -589,7 +577,7 @@
     }
 
     .sidebarblock {
-      @apply bg-raise my-8 rounded-lg p-4 px-6 py-5;
+      @apply bg-raise my-8 rounded-md p-4 px-6 py-5;
     }
 
     .halign-left {
