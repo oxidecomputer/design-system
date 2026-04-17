@@ -68,6 +68,10 @@
       @apply italic mb-2;
     }
 
+    .admonition-content .admonition-title {
+      @apply italic mb-2;
+    }
+
     .imageblock img {
       @apply border-tertiary mx-auto h-auto w-auto w-full rounded-lg border object-contain;
       max-height: max(500px, 75vh);
@@ -177,8 +181,14 @@
     }
 
     /* Fix overflow text in mermaid */
-    figure svg {
+    code svg {
       line-height: 1 !important;
+    }
+
+    /* Prevent asciidoc styles from leaking into mermaid SVG output */
+    code svg,
+    code svg * {
+      all: revert-layer;
     }
 
     p {
