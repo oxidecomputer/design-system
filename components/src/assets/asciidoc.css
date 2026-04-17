@@ -61,7 +61,7 @@
     }
 
     .admonition-content > div:first-of-type {
-      @apply text-sans-semi-md text-accent;
+      @apply text-accent;
     }
 
     .admonition-content .admonition-title {
