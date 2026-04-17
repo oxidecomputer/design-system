@@ -409,7 +409,7 @@
 
     .imageblock,
     .table-wrapper {
-      @apply my-6;
+      @apply my-4;
     }
 
     .imageblock.inlineimage {
@@ -449,7 +449,7 @@
     .stemblock,
     .videoblock,
     .exampleblock {
-      @apply my-6;
+      @apply my-4;
     }
 
     .title {
