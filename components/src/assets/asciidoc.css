@@ -163,8 +163,14 @@
     }
 
     /* Fix overflow text in mermaid */
-    figure svg {
+    code svg {
       line-height: 1 !important;
+    }
+
+    /* Prevent asciidoc styles from leaking into mermaid SVG output */
+    code svg,
+    code svg * {
+      all: revert-layer;
     }
 
     p {
