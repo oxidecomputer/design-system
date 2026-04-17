@@ -216,10 +216,7 @@
       @apply normal-case;
     }
 
-    ul ul,
-    ul ol,
-    ol ol,
-    ol ul {
+    li:not(:last-child) :is(ul, ol) {
       @apply mb-0;
     }
 
