@@ -25,8 +25,9 @@
 }
 
 @utility inline-code {
-  @apply text-secondary;
-  @apply ml-[1px] mr-[1px] rounded-md border px-[4px] py-[1px] align-[1px] text-[0.825em] bg-raise border-secondary;
+  @apply mr-[1px] ml-[1px] rounded-md border px-0.5 align-[1px] text-[0.825em] tracking-normal!;
+  background-color: color-mix(in srgb, currentColor 8%, transparent);
+  border-color: color-mix(in srgb, currentColor 10%, transparent);
 }
 
 @layer components {
@@ -36,7 +37,7 @@
     }
 
     .quoteblock {
-      @apply mb-8 mt-8 border-l pl-[1.6rem] text-secondary border-default;
+      @apply text-secondary border-default mt-8 mb-8 border-l pl-[1.6rem];
     }
 
     .quoteblock p {
@@ -44,7 +45,7 @@
     }
 
     .quoteblock .attribution {
-      @apply mt-8 text-raise;
+      @apply text-raise mt-8;
     }
 
     .attribution cite {
@@ -52,7 +53,7 @@
     }
 
     .admonitionblock .quoteblock {
-      @apply mb-2 mt-2 pl-[0.75rem] border-accent-secondary;
+      @apply border-accent-secondary mt-2 mb-2 pl-[0.75rem];
     }
 
     .admonition-content .paragraph {
@@ -60,11 +61,11 @@
     }
 
     .admonition-content > div:first-of-type {
-      @apply normal-case text-sans-semi-md;
+      @apply text-sans-semi-md normal-case;
     }
 
     .imageblock img {
-      @apply mx-auto h-auto w-auto w-full rounded-lg border border-tertiary object-contain;
+      @apply border-tertiary mx-auto h-auto w-auto w-full rounded-lg border object-contain;
       max-height: max(500px, 75vh);
     }
 
@@ -87,7 +88,7 @@
 
     /* Use semi-bold for strong */
     strong {
-      @apply font-[500] text-raise;
+      @apply text-raise font-[500];
     }
 
     a strong {
@@ -98,7 +99,7 @@
     h3,
     h4,
     h5 {
-      @apply relative mb-3 mt-10 text-raise;
+      @apply text-raise relative mt-10 mb-3;
     }
 
     /* Removes top spacing from header if it is the first element */
@@ -115,7 +116,7 @@
     h3 a,
     h4 a,
     h5 a {
-      @apply inline text-raise;
+      @apply text-raise inline;
     }
 
     h1[data-sectnum]:before,
@@ -123,7 +124,7 @@
     h3[data-sectnum]:before,
     h4[data-sectnum]:before,
     h5[data-sectnum]:before {
-      @apply bottom-0 mr-2 inline-block text-tertiary 800:absolute 800:-left-[72px] 800:mr-0 800:w-[60px] 800:text-right 800:text-sans-lg;
+      @apply text-tertiary 800:absolute 800:-left-[72px] 800:mr-0 800:w-[60px] 800:text-right 800:text-sans-lg bottom-0 mr-2 inline-block;
     }
 
     h3[data-sectnum]:before,
@@ -141,7 +142,7 @@
 
     h4,
     h5 {
-      @apply mb-2 mt-8 text-sans-lg text-raise;
+      @apply text-sans-lg text-raise mt-8 mb-2;
     }
 
     .anchor,
@@ -167,7 +168,7 @@
     }
 
     p {
-      @apply mb-[1.25rem] !leading-[1.5] text-sans-lg 800:mb-3;
+      @apply text-sans-lg 800:mb-3 mb-[1.25rem] !leading-[1.5];
     }
 
     ul li,
@@ -177,7 +178,7 @@
 
     ul,
     ol {
-      @apply mb-3 list-disc text-mono-sm;
+      @apply text-mono-sm mb-3 list-disc;
     }
 
     li::marker,
@@ -219,7 +220,7 @@
 
     ul,
     ol {
-      @apply list-inside 800:list-outside;
+      @apply 800:list-outside list-inside;
     }
 
     ul:first-of-type,
@@ -246,7 +247,7 @@
     .ulist .olist,
     .olist .ulist,
     .olist .olist {
-      @apply ml-[2rem] 800:ml-2;
+      @apply 800:ml-2 ml-[2rem];
     }
 
     .exampleblock ul,
@@ -288,35 +289,20 @@
     }
 
     ol p {
-      @apply normal-case text-default;
+      @apply text-default normal-case;
     }
 
-    p code,
-    h1 code,
-    h2 code,
-    h3 code,
-    h4 code,
-    h5 code,
-    .title code {
-      @apply text-[0.825em] text-default;
-      @apply ml-[1px] mr-[1px] rounded-md border px-[4px] py-[1px] align-[1px] bg-raise border-secondary;
-    }
-
-    p a code {
-      @apply text-accent-secondary;
+    :not(pre) > code {
+      @apply inline-code;
     }
 
     table p code {
       @apply break-normal;
     }
 
-    .admonitionblock p code {
-      @apply border-none text-inverse bg-accent-inverse;
-    }
-
     pre {
-      @apply rounded-lg border px-[1.25rem] py-[1rem] border-secondary 800:px-[1.75rem] 800:py-[1.5rem];
-      @apply overflow-x-auto !text-[13px] text-mono-code;
+      @apply border-secondary 800:px-[1.75rem] 800:py-[1.5rem] rounded-lg border px-[1.25rem] py-[1rem];
+      @apply text-mono-code overflow-x-auto !text-[13px];
     }
 
     code {
@@ -332,12 +318,12 @@
     }
 
     .listingblock code[data-lang]:before {
-      @apply absolute right-2 top-2 block text-mono-xs text-secondary;
+      @apply text-mono-xs text-secondary absolute top-2 right-2 block;
       content: attr(data-lang);
     }
 
     pre .conum[data-value] {
-      @apply relative -top-[0.125rem] inline-block h-[1rem] min-w-[1rem] rounded-full text-center not-italic text-mono-xs text-secondary bg-raise;
+      @apply text-mono-xs text-secondary bg-raise relative -top-[0.125rem] inline-block h-[1rem] min-w-[1rem] rounded-full text-center not-italic;
     }
 
     pre .conum[data-value]:after {
@@ -350,11 +336,11 @@
     }
 
     .exampleblock {
-      @apply overflow-x-auto rounded-lg px-[1.5rem] py-[1.25rem] bg-raise;
+      @apply bg-raise overflow-x-auto rounded-lg px-[1.5rem] py-[1.25rem];
     }
 
     .exampleblock p {
-      @apply mb-2 text-sans-md;
+      @apply text-sans-md mb-2;
     }
 
     .exampleblock .content,
@@ -367,7 +353,7 @@
     }
 
     .admonitionblock {
-      @apply rounded-lg border text-accent bg-accent border-accent-tertiary;
+      @apply text-accent bg-accent border-accent-tertiary rounded-lg border;
       @apply my-[1.5rem] flex px-3 py-3;
     }
 
@@ -393,11 +379,11 @@
     }
 
     .admonitionblock a {
-      @apply underline text-accent;
+      @apply text-accent underline;
     }
 
     .admonition-icon svg {
-      @apply mr-2 mt-0.5 h-3 w-3;
+      @apply mt-0.5 mr-2 h-3 w-3;
     }
 
     .admonition-content {
@@ -405,7 +391,7 @@
     }
 
     .admonition-content p {
-      @apply mb-0 text-sans-md;
+      @apply text-sans-md mb-0;
     }
 
     .imageblock,
@@ -426,7 +412,7 @@
     }
 
     .imageblock .title {
-      @apply mt-3 max-w-full text-center not-italic text-mono-xs text-secondary;
+      @apply text-mono-xs text-secondary mt-3 max-w-full text-center not-italic;
     }
 
     img.wide {
@@ -454,11 +440,11 @@
     }
 
     .title {
-      @apply mb-2 max-w-[40rem] text-left italic text-sans-lg text-secondary;
+      @apply text-sans-lg text-secondary mb-2 max-w-[40rem] text-left italic;
     }
 
     summary.title {
-      @apply not-italic text-raise;
+      @apply text-raise not-italic;
     }
 
     .conum {
@@ -478,7 +464,7 @@
     }
 
     table {
-      @apply w-full border-separate overflow-hidden rounded-lg border p-0 border-secondary;
+      @apply border-secondary w-full border-separate overflow-hidden rounded-lg border p-0;
       border-spacing: 0;
     }
 
@@ -496,7 +482,7 @@
 
     table td,
     table th {
-      @apply border-b border-r px-[0.5rem] py-[0.5rem] align-top border-secondary;
+      @apply border-secondary border-r border-b px-[0.5rem] py-[0.5rem] align-top;
     }
 
     table tr th:last-child {
@@ -517,7 +503,7 @@
     }
 
     table th {
-      @apply text-left text-mono-xs text-secondary bg-raise;
+      @apply text-mono-xs text-secondary bg-raise text-left;
     }
 
     table th p {
@@ -545,7 +531,7 @@
     }
 
     .colist table tr td:first-of-type {
-      @apply w-[1%] whitespace-nowrap text-tertiary;
+      @apply text-tertiary w-[1%] whitespace-nowrap;
     }
 
     .colist table b {
@@ -553,7 +539,7 @@
     }
 
     div.bibliography ~ h2 {
-      @apply mt-12 800:mt-16;
+      @apply 800:mt-16 mt-12;
     }
 
     .bibliography ul,
@@ -562,7 +548,7 @@
     }
 
     mark {
-      @apply rounded-md px-[2px] text-notice bg-notice;
+      @apply text-notice bg-notice rounded-md px-[2px];
     }
 
     .steminline svg {
@@ -570,11 +556,11 @@
     }
 
     hr {
-      @apply my-3 border-default;
+      @apply border-default my-3;
     }
 
     .sidebarblock {
-      @apply bg-raise p-4 rounded-lg my-8 px-6 py-5;
+      @apply bg-raise my-8 rounded-lg p-4 px-6 py-5;
     }
 
     .halign-left {
@@ -607,7 +593,7 @@
 
     a:not(:is(h1, h2, h3, h4, h5, h6) a) {
       text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
-      @apply underline text-accent-secondary;
+      @apply text-accent-secondary underline;
     }
   }
 
@@ -615,16 +601,9 @@
     @apply accent-link;
   }
 
-  #footnotes p code {
-    @apply inline-code;
-  }
-
-  .toc .active code {
-    @apply border-accent-tertiary;
-  }
-
+  #footnotes p code,
   .toc code {
-    @apply ml-[1px] mr-[1px] rounded-md border px-[3px] align-[1px] border-secondary;
+    @apply inline-code;
   }
 
   @media screen and (min-width: 720px) {
