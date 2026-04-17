@@ -28,7 +28,7 @@ import {
 } from 'shiki'
 
 import oxqlLang from './langs/oxql.tmLanguage.json'
-import theme from './oxide-dark.json'
+import theme from './oxide-syntax.json'
 
 let highlighter: HighlighterGeneric<BundledLanguage, BundledTheme> | null = null
 const customLanguages = ['oxql']
