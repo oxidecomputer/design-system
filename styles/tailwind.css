@@ -138,3 +138,12 @@ Make sure disabled buttons don't get the pointer cursor.
 @utility shadow-tooltip {
   box-shadow: var(--shadow-tooltip);
 }
+
+::-moz-selection {
+  /* Code for Firefox */
+  @apply text-accent bg-accent;
+}
+
+::selection {
+  @apply text-accent bg-accent;
+}
