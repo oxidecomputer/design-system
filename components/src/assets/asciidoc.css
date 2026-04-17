@@ -64,6 +64,10 @@
       @apply text-sans-semi-md normal-case;
     }
 
+    .admonition-content .admonition-title {
+      @apply italic mb-2;
+    }
+
     .imageblock img {
       @apply border-tertiary mx-auto h-auto w-auto w-full rounded-lg border object-contain;
       max-height: max(500px, 75vh);
@@ -87,12 +91,8 @@
     }
 
     /* Use semi-bold for strong */
-    strong {
+    strong:not(a strong) {
       @apply text-raise font-[500];
-    }
-
-    a strong {
-      @apply text-accent-secondary;
     }
 
     h2,

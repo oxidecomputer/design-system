@@ -5,7 +5,7 @@
  *
  * Copyright Oxide Computer Company
  */
-import { Content, parse, Title, type AdmonitionBlock } from '@oxide/react-asciidoc'
+import { Content, parse, type AdmonitionBlock } from '@oxide/react-asciidoc'
 
 import { titleCase } from '../utils'
 
@@ -34,10 +34,9 @@ const Admonition = ({ node }: { node: AdmonitionBlock }) => {
     <div className={`admonitionblock ${attrs.name} ${theme}`}>
       <div className="admonition-icon">{icon}</div>
       <div className="admonition-content content">
-        <Title text={node.title} />
         <div>{titleCase(attrs.name.toString())}</div>
         <div>
-          <Title text={node.title} />
+          <div className="admonition-title">{node.title}</div>
           {node.content && parse(node.content)}
           <Content blocks={node.blocks} />
         </div>
