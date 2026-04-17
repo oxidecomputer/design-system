@@ -61,7 +61,11 @@
     }
 
     .admonition-content > div:first-of-type {
-      @apply text-sans-semi-md normal-case;
+      @apply text-sans-semi-md;
+    }
+
+    .admonition-content .admonition-title {
+      @apply italic mb-2;
     }
 
     .admonition-content .admonition-title {
@@ -74,11 +78,11 @@
     }
 
     span img {
-      @apply inline;
+      @apply inline bg-transparent;
     }
 
-    img.transparent-dark {
-      @apply bg-secondary;
+    img {
+      @apply bg-raise;
     }
 
     p a {
@@ -103,11 +107,12 @@
     }
 
     /* Removes top spacing from header if it is the first element */
-    &#content > .sect1:first-of-type > h1:nth-child(1),
-    &#content > .sect1:first-of-type > h2:nth-child(1),
-    &#content > .sect1:first-of-type > h3:nth-child(1),
-    &#content > .sect1:first-of-type > h4:nth-child(1),
-    &#content > .sect1:first-of-type > h5:nth-child(1) {
+    #preamble .sectionbody > *:first-child,
+    #content > .sect1:first-of-type > h1,
+    #content > .sect1:first-of-type > h2,
+    #content > .sect1:first-of-type > h3,
+    #content > .sect1:first-of-type > h4,
+    #content > .sect1:first-of-type > h5 {
       @apply mt-0;
     }
 
@@ -124,12 +129,26 @@
     h3[data-sectnum]:before,
     h4[data-sectnum]:before,
     h5[data-sectnum]:before {
-      @apply text-tertiary 800:absolute 800:-left-[72px] 800:mr-0 800:w-[60px] 800:text-right 800:text-sans-lg bottom-0 mr-2 inline-block;
+      @apply text-tertiary 800:absolute 800:-left-[72px] 800:mr-0 800:w-[60px] 800:text-right 800:text-sans-lg pointer-events-none top-[6px] mr-2 inline-block;
+      content: attr(data-sectnum);
     }
 
     h3[data-sectnum]:before,
     h2[data-sectnum]:before {
-      @apply 800:bottom-[2px];
+      @apply top-[2px];
+    }
+
+    h4[data-sectnum]:before,
+    h5[data-sectnum]:before {
+      @apply top-0;
+    }
+
+    h1[data-sectnum] a:after,
+    h2[data-sectnum] a:after,
+    h3[data-sectnum] a:after,
+    h4[data-sectnum] a:after,
+    h5[data-sectnum] a:after {
+      @apply hidden;
     }
 
     h2 {
@@ -329,7 +348,7 @@
     }
 
     pre .conum[data-value] {
-      @apply text-mono-xs text-secondary bg-raise relative -top-[0.125rem] inline-block h-[1rem] min-w-[1rem] rounded-full text-center not-italic;
+      @apply text-mono-xs text-accent bg-accent-hover relative -top-[0.125rem] inline-block h-[1rem] min-w-[1rem] rounded-full text-center not-italic;
     }
 
     pre .conum[data-value]:after {
@@ -459,6 +478,10 @@
 
     .table-wrapper {
       @apply relative overflow-x-auto;
+    }
+
+    .table-wrapper caption a:hover:after {
+      @apply align-[-2px];
     }
 
     .table-wrapper caption {
