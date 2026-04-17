@@ -107,11 +107,12 @@
     }
 
     /* Removes top spacing from header if it is the first element */
-    &#content > .sect1:first-of-type > h1:nth-child(2),
-    &#content > .sect1:first-of-type > h2:nth-child(2),
-    &#content > .sect1:first-of-type > h3:nth-child(2),
-    &#content > .sect1:first-of-type > h4:nth-child(2),
-    &#content > .sect1:first-of-type > h5:nth-child(2) {
+    #preamble .sectionbody > *:first-child,
+    #content > .sect1:first-of-type > h1,
+    #content > .sect1:first-of-type > h2,
+    #content > .sect1:first-of-type > h3,
+    #content > .sect1:first-of-type > h4,
+    #content > .sect1:first-of-type > h5 {
       @apply mt-0;
     }
 
