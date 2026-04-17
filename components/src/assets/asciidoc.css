@@ -378,7 +378,7 @@
     }
 
     .admonitionblock {
-      @apply text-accent bg-accent border-accent-tertiary rounded-lg border;
+      @apply text-accent-secondary bg-accent rounded-md border-current/15;
       @apply my-[1.5rem] flex px-3 py-3;
     }
 
