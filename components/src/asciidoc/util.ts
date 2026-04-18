@@ -27,10 +27,10 @@ import {
   type LanguageInput,
 } from 'shiki'
 
-import oxqlLang from './langs/oxql.tmLanguage.json'
+import oxql from './langs/oxql.tmLanguage.json'
 // p4.tmLanguage.json is derived from the highlights query in
 // https://github.com/oxidecomputer/tree-sitter-p4 (queries/highlights.scm).
-import p4Lang from './langs/p4.tmLanguage.json'
+import p4 from './langs/p4.tmLanguage.json'
 import theme from './oxide-syntax.json'
 
 let highlighter: HighlighterGeneric<BundledLanguage, BundledTheme> | null = null
@@ -41,7 +41,7 @@ async function getOrCreateHighlighter() {
   if (!highlighter) {
     const langs: LanguageInput[] = []
 
-    langs.push({ ...oxqlLang }, { ...p4Lang })
+    langs.push({ ...oxql }, { ...p4 })
 
     highlighter = await createHighlighter({
       themes: [theme],

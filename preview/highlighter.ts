@@ -12,6 +12,8 @@ import {
   type HighlighterGeneric,
 } from 'shiki'
 
+import oxql from '../components/src/asciidoc/langs/oxql.tmLanguage.json'
+import p4 from '../components/src/asciidoc/langs/p4.tmLanguage.json'
 import theme from '../components/src/asciidoc/oxide-syntax.json'
 
 let highlighterPromise: Promise<HighlighterGeneric<BundledLanguage, BundledTheme>> | null =
@@ -23,7 +25,21 @@ export function getHighlighter() {
   if (!highlighterPromise) {
     highlighterPromise = createHighlighter({
       themes: [theme],
-      langs: ['tsx', 'rust', 'json', 'yaml', 'toml', 'css', 'diff', 'md', 'go', 'graphql'],
+      // Bundled languages by name and custom grammars (oxql, p4) are imported as objects.
+      langs: [
+        'tsx',
+        'rust',
+        'json',
+        'yaml',
+        'toml',
+        'css',
+        'diff',
+        'md',
+        'go',
+        'graphql',
+        oxql,
+        p4,
+      ],
     })
   }
   return highlighterPromise
