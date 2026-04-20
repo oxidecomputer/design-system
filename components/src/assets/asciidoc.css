@@ -609,8 +609,13 @@
     }
 
     a:not(:is(h1, h2, h3, h4, h5, h6) a) {
-      text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
+      text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
       @apply text-accent-secondary underline;
+    }
+
+    a {
+      text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
+      @apply hover:underline
     }
   }
 
