@@ -149,3 +149,27 @@ Make sure disabled buttons don't get the pointer cursor.
 ::selection {
   @apply text-accent bg-accent;
 }
+
+@utility text-mono-code {
+  @apply text-[0.825em] !normal-case;
+  font-feature-settings: 'calt' 0;
+  letter-spacing: 0;
+}
+
+@utility accent-link {
+  @apply text-accent-secondary hover:text-accent;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
+}
+
+@utility link-with-underline {
+  @apply text-default hover:text-raise;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
+}
+
+@utility inline-code {
+  @apply mr-[1px] ml-[1px] rounded-md border px-0.5 align-[1px] text-[0.825em] tracking-normal!;
+  background-color: color-mix(in srgb, currentColor 8%, transparent);
+  border-color: color-mix(in srgb, currentColor 10%, transparent);
+}

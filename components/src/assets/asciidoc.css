@@ -6,155 +6,49 @@
  * Copyright Oxide Computer Company
  */
 
-@utility text-mono-code {
-  @apply text-[0.825em] !normal-case;
-  font-feature-settings: 'calt' 0;
-  letter-spacing: 0;
-}
-
-@utility accent-link {
-  @apply text-accent-secondary hover:text-accent;
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
-}
-
-@utility link-with-underline {
-  @apply text-default hover:text-raise;
-  text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
-}
-
-@utility inline-code {
-  @apply mr-[1px] ml-[1px] rounded-md border px-0.5 align-[1px] text-[0.825em] tracking-normal!;
-  background-color: color-mix(in srgb, currentColor 8%, transparent);
-  border-color: color-mix(in srgb, currentColor 10%, transparent);
-}
-
 @layer components {
   .asciidoc-body {
+    /* --- Paragraphs --- */
+    p {
+      @apply text-sans-lg;
+      color: var(--content-default);
+      line-height: 1.5 !important;
+      margin-bottom: 1.25rem;
+    }
+
+    @media (min-width: 800px) {
+      p {
+        margin-bottom: 0.75rem;
+      }
+    }
+
+    .lead p {
+      color: var(--content-raise);
+    }
+
+    .paragraph.lead p {
+      @apply text-sans-xl;
+    }
+
+    /* --- Strong / emphasis --- */
+    strong:not(a strong) {
+      color: var(--content-raise);
+      font-weight: 500;
+    }
+
     .line-through {
       text-decoration: line-through;
     }
 
-    .quoteblock {
-      @apply text-secondary border-default mt-8 mb-8 border-l pl-[1.6rem];
-    }
-
-    .quoteblock p {
-      @apply text-secondary;
-    }
-
-    .quoteblock .attribution {
-      @apply text-raise mt-8;
-    }
-
-    .attribution cite {
-      @apply block;
-    }
-
-    .admonitionblock .quoteblock {
-      @apply bg-default mt-2 mb-2 rounded-md border-0 p-3;
-    }
-
-    .admonition-content .paragraph {
-      @apply mb-1 last:mb-0;
-    }
-
-    .admonition-content > div:first-of-type {
-      @apply text-accent;
-    }
-
-    .admonition-content .admonition-title {
-      @apply mb-2 italic;
-    }
-
-    .admonition-content .admonition-title {
-      @apply mb-2 italic;
-    }
-
-    .imageblock img {
-      @apply border-tertiary mx-auto h-auto w-auto w-full rounded-md border object-contain;
-      max-height: max(500px, 75vh);
-    }
-
-    span img {
-      @apply inline bg-transparent;
-    }
-
-    img {
-      @apply bg-raise;
-    }
-
-    p a {
-      @apply text-accent-secondary hover:text-accent;
-      overflow-wrap: break-word;
-      word-wrap: break-word;
-    }
-
-    p a,
-    .admonition-content a {
-      text-decoration: underline;
-      text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
-    }
-
-    /* Use semi-bold for strong */
-    strong:not(a strong) {
-      @apply text-raise font-[500];
-    }
-
+    /* --- Headings --- */
     h2,
     h3,
     h4,
     h5 {
-      @apply text-raise relative mt-10 mb-3;
-    }
-
-    /* Removes top spacing from header if it is the first element */
-    #preamble .sectionbody > *:first-child,
-    #content > .sect1:first-of-type > h1,
-    #content > .sect1:first-of-type > h2,
-    #content > .sect1:first-of-type > h3,
-    #content > .sect1:first-of-type > h4,
-    #content > .sect1:first-of-type > h5 {
-      @apply mt-0;
-    }
-
-    h1 a,
-    h2 a,
-    h3 a,
-    h4 a,
-    h5 a {
-      @apply text-raise inline;
-    }
-
-    h1[data-sectnum]:before,
-    h2[data-sectnum]:before,
-    h3[data-sectnum]:before,
-    h4[data-sectnum]:before,
-    h5[data-sectnum]:before {
-      @apply text-tertiary 800:absolute 800:-left-[72px] 800:mr-0 800:w-[60px] 800:text-right 800:text-sans-lg pointer-events-none top-[6px] mr-2 inline-block;
-      content: attr(data-sectnum);
-    }
-
-    h2[data-sectnum]:before {
-      @apply top-[6px];
-    }
-
-    h3[data-sectnum]:before {
-      @apply top-[2px];
-    }
-
-    h4[data-sectnum]:before,
-    h5[data-sectnum]:before {
-      @apply top-0;
-    }
-
-    h1[data-sectnum] a:after,
-    h2[data-sectnum] a:after,
-    h3[data-sectnum] a:after,
-    h4[data-sectnum] a:after,
-    h5[data-sectnum] a:after {
-      @apply hidden;
+      color: var(--content-raise);
+      position: relative;
+      margin-top: 2.5rem;
+      margin-bottom: 0.75rem;
     }
 
     h2 {
@@ -167,9 +61,71 @@
 
     h4,
     h5 {
-      @apply text-sans-lg text-raise mt-8 mb-2;
+      @apply text-sans-lg;
+      margin-top: 2rem;
+      margin-bottom: 0.5rem;
     }
 
+    /* Remove top spacing from the first heading in a document */
+    #preamble .sectionbody > *:first-child,
+    #content > .sect1:first-of-type > :is(h1, h2, h3, h4, h5) {
+      margin-top: 0;
+    }
+
+    h1 a,
+    h2 a,
+    h3 a,
+    h4 a,
+    h5 a {
+      color: var(--content-raise);
+      display: inline;
+    }
+
+    h1 a,
+    h2 a,
+    h3 a,
+    h4 a,
+    h5 a,
+    h6 a {
+      text-underline-offset: 1px;
+      text-decoration-thickness: 1px;
+    }
+
+    /* Section numbers rendered before each heading */
+    :is(h1, h2, h3, h4, h5)[data-sectnum]::before {
+      content: attr(data-sectnum);
+      color: var(--content-tertiary);
+      display: inline-block;
+      pointer-events: none;
+      margin-right: 0.5rem;
+      top: 6px;
+    }
+
+    h3[data-sectnum]::before {
+      top: 2px;
+    }
+
+    h4[data-sectnum]::before,
+    h5[data-sectnum]::before {
+      top: 0;
+    }
+
+    @media (min-width: 800px) {
+      :is(h1, h2, h3, h4, h5)[data-sectnum]::before {
+        @apply text-sans-lg;
+        position: absolute;
+        left: -72px;
+        width: 60px;
+        margin-right: 0;
+        text-align: right;
+      }
+    }
+
+    :is(h1, h2, h3, h4, h5)[data-sectnum] a::after {
+      display: none;
+    }
+
+    /* Heading anchors */
     .anchor,
     .sectionanchor {
       position: absolute;
@@ -178,52 +134,41 @@
       user-select: none;
     }
 
-    .dlist dt {
-      @apply text-sans-lg text-raise;
+    /* --- Links --- */
+    a:not(:is(h1, h2, h3, h4, h5, h6, .title) a) {
+      color: var(--content-accent-secondary);
+      text-decoration: underline;
+      text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
     }
 
-    .dlist dt:after {
-      content: ':';
-      @apply text-sans-lg text-tertiary;
+    a:not(:is(h1, h2, h3, h4, h5, h6, .title) a):hover {
+      color: var(--content-accent);
     }
 
-    /* Fix overflow text in mermaid */
-    code svg {
-      line-height: 1 !important;
+    a:hover,
+    a:hover .title {
+      text-decoration-line: underline;
+      text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
     }
 
-    /* Prevent asciidoc styles from leaking into mermaid SVG output */
-    code svg,
-    code svg * {
-      all: revert-layer;
+    p a {
+      overflow-wrap: break-word;
     }
 
-    p {
-      @apply text-sans-lg 800:mb-3 mb-[1.25rem] !leading-[1.5];
-    }
-
-    ul li,
-    ol li {
-      @apply mt-[0.325rem];
-    }
-
+    /* --- Lists --- */
     ul,
     ol {
-      @apply text-mono-sm mb-3 list-disc;
+      @apply text-mono-sm;
+      margin-bottom: 0.75rem;
+      list-style-position: inside;
     }
 
-    li::marker,
-    ol::marker {
-      color: color-mix(in srgb, currentColor 60%, transparent);
+    ul {
+      list-style-type: disc;
     }
 
-    ul p,
-    ol p {
-      @apply normal-case;
-    }
-
-    li:not(:last-child) :is(ul, ol) {
-      @apply mb-0;
+    ol {
+      list-style-type: decimal;
     }
 
     ul ul li {
@@ -238,196 +183,332 @@
       list-style-type: disc;
     }
 
-    ul {
-      @apply list-disc;
+    .arabic {
+      list-style-type: decimal;
+    }
+    .loweralpha {
+      list-style-type: lower-alpha;
+    }
+    .lowerroman {
+      list-style-type: lower-roman;
+    }
+    .upperalpha {
+      list-style-type: upper-alpha;
+    }
+    .upperroman {
+      list-style-type: upper-roman;
     }
 
-    ol {
-      @apply list-decimal;
+    ul li,
+    ol li {
+      margin-top: 0.325rem;
     }
 
-    ul,
-    ol {
-      @apply 800:list-outside list-inside;
+    li::marker {
+      color: color-mix(in srgb, currentColor 60%, transparent);
     }
 
-    ul:first-of-type,
-    .github-markdown > ul {
-      @apply 800:ml-4;
+    /* Paragraphs inside list items flow inline */
+    ul p,
+    ol p {
+      display: inline;
+      text-transform: none;
     }
 
-    ol:first-of-type,
-    .github-markdown > ol {
-      @apply 800:ml-6;
+    ol p {
+      color: var(--content-default);
     }
 
+    li:not(:last-child) :is(ul, ol) {
+      margin-bottom: 0;
+    }
+
+    /* Lists inside blocks where outside marker position would be clipped */
     .tableblock ul,
-    .tableblock ol {
-      @apply list-inside;
-    }
-
+    .tableblock ol,
     .quoteblock ul,
-    .quoteblock ol {
-      @apply list-inside;
+    .quoteblock ol,
+    .exampleblock ul,
+    .exampleblock ol {
+      list-style-position: inside;
     }
 
     .ulist .ulist,
     .ulist .olist,
     .olist .ulist,
     .olist .olist {
-      @apply 800:ml-2 ml-[2rem];
+      margin-left: 2rem;
     }
 
-    .exampleblock ul,
-    .exampleblock ol {
-      @apply list-inside;
+    @media (min-width: 800px) {
+      ul,
+      ol {
+        list-style-position: outside;
+      }
+
+      ul:first-of-type,
+      .github-markdown > ul {
+        margin-left: 1rem;
+      }
+
+      ol:first-of-type,
+      .github-markdown > ol {
+        margin-left: 1.5rem;
+      }
+
+      .ulist .ulist,
+      .ulist .olist,
+      .olist .ulist,
+      .olist .olist {
+        margin-left: 0.5rem;
+      }
     }
 
-    ul p,
-    ol p {
-      @apply inline;
+    /* --- Description lists --- */
+    .dlist dt {
+      @apply text-sans-lg;
+      color: var(--content-raise);
     }
 
-    p {
-      @apply text-default;
+    .dlist dt::after {
+      @apply text-sans-lg;
+      content: ':';
+      color: var(--content-tertiary);
     }
 
-    .lead p {
-      @apply text-raise;
+    /* --- Quote blocks --- */
+    .quoteblock {
+      color: var(--content-secondary);
+      border-left: 1px solid var(--stroke-default);
+      margin: 2rem 0;
+      padding-left: 1.6rem;
     }
 
-    .arabic {
-      list-style-type: decimal;
+    .quoteblock p {
+      color: var(--content-secondary);
     }
 
-    .loweralpha {
-      list-style-type: lower-alpha;
+    .quoteblock .attribution {
+      color: var(--content-raise);
+      margin-top: 2rem;
     }
 
-    .lowerroman {
-      list-style-type: lower-roman;
+    .attribution cite {
+      display: block;
     }
 
-    .upperalpha {
-      list-style-type: upper-alpha;
+    /* --- Admonitions --- */
+    .admonitionblock {
+      display: flex;
+      color: var(--content-accent-secondary);
+      background-color: var(--surface-accent);
+      border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+      border-radius: var(--radius-md);
+      margin: 1.5rem 0;
+      padding: 0.75rem;
     }
 
-    .upperroman {
-      list-style-type: upper-roman;
+    .admonitionblock strong {
+      color: var(--content-accent);
     }
 
-    ol p {
-      @apply text-default normal-case;
+    .admonitionblock a {
+      color: var(--content-accent);
+      text-decoration-line: underline;
     }
 
-    :not(pre) > code {
-      @apply inline-code;
+    .admonition-icon svg {
+      margin-top: 0.125rem;
+      margin-right: 0.5rem;
+      width: 0.75rem;
+      height: 0.75rem;
     }
 
-    table p code {
-      @apply break-normal;
+    .admonition-content {
+      @apply text-sans-md;
     }
 
-    pre {
-      @apply border-secondary 800:px-[1.75rem] 800:py-[1.5rem] bg-default rounded-md border px-[1.25rem] py-[1rem];
-      @apply text-mono-code overflow-x-auto !text-[13px];
+    .admonition-content p {
+      @apply text-sans-md;
+      color: currentColor;
+      margin-bottom: 0;
     }
 
+    .admonition-content > div:first-of-type {
+      color: var(--content-accent);
+    }
+
+    .admonition-content .admonition-title {
+      margin-bottom: 0.5rem;
+      font-style: italic;
+    }
+
+    .admonition-content .paragraph {
+      margin-bottom: 0.25rem;
+    }
+
+    .admonition-content .paragraph:last-child {
+      margin-bottom: 0;
+    }
+
+    @media (min-width: 800px) {
+      .admonition-content {
+        margin-right: 1.25rem;
+      }
+    }
+
+    .admonitionblock .quoteblock {
+      background-color: var(--surface-default);
+      border: 0;
+      border-radius: var(--radius-md);
+      margin: 0.5rem 0;
+      padding: 0.75rem;
+    }
+
+    /* --- Inline code --- */
     code {
       font-feature-settings: 'calt' 0;
     }
 
+    :not(pre) > code {
+      font-size: 0.825em;
+      letter-spacing: 0 !important;
+      vertical-align: 1px;
+      margin: 0 1px;
+      padding: 0 0.125rem;
+      background-color: color-mix(in srgb, currentColor 8%, transparent);
+      border: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+      border-radius: var(--radius-md);
+    }
+
+    table p code {
+      word-break: normal;
+      overflow-wrap: normal;
+    }
+
+    /* Prevent asciidoc styles from leaking into mermaid SVG output */
+    code svg {
+      line-height: 1 !important;
+    }
+    code svg,
+    code svg * {
+      all: revert-layer;
+    }
+
+    /* --- Code blocks --- */
+    pre {
+      overflow-x: auto;
+      font-size: 13px;
+      letter-spacing: 0;
+      text-transform: none !important;
+      font-feature-settings: 'calt' 0;
+      background-color: var(--surface-default);
+      border: 1px solid var(--stroke-secondary);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+    }
+
+    @media (min-width: 800px) {
+      pre {
+        padding: 1.5rem 1.75rem;
+      }
+    }
+
     .listingblock .content {
-      @apply relative;
+      position: relative;
     }
 
     .listingblock pre:not(.highlight) {
-      @apply text-default;
+      color: var(--content-default);
     }
 
-    .listingblock code[data-lang]:before {
-      @apply text-mono-xs text-secondary absolute top-2 right-2 block;
+    .listingblock code[data-lang]::before {
+      @apply text-mono-xs;
       content: attr(data-lang);
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      display: block;
+      color: var(--content-secondary);
+    }
+
+    /* --- Callout numbers (conum) --- */
+    .conum {
+      display: inline-block;
     }
 
     pre .conum[data-value] {
-      @apply text-mono-xs text-accent bg-accent-hover relative -top-[0.125rem] inline-block h-[1rem] min-w-[1rem] rounded-full text-center not-italic;
+      @apply text-mono-xs;
+      position: relative;
+      top: -0.125rem;
+      display: inline-block;
+      height: 1rem;
+      min-width: 1rem;
+      color: var(--content-accent);
+      background-color: var(--surface-accent-hover);
+      border-radius: var(--radius-full);
+      text-align: center;
+      font-style: normal;
     }
 
-    pre .conum[data-value]:after {
-      @apply pl-[1px];
+    pre .conum[data-value]::after {
       content: attr(data-value);
+      padding-left: 1px;
     }
 
     pre .conum[data-value] + b {
-      @apply hidden;
+      display: none;
     }
 
+    /* --- Example blocks --- */
     .exampleblock {
-      @apply bg-raise overflow-x-auto rounded-md px-[1.5rem] py-[1.25rem];
+      overflow-x: auto;
+      background-color: var(--surface-raise);
+      border-radius: var(--radius-md);
+      padding: 1.25rem 1.5rem;
     }
 
     .exampleblock p {
-      @apply text-sans-md mb-2;
+      @apply text-sans-md;
+      margin-bottom: 0.5rem;
     }
 
     .exampleblock .content,
     .exampleblock .paragraph:last-of-type p {
-      @apply m-0;
+      margin: 0;
     }
 
     .exampleblock > .content {
-      @apply my-[1rem];
+      margin: 1rem 0;
     }
 
-    .admonitionblock {
-      @apply text-accent-secondary bg-accent rounded-md border border-current/15;
-      @apply my-[1.5rem] flex px-3 py-3;
+    /* --- Images --- */
+    img {
+      background-color: var(--surface-raise);
     }
 
-    .admonition-content p {
-      @apply text-[currentColor];
+    span img {
+      display: inline;
+      background-color: transparent;
     }
 
-    .admonitionblock strong {
-      @apply text-accent;
-    }
-
-    .admonitionblock a {
-      @apply text-accent underline;
-    }
-
-    .admonition-icon svg {
-      @apply mt-0.5 mr-2 h-3 w-3;
-    }
-
-    .admonition-content {
-      @apply text-sans-md 800:mr-[1.25rem];
-    }
-
-    .admonition-content p {
-      @apply text-sans-md mb-0;
-    }
-
-    .imageblock,
-    .table-wrapper {
-      @apply my-4;
-    }
-
-    .imageblock.inlineimage {
-      @apply my-3;
-    }
-
-    table.tableblock table.tableblock {
-      @apply my-2;
-    }
-
-    table.tableblock .imageblock {
-      @apply my-0;
+    .imageblock img {
+      margin: 0 auto;
+      width: 100%;
+      height: auto;
+      max-height: max(500px, 75vh);
+      object-fit: contain;
+      border: 1px solid var(--stroke-tertiary);
+      border-radius: var(--radius-md);
     }
 
     .imageblock .title {
-      @apply text-mono-xs text-secondary mt-3 max-w-full text-center not-italic;
+      @apply text-mono-xs;
+      margin-top: 0.75rem;
+      max-width: 100%;
+      text-align: center;
+      color: var(--content-secondary);
+      font-style: normal;
     }
 
     img.wide {
@@ -436,113 +517,103 @@
       margin-left: calc(100% / 8 * -1);
     }
 
-    sup.footnote {
-      @apply text-mono-xs text-secondary;
-    }
-
-    sup.footnote a {
-      padding-top: calc(var(--header-height) + 20px);
-      margin-top: calc(var(--header-height) * -1 - 20px);
-    }
-
+    /* --- Block-level vertical rhythm --- */
     .imageblock,
     .literalblock,
     .listingblock,
     .stemblock,
     .videoblock,
-    .exampleblock {
-      @apply my-4;
-    }
-
-    .title {
-      @apply text-sans-lg mb-1 max-w-[40rem] text-left text-[1em]! text-current italic;
-    }
-
-    summary.title {
-      @apply text-raise not-italic;
-    }
-
-    .conum {
-      @apply inline-block;
-    }
-
+    .exampleblock,
     .table-wrapper {
-      @apply relative overflow-x-auto;
+      margin: 1rem 0;
     }
 
-    .table-wrapper caption a:hover:after {
-      @apply align-[-2px];
+    .imageblock.inlineimage {
+      margin: 0.75rem 0;
+    }
+
+    /* --- Tables --- */
+    .table-wrapper {
+      position: relative;
+      overflow-x: auto;
     }
 
     .table-wrapper caption {
-      @apply sticky left-0 text-left;
+      position: sticky;
+      left: 0;
+      text-align: left;
     }
 
     .table-wrapper caption > a {
-      @apply no-underline;
+      text-decoration: none;
+    }
+
+    .table-wrapper caption a:hover::after {
+      vertical-align: -2px;
     }
 
     table {
-      @apply border-secondary w-full border-separate overflow-hidden rounded-md border p-0;
+      width: 100%;
+      border-collapse: separate;
       border-spacing: 0;
-    }
-
-    .valign-middle {
-      vertical-align: middle;
-    }
-
-    .halign-center {
-      text-align: center;
+      overflow: hidden;
+      border: 1px solid var(--stroke-secondary);
+      border-radius: var(--radius-md);
+      padding: 0;
     }
 
     table p {
       @apply text-sans-md;
+      margin: 0;
+      padding: 0;
     }
 
     table td,
     table th {
-      @apply border-secondary border-r border-b px-[0.5rem] py-[0.5rem] align-top;
+      padding: 0.5rem;
+      vertical-align: top;
+      border-right: 1px solid var(--stroke-secondary);
+      border-bottom: 1px solid var(--stroke-secondary);
     }
 
-    table tr th:last-child {
-      @apply border-r-0;
+    table tr th:last-child,
+    tbody tr td:last-child {
+      border-right: 0;
     }
 
-    /*
-    specificity to handle nested tables
-    todo: check if it's needed in any of the other table styles
-  */
+    /* Nested table specificity */
     tbody > tr:last-child > td,
     tbody > tr:last-child > th {
-      @apply border-b-0;
-    }
-
-    tbody tr td:last-child {
-      @apply border-r-0;
+      border-bottom: 0;
     }
 
     table th {
-      @apply text-mono-xs text-secondary bg-raise text-left;
+      @apply text-mono-xs;
+      text-align: left;
+      color: var(--content-secondary);
+      background-color: var(--surface-raise);
     }
 
     table th p {
       @apply text-mono-xs;
     }
 
-    table td {
-      @apply py-[0.5rem];
-    }
-
     table pre {
-      @apply border-0 p-0;
+      border: 0;
+      padding: 0;
     }
 
-    table p {
-      @apply m-0 p-0;
+    table.tableblock table.tableblock {
+      margin: 0.5rem 0;
     }
 
+    table.tableblock .imageblock {
+      margin: 0;
+    }
+
+    /* --- Callout list --- */
     .colist table {
-      @apply my-[1.5rem];
+      margin: 1.5rem 0;
     }
 
     .colist table td {
@@ -550,117 +621,143 @@
     }
 
     .colist table tr td:first-of-type {
-      @apply text-tertiary w-[1%] whitespace-nowrap;
+      width: 1%;
+      white-space: nowrap;
+      color: var(--content-tertiary);
     }
 
     .colist table b {
       @apply text-mono-sm;
     }
 
+    /* --- Bibliography --- */
     div.bibliography ~ h2 {
-      @apply 800:mt-16 mt-12;
+      margin-top: 3rem;
     }
 
-    .bibliography ul,
-    .bibliography ol {
-      @apply space-y-2;
+    @media (min-width: 800px) {
+      div.bibliography ~ h2 {
+        margin-top: 4rem;
+      }
     }
 
+    .bibliography ul > li + li,
+    .bibliography ol > li + li {
+      margin-top: 0.5rem;
+    }
+
+    /* --- Misc --- */
     mark {
-      @apply text-notice bg-notice rounded-md px-[2px];
+      color: var(--content-notice);
+      background-color: var(--surface-notice);
+      border-radius: var(--radius-md);
+      padding: 0 2px;
     }
 
     .steminline svg {
-      @apply inline;
+      display: inline;
     }
 
     hr {
-      @apply border-default my-3;
+      border-color: var(--stroke-default);
+      margin: 0.75rem 0;
     }
 
     .sidebarblock {
-      @apply bg-raise my-8 rounded-md p-4 px-6 py-5;
+      background-color: var(--surface-raise);
+      border-radius: var(--radius-md);
+      margin: 2rem 0;
+      padding: 1.25rem 1.5rem;
     }
 
+    /* --- Footnotes --- */
+    sup.footnote {
+      @apply text-mono-xs;
+      color: var(--content-secondary);
+    }
+
+    sup.footnote a {
+      padding-top: calc(var(--header-height) + 20px);
+      margin-top: calc(var(--header-height) * -1 - 20px);
+    }
+
+    /* --- Titles --- */
+    .title {
+      @apply text-sans-lg;
+      margin-bottom: 0.25rem;
+      max-width: 40rem;
+      text-align: left;
+      font-size: 1em !important;
+      font-style: italic;
+      color: currentColor;
+    }
+
+    summary.title {
+      color: var(--content-raise);
+      font-style: normal;
+    }
+
+    /* --- Alignment helpers --- */
     .halign-left {
       text-align: left;
     }
-
     .halign-right {
       text-align: right;
     }
-
     .halign-center {
       text-align: center;
     }
-
     .valign-top {
       vertical-align: top;
     }
-
-    .valign-bottom {
-      vertical-align: bottom;
-    }
-
     .valign-middle {
       vertical-align: middle;
     }
-
-    .paragraph.lead p {
-      @apply text-sans-xl;
-    }
-
-    a:not(:is(h1, h2, h3, h4, h5, h6, .title) a) {
-      @apply text-accent-secondary hover:text-accent;
-      text-decoration: underline;
-      text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
-    }
-
-    h1 a,
-    h2 a,
-    h3 a,
-    h4 a,
-    h5 a,
-    h6 a {
-      text-underline-offset: 1px;
-      text-decoration-thickness: 1px;
-    }
-
-    a:hover,
-    a:hover .title {
-      text-decoration: underline;
-      text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
+    .valign-bottom {
+      vertical-align: bottom;
     }
   }
 
+  /* Footnotes and TOC share the inline-code / accent-link treatments */
   #footnotes p a {
-    @apply accent-link;
+    color: var(--content-accent-secondary);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
+  }
+
+  #footnotes p a:hover {
+    color: var(--content-accent);
   }
 
   #footnotes p code,
   .toc code {
-    @apply inline-code;
+    font-size: 0.825em;
+    letter-spacing: 0;
+    vertical-align: 1px;
+    margin: 0 1px;
+    padding: 0 0.125rem;
+    background-color: color-mix(in srgb, currentColor 8%, transparent);
+    border: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+    border-radius: var(--radius-md);
   }
 
+  /* --- Animated accordion --- */
   @media screen and (min-width: 720px) {
+    .animated-accordion {
+      overflow: hidden;
+    }
+
     .animated-accordion[data-state='open'].hydrated {
       animation: accordionSlideDown 300ms cubic-bezier(0.87, 0, 0.13, 1);
     }
+
     .animated-accordion[data-state='closed'].hydrated {
       animation: accordionSlideUp 300ms cubic-bezier(0.87, 0, 0.13, 1);
     }
   }
 
-  @media screen and (min-width: 720px) {
-    .animated-accordion {
-      overflow: hidden;
-    }
-  }
-
   @media screen and (prefers-reduced-motion) {
-    .animated-accordion[data-state='open'] {
-      animation-name: none;
-    }
+    .animated-accordion[data-state='open'],
     .animated-accordion[data-state='closed'] {
       animation-name: none;
     }
@@ -684,6 +781,7 @@
     }
   }
 
+  /* --- Print --- */
   @media print {
     html {
       font-size: 14px !important;
@@ -750,12 +848,12 @@
       --stroke-default-p3: var(--content-secondary);
     }
 
-    p a {
-      text-decoration-color: black !important;
-    }
-
     p {
       color: black !important;
+    }
+
+    p a {
+      text-decoration-color: black !important;
     }
 
     .imageblock img {
@@ -768,12 +866,8 @@
     }
 
     .asciidoc-body {
-      h1[data-sectnum]::before,
-      h2[data-sectnum]::before,
-      h3[data-sectnum]::before,
-      h4[data-sectnum]::before,
-      h5[data-sectnum]::before {
-        @apply !hidden;
+      :is(h1, h2, h3, h4, h5)[data-sectnum]::before {
+        display: none !important;
       }
 
       h1,
@@ -781,7 +875,8 @@
       h3,
       h4,
       h5 {
-        @apply ml-0 pl-0;
+        margin-left: 0;
+        padding-left: 0;
       }
 
       .paragraph {
