@@ -15,13 +15,13 @@
 @utility accent-link {
   @apply text-accent-secondary hover:text-accent;
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
+  text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
 }
 
 @utility link-with-underline {
   @apply text-default hover:text-raise;
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
+  text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
 }
 
 @utility inline-code {
@@ -53,7 +53,7 @@
     }
 
     .admonitionblock .quoteblock {
-      @apply border-0 p-3 bg-default rounded-md mt-2 mb-2;
+      @apply bg-default mt-2 mb-2 rounded-md border-0 p-3;
     }
 
     .admonition-content .paragraph {
@@ -65,11 +65,11 @@
     }
 
     .admonition-content .admonition-title {
-      @apply italic mb-2;
+      @apply mb-2 italic;
     }
 
     .admonition-content .admonition-title {
-      @apply italic mb-2;
+      @apply mb-2 italic;
     }
 
     .imageblock img {
@@ -89,9 +89,12 @@
       @apply text-accent-secondary hover:text-accent;
       overflow-wrap: break-word;
       word-wrap: break-word;
+    }
 
+    p a,
+    .admonition-content a {
       text-decoration: underline;
-      text-decoration-color: var(--content-accent-tertiary);
+      text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
     }
 
     /* Use semi-bold for strong */
@@ -133,8 +136,11 @@
       content: attr(data-sectnum);
     }
 
-    h3[data-sectnum]:before,
     h2[data-sectnum]:before {
+      @apply top-[6px];
+    }
+
+    h3[data-sectnum]:before {
       @apply top-[2px];
     }
 
@@ -323,7 +329,7 @@
     }
 
     pre {
-      @apply border-secondary 800:px-[1.75rem] 800:py-[1.5rem] rounded-md border px-[1.25rem] py-[1rem] bg-default;
+      @apply border-secondary 800:px-[1.75rem] 800:py-[1.5rem] bg-default rounded-md border px-[1.25rem] py-[1rem];
       @apply text-mono-code overflow-x-auto !text-[13px];
     }
 
@@ -375,16 +381,12 @@
     }
 
     .admonitionblock {
-      @apply text-accent-secondary bg-accent rounded-md border-current/15 border;
+      @apply text-accent-secondary bg-accent rounded-md border border-current/15;
       @apply my-[1.5rem] flex px-3 py-3;
     }
 
     .admonition-content p {
       @apply text-[currentColor];
-    }
-
-    .admonitionblock a {
-      text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
     }
 
     .admonitionblock strong {
@@ -453,7 +455,7 @@
     }
 
     .title {
-      @apply text-sans-lg text-[1em]! text-current mb-1 max-w-[40rem] text-left italic;
+      @apply text-sans-lg mb-1 max-w-[40rem] text-left text-[1em]! text-current italic;
     }
 
     summary.title {
@@ -608,9 +610,26 @@
       @apply text-sans-xl;
     }
 
-    a:not(:is(h1, h2, h3, h4, h5, h6) a) {
-      text-decoration-color: color-mix(in srgb, currentColor 60%, transparent);
-      @apply text-accent-secondary underline;
+    a:not(:is(h1, h2, h3, h4, h5, h6, .title) a) {
+      @apply text-accent-secondary hover:text-accent;
+      text-decoration: underline;
+      text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
+    }
+
+    h1 a,
+    h2 a,
+    h3 a,
+    h4 a,
+    h5 a,
+    h6 a {
+      text-underline-offset: 1px;
+      text-decoration-thickness: 1px;
+    }
+
+    a:hover,
+    a:hover .title {
+      text-decoration: underline;
+      text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
     }
   }
 

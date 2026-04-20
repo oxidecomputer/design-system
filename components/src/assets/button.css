@@ -14,7 +14,7 @@ label {
   }
   &.ox-button:after {
     content: '';
-    @apply absolute bottom-0 left-0 right-0 top-0 rounded-md border border-current/5;
+    @apply absolute top-0 right-0 bottom-0 left-0 rounded-md border border-current/5;
   }
   &.btn-primary {
     @apply text-accent bg-accent hover:bg-accent-hover disabled:text-accent/35 disabled:bg-accent;

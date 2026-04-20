@@ -56,11 +56,11 @@
 }
 
 .light .spinner-danger .path {
-    stroke: var(--color-red-700);
+  stroke: var(--color-red-700);
 }
 
 .light .spinner-primary .path {
-    stroke: var(--color-green-700);
+  stroke: var(--color-green-700);
 }
 
 @keyframes rotate {

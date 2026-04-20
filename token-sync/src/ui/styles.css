@@ -17,7 +17,9 @@ html {
   padding: 0;
 }
 
-html, body, #app {
+html,
+body,
+#app {
   height: 100%;
 }
 
@@ -27,8 +29,6 @@ html, body, #app {
   flex-direction: column;
   height: 100%;
 }
-
-
 
 .center {
   display: flex;
@@ -63,8 +63,6 @@ html, body, #app {
   margin-bottom: 6px;
 }
 
-
-
 /* Branch bar */
 .branch-bar {
   display: flex;
@@ -91,7 +89,7 @@ html, body, #app {
   border-radius: 4px;
   padding: 3px 8px;
   font-size: 11px;
-  font-family: "SF Mono", "Menlo", monospace;
+  font-family: 'SF Mono', 'Menlo', monospace;
   line-height: 18px;
   outline: none;
 }
@@ -212,7 +210,7 @@ html, body, #app {
 }
 
 .diff-entry-name {
-  font-family: "SF Mono", "Menlo", monospace;
+  font-family: 'SF Mono', 'Menlo', monospace;
   font-size: 10.5px;
   color: var(--figma-color-text);
   overflow: hidden;
@@ -298,7 +296,7 @@ html, body, #app {
 }
 
 .diff-value-text {
-  font-family: "SF Mono", "Menlo", monospace;
+  font-family: 'SF Mono', 'Menlo', monospace;
   font-size: 10px;
   color: var(--figma-color-text-secondary);
   word-break: break-all;
@@ -321,7 +319,7 @@ html, body, #app {
 .json-row {
   display: flex;
   gap: 6px;
-  font-family: "SF Mono", "Menlo", monospace;
+  font-family: 'SF Mono', 'Menlo', monospace;
   font-size: 10px;
   line-height: 16px;
 }
@@ -332,7 +330,7 @@ html, body, #app {
 }
 
 .json-key::after {
-  content: ":";
+  content: ':';
 }
 
 .json-value {
@@ -348,13 +346,13 @@ html, body, #app {
 }
 
 .color-raw {
-  font-family: "SF Mono", "Menlo", monospace;
+  font-family: 'SF Mono', 'Menlo', monospace;
   font-size: 10px;
   color: var(--figma-color-text-tertiary);
 }
 
 .color-arrow {
-  font-family: "SF Mono", "Menlo", monospace;
+  font-family: 'SF Mono', 'Menlo', monospace;
   font-size: 9px;
   color: var(--figma-color-text-tertiary);
 }
@@ -394,7 +392,7 @@ html, body, #app {
   user-select: none;
 }
 
-.apply-checkbox input[type="checkbox"] {
+.apply-checkbox input[type='checkbox'] {
   margin: 0;
   cursor: pointer;
 }
