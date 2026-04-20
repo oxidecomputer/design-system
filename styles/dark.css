@@ -6,7 +6,7 @@
   --surface-secondary: var(--color-neutral-100);
   --surface-tertiary: var(--color-neutral-300);
   --surface-disabled: var(--color-neutral-100);
-  --surface-scrim: oklch(0.162 0.0100 260.0 / 0.4);
+  --surface-scrim: oklch(0.162 0.01 260 / 0.4);
   --surface-accent-alt-inverse: var(--theme-accent-alt-800);
   --surface-accent-alt: var(--theme-accent-alt-200);
   --surface-accent-alt-hover: var(--theme-accent-alt-300);

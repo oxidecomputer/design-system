@@ -32,7 +32,7 @@
 }
 
 .ox-tab {
-  @apply text-mono-sm text-tertiary border-secondary h-10 space-x-2 whitespace-nowrap border-b px-1.5 pb-1 pt-2 uppercase no-underline!;
+  @apply text-mono-sm text-tertiary border-secondary h-10 space-x-2 border-b px-1.5 pt-2 pb-1 whitespace-nowrap uppercase no-underline!;
 }
 
 .ox-tab[data-state='active'],
@@ -53,7 +53,7 @@
 }
 
 .ox-tab > .ox-badge {
-  @apply -mt-1 select-none text-current;
+  @apply -mt-1 text-current select-none;
 }
 
 .ox-tab[data-state='inactive'] > .ox-badge,

@@ -1,11 +1,11 @@
-[data-theme="light"] {
+[data-theme='light'] {
   --surface-default: var(--color-neutral-1300);
   --surface-hover: var(--color-neutral-1100);
   --surface-raise: var(--color-neutral-1200);
   --surface-secondary: var(--color-neutral-1100);
   --surface-tertiary: var(--color-neutral-1000);
   --surface-disabled: var(--color-neutral-1100);
-  --surface-scrim: oklch(0.162 0.0100 260.0 / 0.1);
+  --surface-scrim: oklch(0.162 0.01 260 / 0.1);
   --surface-accent-alt-inverse: var(--theme-accent-alt-800);
   --surface-accent-alt: var(--theme-accent-alt-1200);
   --surface-accent-alt-hover: var(--theme-accent-alt-1100);
@@ -112,12 +112,12 @@
   --syntax-rose: var(--color-red-300);
 }
 
-[data-theme="light"],
-[data-theme="light"] .red-theme,
-[data-theme="light"] .yellow-theme,
-[data-theme="light"] .blue-theme,
-[data-theme="light"] .green-theme,
-[data-theme="light"] .purple-theme {
+[data-theme='light'],
+[data-theme='light'] .red-theme,
+[data-theme='light'] .yellow-theme,
+[data-theme='light'] .blue-theme,
+[data-theme='light'] .green-theme,
+[data-theme='light'] .purple-theme {
   --surface-accent-inverse: var(--theme-accent-800);
   --surface-accent: var(--theme-accent-1200);
   --surface-accent-hover: var(--theme-accent-1100);
