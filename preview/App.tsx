@@ -328,23 +328,6 @@ func main() {
         />
       </Section>
 
-      <Section title="Syntax highlighting (GraphQL)">
-        <CodeBlock
-          lang="graphql"
-          code={`# fetch a user
-query GetUser($id: ID!) {
-  user(id: $id) {
-    name: fullName
-    role
-    posts(limit: 5) {
-      title
-      tags
-    }
-  }
-}`}
-        />
-      </Section>
-
       <Section title="Syntax highlighting (OxQL)">
         <CodeBlock
           lang="oxql"
