@@ -1,0 +1,151 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "p4",
+  "scopeName": "source.p4",
+  "repository": {
+    "comment": {
+      "patterns": [
+        {
+          "name": "comment.line.double-slash.p4",
+          "match": "//.*$"
+        },
+        {
+          "name": "comment.block.p4",
+          "begin": "/\\*",
+          "end": "\\*/"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "constant.language.p4",
+          "match": "\\b(?:false|true)\\b"
+        },
+        {
+          "name": "keyword.control.p4",
+          "match": "\\b(?:default_action|transition|counters|NoAction|optional|actions|control|default|package|ternary|typedef|action|extern|header|meters|parser|return|select|struct|apply|const|exact|inout|range|state|table|else|size|key|lpm|out|if|in|_)\\b"
+        },
+        {
+          "name": "storage.type.p4",
+          "match": "\\b(?:packet_out|packet_in|varbit|error|tuple|bool|bit|int)\\b"
+        }
+      ]
+    }
+  },
+  "patterns": [
+    {
+      "name": "keyword.control.directive.p4",
+      "match": "^\\s*#\\s*\\w+"
+    },
+    {
+      "include": "#comment"
+    },
+    {
+      "name": "string.quoted.double.p4",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.p4",
+          "match": "\\\\."
+        }
+      ]
+    },
+    {
+      "match": "(@)([A-Za-z_]\\w*)",
+      "captures": {
+        "1": {
+          "name": "punctuation.definition.annotation.p4"
+        },
+        "2": {
+          "name": "storage.type.annotation.p4"
+        }
+      }
+    },
+    {
+      "name": "storage.type.p4",
+      "match": "\\b(?:bit|varbit)\\s*<\\s*\\d+\\s*>|\\btuple\\s*<(?:[^<>]|<[^>]*>)*>"
+    },
+    {
+      "name": "constant.numeric.p4",
+      "match": "\\b(?:\\d+w0x[0-9a-fA-F]+|\\d+w\\d+|0x[0-9a-fA-F]+|\\d+)\\b"
+    },
+    {
+      "match": "\\b(typedef|struct|header|extern)\\s+([A-Za-z_]\\w*)",
+      "captures": {
+        "1": {
+          "name": "keyword.control.p4"
+        },
+        "2": {
+          "name": "storage.type.p4"
+        }
+      }
+    },
+    {
+      "match": "\\b(table|parser|control|state|package)\\s+([A-Za-z_]\\w*)",
+      "captures": {
+        "1": {
+          "name": "keyword.control.p4"
+        },
+        "2": {
+          "name": "entity.name.type.p4"
+        }
+      }
+    },
+    {
+      "match": "\\b(action)\\s+([A-Za-z_]\\w*)",
+      "captures": {
+        "1": {
+          "name": "keyword.control.p4"
+        },
+        "2": {
+          "name": "entity.name.function.p4"
+        }
+      }
+    },
+    {
+      "name": "storage.type.p4",
+      "match": "\\b[A-Za-z_]\\w*_[th]\\b"
+    },
+    {
+      "begin": "\\b(actions)\\s*=\\s*\\{",
+      "end": "\\}",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.p4"
+        }
+      },
+      "patterns": [
+        {
+          "include": "#comment"
+        },
+        {
+          "include": "#keywords"
+        },
+        {
+          "name": "entity.name.function.p4",
+          "match": "\\b[A-Za-z_]\\w*\\b"
+        }
+      ]
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "match": "(\\.)([A-Za-z_]\\w*)(?=\\s*\\()",
+      "captures": {
+        "1": {
+          "name": "punctuation.accessor.p4"
+        },
+        "2": {
+          "name": "entity.name.function.p4"
+        }
+      }
+    },
+    {
+      "name": "entity.name.function.p4",
+      "match": "(?<!\\.)\\b[A-Za-z_]\\w*(?=\\s*\\()"
+    }
+  ]
+}

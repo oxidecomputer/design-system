@@ -328,19 +328,45 @@ func main() {
         />
       </Section>
 
-      <Section title="Syntax highlighting (GraphQL)">
+      <Section title="Syntax highlighting (OxQL)">
         <CodeBlock
-          lang="graphql"
-          code={`# fetch a user
-query GetUser($id: ID!) {
-  user(id: $id) {
-    name: fullName
-    role
-    posts(limit: 5) {
-      title
-      tags
+          lang="oxql"
+          code={`get sled_data_link:bytes_sent
+    | filter timestamp > @now() - 1h
+    | align mean_within(5m)
+    | group_by [sled_serial]`}
+        />
+      </Section>
+
+      <Section title="Syntax highlighting (P4)">
+        <CodeBlock
+          lang="p4"
+          code={`action mcast_forward_ipv4_to(ipv6_addr_t target,
+                             mac_addr_t inner_mac,
+                             geneve_vni_t vni) {
+    meta.nat_ingress_tgt = target;     // admin-local underlay group
+    meta.nat_inner_mac   = inner_mac;
+    meta.nat_geneve_vni  = vni;        // VNI carried as action data
+    meta.encap_needed    = true;
+}
+
+table ingress_ipv4_mcast {
+    key = {
+        hdr.ipv4.dst_addr  : exact;    // external IPv4 group address
+        hdr.vlan.isValid() : exact;
+        hdr.vlan.vlan_id   : exact;
     }
-  }
+    actions = {
+        mcast_forward_ipv4_to;
+    }
+}
+
+table mcast_replication_ipv6 {
+    key = { hdr.ipv6.dst_addr : exact; } // admin-local underlay group
+    actions = {
+        configure_mcastv6;
+        drop_mcastv6_admin_scoped_no_group;
+    }
 }`}
         />
       </Section>

@@ -7,7 +7,7 @@
  */
 import { useEffect, useState } from 'react'
 
-import { getHighlighter, themeName } from './highlighter'
+import { highlightCode } from '../components/src/asciidoc/util'
 
 type Props = {
   code: string
@@ -19,14 +19,9 @@ export function CodeBlock({ code, lang = 'tsx' }: Props) {
 
   useEffect(() => {
     let cancelled = false
-    getHighlighter().then((h) => {
+    highlightCode(code, lang).then((result) => {
       if (cancelled) return
-      setHtml(
-        h.codeToHtml(code, {
-          lang,
-          theme: themeName,
-        }),
-      )
+      setHtml(result)
     })
     return () => {
       cancelled = true
