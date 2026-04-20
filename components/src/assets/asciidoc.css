@@ -614,7 +614,6 @@
       @apply text-accent-secondary hover:text-accent;
       text-decoration: underline;
       text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
-      text-decoration-thickness: 1px;
     }
 
     h1 a,
@@ -624,13 +623,13 @@
     h5 a,
     h6 a {
       text-underline-offset: 1px;
+      text-decoration-thickness: 1px;
     }
 
     a:hover,
     a:hover .title {
       text-decoration: underline;
       text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
-      text-decoration-thickness: 1px;
     }
   }
 
