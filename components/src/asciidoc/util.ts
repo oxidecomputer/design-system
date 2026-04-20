@@ -37,19 +37,34 @@ let highlighter: HighlighterGeneric<BundledLanguage, BundledTheme> | null = null
 const customLanguages = ['oxql', 'p4']
 const supportedLanguages = [...Object.keys(bundledLanguages), ...customLanguages]
 
-async function getOrCreateHighlighter() {
+export async function getHighlighter() {
   if (!highlighter) {
-    const langs: LanguageInput[] = []
-
-    langs.push({ ...oxql }, { ...p4 })
+    const langs: LanguageInput[] = [{ ...oxql }, { ...p4 }]
 
     highlighter = await createHighlighter({
       themes: [theme],
-      langs: langs,
+      langs,
     })
   }
 
   return highlighter
+}
+
+export async function highlightCode(
+  code: string,
+  lang: string,
+  { inline = false }: { inline?: boolean } = {},
+): Promise<string> {
+  const h = await getHighlighter()
+  const resolved = supportedLanguages.includes(lang) ? lang : 'text'
+  if (!h.getLoadedLanguages().includes(resolved)) {
+    await h.loadLanguage(resolved as BundledLanguage)
+  }
+  return h.codeToHtml(code, {
+    lang: resolved,
+    theme,
+    ...(inline ? { structure: 'inline' as const } : {}),
+  })
 }
 
 const highlight = async (block: Block): Promise<Block> => {
@@ -80,23 +95,11 @@ const highlight = async (block: Block): Promise<Block> => {
       }
     }
 
-    let lang = literalBlock.language
-    const h = await getOrCreateHighlighter()
-    const loadedLanguages = h.getLoadedLanguages()
-
-    if (!supportedLanguages.includes(lang)) {
-      lang = 'text'
-    }
-
-    if (!loadedLanguages.includes(lang)) {
-      await h.loadLanguage(lang as BundledLanguage)
-    }
-
-    const highlightedContent = h.codeToHtml(placeholderContent, {
-      lang,
-      theme: theme,
-      structure: 'inline',
-    })
+    const highlightedContent = await highlightCode(
+      placeholderContent,
+      literalBlock.language,
+      { inline: true },
+    )
 
     // Restore callouts in the highlighted content
     const restoredContent = highlightedContent.replace(
