@@ -623,7 +623,7 @@
     h4 a,
     h5 a,
     h6 a {
-      text-underline-offset: 2px;
+      text-underline-offset: 1px;
     }
 
     a:hover,
