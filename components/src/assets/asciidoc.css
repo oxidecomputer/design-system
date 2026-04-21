@@ -68,7 +68,7 @@
 
     /* Remove top spacing from the first heading in a document */
     #preamble .sectionbody > *:first-child,
-    #content > .sect1:first-of-type > :is(h1, h2, h3, h4, h5) {
+    & > .sect1:first-of-type > :is(h1, h2, h3, h4, h5) {
       margin-top: 0;
     }
 
