@@ -65,15 +65,31 @@ function PrimitiveRow({ utility }: { utility: string }) {
   )
 }
 
-const PRIMITIVES = [
-  'text-sans-sm',
-  'text-sans-md',
-  'text-sans-lg',
-  'text-sans-xl',
-  'text-sans-2xl',
-  'text-sans-3xl',
-  'text-sans-4xl',
-  'text-sans-5xl',
+const NUMERIC_PRIMITIVES = [
+  'text-sans-11',
+  'text-sans-12',
+  'text-sans-14',
+  'text-sans-16',
+  'text-sans-18',
+  'text-sans-20',
+  'text-sans-22',
+  'text-sans-25',
+  'text-sans-28',
+  'text-sans-36',
+  'text-sans-50',
+  'text-sans-52',
+  'text-sans-65',
+]
+
+const SEMANTIC_ALIASES: Array<[string, string]> = [
+  ['text-sans-sm', '→ 12'],
+  ['text-sans-md', '→ 14'],
+  ['text-sans-lg', '→ 16'],
+  ['text-sans-xl', '→ 18'],
+  ['text-sans-2xl', '→ 25'],
+  ['text-sans-3xl', '→ 36'],
+  ['text-sans-4xl', '→ 52'],
+  ['text-sans-5xl', '→ 65'],
 ]
 
 export function TypographyShowcase() {
@@ -107,10 +123,26 @@ export function TypographyShowcase() {
           />
         </section>
 
-        <section>
-          <h2 className="text-sans-2xl text-secondary mb-2">Primitives</h2>
-          {PRIMITIVES.map((utility) => (
+        <section className="mb-16">
+          <h2 className="text-sans-2xl text-secondary mb-2">Numeric primitives</h2>
+          {NUMERIC_PRIMITIVES.map((utility) => (
             <PrimitiveRow key={utility} utility={utility} />
+          ))}
+        </section>
+
+        <section>
+          <h2 className="text-sans-2xl text-secondary mb-2">Semantic aliases</h2>
+          {SEMANTIC_ALIASES.map(([utility, alias]) => (
+            <div
+              key={utility}
+              className="border-secondary flex items-baseline gap-6 border-b py-4"
+            >
+              <span className="text-mono-xs text-tertiary w-32 shrink-0">{utility}</span>
+              <span className="text-mono-xs text-quaternary w-20 shrink-0">{alias}</span>
+              <span className={`${utility} text-raise`}>
+                The quick brown fox jumps over the lazy dog
+              </span>
+            </div>
           ))}
         </section>
       </div>
