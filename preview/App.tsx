@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 import { Badge, Button, Checkbox, Spinner, Tabs } from '../components/src/ui'
 import { CodeBlock } from './CodeBlock'
+import { TypographyShowcase } from './TypographyShowcase'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -374,35 +375,52 @@ table mcast_replication_ipv6 {
   )
 }
 
-const headerToggleClass =
-  'text-mono-sm text-secondary hover:text-default hover:bg-hover rounded-md px-3 py-1.5'
+const headerToggleClass = 'text-mono-sm hover:bg-hover rounded-md px-3 py-1.5'
 
 export default function App() {
   const [mode, setMode] = useState<'dark' | 'light'>('dark')
+  const [view, setView] = useState<'components' | 'typography'>('components')
 
   return (
     <div className={mode === 'light' ? 'light' : undefined} data-theme={mode}>
       <div className="bg-default text-default min-h-screen">
-        <div className="border-secondary bg-default sticky top-0 flex items-center justify-between border-b px-4 py-2">
-          <h1 className="text-sans-lg text-raise">Component Preview</h1>
-          <div className="flex gap-1">
+        <div className="text-tertiary border-secondary bg-default sticky top-0 z-20 flex items-center justify-between border-b px-2 py-2">
+          <div className="flex gap-px">
+            <button
+              onClick={() => setView('components')}
+              className={`${headerToggleClass} ${view === 'components' && 'text-raise'}`}
+            >
+              Components
+            </button>
+            <button
+              onClick={() => setView('typography')}
+              className={`${headerToggleClass} ${view === 'typography' && 'text-raise'}`}
+            >
+              Typography
+            </button>
+          </div>
+          <div className="flex gap-px">
             <button
               onClick={() => setMode('dark')}
-              className={`${headerToggleClass} ${mode === 'dark' && 'bg-tertiary'}`}
+              className={`${headerToggleClass} ${mode === 'dark' && 'text-raise'}`}
             >
               Dark
             </button>
             <button
               onClick={() => setMode('light')}
-              className={`${headerToggleClass} ${mode === 'light' && 'bg-tertiary'}`}
+              className={`${headerToggleClass} ${mode === 'light' && 'text-raise'}`}
             >
               Light
             </button>
           </div>
         </div>
-        <div className="mx-auto flex max-w-4xl flex-col gap-8 p-8">
-          <ComponentShowcase />
-        </div>
+        {view === 'components' ? (
+          <div className="mx-auto flex max-w-4xl flex-col gap-8 p-8">
+            <ComponentShowcase />
+          </div>
+        ) : (
+          <TypographyShowcase />
+        )}
       </div>
     </div>
   )

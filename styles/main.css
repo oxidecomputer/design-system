@@ -412,7 +412,7 @@
   font-weight: 400;
   line-height: 1rem;
   font-size: 0.75rem;
-  letter-spacing: 0.04rem;
+  letter-spacing: 0.01rem;
 }
 /* @figma sans/regular/md */
 @utility text-sans-md {
@@ -420,7 +420,7 @@
   font-weight: 400;
   line-height: 1.125rem;
   font-size: 0.875rem;
-  letter-spacing: 0.03rem;
+  letter-spacing: 0.01rem;
 }
 /* @figma sans/regular/lg */
 @utility text-sans-lg {
@@ -428,7 +428,7 @@
   font-weight: 400;
   line-height: 1.375rem;
   font-size: 1rem;
-  letter-spacing: 0.0175rem;
+  letter-spacing: 0.01rem;
 }
 /* @figma sans/regular/xl */
 @utility text-sans-xl {
@@ -436,7 +436,7 @@
   font-weight: 400;
   line-height: 1.5rem;
   font-size: 1.125rem;
-  letter-spacing: 0.0125rem;
+  letter-spacing: 0rem;
 }
 /* @figma sans/regular/2xl */
 @utility text-sans-2xl {
@@ -444,7 +444,7 @@
   font-weight: 400;
   line-height: 2rem;
   font-size: 1.5625rem;
-  letter-spacing: 0.015rem;
+  letter-spacing: 0rem;
 }
 /* @figma sans/regular/3xl */
 @utility text-sans-3xl {
@@ -452,7 +452,7 @@
   font-weight: 400;
   line-height: 2.625rem;
   font-size: 2.25rem;
-  letter-spacing: 0.005rem;
+  letter-spacing: -0.01rem;
 }
 /* @figma sans/regular/4xl */
 @utility text-sans-4xl {
@@ -460,7 +460,58 @@
   font-weight: 400;
   line-height: 3.625rem;
   font-size: 3.25rem;
-  letter-spacing: -0.01rem;
+  letter-spacing: -0.02rem;
+}
+/* @figma sans/regular/5xl */
+@utility text-sans-5xl {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 3.65625rem;
+  font-size: 4.0625rem;
+  letter-spacing: -0.03rem;
+}
+/* Responsive heading semantic tokens
+ *
+ * heading-display  text-sans-3xl → 4xl@800 → 65@1000   hero / banner titles
+ * heading-xl       text-sans-2xl → 3xl@600 → 4xl@1000  primary section h2s
+ * heading-lg       text-sans-xl  → 2xl@600 → 3xl@1000  secondary headings (h3)
+ * heading-md       text-sans-lg  → xl@600  → 2xl@1000  subsection headings (h4)
+ */
+@utility heading-display {
+  @apply text-sans-3xl;
+  @media (min-width: 800px) {
+    @apply text-sans-4xl;
+  }
+  @media (min-width: 1000px) {
+    @apply text-sans-5xl;
+  }
+}
+@utility heading-xl {
+  @apply text-sans-2xl;
+  @media (min-width: 600px) {
+    @apply text-sans-3xl;
+  }
+  @media (min-width: 1000px) {
+    @apply text-sans-4xl;
+  }
+}
+@utility heading-lg {
+  @apply text-sans-xl;
+  @media (min-width: 600px) {
+    @apply text-sans-2xl;
+  }
+  @media (min-width: 1000px) {
+    @apply text-sans-3xl;
+  }
+}
+@utility heading-md {
+  @apply text-sans-lg;
+  @media (min-width: 600px) {
+    @apply text-sans-xl;
+  }
+  @media (min-width: 1000px) {
+    @apply text-sans-2xl;
+  }
 }
 /* @figma sans/semi/sm */
 @utility text-sans-semi-sm {
