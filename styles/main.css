@@ -406,61 +406,181 @@
     'ss08' on,
     'calt' off;
 }
-/* @figma sans/regular/sm */
-@utility text-sans-sm {
+/* Sans primitives
+ *
+ * Letter-spacing follows an optical curve: tracking ∝ 1/size, expressed in em
+ * so it scales with the type. Formula: letter-spacing = 0.981 / size − 0.0401 (em),
+ * fitted to +0.030em at 14px and −0.025em at 65px. Small text opens up for
+ * legibility; display sizes tighten. Zero crossing sits around 24px.
+ */
+@utility text-sans-11 {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 135%;
+  font-size: 0.6875rem;
+  letter-spacing: 0.049em;
+}
+@utility text-sans-12 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 1rem;
   font-size: 0.75rem;
-  letter-spacing: 0.04rem;
+  letter-spacing: 0.042em;
 }
-/* @figma sans/regular/md */
-@utility text-sans-md {
+@utility text-sans-14 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 1.125rem;
   font-size: 0.875rem;
-  letter-spacing: 0.03rem;
+  letter-spacing: 0.030em;
 }
-/* @figma sans/regular/lg */
-@utility text-sans-lg {
+@utility text-sans-16 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 1.375rem;
   font-size: 1rem;
-  letter-spacing: 0.0175rem;
+  letter-spacing: 0.021em;
 }
-/* @figma sans/regular/xl */
-@utility text-sans-xl {
+@utility text-sans-18 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 1.5rem;
   font-size: 1.125rem;
-  letter-spacing: 0.0125rem;
+  letter-spacing: 0.014em;
 }
-/* @figma sans/regular/2xl */
-@utility text-sans-2xl {
+@utility text-sans-20 {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 130%;
+  font-size: 1.25rem;
+  letter-spacing: 0.009em;
+}
+@utility text-sans-22 {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 130%;
+  font-size: 1.375rem;
+  letter-spacing: 0.004em;
+}
+@utility text-sans-25 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 2rem;
   font-size: 1.5625rem;
-  letter-spacing: 0.015rem;
+  letter-spacing: 0em;
 }
-/* @figma sans/regular/3xl */
-@utility text-sans-3xl {
+@utility text-sans-28 {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 120%;
+  font-size: 1.75rem;
+  letter-spacing: -0.005em;
+}
+@utility text-sans-36 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 2.625rem;
   font-size: 2.25rem;
-  letter-spacing: 0.005rem;
+  letter-spacing: -0.013em;
 }
-/* @figma sans/regular/4xl */
-@utility text-sans-4xl {
+@utility text-sans-50 {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 110%;
+  font-size: 3.125rem;
+  letter-spacing: -0.020em;
+}
+@utility text-sans-52 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 3.625rem;
   font-size: 3.25rem;
-  letter-spacing: -0.01rem;
+  letter-spacing: -0.021em;
+}
+@utility text-sans-65 {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 3.65625rem;
+  font-size: 4.0625rem;
+  letter-spacing: -0.025em;
+}
+
+/* Sans semantic tokens */
+/* @figma sans/regular/sm */
+@utility text-sans-sm {
+  @apply text-sans-12;
+}
+/* @figma sans/regular/md */
+@utility text-sans-md {
+  @apply text-sans-14;
+}
+/* @figma sans/regular/lg */
+@utility text-sans-lg {
+  @apply text-sans-16;
+}
+/* @figma sans/regular/xl */
+@utility text-sans-xl {
+  @apply text-sans-18;
+}
+/* @figma sans/regular/2xl */
+@utility text-sans-2xl {
+  @apply text-sans-25;
+}
+/* @figma sans/regular/3xl */
+@utility text-sans-3xl {
+  @apply text-sans-36;
+}
+/* @figma sans/regular/4xl */
+@utility text-sans-4xl {
+  @apply text-sans-52;
+}
+/* @figma sans/regular/5xl */
+@utility text-sans-5xl {
+  @apply text-sans-65;
+}
+
+/* Responsive heading semantic tokens
+ *
+ * heading-display  36 → 52@800 → 65@1000  hero / banner titles
+ * heading-xl       25 → 36@600 → 52@1000  primary section h2s
+ * heading-lg       18 → 25@600 → 36@1000  secondary headings (h3)
+ * heading-md       16 → 18@600 → 25@1000  subsection headings (h4)
+ */
+@utility heading-display {
+  @apply text-sans-36;
+  @media (min-width: 800px) {
+    @apply text-sans-52;
+  }
+  @media (min-width: 1000px) {
+    @apply text-sans-65;
+  }
+}
+@utility heading-xl {
+  @apply text-sans-25;
+  @media (min-width: 600px) {
+    @apply text-sans-36;
+  }
+  @media (min-width: 1000px) {
+    @apply text-sans-52;
+  }
+}
+@utility heading-lg {
+  @apply text-sans-18;
+  @media (min-width: 600px) {
+    @apply text-sans-25;
+  }
+  @media (min-width: 1000px) {
+    @apply text-sans-36;
+  }
+}
+@utility heading-md {
+  @apply text-sans-16;
+  @media (min-width: 600px) {
+    @apply text-sans-18;
+  }
+  @media (min-width: 1000px) {
+    @apply text-sans-25;
+  }
 }
 /* @figma sans/semi/sm */
 @utility text-sans-semi-sm {

@@ -25,16 +25,14 @@ export function parseCSSTokens(css: CSSFiles): Map<string, FlatToken> {
     parseBaseTokens(themeBlock, result)
   }
 
-  // Parse dark mode semantic tokens
-  const darkBlock = extractBlock(css.dark, /:root\s*\{/)
-  if (darkBlock) {
-    parsePropsInto(darkBlock, 'dark', result)
+  // Parse dark mode semantic tokens — may span multiple :root/.dark blocks
+  for (const block of extractAllBlocks(css.dark, /:root[^{]*\{/)) {
+    parsePropsInto(block, 'dark', result)
   }
 
-  // Parse light mode semantic tokens
-  const lightBlock = extractBlock(css.light, /\[data-theme="light"\]\s*\{/)
-  if (lightBlock) {
-    parsePropsInto(lightBlock, 'light', result)
+  // Parse light mode semantic tokens — selector uses single quotes: [data-theme='light']
+  for (const block of extractAllBlocks(css.light, /\[data-theme=['"]light['"]\][^{]*\{/)) {
+    parsePropsInto(block, 'light', result)
   }
 
   // Resolve var() references within each mode.
@@ -47,20 +45,37 @@ export function parseCSSTokens(css: CSSFiles): Map<string, FlatToken> {
   return result
 }
 
-/** Extract the content between `{` and its matching `}` for a block. */
+/**
+ * Extract the content between `{` and its matching `}` for the first matching block.
+ * Returns null if the pattern is not found.
+ */
 function extractBlock(css: string, startPattern: RegExp): string | null {
-  const match = css.match(startPattern)
-  if (!match) return null
-  const start = css.indexOf('{', match.index!)
-  if (start === -1) return null
-  let depth = 1
-  let i = start + 1
-  while (i < css.length && depth > 0) {
-    if (css[i] === '{') depth++
-    else if (css[i] === '}') depth--
-    i++
+  const blocks = extractAllBlocks(css, startPattern)
+  return blocks.length > 0 ? blocks[0] : null
+}
+
+/**
+ * Extract the content of ALL blocks matching the given selector pattern.
+ * CSS files can have the same selector repeated (e.g. two `:root, .dark {}` blocks).
+ */
+function extractAllBlocks(css: string, startPattern: RegExp): string[] {
+  const results: string[] = []
+  const globalPattern = new RegExp(startPattern.source, 'g')
+
+  for (const match of css.matchAll(globalPattern)) {
+    const start = css.indexOf('{', match.index!)
+    if (start === -1) continue
+    let depth = 1
+    let i = start + 1
+    while (i < css.length && depth > 0) {
+      if (css[i] === '{') depth++
+      else if (css[i] === '}') depth--
+      i++
+    }
+    results.push(css.slice(start + 1, i - 1))
   }
-  return css.slice(start + 1, i - 1)
+
+  return results
 }
 
 export function modeForBaseToken(name: string): string {
@@ -275,21 +290,71 @@ const WEIGHT_NAMES: Record<string, string> = {
  * Uses `/* @figma path *​/` comment decorators when present to get the exact
  * Figma text style name. Falls back to heuristic name reconstruction when
  * no decorator is found (e.g. when fetching from an older branch).
+ *
+ * Supports `@apply text-X;` bodies — the target's properties are resolved
+ * recursively so named aliases (e.g. `text-sans-md { @apply text-sans-14; }`)
+ * produce correct values instead of empty ones.
  */
 function parseTypographyUtilities(css: string, result: Map<string, FlatToken>): void {
-  // Match @utility blocks optionally preceded by a @figma comment
-  const regex = /(?:\/\* @figma (.+?) \*\/\s*)?@utility text-([a-zA-Z0-9-]+)\s*\{([^}]+)\}/g
+  const regex = /(?:\/\* @figma (.+?) \*\/\s*)?@utility (text-[a-zA-Z0-9-]+)\s*\{([^}]+)\}/g
+
+  // --- Pass 1: collect raw bodies keyed by full utility name (e.g. "text-sans-14") ---
+  type RawBlock = { figmaPath: string | undefined; utilityName: string; body: string }
+  const rawBlocks: RawBlock[] = []
+  const bodies = new Map<string, string>() // "text-sans-14" → raw body text
 
   for (const match of css.matchAll(regex)) {
-    const figmaPath = match[1] // e.g. "mono/regular/xs" (undefined if no decorator)
-    const utilityName = match[2] // e.g. "mono-xs" or "sans-semi-sm"
+    const figmaPath = match[1]
+    const utilityName = match[2] // full name including "text-" prefix
     const body = match[3]
+    bodies.set(utilityName, body)
+    rawBlocks.push({ figmaPath, utilityName, body })
+  }
 
+  // --- Pass 2: emit tokens with @apply chains resolved ---
+
+  /** Extract declared CSS properties from a raw body string. */
+  function parseProps(body: string): Record<string, string> {
     const props: Record<string, string> = {}
     const propRegex = /([\w-]+):\s*([^;]+);/g
     for (const pm of body.matchAll(propRegex)) {
       props[pm[1]] = pm[2].trim()
     }
+    return props
+  }
+
+  /**
+   * Resolve the effective properties for a utility, following @apply chains.
+   * Direct declarations take precedence; @apply'd properties fill in the rest.
+   */
+  function resolveProps(
+    utilityName: string,
+    seen = new Set<string>(),
+  ): Record<string, string> {
+    if (seen.has(utilityName)) return {}
+    seen.add(utilityName)
+
+    const body = bodies.get(utilityName)
+    if (!body) return {}
+
+    const direct = parseProps(body)
+
+    // Merge in properties from any @apply targets (direct props win)
+    const applyRegex = /@apply\s+(text-[a-zA-Z0-9-]+)/g
+    for (const am of body.matchAll(applyRegex)) {
+      const target = am[1]
+      const inherited = resolveProps(target, new Set(seen))
+      for (const [k, v] of Object.entries(inherited)) {
+        if (!(k in direct)) direct[k] = v
+      }
+    }
+
+    return direct
+  }
+
+  for (const { figmaPath, utilityName } of rawBlocks) {
+    const shortName = utilityName.slice('text-'.length) // e.g. "sans-md" or "sans-14"
+    const props = resolveProps(utilityName)
 
     // Determine Figma name: use decorator if present, otherwise reconstruct
     let figmaName: string
@@ -298,13 +363,13 @@ function parseTypographyUtilities(css: string, result: Map<string, FlatToken>): 
     } else {
       const fontWeight = props['font-weight'] ?? '400'
       const weightName = WEIGHT_NAMES[fontWeight]
-      if (weightName && !utilityName.includes(weightName)) {
-        const parts = utilityName.split('-')
+      if (weightName && !shortName.includes(weightName)) {
+        const parts = shortName.split('-')
         const family = parts[0]
         const size = parts.slice(1).join('-')
         figmaName = `${family}.${weightName}.${size}`
       } else {
-        figmaName = utilityName.replace(/-/g, '.')
+        figmaName = shortName.replace(/-/g, '.')
       }
     }
 
@@ -314,14 +379,7 @@ function parseTypographyUtilities(css: string, result: Map<string, FlatToken>): 
     const lineHeight = props['line-height'] ?? ''
     const letterSpacing = props['letter-spacing'] ?? ''
 
-    const value = JSON.stringify({
-      fontFamily,
-      fontWeight,
-      fontSize,
-      lineHeight,
-      letterSpacing,
-    })
-
+    const value = JSON.stringify({ fontFamily, fontWeight, fontSize, lineHeight, letterSpacing })
     result.set(figmaName, { name: figmaName, value, type: 'typography' })
   }
 }

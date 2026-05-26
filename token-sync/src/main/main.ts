@@ -11,6 +11,7 @@ import type {
 import { COLLECTION_PREFIX_MAP, tokenKey } from '../shared/types'
 import { readFigmaTextStyles, readFigmaVariables } from './read-figma-styles'
 import {
+  createTextStyle,
   createVariable,
   initCache,
   removeTextStyle,
@@ -192,9 +193,9 @@ async function applyChanges(settings: ApplySettings) {
       }
 
       if (entry.status === 'added' && settings.applyAdded && fileToken) {
-        // Typography styles can't be auto-created yet
-        if (isTypography) continue
-        const ok = await createVariable(entry.name, fileToken)
+        const ok = isTypography
+          ? await createTextStyle(entry.name, fileToken)
+          : await createVariable(entry.name, fileToken)
         if (ok) added++
         else failed++
       }
