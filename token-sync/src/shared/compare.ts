@@ -161,12 +161,25 @@ function cssWeightToNumber(val: string): number {
   return WEIGHT_MAP[firstWord] ?? -1
 }
 
-/** Convert a CSS length value to pixels. Handles rem, px, and plain numbers. */
+/**
+ * Normalise a CSS length to a single numeric scale for comparison.
+ *
+ * rem  → pixels (×16)
+ * em   → percent-equivalent (×100), matching how Figma stores and reads back
+ *        em-derived letter-spacing as a PERCENT value
+ * %    → the bare percentage number
+ * px   → the bare pixel number
+ * auto → -1 (sentinel)
+ */
 function toPixels(val: string): number {
   if (val === 'auto') return -1
-  const remMatch = val.match(/^([\d.]+)rem$/)
+  const remMatch = val.match(/^(-?[\d.]+)rem$/)
   if (remMatch) return Math.round(parseFloat(remMatch[1]) * 16 * 100) / 100
-  const pxMatch = val.match(/^([\d.]+)px$/)
+  const emMatch = val.match(/^(-?[\d.]+)em$/)
+  if (emMatch) return Math.round(parseFloat(emMatch[1]) * 100 * 1000) / 1000
+  const pctMatch = val.match(/^(-?[\d.]+)%$/)
+  if (pctMatch) return parseFloat(pctMatch[1])
+  const pxMatch = val.match(/^(-?[\d.]+)px$/)
   if (pxMatch) return parseFloat(pxMatch[1])
   const num = parseFloat(val)
   return isNaN(num) ? -1 : num

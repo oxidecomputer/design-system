@@ -167,25 +167,8 @@ export async function updateTextStyle(
   if (!style) return false
 
   try {
-    // Must load the font before modifying any text style properties
     await figma.loadFontAsync(style.fontName)
-
-    const props = JSON.parse(fileToken.value)
-
-    if (props.fontSize) {
-      style.fontSize = cssToPixels(props.fontSize)
-    }
-    if (props.lineHeight) {
-      if (props.lineHeight === 'auto') {
-        style.lineHeight = { unit: 'AUTO' }
-      } else {
-        style.lineHeight = { value: cssToPixels(props.lineHeight), unit: 'PIXELS' }
-      }
-    }
-    if (props.letterSpacing !== undefined) {
-      style.letterSpacing = { value: cssToPixels(props.letterSpacing), unit: 'PIXELS' }
-    }
-
+    applyTypographyProps(style, JSON.parse(fileToken.value))
     return true
   } catch (err) {
     console.error(`Failed to update text style ${name}:`, err)
@@ -193,11 +176,144 @@ export async function updateTextStyle(
   }
 }
 
-/** Convert a CSS length (e.g. "0.75rem", "12px", "12") to a pixel number. */
-function cssToPixels(val: string): number {
-  const remMatch = String(val).match(/^([\d.]+)rem$/)
-  if (remMatch) return parseFloat(remMatch[1]) * 16
-  return parseFloat(val)
+/**
+ * Create a new Figma text style from a file token.
+ * Borrows the FontName from an existing style with the same family and weight
+ * so the font family string is an exact match for what Figma expects.
+ */
+export async function createTextStyle(
+  name: string,
+  fileToken: FlatToken,
+): Promise<boolean> {
+  try {
+    const props = JSON.parse(fileToken.value)
+    const figmaName = name.replace(/\./g, '/')
+
+    const fontName = await findFontName(props.fontFamily, props.fontWeight)
+    if (!fontName) {
+      console.error(`No reference font found for ${name} (${props.fontFamily} ${props.fontWeight})`)
+      return false
+    }
+
+    await figma.loadFontAsync(fontName)
+    const style = figma.createTextStyle()
+    style.name = figmaName
+    style.fontName = fontName
+    applyTypographyProps(style, props)
+    return true
+  } catch (err) {
+    console.error(`Failed to create text style ${name}:`, err)
+    return false
+  }
+}
+
+/** Apply parsed typography props to a TextStyle node, respecting CSS units. */
+function applyTypographyProps(style: TextStyle, props: Record<string, string>): void {
+  if (props.fontSize) {
+    const px = parseCssLength(props.fontSize)
+    if (px !== null) style.fontSize = px.value
+  }
+  if (props.lineHeight) {
+    const parsed = parseCssLengthWithUnit(props.lineHeight)
+    if (parsed) {
+      style.lineHeight =
+        parsed.unit === 'AUTO'
+          ? { unit: 'AUTO' }
+          : { value: parsed.value, unit: parsed.unit }
+    }
+  }
+  if (props.letterSpacing !== undefined) {
+    const parsed = parseCssLengthWithUnit(props.letterSpacing)
+    if (parsed && parsed.unit !== 'AUTO') {
+      style.letterSpacing = { value: parsed.value, unit: parsed.unit }
+    }
+  }
+}
+
+type CssLength = { value: number; unit: 'PIXELS' | 'PERCENT' } | { unit: 'AUTO' }
+
+/**
+ * Parse a CSS length value to a Figma-compatible unit+value pair.
+ *
+ * rem  → PIXELS (×16)
+ * px   → PIXELS
+ * em   → PERCENT (×100, since 1em = 100% of font-size — matches how Figma
+ *         stores and reads back em-derived letter-spacing)
+ * %    → PERCENT
+ * auto → AUTO
+ */
+function parseCssLengthWithUnit(val: string): CssLength | null {
+  const s = String(val).trim()
+  if (s === 'auto') return { unit: 'AUTO' }
+  const remMatch = s.match(/^(-?[\d.]+)rem$/)
+  if (remMatch) return { value: parseFloat(remMatch[1]) * 16, unit: 'PIXELS' }
+  const pxMatch = s.match(/^(-?[\d.]+)px$/)
+  if (pxMatch) return { value: parseFloat(pxMatch[1]), unit: 'PIXELS' }
+  const emMatch = s.match(/^(-?[\d.]+)em$/)
+  if (emMatch) return { value: parseFloat(emMatch[1]) * 100, unit: 'PERCENT' }
+  const pctMatch = s.match(/^(-?[\d.]+)%$/)
+  if (pctMatch) return { value: parseFloat(pctMatch[1]), unit: 'PERCENT' }
+  const num = parseFloat(s)
+  if (!isNaN(num)) return { value: num, unit: 'PIXELS' }
+  return null
+}
+
+/** Parse a CSS length to pixels only (for font-size). */
+function parseCssLength(val: string): { value: number } | null {
+  const parsed = parseCssLengthWithUnit(val)
+  if (!parsed || parsed.unit === 'AUTO') return null
+  if (parsed.unit === 'PIXELS') return { value: parsed.value }
+  return null
+}
+
+const WEIGHT_TO_FONT_STYLE: Record<string, string[]> = {
+  '400': ['Regular', 'Regular OCC', 'Book'],
+  '500': ['Medium', 'Medium OCC', 'Semi'],
+}
+
+/**
+ * Find a Figma FontName by borrowing from an existing text style that matches
+ * the target family and weight. This avoids hard-coding the exact style string
+ * (e.g. "Regular OCC" vs "Regular") which varies per typeface.
+ */
+async function findFontName(
+  cssFamily: string,
+  cssWeight: string,
+): Promise<FontName | null> {
+  const styles = await figma.getLocalTextStylesAsync()
+  const targetWeight = Number(cssWeight)
+
+  for (const style of styles) {
+    // Match family loosely — CSS has "Suisse Int'l", Figma may have "Suisse Int'l OCC"
+    if (!style.fontName.family.startsWith(cssFamily.replace(/'/g, "'"))) continue
+    const w = weightFromStyleName(style.fontName.style)
+    if (w === targetWeight) return style.fontName
+  }
+
+  // Fallback: try loading the canonical style names for the weight
+  const candidates = WEIGHT_TO_FONT_STYLE[cssWeight] ?? ['Regular']
+  for (const styleName of candidates) {
+    try {
+      const fontName = { family: cssFamily, style: styleName }
+      await figma.loadFontAsync(fontName)
+      return fontName
+    } catch {
+      // try next candidate
+    }
+  }
+
+  return null
+}
+
+const WEIGHT_MAP: Record<string, number> = {
+  regular: 400, book: 400, normal: 400,
+  medium: 500, semi: 500, semibold: 600,
+  bold: 700, extrabold: 800, black: 900,
+}
+
+function weightFromStyleName(styleName: string): number {
+  const firstWord = styleName.split(/\s+/)[0].toLowerCase()
+  return WEIGHT_MAP[firstWord] ?? -1
 }
 
 async function findTextStyleByName(name: string): Promise<TextStyle | null> {
