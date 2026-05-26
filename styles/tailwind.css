@@ -173,3 +173,14 @@ Make sure disabled buttons don't get the pointer cursor.
   background-color: color-mix(in srgb, currentColor 8%, transparent);
   border-color: color-mix(in srgb, currentColor 10%, transparent);
 }
+
+/* Expands an element's hit area by N pixels on all sides via a transparent ::after overlay, without affecting layout. Usage: `target-8` adds 8px of clickable padding around the element. */
+@utility target-* {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: calc(--value(integer) * -1px);
+  }
+}
