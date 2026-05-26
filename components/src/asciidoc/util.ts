@@ -33,21 +33,18 @@ import oxql from './langs/oxql.tmLanguage.json'
 import p4 from './langs/p4.tmLanguage.json'
 import theme from './oxide-syntax.json'
 
-let highlighter: HighlighterGeneric<BundledLanguage, BundledTheme> | null = null
+let highlighterPromise: Promise<
+  HighlighterGeneric<BundledLanguage, BundledTheme>
+> | null = null
 const customLanguages = ['oxql', 'p4']
 const supportedLanguages = [...Object.keys(bundledLanguages), ...customLanguages]
 
-export async function getHighlighter() {
-  if (!highlighter) {
+export function getHighlighter() {
+  if (!highlighterPromise) {
     const langs: LanguageInput[] = [{ ...oxql }, { ...p4 }]
-
-    highlighter = await createHighlighter({
-      themes: [theme],
-      langs,
-    })
+    highlighterPromise = createHighlighter({ themes: [theme], langs })
   }
-
-  return highlighter
+  return highlighterPromise
 }
 
 export async function highlightCode(
