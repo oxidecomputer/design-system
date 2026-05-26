@@ -409,93 +409,93 @@
 /* Sans primitives
  *
  * Letter-spacing follows an optical curve: tracking ∝ 1/size, expressed in em
- * so it scales with the type. Formula: letter-spacing = 0.861 / size − 0.0383 (em),
- * fitted to +0.040em at 11px and −0.025em at 65px. Small text opens up for
- * legibility; display sizes tighten. Zero crossing sits around 22px.
+ * so it scales with the type. Formula: letter-spacing = 0.981 / size − 0.0401 (em),
+ * fitted to +0.030em at 14px and −0.025em at 65px. Small text opens up for
+ * legibility; display sizes tighten. Zero crossing sits around 24px.
  */
 @utility text-sans-11 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 135%;
   font-size: 0.6875rem;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.049em;
 }
 @utility text-sans-12 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 1rem;
   font-size: 0.75rem;
-  letter-spacing: 0.033em;
+  letter-spacing: 0.042em;
 }
 @utility text-sans-14 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 1.125rem;
   font-size: 0.875rem;
-  letter-spacing: 0.023em;
+  letter-spacing: 0.030em;
 }
 @utility text-sans-16 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 1.375rem;
   font-size: 1rem;
-  letter-spacing: 0.016em;
+  letter-spacing: 0.021em;
 }
 @utility text-sans-18 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 1.5rem;
   font-size: 1.125rem;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.014em;
 }
 @utility text-sans-20 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 130%;
   font-size: 1.25rem;
-  letter-spacing: 0.005em;
+  letter-spacing: 0.009em;
 }
 @utility text-sans-22 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 130%;
   font-size: 1.375rem;
-  letter-spacing: 0em;
+  letter-spacing: 0.004em;
 }
 @utility text-sans-25 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 2rem;
   font-size: 1.5625rem;
-  letter-spacing: -0.004em;
+  letter-spacing: 0em;
 }
 @utility text-sans-28 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 120%;
   font-size: 1.75rem;
-  letter-spacing: -0.008em;
+  letter-spacing: -0.005em;
 }
 @utility text-sans-36 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 2.625rem;
   font-size: 2.25rem;
-  letter-spacing: -0.014em;
+  letter-spacing: -0.013em;
 }
 @utility text-sans-50 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 110%;
   font-size: 3.125rem;
-  letter-spacing: -0.021em;
+  letter-spacing: -0.020em;
 }
 @utility text-sans-52 {
   font-family: var(--font-sans);
   font-weight: 400;
   line-height: 3.625rem;
   font-size: 3.25rem;
-  letter-spacing: -0.022em;
+  letter-spacing: -0.021em;
 }
 @utility text-sans-65 {
   font-family: var(--font-sans);
