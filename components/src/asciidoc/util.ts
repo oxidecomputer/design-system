@@ -5,15 +5,10 @@
  *
  * Copyright Oxide Computer Company
  */
-import asciidoctor, {
-  type Block as AdBlock,
-  type Document,
-  type Html5Converter,
-  type Inline,
-  type Registry,
-} from '@asciidoctor/core'
+import asciidoctor, { type Document, type Registry } from '@asciidoctor/core'
 import {
   Block,
+  Inline,
   LiteralBlock,
   prepareDocument,
   processDocument,
@@ -68,15 +63,29 @@ const highlight = async (block: Block): Promise<Block> => {
   if (block.type === 'listing') {
     const literalBlock = block as LiteralBlock
 
-    if (!literalBlock.content) {
+    // Listing content is always a single string (the per-paragraph array form
+    // is only used for table cells), but the type is a union — guard for it.
+    if (!literalBlock.content || typeof literalBlock.content !== 'string') {
       return block
     }
 
-    // Replace callouts with placeholders before highlighting
-    // without this they are decoded and are no displayed as HTML
-    const calloutRegex = /<i class="conum" data-value="\d+"><\/i>/g
+    // Turn callout markers (`&lt;N&gt;`, optionally comment-prefixed) into the
+    // `<i class="conum" data-value="N"></i><b>(N)</b>` markup asciidoc.css
+    // styles (it hides the trailing `<b>`).
+    const lineComment = literalBlock.attributes['line-comment']
+    const content = Inline.subCallouts(
+      literalBlock.content,
+      true,
+      lineComment !== undefined ? String(lineComment) : undefined,
+    )
+
+    // Replace the conum markup with placeholders before highlighting, otherwise
+    // the syntax highlighter escapes it and it shows up as literal text. Cover
+    // the trailing `<b>` badge too so the whole unit is restored intact.
+    const calloutRegex =
+      /<i class="conum" data-value="\d+"><\/i>(?:<b>\(\d+\)<\/b>)?/g
     const callouts: string[] = []
-    const placeholderContent = literalBlock.content.replace(calloutRegex, (match) => {
+    const placeholderContent = content.replace(calloutRegex, (match) => {
       callouts.push(match)
       return `__CALLOUT_PLACEHOLDER_${callouts.length - 1}__`
     })
@@ -125,38 +134,13 @@ const loadAsciidoctor = ({
 }) => {
   const ad = asciidoctor()
 
-  /*
-    For styling inline elements
-    we cannot do this through the AsciiDoc tree
-  */
-  class InlineConverter {
-    baseConverter: Html5Converter
-
-    constructor() {
-      this.baseConverter = new ad.Html5Converter()
-    }
-
-    convert(node: AdBlock, transform: string) {
-      switch (node.getNodeName()) {
-        case 'inline_callout':
-          return convertInlineCallout(node as unknown as Inline) // We know this is always inline
-        default:
-          break
-      }
-
-      return this.baseConverter.convert(node, transform)
-    }
-  }
-
+  // Rendering goes through `prepareDocument` + React templates, so only
+  // extensions need registering; they run at `ad.load` time (e.g. include
+  // processing). Inline content (callouts, quotes, etc.) is produced by the
+  // renderer's inline parser.
   extensions.forEach((extension) => ad.Extensions.register(extension))
-  ad.ConverterFactory.register(new InlineConverter(), ['html5'])
 
   return ad
-}
-
-// These are a little nicer to style than the default
-function convertInlineCallout(node: Inline): string {
-  return `<i class="conum" data-value="${node.getText()}"></i>`
 }
 
 const handleDocument = async (document: Document) => {

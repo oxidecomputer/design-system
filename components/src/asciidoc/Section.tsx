@@ -6,13 +6,9 @@
  * Copyright Oxide Computer Company
  */
 import { Link16Icon } from '@/icons/react'
-import { Content, parse, type SectionBlock } from '@oxide/react-asciidoc'
+import { Content, parse, RenderInline, type SectionBlock } from '@oxide/react-asciidoc'
 import cn from 'classnames'
 import { createElement, type JSX } from 'react'
-
-// We need to remove anchors from the section title (and table of contents) because having
-// an anchor within an anchor causes a client/server render mismatch
-export const stripAnchors = (str: string) => str.replace(/<a[^>]*>(.*?)<\/a>/gi, '$1')
 
 const Section = ({ node }: { node: SectionBlock }) => {
   const level = node.level
@@ -21,11 +17,20 @@ const Section = ({ node }: { node: SectionBlock }) => {
   let sectNum = node.num
   sectNum = sectNum && sectNum[0] === '.' ? '' : sectNum
 
+  // Captioned titles (appendices, etc.) arrive as an HTML string; everything
+  // else comes from the inline AST. The title carries no self-link, so wrapping
+  // it in our own `<a>` below doesn't nest anchors.
+  const titleContent = node.hasCaption ? (
+    parse(node.title)
+  ) : (
+    <RenderInline nodes={node.titleInlines} />
+  )
+
   title = (
     <>
       <span className="anchor" id={node.id || ''} aria-hidden="true" />
       <a className="link group" href={`#${node.id}`}>
-        {parse(stripAnchors(node.title))}
+        {titleContent}
         <Link16Icon className="text-accent-secondary ml-2 hidden group-hover:inline-block" />
       </a>
     </>
