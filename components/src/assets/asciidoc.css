@@ -719,18 +719,20 @@
     }
   }
 
-  /* Footnotes and TOC share the inline-code / accent-link treatments */
-  #footnotes p a {
+  /* Footnotes and TOC share the inline-code / accent-link treatments. The
+     `.footnotes` class lets the same treatment be reused outside the footnotes
+     section (e.g. a footnote hover card) without relying on the `#footnotes` id. */
+  :is(#footnotes, .footnotes) p a {
     color: var(--content-accent-secondary);
     text-decoration: underline;
     text-decoration-color: color-mix(in srgb, currentColor 50%, transparent);
   }
 
-  #footnotes p a:hover {
+  :is(#footnotes, .footnotes) p a:hover {
     color: var(--content-accent);
   }
 
-  #footnotes p code,
+  :is(#footnotes, .footnotes) p code,
   .toc code {
     font-size: 0.825em;
     letter-spacing: 0;
