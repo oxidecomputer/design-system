@@ -717,6 +717,41 @@
     .valign-bottom {
       vertical-align: bottom;
     }
+
+    /* --- Collapsible blocks --- */
+    details {
+      border: 1px solid var(--stroke-default);
+      border-radius: var(--radius-md);
+
+      summary:first-of-type {
+        padding: 0.75rem 1rem;
+        margin-bottom: 0;
+        max-width: initial;
+        display: block;
+        user-select: none;
+        cursor: pointer;
+
+        &:hover {
+          background-color: var(--surface-hover);
+        }
+
+        &::before {
+          content: '▸';
+          color: var(--content-tertiary);
+          font-size: 1.25rem;
+          margin-right: 0.5rem;
+        }
+      }
+
+      &[open] summary:first-of-type::before {
+        content: '▾';
+      }
+
+      .content {
+        padding: 0.75rem 1rem 0 1rem;
+        border-top: 1px solid var(--stroke-default);
+      }
+    }
   }
 
   /* Footnotes and TOC share the inline-code / accent-link treatments. The

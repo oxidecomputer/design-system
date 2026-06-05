@@ -49,6 +49,7 @@ const CSS = `
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
     font-family: "Suisse Intl", ui-sans, sans-serif;
+    font-feature-settings: "ss02" on, "ss03" on, "ss09" on, "ss06" on, "ss07" on, "ss08" on, "case" on;
     padding: 0;
     transition: background 0.2s, color 0.2s;
   }

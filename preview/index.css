@@ -17,53 +17,50 @@
 @import '../components/src/assets/button.css';
 @import '../components/src/assets/spinner.css';
 @import '../components/src/assets/tabs.css';
+@import '../components/src/assets/asciidoc.css';
 
 @source '../components';
 @custom-variant light (&:where([data-theme=light], [data-theme=light] *));
+
+@layer base {
+  body {
+    font-family: var(--font-sans);
+  }
+}
 
 /* GT America Mono */
 /* Source: https://www.grillitype.com/typeface/gt-america */
 @font-face {
   font-family: 'GT America Mono';
-  src:
-    url('/fonts/GT-America-Mono-Regular-OCC.woff2') format('woff2'),
-    url('/fonts/GT-America-Mono-Regular-OCC.woff') format('woff');
+  src: url('https://oxide.computer/fonts/GT-America-Mono-Regular-OCC.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'GT America Mono';
-  src:
-    url('/fonts/GT-America-Mono-Medium.woff2') format('woff2'),
-    url('/fonts/GT-America-Mono-Medium.woff') format('woff');
+  src: url('https://oxide.computer/fonts/GT-America-Mono-Medium.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'SuisseIntl';
-  src:
-    url('/fonts/SuisseIntl-Regular-WebS.woff2') format('woff2'),
-    url('/fonts/SuisseIntl-Regular-WebS.woff') format('woff');
+  src: url('https://oxide.computer/fonts/SuisseIntl-Regular-WebS.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
 }
 
 @font-face {
   font-family: 'SuisseIntl';
-  src:
-    url('/fonts/SuisseIntl-RegularItalic-WebS.woff2') format('woff2'),
-    url('/fonts/SuisseIntl-RegularItalic-WebS.woff') format('woff');
+  src: url('https://oxide.computer/fonts/SuisseIntl-RegularItalic-WebS.woff2') format('woff2');
   font-weight: 400;
   font-style: italic;
 }
 
 @font-face {
   font-family: 'SuisseIntl';
-  src:
-    url('/fonts/SuisseIntl-Medium-WebS.woff2') format('woff2'),
-    url('/fonts/SuisseIntl-Medium-WebS.woff') format('woff');
+  src: url('https://oxide.computer/fonts/SuisseIntl-Medium-WebS.woff2') format('woff2');
   font-weight: 500;
   font-style: normal;
 }

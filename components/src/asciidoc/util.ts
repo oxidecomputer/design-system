@@ -28,9 +28,8 @@ import oxql from './langs/oxql.tmLanguage.json'
 import p4 from './langs/p4.tmLanguage.json'
 import theme from './oxide-syntax.json'
 
-let highlighterPromise: Promise<
-  HighlighterGeneric<BundledLanguage, BundledTheme>
-> | null = null
+let highlighterPromise: Promise<HighlighterGeneric<BundledLanguage, BundledTheme>> | null =
+  null
 const customLanguages = ['oxql', 'p4']
 const supportedLanguages = [...Object.keys(bundledLanguages), ...customLanguages]
 
@@ -59,6 +58,18 @@ export async function highlightCode(
   })
 }
 
+// react-asciidoc returns verbatim block content already HTML-escaped for
+// `innerHTML`. Shiki escapes again, so `&amp;` would become `&amp;amp;` and
+// render literally. Decode back to raw characters before highlighting; `&amp;`
+// is decoded last so escaped entity text like `&amp;lt;` survives as `&lt;`.
+const decodeEntities = (content: string): string =>
+  content
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&')
+
 const highlight = async (block: Block): Promise<Block> => {
   if (block.type === 'listing') {
     const literalBlock = block as LiteralBlock
@@ -82,12 +93,17 @@ const highlight = async (block: Block): Promise<Block> => {
     // Replace the conum markup with placeholders before highlighting, otherwise
     // the syntax highlighter escapes it and it shows up as literal text. Cover
     // the trailing `<b>` badge too so the whole unit is restored intact.
-    const calloutRegex =
-      /<i class="conum" data-value="\d+"><\/i>(?:<b>\(\d+\)<\/b>)?/g
+    //
+    // The placeholder must survive tokenization as a single unbroken run of
+    // text, so it uses only letters and digits — no underscores. Grammars like
+    // asciidoc and markdown treat `__` as bold delimiters, so two adjacent
+    // placeholders (e.g. `<1> <2>`) pair up and get split across `<span>`s,
+    // leaving the literal placeholder in the output.
+    const calloutRegex = /<i class="conum" data-value="\d+"><\/i>(?:<b>\(\d+\)<\/b>)?/g
     const callouts: string[] = []
     const placeholderContent = content.replace(calloutRegex, (match) => {
       callouts.push(match)
-      return `__CALLOUT_PLACEHOLDER_${callouts.length - 1}__`
+      return `CALLOUTPLACEHOLDER${callouts.length - 1}END`
     })
 
     // If no language specified, we still want to support callouts
@@ -95,21 +111,21 @@ const highlight = async (block: Block): Promise<Block> => {
       return {
         ...block,
         content: placeholderContent.replace(
-          /__CALLOUT_PLACEHOLDER_(\d+)__/g,
+          /CALLOUTPLACEHOLDER(\d+)END/g,
           (_, index) => callouts[parseInt(index)],
         ),
       }
     }
 
     const highlightedContent = await highlightCode(
-      placeholderContent,
+      decodeEntities(placeholderContent),
       literalBlock.language,
       { inline: true },
     )
 
     // Restore callouts in the highlighted content
     const restoredContent = highlightedContent.replace(
-      /__CALLOUT_PLACEHOLDER_(\d+)__/g,
+      /CALLOUTPLACEHOLDER(\d+)END/g,
       (_, index) => callouts[parseInt(index)],
     )
 
