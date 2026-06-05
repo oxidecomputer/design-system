@@ -58,34 +58,24 @@ export async function highlightCode(
   })
 }
 
-// react-asciidoc returns verbatim block content already HTML-escaped for
-// `innerHTML`. Shiki escapes again, so `&amp;` would become `&amp;amp;` and
-// render literally. Decode back to raw characters before highlighting; `&amp;`
-// is decoded last so escaped entity text like `&amp;lt;` survives as `&lt;`.
-const decodeEntities = (content: string): string =>
-  content
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&amp;/g, '&')
-
 const highlight = async (block: Block): Promise<Block> => {
   if (block.type === 'listing') {
     const literalBlock = block as LiteralBlock
 
-    // Listing content is always a single string (the per-paragraph array form
-    // is only used for table cells), but the type is a union — guard for it.
-    if (!literalBlock.content || typeof literalBlock.content !== 'string') {
+    // Work from `source` (raw, un-escaped block text). Highlighting re-escapes,
+    // so feeding it the specialchars-escaped `content` would double-escape
+    // (`&` -> `&amp;` -> rendered literally).
+    if (typeof literalBlock.source !== 'string') {
       return block
     }
 
-    // Turn callout markers (`&lt;N&gt;`, optionally comment-prefixed) into the
+    // Turn raw callout markers (`<N>`, optionally comment-prefixed) into the
     // `<i class="conum" data-value="N"></i><b>(N)</b>` markup asciidoc.css
-    // styles (it hides the trailing `<b>`).
+    // styles (it hides the trailing `<b>`). Keyed to the raw `<N>` form because
+    // it runs on `source`, not the escaped `&lt;N&gt;` of `content`.
     const lineComment = literalBlock.attributes['line-comment']
-    const content = Inline.subCallouts(
-      literalBlock.content,
+    const content = Inline.subCalloutsRaw(
+      literalBlock.source,
       true,
       lineComment !== undefined ? String(lineComment) : undefined,
     )
@@ -106,11 +96,14 @@ const highlight = async (block: Block): Promise<Block> => {
       return `CALLOUTPLACEHOLDER${callouts.length - 1}END`
     })
 
-    // If no language specified, we still want to support callouts
+    // If no language specified, we still want to support callouts. This content
+    // skips the highlighter and goes straight to `innerHTML`, so escape the raw
+    // text ourselves; the conum markup is held out as placeholders and restored
+    // un-escaped after.
     if (!literalBlock.language) {
       return {
         ...block,
-        content: placeholderContent.replace(
+        content: Inline.subSpecialchars(placeholderContent).replace(
           /CALLOUTPLACEHOLDER(\d+)END/g,
           (_, index) => callouts[parseInt(index)],
         ),
@@ -118,7 +111,7 @@ const highlight = async (block: Block): Promise<Block> => {
     }
 
     const highlightedContent = await highlightCode(
-      decodeEntities(placeholderContent),
+      placeholderContent,
       literalBlock.language,
       { inline: true },
     )
@@ -141,6 +134,7 @@ const attrs = {
   sectlinks: 'true',
   stem: 'latexmath',
   stylesheet: false,
+  icons: 'font',
 }
 
 const loadAsciidoctor = ({

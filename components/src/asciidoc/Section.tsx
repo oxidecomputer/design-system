@@ -45,13 +45,20 @@ const Section = ({ node }: { node: SectionBlock }) => {
         <Content blocks={node.blocks} />
       </>
     )
+  } else if (level === 1) {
+    return (
+      <div className={cn('sect1', node.role)}>
+        {createElement('h2', { 'data-sectnum': sectNum }, title)}
+        <div className="sectionbody">
+          <Content blocks={node.blocks} />
+        </div>
+      </div>
+    )
   } else {
     return (
       <div className={cn(`sect${level}`, node.role)}>
         {createElement(`h${level + 1}`, { 'data-sectnum': sectNum }, title)}
-        <div className="sectionbody">
-          <Content blocks={node.blocks} />
-        </div>
+        <Content blocks={node.blocks} />
       </div>
     )
   }

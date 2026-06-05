@@ -223,6 +223,17 @@
       margin-bottom: 0;
     }
 
+    /* --- Description lists --- */
+    dl dt {
+      margin-bottom: 0.3125em;
+      font-weight: bold;
+    }
+
+    dl dd {
+      margin-bottom: 1.25em;
+      margin-left: 1.125em;
+    }
+
     /* Lists inside blocks where outside marker position would be clipped */
     .tableblock ul,
     .tableblock ol,
@@ -625,6 +636,14 @@
       width: 1%;
       white-space: nowrap;
       color: var(--content-tertiary);
+    }
+
+    .colist table tr td:last-of-type {
+      border-right: none;
+    }
+
+    .colist table tr:last-of-type td {
+      border-bottom: none;
     }
 
     .colist table b {

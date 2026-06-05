@@ -127,9 +127,9 @@ describe('callouts + syntax highlighting', () => {
     expect(html).toContain('<i class="conum" data-value="1"></i><b>(1)</b>')
   })
 
-  it('leaves inline icon: macros as text (no icons=font side effect)', () => {
+  it('renders inline icon: macros as font icons (icons=font)', () => {
     const html = render('An inline icon:heart[] here.')
-    expect(html).toContain('[heart]')
-    expect(html).not.toContain('fa-heart')
+    expect(html).toContain('class="icon"')
+    expect(html).toContain('<i class="fa fa-heart">')
   })
 })

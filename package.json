@@ -62,7 +62,7 @@
   },
   "peerDependencies": {
     "@asciidoctor/core": "^3.0.0",
-    "@oxide/react-asciidoc": "^2.0.0--canary.54.26752676803.0",
+    "@oxide/react-asciidoc": "^2.0.0--canary.54.27011189530.0",
     "react": ">=18.0.0",
     "react-dom": ">=18.0.0"
   },
