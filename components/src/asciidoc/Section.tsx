@@ -6,9 +6,36 @@
  * Copyright Oxide Computer Company
  */
 import { Link16Icon } from '@/icons/react'
-import { Content, parse, RenderInline, type SectionBlock } from '@oxide/react-asciidoc'
+import {
+  Content,
+  inlineHtml,
+  type Inline,
+  parse,
+  RenderInline,
+  type SectionBlock,
+} from '@oxide/react-asciidoc'
 import cn from 'classnames'
 import { createElement, type JSX } from 'react'
+
+/** Remove `<a>` open/close tags from an HTML string, keeping their contents. */
+const dropAnchorTags = <T extends string | undefined>(html: T): T =>
+  (html?.includes('<a') ? html.replace(/<(?:a\b[^>]*|\/a)>/g, '') : html) as T
+
+/**
+ * Strip links out of inline title content. The heading is wrapped in a self-link
+ * `<a>` below, so any anchor in the title — an inline link, a cross-reference, a
+ * footnote marker — would nest an `<a>` inside an `<a>`: invalid HTML that breaks
+ * hydration. Unwrap inline links to their text, and render the stock footnote
+ * marker with its `<a>` removed (which also drops any hover a footnote override
+ * would otherwise add).
+ */
+const stripLinks = (nodes: Inline.InlineNode[]): Inline.InlineNode[] =>
+  nodes.flatMap((node): Inline.InlineNode[] => {
+    if (node.type === 'anchor') return stripLinks(node.text)
+    if (node.type === 'footnote')
+      return [{ type: 'text', text: dropAnchorTags(inlineHtml([node]).__html), raw: true }]
+    return [node]
+  })
 
 const Section = ({ node }: { node: SectionBlock }) => {
   const level = node.level
@@ -18,12 +45,12 @@ const Section = ({ node }: { node: SectionBlock }) => {
   sectNum = sectNum && sectNum[0] === '.' ? '' : sectNum
 
   // Captioned titles (appendices, etc.) arrive as an HTML string; everything
-  // else comes from the inline AST. The title carries no self-link, so wrapping
-  // it in our own `<a>` below doesn't nest anchors.
+  // else comes from the inline AST. Either way, strip any links from the title
+  // so they don't nest inside the self-link `<a>` we wrap it in below.
   const titleContent = node.hasCaption ? (
-    parse(node.title)
+    parse(dropAnchorTags(node.title))
   ) : (
-    <RenderInline nodes={node.titleInlines} />
+    <RenderInline nodes={node.titleInlines && stripLinks(node.titleInlines)} />
   )
 
   title = (

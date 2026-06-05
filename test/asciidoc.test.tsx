@@ -80,6 +80,21 @@ describe('Section', () => {
     // the link wrapper must not contain another anchor
     expect(html).not.toMatch(/<a class="link group"[^>]*>[^]*?<a /)
   })
+
+  it('strips a link in the heading to its text (no nested anchors)', () => {
+    const html = render(`== See https://oxide.computer[the site] now\n\nBody.`)
+    // link text is kept, but its anchor is unwrapped so it can't nest
+    expect(html).toContain('the site')
+    expect(html).not.toContain('href="https://oxide.computer"')
+    expect(html).not.toMatch(/<a class="link group"[^>]*>[^]*?<a /)
+  })
+
+  it('keeps a footnote marker in the heading but strips its anchor', () => {
+    const html = render(`== Heading footnote:[A note]\n\nBody.`)
+    // the stock superscript marker stays, but with no nested anchor
+    expect(html).toContain('class="footnote"')
+    expect(html).not.toMatch(/<a class="link group"[^>]*>[^]*?<a /)
+  })
 })
 
 describe('inline overrides', () => {
