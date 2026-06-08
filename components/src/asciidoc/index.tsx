@@ -5,8 +5,13 @@
  *
  * Copyright Oxide Computer Company
  */
-import asciidoctor, { Block, Html5Converter, Inline } from '@asciidoctor/core'
-import { Content, type DocumentBlock } from '@oxide/react-asciidoc'
+import {
+  Content,
+  inlineHtml,
+  parse,
+  type DocumentBlock,
+  type InlineOverrides,
+} from '@oxide/react-asciidoc'
 
 import Admonition from './Admonition'
 import Section from './Section'
@@ -54,79 +59,27 @@ export const renderWithBreaks = (text: string): string => {
     .join('')
 }
 
-// prettier-ignore
-const QUOTE_TAGS: {[key: string]: [string, string, boolean?]} = {
-  "monospaced": ['<code>', '</code>', true],
-  "emphasis": ['<em>', '</em>', true],
-  "strong": ['<strong>', '</strong>', true],
-  "double": ['&#8220;', '&#8221;'],
-  "single": ['&#8216;', '&#8217;'],
-  "mark": ['<mark>', '</mark>', true],
-  "superscript": ['<sup>', '</sup>', true],
-  "subscript": ['<sub>', '</sub>', true],
-  "unquoted": ['<span>', '</span>', true],
-  "asciimath": ['\\$', '\\$'],
-  "latexmath": ['\\(', '\\)'],
-}
-
-const chop = (str: string) => str.substring(0, str.length - 1)
-
-const convertInlineQuoted = (node: Inline) => {
-  const type = node.getType()
-  const quoteTag = QUOTE_TAGS[type]
-  const [open, close, tag] = quoteTag || ['', '']
-
-  let text = node.getText()
-
-  // Add <wbr> for line breaks with long paths
-  // Ignores a / if there's a space before it
-  if (type === 'monospaced') {
-    text = renderWithBreaks(text)
-  }
-
-  const id = node.getId()
-  const role = node.getRole()
-
-  const idAttr = id ? `id="${id}"` : ''
-  const classAttr = role ? `class="${role}"` : ''
-  const attrs = `${idAttr} ${classAttr}`
-
-  if (id || role) {
-    if (tag) {
-      return `${chop(open)} ${attrs}>${text}${close}`
-    } else {
-      return `<span ${attrs}>${open}${text}${close}</span>`
+/**
+ * Inline-level overrides for the renderer. Pass these to `<Asciidoc>` as
+ * `options.inlineOverrides` to apply our customisations to inline content:
+ *
+ *   <Asciidoc document={doc} options={{ overrides: AsciiDocBlocks, inlineOverrides }} />
+ *
+ * The only customisation today is inserting `<wbr/>` break opportunities into
+ * inline monospaced (`code`) spans so long paths and URLs wrap nicely. Every
+ * other quoted subtype is rendered exactly as the renderer would by default —
+ * we round-trip the node through `inlineHtml` (the renderer's own serialiser)
+ * and `parse` it back into React elements, so there's no risk of drifting from
+ * the stock output.
+ */
+export const inlineOverrides: InlineOverrides = {
+  quoted: ({ node }) => {
+    let { __html } = inlineHtml([node])
+    if (node.subtype === 'monospaced') {
+      __html = renderWithBreaks(__html)
     }
-  } else {
-    return `${open}${text}${close}`
-  }
-}
-
-function convertInlineCallout(node: Inline): string {
-  return `<i class="conum" data-value="${node.getText()}"></i>`
-}
-
-const ad = asciidoctor()
-
-class InlineConverter {
-  baseConverter: Html5Converter
-
-  constructor() {
-    this.baseConverter = new ad.Html5Converter()
-  }
-
-  convert(node: Block, transform: string) {
-    switch (node.getNodeName()) {
-      case 'inline_quoted':
-        return convertInlineQuoted(node as unknown as Inline) // We know this is always inline
-      case 'inline_callout':
-        return convertInlineCallout(node as unknown as Inline) // We know this is always inline
-      default:
-        break
-    }
-
-    return this.baseConverter.convert(node, transform)
-  }
+    return <>{parse(__html)}</>
+  },
 }
 
 export {
@@ -139,6 +92,5 @@ export {
   SmallScreenOutline,
   useActiveSectionTracking,
   useIntersectionObserver,
-  InlineConverter,
   useDelegatedReactRouterLinks,
 }

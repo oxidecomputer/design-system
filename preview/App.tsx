@@ -3,6 +3,7 @@ import './index.css'
 import { useState } from 'react'
 
 import { Badge, Button, Checkbox, Spinner, Tabs } from '../components/src/ui'
+import { AsciiDocShowcase } from './AsciiDocShowcase'
 import { CodeBlock } from './CodeBlock'
 import { TypographyShowcase } from './TypographyShowcase'
 
@@ -379,7 +380,7 @@ const headerToggleClass = 'text-mono-sm hover:bg-hover rounded-md px-3 py-1.5'
 
 export default function App() {
   const [mode, setMode] = useState<'dark' | 'light'>('dark')
-  const [view, setView] = useState<'components' | 'typography'>('components')
+  const [view, setView] = useState<'components' | 'typography' | 'asciidoc'>('components')
 
   return (
     <div className={mode === 'light' ? 'light' : undefined} data-theme={mode}>
@@ -398,6 +399,12 @@ export default function App() {
             >
               Typography
             </button>
+            <button
+              onClick={() => setView('asciidoc')}
+              className={`${headerToggleClass} ${view === 'asciidoc' && 'text-raise'}`}
+            >
+              AsciiDoc
+            </button>
           </div>
           <div className="flex gap-px">
             <button
@@ -414,13 +421,13 @@ export default function App() {
             </button>
           </div>
         </div>
-        {view === 'components' ? (
+        {view === 'components' && (
           <div className="mx-auto flex max-w-4xl flex-col gap-8 p-8">
             <ComponentShowcase />
           </div>
-        ) : (
-          <TypographyShowcase />
         )}
+        {view === 'typography' && <TypographyShowcase />}
+        {view === 'asciidoc' && <AsciiDocShowcase />}
       </div>
     </div>
   )

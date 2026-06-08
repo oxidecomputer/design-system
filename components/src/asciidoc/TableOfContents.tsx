@@ -11,7 +11,12 @@ import * as Accordion from '@radix-ui/react-accordion'
 import cn from 'classnames'
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { stripAnchors } from './Section'
+// A TOC entry is itself an `<a>`, so any anchors inside the title text would
+// nest (invalid HTML + a client/server hydration mismatch). Strip the anchor
+// tags but keep their inner content — mirrors asciidoctor's `DropAnchorRx`
+// (and the renderer's own `convert_outline`).
+const dropAnchors = (html: string): string =>
+  html.includes('<a') ? html.replace(/<(?:a\b[^>]*|\/a)>/g, '') : html
 
 export function useIntersectionObserver(
   elements: Element[],
@@ -285,7 +290,7 @@ export const DesktopOutline = ({
               paddingLeft: `${0.5 + item.level * 0.5}rem`,
             }}
           >
-            {parse(stripAnchors(item.title))}
+            {parse(dropAnchors(item.title))}
           </a>
         </li>
         {item.sections && renderToc(item.sections)}
@@ -330,7 +335,7 @@ export const SmallScreenOutline = ({
               paddingLeft: `${0.5 + item.level * 0.5}rem`,
             }}
           >
-            {parse(stripAnchors(item.title))}
+            {parse(dropAnchors(item.title))}
           </a>
         </li>
         {item.sections && renderToc(item.sections)}

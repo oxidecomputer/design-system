@@ -5,7 +5,7 @@
  *
  * Copyright Oxide Computer Company
  */
-import { Content, parse, type AdmonitionBlock } from '@oxide/react-asciidoc'
+import { Content, RenderInline, type AdmonitionBlock } from '@oxide/react-asciidoc'
 
 import { titleCase } from '../utils'
 
@@ -36,8 +36,14 @@ const Admonition = ({ node }: { node: AdmonitionBlock }) => {
       <div className="admonition-content content">
         <div>{titleCase(attrs.name.toString())}</div>
         <div>
-          {node.title && <div className="admonition-title">{node.title}</div>}
-          {node.content && parse(node.content)}
+          {node.titleInlines && (
+            <div className="admonition-title">
+              <RenderInline nodes={node.titleInlines} />
+            </div>
+          )}
+          {/* Simple (single-paragraph) admonitions carry their content as an
+              inline AST; multi-block admonitions render their child blocks. */}
+          {node.inlines && <RenderInline nodes={node.inlines} />}
           <Content blocks={node.blocks} />
         </div>
       </div>
