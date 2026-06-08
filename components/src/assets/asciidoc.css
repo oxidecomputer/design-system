@@ -508,10 +508,14 @@
     }
 
     .imageblock {
+      .content {
+        display: inline-block;
+      }
+
       img {
         margin: 0 auto;
-        width: 100%;
         height: auto;
+        max-width: 100%;
         max-height: max(500px, 75vh);
         object-fit: contain;
         border: 1px solid var(--stroke-tertiary);
@@ -704,11 +708,13 @@
 
     /* --- Titles --- */
     .title {
-      @apply text-sans-lg;
+      font-family: var(--font-sans);
+      line-height: 1.375em;
+      font-size: 1em
+      letter-spacing: 0.021em;
       margin-bottom: 0.25rem;
       max-width: 40rem;
       text-align: left;
-      font-size: 1em !important;
       font-style: italic;
       color: currentColor;
     }
