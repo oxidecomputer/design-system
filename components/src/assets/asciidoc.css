@@ -415,6 +415,7 @@
       border: 1px solid var(--stroke-secondary);
       border-radius: var(--radius-md);
       padding: 1rem 1.25rem;
+      position: relative;
 
       @media (min-width: 800px) {
         padding: 1.5rem 1.75rem;
@@ -539,7 +540,8 @@
     .stemblock,
     .videoblock,
     .exampleblock,
-    .table-wrapper {
+    .table-wrapper,
+    details {
       margin: 1rem 0;
     }
 
