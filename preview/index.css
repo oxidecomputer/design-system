@@ -53,7 +53,8 @@
 
 @font-face {
   font-family: 'SuisseIntl';
-  src: url('https://oxide.computer/fonts/SuisseIntl-RegularItalic-WebS.woff2') format('woff2');
+  src: url('https://oxide.computer/fonts/SuisseIntl-RegularItalic-WebS.woff2')
+    format('woff2');
   font-weight: 400;
   font-style: italic;
 }

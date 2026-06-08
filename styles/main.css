@@ -432,7 +432,7 @@
   font-weight: 400;
   line-height: 1.125rem;
   font-size: 0.875rem;
-  letter-spacing: 0.030em;
+  letter-spacing: 0.03em;
 }
 @utility text-sans-16 {
   font-family: var(--font-sans);
@@ -488,7 +488,7 @@
   font-weight: 400;
   line-height: 110%;
   font-size: 3.125rem;
-  letter-spacing: -0.020em;
+  letter-spacing: -0.02em;
 }
 @utility text-sans-52 {
   font-family: var(--font-sans);

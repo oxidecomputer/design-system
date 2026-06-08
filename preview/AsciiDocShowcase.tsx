@@ -14,7 +14,6 @@ import {
   handleDocument,
   loadAsciidoctor,
 } from '../components/src/asciidoc'
-
 import writersGuide from './writers-guide.adoc?raw'
 
 const options = {

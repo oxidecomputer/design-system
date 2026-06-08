@@ -191,7 +191,9 @@ export async function createTextStyle(
 
     const fontName = await findFontName(props.fontFamily, props.fontWeight)
     if (!fontName) {
-      console.error(`No reference font found for ${name} (${props.fontFamily} ${props.fontWeight})`)
+      console.error(
+        `No reference font found for ${name} (${props.fontFamily} ${props.fontWeight})`,
+      )
       return false
     }
 
@@ -306,9 +308,15 @@ async function findFontName(
 }
 
 const WEIGHT_MAP: Record<string, number> = {
-  regular: 400, book: 400, normal: 400,
-  medium: 500, semi: 500, semibold: 600,
-  bold: 700, extrabold: 800, black: 900,
+  regular: 400,
+  book: 400,
+  normal: 400,
+  medium: 500,
+  semi: 500,
+  semibold: 600,
+  bold: 700,
+  extrabold: 800,
+  black: 900,
 }
 
 function weightFromStyleName(styleName: string): number {

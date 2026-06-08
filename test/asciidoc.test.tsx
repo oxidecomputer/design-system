@@ -35,12 +35,16 @@ const options = {
 
 const render = (source: string) => {
   const doc = asciidoctor().load(source, { standalone: true, attributes: attrs })
-  return renderToStaticMarkup(<Asciidoc document={prepareDocument(doc)} options={options} />)
+  return renderToStaticMarkup(
+    <Asciidoc document={prepareDocument(doc)} options={options} />,
+  )
 }
 
 const renderHighlighted = async (source: string) => {
   const doc = loadAsciidoctor({}).load(source, { standalone: true, attributes: attrs })
-  return renderToStaticMarkup(<Asciidoc document={await handleDocument(doc)} options={options} />)
+  return renderToStaticMarkup(
+    <Asciidoc document={await handleDocument(doc)} options={options} />,
+  )
 }
 
 describe('Admonition', () => {

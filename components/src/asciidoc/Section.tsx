@@ -9,9 +9,9 @@ import { Link16Icon } from '@/icons/react'
 import {
   Content,
   inlineHtml,
-  type Inline,
   parse,
   RenderInline,
+  type Inline,
   type SectionBlock,
 } from '@oxide/react-asciidoc'
 import cn from 'classnames'

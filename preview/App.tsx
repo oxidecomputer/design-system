@@ -380,9 +380,7 @@ const headerToggleClass = 'text-mono-sm hover:bg-hover rounded-md px-3 py-1.5'
 
 export default function App() {
   const [mode, setMode] = useState<'dark' | 'light'>('dark')
-  const [view, setView] = useState<'components' | 'typography' | 'asciidoc'>(
-    'components',
-  )
+  const [view, setView] = useState<'components' | 'typography' | 'asciidoc'>('components')
 
   return (
     <div className={mode === 'light' ? 'light' : undefined} data-theme={mode}>

@@ -379,7 +379,13 @@ function parseTypographyUtilities(css: string, result: Map<string, FlatToken>): 
     const lineHeight = props['line-height'] ?? ''
     const letterSpacing = props['letter-spacing'] ?? ''
 
-    const value = JSON.stringify({ fontFamily, fontWeight, fontSize, lineHeight, letterSpacing })
+    const value = JSON.stringify({
+      fontFamily,
+      fontWeight,
+      fontSize,
+      lineHeight,
+      letterSpacing,
+    })
     result.set(figmaName, { name: figmaName, value, type: 'typography' })
   }
 }
