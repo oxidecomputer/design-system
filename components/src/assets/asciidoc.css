@@ -710,7 +710,7 @@
     .title {
       font-family: var(--font-sans);
       line-height: 1.375em;
-      font-size: 1em
+      font-size: 1em;
       letter-spacing: 0.021em;
       margin-bottom: 0.25rem;
       max-width: 40rem;
