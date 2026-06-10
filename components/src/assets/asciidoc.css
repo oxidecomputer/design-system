@@ -771,8 +771,11 @@
         }
       }
 
-      &[open] summary:first-of-type::before {
-        content: '▾';
+      &[open] summary:first-of-type {
+        &::before {
+          content: '▾';
+        }
+        background-color: var(--surface-hover);
       }
 
       .content {
