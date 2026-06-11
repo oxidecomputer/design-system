@@ -62,12 +62,14 @@ const highlight = async (block: Block): Promise<Block> => {
   if (block.type === 'listing') {
     const literalBlock = block as LiteralBlock
 
-    // Work from `source` (raw, un-escaped block text). Highlighting re-escapes,
-    // so feeding it the specialchars-escaped `content` would double-escape
-    // (`&` -> `&amp;` -> rendered literally).
-    if (typeof literalBlock.source !== 'string') {
+    // Highlight `subbedSource`: `source` with react-asciidoc's text-level subs
+    // (notably `attributes`) resolved, but still un-escaped and with raw `<N>`
+    // callouts — the plain code to tokenize. Highlighting re-escapes, so feeding
+    // it the specialchars-escaped `content` would double-escape (`&` -> `&amp;`).
+    if (typeof literalBlock.subbedSource !== 'string') {
       return block
     }
+    const source = literalBlock.subbedSource
 
     // Turn raw callout markers (`<N>`, optionally comment-prefixed) into the
     // `<i class="conum" data-value="N"></i><b>(N)</b>` markup asciidoc.css
@@ -75,7 +77,7 @@ const highlight = async (block: Block): Promise<Block> => {
     // it runs on `source`, not the escaped `&lt;N&gt;` of `content`.
     const lineComment = literalBlock.attributes['line-comment']
     const content = Inline.subCalloutsRaw(
-      literalBlock.source,
+      source,
       true,
       lineComment !== undefined ? String(lineComment) : undefined,
     )

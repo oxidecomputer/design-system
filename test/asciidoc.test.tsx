@@ -146,6 +146,37 @@ describe('callouts + syntax highlighting', () => {
     expect(html).toContain('<i class="conum" data-value="1"></i><b>(1)</b>')
   })
 
+  it('substitutes attribute refs in a highlighted source block that opts in', async () => {
+    const html = await renderHighlighted(
+      `:api-version: 2026032500.0.0\n\n[source,text,subs="+attributes"]\n----\napi-version: {api-version}\n----`,
+    )
+    expect(html).toContain('2026032500.0.0')
+    expect(html).not.toContain('{api-version}')
+  })
+
+  it('leaves brace tokens literal in a source block that does not opt in', async () => {
+    const html = await renderHighlighted(
+      `:api-version: 2026032500.0.0\n\n[source,bash]\n----\necho "{api-version}"\n----`,
+    )
+    expect(html).toContain('{api-version}')
+    expect(html).not.toContain('2026032500.0.0')
+  })
+
+  it('handles attribute subs and callouts together in a highlighted listing', async () => {
+    const html = await renderHighlighted(
+      `:api-version: 2026032500.0.0\n\n[source,javascript,subs="+attributes"]\n----\nconst version = "{api-version}" // <1>\n----\n<1> the API version`,
+    )
+    expect(html).toContain('language-javascript')
+    // the attribute ref is resolved...
+    expect(html).toContain('2026032500.0.0')
+    expect(html).not.toContain('{api-version}')
+    // ...and the callout survives as conum markup, not escaped visible text
+    expect(html).toContain('<i class="conum" data-value="1"></i><b>(1)</b>')
+    expect(html).not.toContain('&#x3C;b&#x3E;')
+    // the comment prefix is dropped, not left dangling before the conum
+    expect(html).not.toMatch(/\/\/\s*<i class="conum"/)
+  })
+
   it('renders inline icon: macros as font icons (icons=font)', () => {
     const html = render('An inline icon:heart[] here.')
     expect(html).toContain('class="icon"')
