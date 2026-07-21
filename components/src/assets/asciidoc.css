@@ -304,6 +304,7 @@
 
     .attribution cite {
       display: block;
+      padding-left: 1em;
     }
 
     /* --- Admonitions --- */
