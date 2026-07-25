@@ -344,6 +344,7 @@
 
     .admonition-content {
       @apply text-sans-md;
+      text-transform: none;
 
       @media (min-width: 800px) {
         margin-right: 1.25rem;
