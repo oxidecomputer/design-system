@@ -158,7 +158,6 @@
     /* --- Lists --- */
     ul,
     ol {
-      @apply text-mono-sm;
       margin-bottom: 0.75rem;
       list-style-position: inside;
 
@@ -206,6 +205,10 @@
     ul li,
     ol li {
       margin-top: 0.325rem;
+
+      &::marker {
+        @apply text-mono-sm;
+      }
     }
 
     li::marker {
