@@ -7,6 +7,13 @@
  */
 import asciidoctor, { type Document, type Registry } from '@asciidoctor/core'
 import {
+  Block,
+  Inline,
+  LiteralBlock,
+  prepareDocument,
+  processDocument,
+} from '@oxide/react-asciidoc'
+import {
   bundledLanguages,
   createHighlighter,
   type BundledLanguage,
@@ -14,14 +21,6 @@ import {
   type HighlighterGeneric,
   type LanguageInput,
 } from 'shiki'
-
-import {
-  Block,
-  Inline,
-  LiteralBlock,
-  prepareDocument,
-  processDocument,
-} from '@oxide/react-asciidoc'
 
 import { oxqlGrammar as oxql, p4Grammar as p4, oxideTheme as theme } from '../syntax'
 
@@ -41,7 +40,7 @@ export function getHighlighter() {
 export async function highlightCode(
   code: string,
   lang: string,
-  { inline = false }: { inline?: boolean } = {}
+  { inline = false }: { inline?: boolean } = {},
 ): Promise<string> {
   const h = await getHighlighter()
   const resolved = supportedLanguages.includes(lang) ? lang : 'text'
@@ -76,7 +75,7 @@ const highlight = async (block: Block): Promise<Block> => {
     const content = Inline.subCalloutsRaw(
       source,
       true,
-      lineComment !== undefined ? String(lineComment) : undefined
+      lineComment !== undefined ? String(lineComment) : undefined,
     )
 
     // Replace the conum markup with placeholders before highlighting, otherwise
@@ -91,7 +90,7 @@ const highlight = async (block: Block): Promise<Block> => {
     const decodeIndex = (letters: string) =>
       parseInt(
         letters.replace(/[A-J]/g, (c) => String('ABCDEFGHIJ'.indexOf(c))),
-        10
+        10,
       )
     const callouts: string[] = []
     const placeholderContent = content.replace(calloutRegex, (match) => {
@@ -109,7 +108,7 @@ const highlight = async (block: Block): Promise<Block> => {
         ...block,
         content: Inline.subSpecialchars(placeholderContent).replace(
           /CALLOUTPLACEHOLDER([A-J]+)END/g,
-          (_, index) => callouts[decodeIndex(index)]
+          (_, index) => callouts[decodeIndex(index)],
         ),
       }
     }
@@ -117,13 +116,13 @@ const highlight = async (block: Block): Promise<Block> => {
     const highlightedContent = await highlightCode(
       placeholderContent,
       literalBlock.language,
-      { inline: true }
+      { inline: true },
     )
 
     // Restore callouts in the highlighted content
     const restoredContent = highlightedContent.replace(
       /CALLOUTPLACEHOLDER([A-J]+)END/g,
-      (_, index) => callouts[decodeIndex(index)]
+      (_, index) => callouts[decodeIndex(index)],
     )
 
     return {
