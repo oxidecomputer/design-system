@@ -8,6 +8,7 @@
     "./styles/*": "./styles/*",
     "./components/*.css": "./dist/*.css",
     "./asciidoc": "./dist/components/src/asciidoc/index.js",
+    "./syntax": "./dist/components/src/syntax/index.js",
     "./ui": "./dist/components/src/ui/index.js",
     "./icons": "./dist/icons/index.js",
     "./icons/react": "./dist/icons/react/index.js"
