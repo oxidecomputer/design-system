@@ -454,13 +454,12 @@
     pre .conum[data-value] {
       @apply text-mono-xs;
       position: relative;
-      top: -0.125rem;
       display: inline-block;
       height: 1rem;
-      min-width: 1rem;
+      padding: 0rem 0.125rem;
       color: var(--content-accent);
       background-color: var(--surface-accent-hover);
-      border-radius: var(--radius-full);
+      border-radius: var(--radius-md);
       text-align: center;
       font-style: normal;
 
