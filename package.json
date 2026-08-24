@@ -73,7 +73,7 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "classnames": "^2.5.1",
     "prettier-plugin-tailwindcss": "^0.6.14",
-    "shiki": "^3.13.0"
+    "shiki": "^4.4.3"
   },
   "files": [
     "styles/*.css",

@@ -87,15 +87,17 @@ const highlight = async (block: Block): Promise<Block> => {
     // the trailing `<b>` badge too so the whole unit is restored intact.
     //
     // The placeholder must survive tokenization as a single unbroken run of
-    // text, so it uses only letters and digits — no underscores. Grammars like
-    // asciidoc and markdown treat `__` as bold delimiters, so two adjacent
-    // placeholders (e.g. `<1> <2>`) pair up and get split across `<span>`s,
-    // leaving the literal placeholder in the output.
+    // text — anything a grammar can tokenize (digits, underscores) gets split
+    // across `<span>`s, leaving the placeholder literal in the output — so the
+    // index is spelled with letters only (0–9 mapped to A–J).
     const calloutRegex = /<i class="conum" data-value="\d+"><\/i>(?:<b>\(\d+\)<\/b>)?/g
+    const decodeIndex = (letters: string) =>
+      parseInt(letters.replace(/[A-J]/g, (c) => String('ABCDEFGHIJ'.indexOf(c))), 10)
     const callouts: string[] = []
     const placeholderContent = content.replace(calloutRegex, (match) => {
       callouts.push(match)
-      return `CALLOUTPLACEHOLDER${callouts.length - 1}END`
+      const index = String(callouts.length - 1).replace(/\d/g, (d) => 'ABCDEFGHIJ'[+d])
+      return `CALLOUTPLACEHOLDER${index}END`
     })
 
     // If no language specified, we still want to support callouts. This content
@@ -106,8 +108,8 @@ const highlight = async (block: Block): Promise<Block> => {
       return {
         ...block,
         content: Inline.subSpecialchars(placeholderContent).replace(
-          /CALLOUTPLACEHOLDER(\d+)END/g,
-          (_, index) => callouts[parseInt(index)],
+          /CALLOUTPLACEHOLDER([A-J]+)END/g,
+          (_, index) => callouts[decodeIndex(index)],
         ),
       }
     }
@@ -120,8 +122,8 @@ const highlight = async (block: Block): Promise<Block> => {
 
     // Restore callouts in the highlighted content
     const restoredContent = highlightedContent.replace(
-      /CALLOUTPLACEHOLDER(\d+)END/g,
-      (_, index) => callouts[parseInt(index)],
+      /CALLOUTPLACEHOLDER([A-J]+)END/g,
+      (_, index) => callouts[decodeIndex(index)],
     )
 
     return {
