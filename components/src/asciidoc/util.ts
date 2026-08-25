@@ -22,11 +22,7 @@ import {
   type LanguageInput,
 } from 'shiki'
 
-import oxql from './langs/oxql.tmLanguage.json'
-// p4.tmLanguage.json is derived from the highlights query in
-// https://github.com/oxidecomputer/tree-sitter-p4 (queries/highlights.scm).
-import p4 from './langs/p4.tmLanguage.json'
-import theme from './oxide-syntax.json'
+import { oxqlGrammar as oxql, p4Grammar as p4, oxideTheme as theme } from '../syntax'
 
 let highlighterPromise: Promise<HighlighterGeneric<BundledLanguage, BundledTheme>> | null =
   null
@@ -92,7 +88,10 @@ const highlight = async (block: Block): Promise<Block> => {
     // index is spelled with letters only (0–9 mapped to A–J).
     const calloutRegex = /<i class="conum" data-value="\d+"><\/i>(?:<b>\(\d+\)<\/b>)?/g
     const decodeIndex = (letters: string) =>
-      parseInt(letters.replace(/[A-J]/g, (c) => String('ABCDEFGHIJ'.indexOf(c))), 10)
+      parseInt(
+        letters.replace(/[A-J]/g, (c) => String('ABCDEFGHIJ'.indexOf(c))),
+        10,
+      )
     const callouts: string[] = []
     const placeholderContent = content.replace(calloutRegex, (match) => {
       callouts.push(match)

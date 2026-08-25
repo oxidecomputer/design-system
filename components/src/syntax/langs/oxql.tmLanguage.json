@@ -40,6 +40,17 @@
       ]
     },
     {
+      "name": "string.quoted.single.oxql",
+      "begin": "'",
+      "end": "'",
+      "patterns": [
+        {
+          "name": "constant.character.escape.oxql",
+          "match": "\\\\."
+        }
+      ]
+    },
+    {
       "name": "constant.numeric.oxql",
       "match": "\\b\\d+[smhdw]\\b"
     },
