@@ -440,8 +440,8 @@ inside `lg`.
 Motion **explains a change, not decorates it** — what appeared, where it came from,
 where it went. If an animation doesn't clarify cause and effect, leave it out.
 
-- **Honor `prefers-reduced-motion`.** Every animation has a reduced variant — the
-  `Spinner` slows its rotation and drops the dash animation. New motion must too.
+- **Honor `prefers-reduced-motion`.** Where necessary add reduced variants also. E.g. the
+  `Spinner` slows its rotation and drops the dash animation.
 - **Animate compositor-friendly properties** — `transform` and `opacity`. Avoid layout
   (`width`, `top`, `height`) and `transition: all`.
 - **Match easing to the motion.** `ease-out` for anything **entering or leaving**
@@ -450,7 +450,7 @@ where it went. If an animation doesn't clarify cause and effect, leave it out.
   color**. Avoid `ease-in` (the slow start feels sluggish); reserve `linear` for
   constant motion (marquees, hold-to-confirm progress).
 - **Keep it short; scale with size and frequency.** UI transitions run **150–300ms**;
-  let an exit run slightly quicker than its entrance, and give larger moves a longer
+  let an exit run quicker than its entrance, and give larger moves a longer
   curve (the TOC accordion uses ~300ms `cubic-bezier(0.87, 0, 0.13, 1)`). **The more
   often a control is used, the less it should animate** — something hit dozens of times
   a day should feel instant. A quick `scale(0.97)` on `:active` is the exception:
@@ -645,7 +645,7 @@ inline with text. Drawn on a **24×24 grid with a ~2px margin**, with optical ex
 
 **Don't**
 - Frequently reach for raw scale colors (`bg-green-800`) in product code — those are for
-  system internals and rare decoration.
+  system internals and occasional decoration.
 - Splash the accent around or use a hue as decoration; color is rationed, and `notice`,
   `error`, `info`, and `accent-alt` appear only for their meaning.
 - Use a gradient anywhere but the modal scrim — backgrounds are flat black or white.
