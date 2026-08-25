@@ -78,6 +78,7 @@
     "shiki": "^4.4.3"
   },
   "files": [
+    "design.md",
     "styles/*.css",
     "icons/**/*.svg",
     "dist/**"
