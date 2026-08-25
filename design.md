@@ -93,17 +93,18 @@ the five **hue** scales — `blue`, `purple`, `red`, `yellow`, `green` — run `
 hue. Because steps are spaced in OKLCH, the same step reads as the same perceived
 lightness across hues.
 
+<!-- @generated colors:examples (run: npm run design-md) -->
 ```css
---color-neutral-0:    oklch(0.162 0.01  260);   /* near-black, the dark canvas */
---color-neutral-300:  oklch(0.316 0.006 260);   /* default body text on dark */
---color-neutral-800:  oklch(0.79  0.0011 260);  /* hairline strokes on dark */
---color-neutral-1300: oklch(0.995 0.0001 260);  /* near-white, the light canvas */
-
---color-green-800:    oklch(0.77  0.1919 163.7); /* the default accent anchor */
---color-red-800:      oklch(0.712 0.185  11.3);  /* error / destructive anchor */
---color-yellow-800:   oklch(0.837 0.14   75);    /* notice anchor */
---color-blue-800:     oklch(0.71  0.15   272);   /* info anchor */
+--color-neutral-0:    oklch(0.162 0.01 260);    /* dark: surface-default · light: content-raise */
+--color-neutral-300:  oklch(0.316 0.006 260);   /* dark: surface-tertiary, stroke-default · light: content-default */
+--color-neutral-800:  oklch(0.79 0.0011 260);   /* dark: content-default · light: content-quaternary, stroke-raise */
+--color-neutral-1300: oklch(0.995 0.0001 260);  /* light: surface-default */
+--color-green-800:    oklch(0.77 0.1919 163.7); /* the default accent anchor */
+--color-red-800:      oklch(0.712 0.185 11.3);  /* error / destructive anchor */
+--color-yellow-800:   oklch(0.837 0.14 75);     /* notice anchor */
+--color-blue-800:     oklch(0.71 0.15 272);     /* info anchor */
 ```
+<!-- /@generated -->
 
 Raw scale colors are available as Tailwind classes (`bg-green-800`, `text-red-200`),
 but reach for them **only inside the design system** or for rare decoration. Product

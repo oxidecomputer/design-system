@@ -23,7 +23,9 @@
     "color-gen:watch": "tsx watch color-gen/generate.ts",
     "color-gen:dev": "vite --config color-gen/vite.config.ts color-gen",
     "color-gen:apply": "tsx color-gen/apply-colors.ts",
-    "preview:dev": "vite --config preview/vite.config.ts"
+    "preview:dev": "vite --config preview/vite.config.ts",
+    "design-md": "node scripts/design-md.mjs",
+    "design-md:check": "node scripts/design-md.mjs --check"
   },
   "author": "Oxide Computer Company <bots@oxidecomputer.com>",
   "license": "MPL 2.0",
