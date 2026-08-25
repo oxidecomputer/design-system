@@ -158,7 +158,6 @@
     /* --- Lists --- */
     ul,
     ol {
-      @apply text-mono-sm;
       margin-bottom: 0.75rem;
       list-style-position: inside;
 
@@ -206,6 +205,10 @@
     ul li,
     ol li {
       margin-top: 0.325rem;
+
+      &::marker {
+        @apply text-mono-sm;
+      }
     }
 
     li::marker {
@@ -304,6 +307,7 @@
 
     .attribution cite {
       display: block;
+      padding-left: 1em;
     }
 
     /* --- Admonitions --- */
@@ -450,13 +454,12 @@
     pre .conum[data-value] {
       @apply text-mono-xs;
       position: relative;
-      top: -0.125rem;
       display: inline-block;
       height: 1rem;
-      min-width: 1rem;
+      padding: 0rem 0.125rem;
       color: var(--content-accent);
       background-color: var(--surface-accent-hover);
-      border-radius: var(--radius-full);
+      border-radius: var(--radius-md);
       text-align: center;
       font-style: normal;
 

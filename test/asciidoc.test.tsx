@@ -177,6 +177,36 @@ describe('callouts + syntax highlighting', () => {
     expect(html).not.toMatch(/\/\/\s*<i class="conum"/)
   })
 
+  it('restores double-digit callouts in JSON value positions', async () => {
+    // Callouts after `[`, a bare number, or `]` sit where the JSON grammar
+    // expects a value, the positions most prone to splitting a placeholder.
+    const lines = [
+      '"a": "x", <1>',
+      '"b": "x", <2>',
+      '"c": "x", <3>',
+      '"d": "x", <4>',
+      '"e": "x", <5>',
+      '"f": "x", <6>',
+      '"g": "x", <7>',
+      '"h": "x", <8>',
+      '"i": "x", <9>',
+      '"j": "x", <10>',
+      '"causes": [ <11>',
+      '  { "k": 3 <12>',
+      '  }',
+      '],',
+      '"causing": [] <13>',
+    ].join('\n')
+    const colist = Array.from({ length: 13 }, (_, i) => `<${i + 1}> c${i + 1}`).join('\n')
+    const html = await renderHighlighted(
+      `[source,json]\n----\n{\n${lines}\n}\n----\n${colist}`,
+    )
+    expect(html).not.toContain('CALLOUTPLACEHOLDER')
+    for (let i = 1; i <= 13; i++) {
+      expect(html).toContain(`<i class="conum" data-value="${i}"></i>`)
+    }
+  })
+
   it('renders inline icon: macros as font icons (icons=font)', () => {
     const html = render('An inline icon:heart[] here.')
     expect(html).toContain('class="icon"')
