@@ -32,6 +32,7 @@ const Admonition = ({ node }: { node: AdmonitionBlock }) => {
 
   return (
     <div className={`admonitionblock ${attrs.name} ${theme}`}>
+      {node.id && <span className="anchor" id={node.id} aria-hidden="true" />}
       <div className="admonition-icon">{icon}</div>
       <div className="admonition-content content">
         <div>{titleCase(attrs.name.toString())}</div>

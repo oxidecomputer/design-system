@@ -71,6 +71,16 @@ describe('Admonition', () => {
     expect(html).toContain('Body here.')
     expect(html).not.toContain('fa icon-tip')
   })
+
+  it('renders a hidden anchor span when the block has an id', () => {
+    const html = render(`[[my-anchor]]\n[NOTE]\nBody here.`)
+    expect(html).toContain('<span class="anchor" id="my-anchor" aria-hidden="true">')
+  })
+
+  it('renders no anchor span when the block has no id', () => {
+    const html = render(`[NOTE]\nBody here.`)
+    expect(html).not.toContain('class="anchor"')
+  })
 })
 
 describe('Section', () => {
