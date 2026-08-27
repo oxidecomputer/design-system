@@ -5,7 +5,9 @@
  *
  * Copyright Oxide Computer Company
  */
+import { Error12Icon, Info12Icon, Warning12Icon } from '@/icons/react'
 import { Content, RenderInline, type AdmonitionBlock } from '@oxide/react-asciidoc'
+import cn from 'classnames'
 
 import { titleCase } from '../utils'
 
@@ -23,15 +25,19 @@ const Admonition = ({ node }: { node: AdmonitionBlock }) => {
 
   let icon
   if (attrs.name === 'caution') {
-    icon = <Error12 />
+    icon = <Error12Icon />
   } else if (attrs.name === 'warning') {
-    icon = <Warning12 />
+    icon = <Warning12Icon />
   } else {
-    icon = <Error12 className="rotate-180" />
+    icon = <Info12Icon />
   }
 
   return (
-    <div className={`admonitionblock ${attrs.name} ${theme}`}>
+    <div
+      id={node.id || undefined}
+      className={cn('admonitionblock', attrs.name, theme, node.role)}
+      {...(node.lineNumber ? { 'data-lineno': node.lineNumber } : {})}
+    >
       <div className="admonition-icon">{icon}</div>
       <div className="admonition-content content">
         <div>{titleCase(attrs.name.toString())}</div>
@@ -50,39 +56,5 @@ const Admonition = ({ node }: { node: AdmonitionBlock }) => {
     </div>
   )
 }
-
-const Error12 = ({ className }: { className?: string }) => (
-  <svg
-    width="12"
-    height="12"
-    viewBox="0 0 12 12"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M6 12A6 6 0 1 0 6 0a6 6 0 0 0 0 12Zm.083-9c.368 0 .667.299.667.667v2.666A.667.667 0 0 1 6.083 7h-.166a.667.667 0 0 1-.667-.667V3.667c0-.368.299-.667.667-.667h.166Zm0 5c.368 0 .667.299.667.667v.166a.667.667 0 0 1-.667.667h-.166a.667.667 0 0 1-.667-.667v-.166c0-.368.299-.667.667-.667h.166Z"
-      fill="currentColor"
-    />
-  </svg>
-)
-
-const Warning12 = ({ className }: { className?: string }) => (
-  <svg
-    width="12"
-    height="12"
-    viewBox="0 0 12 12"
-    xmlns="http://www.w3.org/2000/svg"
-    className={className}
-  >
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M6 12A6 6 0 1 0 6 0a6 6 0 0 0 0 12Zm.083-9c.368 0 .667.299.667.667v2.666A.667.667 0 0 1 6.083 7h-.166a.667.667 0 0 1-.667-.667V3.667c0-.368.299-.667.667-.667h.166Zm0 5c.368 0 .667.299.667.667v.166a.667.667 0 0 1-.667.667h-.166a.667.667 0 0 1-.667-.667v-.166c0-.368.299-.667.667-.667h.166Z"
-      fill="currentColor"
-    />
-  </svg>
-)
 
 export default Admonition
