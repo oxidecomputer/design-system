@@ -25,6 +25,10 @@
     "color-gen:dev": "vite --config color-gen/vite.config.ts color-gen",
     "color-gen:apply": "tsx color-gen/apply-colors.ts",
     "preview:dev": "vite --config preview/vite.config.ts",
+    "dual-grid:build": "npm --prefix plugins/dual-grid run build",
+    "dual-grid:test": "npm --prefix plugins/dual-grid run test",
+    "token-sync:dev": "npm --prefix plugins/token-sync run dev",
+    "token-sync:build": "npm --prefix plugins/token-sync run build",
     "design-md": "node scripts/design-md.mjs",
     "design-md:check": "node scripts/design-md.mjs --check"
   },

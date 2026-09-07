@@ -13,6 +13,7 @@ header:
 
   paths-ignore:
     - '**/dist/*'
+    - 'plugins/**'
     - '**/*.md'
     - 'LICENSE'
     - 'components/src/asciidoc/use-delegated-links.ts'

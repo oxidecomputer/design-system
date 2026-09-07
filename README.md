@@ -20,10 +20,19 @@ Releases are managed via GitHub Actions workflows triggered from the Actions tab
   tag. Install it with `npm install @oxide/design-system@canary` to test changes before
   merging.
 
-## Syncing with Figma
+## Figma Plugins
 
-The Token Sync Figma plugin reads the CSS files in `styles/` directly and compares them
-against Figma variables. Changes can be applied from the plugin UI.
+Figma plugins live in `plugins/`. Each is a standalone npm project with its own
+`package.json` and `node_modules` — `cd plugins/<name> && npm install && npm run build`
+(or use the `dual-grid:*` / `token-sync:*` scripts at the root). Load a built plugin in
+Figma via **Plugins → Development → Import plugin from manifest…**.
+
+- `plugins/token-sync` — reads the CSS files in `styles/` and compares them against
+  Figma variables; changes can be applied from the plugin UI.
+- `plugins/dual-grid` — generates a synchronised column + cell grid, ASCII grid, and
+  type specimens on a frame.
+
+## Syncing with Figma
 
 To regenerate colour palettes, run `npm run color-gen:apply`. This updates the `--color-*`
 variables in `styles/main.css` and writes the accent override files.

@@ -1,0 +1,23 @@
+{
+  "name": "dual-grid",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Generate a synchronized column + fine cell dual-grid system on a frame",
+  "type": "module",
+  "main": "dist/main.js",
+  "scripts": {
+    "tsc": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && vite build",
+    "dev": "nodemon -e ts --exec \"npm run build\"",
+    "test": "npm run build && npm run test:plugin && npm run test:ui",
+    "test:plugin": "node test/plugin.test.mjs",
+    "test:ui": "node test/ui.test.mjs"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.117.1",
+    "jsdom": "^29.1.1",
+    "nodemon": "^3.1.10",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.9"
+  }
+}
