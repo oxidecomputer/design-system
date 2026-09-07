@@ -449,7 +449,7 @@
       }
 
       /* Optional role that caps the height for extra long snippets */
-      &.scroll pre {
+      &.scrollable pre {
         max-height: 32rem;
         overflow: auto;
       }
