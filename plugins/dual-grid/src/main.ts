@@ -2,6 +2,24 @@
 //
 // Overlays aligned column and cell grids on a frame. Margin, column and gutter
 // widths are whole multiples of the cell width `u`. See README.md for the equations.
+//
+// The grid math is imported from components/src/grid (published as
+// @oxide/design-system/grid); Vite bundles it into dist/main.js.
+
+import {
+  computeGrid,
+  DEFAULT_ASPECT_TOL_PCT,
+  DEFAULT_CELL_ASPECT,
+  DEFAULT_EDGE_CULL_PCT,
+  DEFAULT_SNAP_TOLERANCE_PX,
+  DEFAULT_TARGET_CELL_COLUMNS,
+  gridExtent,
+  gridLineSegments,
+  parseAspect,
+  type GridResult,
+  type GridSpec,
+  type Segment,
+} from '../../../components/src/grid'
 
 type GridMode = 'Manual' | 'Solve'
 
@@ -50,33 +68,6 @@ interface Params {
   frameWidth: number
   frameAspect: string // "16:9" etc, or "Custom" to use frameHeight directly
   frameHeight: number // only consulted when frameAspect is "Custom"
-}
-
-interface GridResult {
-  N: number // whole cells that fit across the frame
-  u: number // cell size = base unit
-  solvedM: number // multiples actually used (from the sliders or the solver)
-  solvedK: number
-  solvedG: number
-  solved: boolean // whether the solver chose them
-  offsetX: number // phase of the cell grid, so x = margin lands on a boundary
-  cellsPerGutter: number
-  columnWidth: number
-  columnCells: number // columnWidth in whole cells (= k)
-  gutterWidth: number
-  margin: number
-  effectiveMargin: number
-  contentWidth: number
-  rows: number
-  cellH: number
-  rowOffset: number
-  hRemainder: number // leftover width from snapping u, split between the margins
-  vRemainder: number // leftover height — split top/bottom (Snap rows) or a partial row at the bottom
-  actualAspect: number
-  deltaPct: number
-  warn: boolean
-  cellLadder: number[] // reachable cell-column counts, ascending (Manual only)
-  cellColumnsTaken: number // the rung actually taken, = N in Manual
 }
 
 interface FontProbe {
@@ -234,29 +225,18 @@ const DEFAULT_PARAMS: Params = {
   gutterMultiple: 1,
   targetMarginPx: 50,
   targetGutterPx: 20,
-  // = 2(3) + 12(6) + 11(1), i.e. k=6 — an exact rung at 1920 wide, giving a
-  // 21.57px cell, 25 rows and a 129px column. Both modes default to it, so
-  // switching between them does not jump the grid.
-  cellColumns: 89,
-  targetColumns: 89,
-  cellAspect: 2,
+  // Both modes default to the same cell-column count, so switching between
+  // them does not jump the grid.
+  cellColumns: DEFAULT_TARGET_CELL_COLUMNS,
+  targetColumns: DEFAULT_TARGET_CELL_COLUMNS,
+  cellAspect: DEFAULT_CELL_ASPECT,
   snapRows: true,
-  // Off by default: with it on, u snaps to a whole pixel when within
-  // snapTolerancePx (always, at the default 0.5) and the leftover (W − N·u) is
-  // split between the margins. Off, the cell divides the frame exactly and
-  // there is no bleed.
+  // Off by default: the cell divides the frame exactly and there is no bleed.
   pixelPerfect: false,
-  // Half a pixel accepts any rounding distance. Lower tolerances preserve more
-  // fractional sizes and limit bleed; 0.1 caps it at N/10 pixels.
-  snapTolerancePx: 0.5,
-  // 20% of a step: wide enough to catch the few-px inset the pixel snap leaves
-  // (3px on a 22px cell is 13.6%), narrow enough that a real interior line — a
-  // full step from the edge — can never be caught.
+  snapTolerancePx: DEFAULT_SNAP_TOLERANCE_PX,
   edgeCull: true,
-  edgeCullPct: 20,
-  // Allow 5% aspect deviation when searching for an integer row height.
-  // For example, 24 rows of 45px fill a 1080px frame exactly.
-  aspectTolPct: 5,
+  edgeCullPct: DEFAULT_EDGE_CULL_PCT,
+  aspectTolPct: DEFAULT_ASPECT_TOL_PCT,
   cellDensity: 1,
   showLines: true,
   showSpecimens: true,
@@ -306,144 +286,67 @@ figma.ui.onmessage = async (msg) => {
 }
 
 // ---------------------------------------------------------------------------
-// Solver
+// Params → GridSpec
 // ---------------------------------------------------------------------------
 
-interface Solution {
-  m: number
-  k: number
-  g: number
-  marginPx: number
-  gutterPx: number
-  u: number
-  N: number
-  err: number
-}
+// Stored pluginData can be missing a field or hold an unusable value; these
+// readers fall back to the default before anything reaches the grid module.
 
-// Search all ~10k combinations on each edit to find the best match within these bounds.
-const SOLVE_MAX_GUTTER = 8
-const SOLVE_MAX_MARGIN = 24
-const SOLVE_MAX_COLUMN = 48
-// Prioritise column count to preserve cell density. Gutter width is g*W/N with
-// integer g, so the two targets may conflict. Report gutter mismatches rather
-// than substantially changing N. See README.md for weight comparisons.
-const GUTTER_WEIGHT = 8
-const COLUMNS_WEIGHT = 16
-// Margin has weight 1 and is quantised in cell-width increments.
-
-// Round to whole pixels only within tolerance. computeGrid, the solver and the
-// ladder must all use this function so previews and generated grids agree.
-function snapUnit(value: number, pixelPerfect: boolean, tolPx: number): number {
-  if (!pixelPerfect) return value
-  const snapped = Math.max(1, Math.round(value))
-  // The epsilon keeps an exactly-on-tolerance value (and a tolerance of 0.5,
-  // where |value − round(value)| can equal 0.5 up to float error) snapping.
-  return Math.abs(value - snapped) <= tolPx + 1e-9 ? snapped : value
-}
-
-// Tolerates stored params missing the tolerance; the 0.5 default always snaps.
 function snapToleranceOf(p: Params): number {
   return typeof p.snapTolerancePx === 'number' && p.snapTolerancePx >= 0
     ? p.snapTolerancePx
     : DEFAULT_PARAMS.snapTolerancePx
 }
 
-// The aspect band as a share (from the % param), capped at 50%. 0 disables the
-// row-count search entirely.
-function aspectTolOf(p: Params): number {
-  const pct =
-    typeof p.aspectTolPct === 'number' && p.aspectTolPct >= 0
-      ? p.aspectTolPct
-      : DEFAULT_PARAMS.aspectTolPct
-  return Math.min(50, pct) / 100
+function aspectTolPctOf(p: Params): number {
+  return typeof p.aspectTolPct === 'number' && p.aspectTolPct >= 0
+    ? p.aspectTolPct
+    : DEFAULT_PARAMS.aspectTolPct
 }
 
-// Finds the whole-cell multiples (m, k, g) whose margin, gutter and column count
-// come closest to the three requested values.
-//
-// Whole-cell multiples preserve alignment. Inputs are weighted targets, not
-// hard constraints, so a grid is returned even when no exact match exists.
-function solveMultiples(
-  W: number,
-  H: number,
-  c: number,
-  targetMargin: number,
-  targetGutter: number,
-  targetN: number,
-  pixelPerfect: boolean,
-  snapTolPx: number,
-): Solution {
-  const relErr = (got: number, want: number) => Math.abs(got - want) / Math.max(1, want)
+function edgeCullPctOf(p: Params): number {
+  return typeof p.edgeCullPct === 'number' && p.edgeCullPct >= 0
+    ? p.edgeCullPct
+    : DEFAULT_PARAMS.edgeCullPct
+}
 
-  let best: Solution | null = null
+// The requested Manual-mode cell-column count.
+function manualColumnsOf(p: Params): number {
+  if (typeof p.cellColumns === 'number' && p.cellColumns > 0) {
+    return Math.round(p.cellColumns)
+  }
+  return DEFAULT_PARAMS.cellColumns
+}
 
-  for (let g = 1; g <= SOLVE_MAX_GUTTER; g++) {
-    for (let m = 0; m <= SOLVE_MAX_MARGIN; m++) {
-      for (let k = 1; k <= SOLVE_MAX_COLUMN; k++) {
-        const N = 2 * m + c * k + (c - 1) * g
-        // Must snap exactly as computeGrid will, or the solved fit drifts once
-        // Pixel snap rounds the cell size.
-        const u = snapUnit(W / N, pixelPerfect, snapTolPx)
-
-        // Include half the rounding remainder in the margin to account for centring.
-        const gutterPx = g * u
-        const marginPx = m * u + (W - N * u) / 2
-
-        const err =
-          GUTTER_WEIGHT * relErr(gutterPx, targetGutter) +
-          COLUMNS_WEIGHT * relErr(N, targetN) +
-          relErr(marginPx, targetMargin)
-        const candidate: Solution = { m, k, g, marginPx, gutterPx, u, N, err }
-
-        // Prefer the closest fit, then the coarsest grid on a tie.
-        if (!best || betterFit(candidate, best)) best = candidate
-      }
+// Adapts the panel's params to the shared module's spec. Solve targets the
+// solver at targetColumns; Manual picks the ladder rung nearest cellColumns.
+function gridSpecOf(p: Params, W: number, H: number): GridSpec {
+  const base = {
+    columns: columnCountOf(p),
+    width: W,
+    height: H,
+    cellAspect: p.cellAspect,
+    snapRows: p.snapRows,
+    pixelSnap: p.pixelPerfect,
+    snapTolerancePx: snapToleranceOf(p),
+    aspectTolerancePct: aspectTolPctOf(p),
+  }
+  if (p.mode === 'Solve') {
+    return {
+      ...base,
+      mode: 'auto',
+      targetMarginPx: p.targetMarginPx,
+      targetGutterPx: p.targetGutterPx,
+      targetCellColumns: p.targetColumns || DEFAULT_PARAMS.targetColumns,
     }
   }
-
-  return (
-    best || {
-      m: 3,
-      k: 6,
-      g: 1,
-      marginPx: 0,
-      gutterPx: 0,
-      u: 0,
-      N: 0,
-      err: Infinity,
-    }
-  )
-}
-
-// ----- the Manual-mode cell ladder ------------------------------------------
-//
-// With c, m and g fixed, k is the only free variable in N = 2m + ck + (c−1)g.
-// Possible counts step by c, giving a discrete set of cell sizes u = W/N.
-// The panel offers these valid counts directly. Aspect deviation is reported,
-// not used to reject sizes.
-
-interface CellOption {
-  u: number // exact cell size
-  k: number // cells per column that produces it
-  N: number
-  bleed: number // px left over after rounding u — padding that lands in the margins
-}
-
-// Cell sizes below this are not a usable design grid, and enumerating them only
-// crowds the slider.
-const LADDER_MIN_CELL = 2
-
-// The edge cull as a share of the step, from params. Capped at half a step so
-// it can never reach two adjacent lines. The epsilon is the separate,
-// unconditional rule: lines on or beyond the frame boundary (to within it) are
-// always culled, whatever the toggle or percentage say.
-const EDGE_CULL_EPSILON = 0.01
-function edgeCullRatioOf(p: Params): number {
-  const pct =
-    typeof p.edgeCullPct === 'number' && p.edgeCullPct >= 0
-      ? p.edgeCullPct
-      : DEFAULT_PARAMS.edgeCullPct
-  return Math.min(50, pct) / 100
+  return {
+    ...base,
+    mode: 'manual',
+    marginCells: marginCellsOf(p),
+    gutterCells: p.gutterMultiple,
+    targetCellColumns: manualColumnsOf(p),
+  }
 }
 
 // ----- palette -------------------------------------------------------------
@@ -462,214 +365,6 @@ const COLOR_BG = hex('#000000') // the frame fill, on Create frame
 const COLOR_TEXT = hex('#FFFFFF') // specimen text
 const COLOR_CHAR = hex('#333333') // the ASCII char grid
 const COLOR_LINES = hex('#666666') // the drawn cell-grid strokes
-
-// Two decimals is the resolution the panel displays and the slider steps
-// through, so it is also the resolution at which rungs are considered distinct.
-function round2(n: number): number {
-  return Math.round(n * 100) / 100
-}
-
-function cellLadder(
-  W: number,
-  H: number,
-  c: number,
-  m: number,
-  g: number,
-  pixelPerfect: boolean,
-  snapTolPx: number,
-): CellOption[] {
-  const byCell = new Map<number, CellOption>()
-  for (let k = 1; k <= SOLVE_MAX_COLUMN; k++) {
-    const N = 2 * m + c * k + (c - 1) * g
-    const u = snapUnit(W / N, pixelPerfect, snapTolPx)
-    if (u < LADDER_MIN_CELL) continue
-
-    const bleed = Math.abs(W - N * u)
-    // Rounding u to whole pixels collapses several adjacent k onto the same cell
-    // size; keep whichever leaves the least bleed, since that is the one that
-    // fills the frame most cleanly.
-    const key = round2(u)
-    const prev = byCell.get(key)
-    if (!prev || bleed < prev.bleed) byCell.set(key, { u, k, N, bleed })
-  }
-  const out: CellOption[] = []
-  byCell.forEach((v) => out.push(v))
-  return out.sort((a, b) => a.u - b.u)
-}
-
-// Nearest available column count. Ties prefer fewer columns, matching the solver.
-function pickCellOption(ladder: CellOption[], targetN: number): CellOption | null {
-  let best: CellOption | null = null
-  let bestErr = Infinity
-  for (const opt of ladder) {
-    const err = Math.abs(opt.N - targetN)
-    if (err < bestErr - 1e-9 || (best && err < bestErr + 1e-9 && opt.N < best.N)) {
-      bestErr = err
-      best = opt
-    }
-  }
-  return best
-}
-
-// The requested cell-column count.
-function targetColumns(p: Params): number {
-  if (typeof p.cellColumns === 'number' && p.cellColumns > 0) {
-    return Math.round(p.cellColumns)
-  }
-  return DEFAULT_PARAMS.cellColumns
-}
-
-// Treat errors within 1e-6 as ties and prefer the coarser grid.
-function betterFit(a: Solution, b: Solution): boolean {
-  if (a.err < b.err - 1e-6) return true
-  if (a.err > b.err + 1e-6) return false
-  return a.N < b.N
-}
-
-// ---------------------------------------------------------------------------
-// The mathematical core
-// ---------------------------------------------------------------------------
-
-// Dimensions are measured in cells; cell size is derived from frame width:
-//
-//   N = 2m + c·k + (c−1)·g      (cells across the frame)
-//   u = W / N                    (cell size = base unit)
-//   margin = m·u   column = k·u   gutter = g·u
-//
-// Whole-cell margins, columns and gutters keep every edge on a cell line.
-//
-// The pixel sizes are reported back in the panel.
-function computeGrid(p: Params, W: number, H: number): GridResult {
-  const c = columnCountOf(p)
-  const a = p.cellAspect
-  const snapTol = snapToleranceOf(p)
-
-  // In Solve mode the multiples come from the solver rather than the sliders.
-  const solved =
-    p.mode === 'Solve'
-      ? solveMultiples(
-          W,
-          H,
-          c,
-          Math.max(0, p.targetMarginPx),
-          Math.max(1, p.targetGutterPx),
-          Math.max(1, Math.round(p.targetColumns || DEFAULT_PARAMS.targetColumns)),
-          p.pixelPerfect,
-          snapTol,
-        )
-      : null
-
-  // Manual: the gutter sets the scale, the margin is measured against it, and the
-  // column width is derived. Rounding keeps every part a whole number of cells,
-  // which is what holds the two grids in phase.
-  const gm = solved ? solved.g : Math.max(1, Math.round(p.gutterMultiple))
-  const m = solved ? solved.m : marginCellsOf(p)
-  // Manual: the column count is picked straight off the ladder. The ladder depends
-  // on c, m, g, Pixel snap and its tolerance, so it is rebuilt whenever any of
-  // those move and the request is re-snapped by *count* — 197 cells stays ≈197
-  // across a margin change rather than sliding to whatever sits at the same
-  // slider index.
-  const ladder = solved ? [] : cellLadder(W, H, c, m, gm, p.pixelPerfect, snapTol)
-  const chosen = solved ? null : pickCellOption(ladder, targetColumns(p))
-  const k = solved ? solved.k : chosen ? chosen.k : 1
-
-  const N = 2 * m + c * k + (c - 1) * gm
-  const uExact = W / N
-  const u = snapUnit(uExact, p.pixelPerfect, snapTol)
-
-  const columnWidth = k * u
-  const gutterWidth = gm * u
-  const margin = m * u
-  const columnCells = k
-  const contentWidth = c * columnWidth + (c - 1) * gutterWidth
-
-  // Rounding u leaves a remainder; split evenly it shifts both grids by the same
-  // amount, so they stay in phase — Figma's CENTER alignment does exactly that.
-  const hRemainder = W - N * u
-  const effectiveMargin = margin + hRemainder / 2
-  const offsetX = 0 // CENTER alignment handles the phase; no offset needed
-
-  let rows: number
-  let cellH: number
-  if (p.snapRows) {
-    // Counted off the exact cell, not the snapped one, so snapping u to a whole
-    // pixel cannot flip the row count the fractional grid chose (at the borderline
-    // it otherwise does: u 22.07 → 24 rows, u 22 → 25).
-    rows = Math.max(1, Math.round(H / (a * uExact)))
-    // Search row counts within the aspect tolerance for a height that snaps.
-    // Prefer the closest aspect ratio; a divisor of H gives an exact vertical fit.
-    const band = p.pixelPerfect ? aspectTolOf(p) : 0
-    if (band > 0) {
-      const lo = Math.max(1, Math.ceil(H / (a * u * (1 + band))))
-      const hi = Math.max(lo, Math.floor(H / (a * u * (1 - band))))
-      let bestR = 0
-      let bestErr = Infinity
-      for (let r = lo; r <= hi; r++) {
-        const snapped = Math.max(1, Math.round(H / r))
-        if (Math.abs(H / r - snapped) > snapTol + 1e-9) continue
-        const err = Math.abs(snapped / u / a - 1)
-        if (err > band + 1e-9) continue
-        // Closest to the aspect ask wins; ties go to the natural row count.
-        if (
-          err < bestErr - 1e-12 ||
-          (err < bestErr + 1e-12 && Math.abs(r - rows) < Math.abs(bestR - rows))
-        ) {
-          bestErr = err
-          bestR = r
-        }
-      }
-      if (bestR) rows = bestR
-    }
-    // H/rows divides H exactly; the whole-pixel snap trades that for a small
-    // remainder, split top and bottom like the horizontal one.
-    cellH = snapUnit(H / rows, p.pixelPerfect, snapTol)
-  } else {
-    // Keep the aspect exact and let the last row run off the bottom edge rather
-    // than stopping the grid short — the overhang is clipped by the frame, the
-    // same way the side edges already bleed. Snapping is the opposite trade:
-    // exact fit, approximate aspect.
-    cellH = snapUnit(a * u, p.pixelPerfect, snapTol)
-    rows = Math.max(1, Math.ceil(H / cellH - 1e-9))
-  }
-  const vRemainder = H - rows * cellH
-  // Same trick vertically: centre the leftover so the rows stay in phase.
-  const rowOffset = vRemainder / 2
-
-  const actualAspect = cellH / u
-  const deltaPct = (actualAspect / a - 1) * 100
-
-  return {
-    N,
-    u,
-    solvedM: m,
-    solvedK: k,
-    solvedG: gm,
-    solved: !!solved,
-    offsetX,
-    cellsPerGutter: gm,
-    columnWidth,
-    columnCells,
-    gutterWidth,
-    margin,
-    effectiveMargin,
-    contentWidth,
-    rows,
-    cellH,
-    rowOffset,
-    hRemainder,
-    vRemainder,
-    actualAspect,
-    deltaPct,
-    warn: Math.abs(deltaPct) > 1,
-    // Ascending in N, which is *descending* in cell size — the ladder is built
-    // u-ascending, so this reverses it. Dragging the slider right therefore adds
-    // columns, which is the direction the label implies.
-    cellLadder: ladder.map((o) => o.N).sort((a, b) => a - b),
-    // In Solve the grid is the solver's business, so the Manual request is echoed
-    // back untouched rather than overwritten with the solved count.
-    cellColumnsTaken: chosen ? chosen.N : targetColumns(p),
-  }
-}
 
 function buildLayoutGrids(g: GridResult, columns: number, density: number): LayoutGrid[] {
   const d = clampDensity(density)
@@ -745,38 +440,6 @@ function buildLayoutGrids(g: GridResult, columns: number, density: number): Layo
   ] as LayoutGrid[]
 }
 
-// The full-bleed extent of the cell grid: the N × rows grid plus enough whole
-// cells on every side to cover the snap's remainder margins, so the grid
-// fills the frame edge to edge. Whole units keep everything aligned; the
-// overhang is clipped by the frame.
-interface GridExtent {
-  startX: number
-  startY: number
-  cols: number
-  rows: number
-  width: number
-  height: number
-}
-
-// Extends the grid by whole cells past its own bounds so the rounding remainder
-// at the frame edges is covered too; the frame clips the overhang.
-function gridExtent(g: GridResult, _W: number, _H: number): GridExtent {
-  const extraCols = g.hRemainder > 0 ? Math.ceil(g.hRemainder / 2 / g.u) : 0
-  const extraRows = g.vRemainder > 0 ? Math.ceil(g.vRemainder / 2 / g.cellH) : 0
-  const startX = g.hRemainder / 2 - extraCols * g.u
-  const startY = g.vRemainder / 2 - extraRows * g.cellH
-  const cols = g.N + 2 * extraCols
-  const rows = g.rows + 2 * extraRows
-  return {
-    startX,
-    startY,
-    cols,
-    rows,
-    width: cols * g.u,
-    height: rows * g.cellH,
-  }
-}
-
 function columnCountOf(p: Params): number {
   // Tolerates anything sane, not just the UI's choices, and defaults to 12 for
   // params stored before this option existed.
@@ -806,13 +469,6 @@ function clampDensity(d: number): number {
   if (n === 0.25 || n === 0.5) return n
   const r = Math.round(n)
   return r >= 1 && r <= 3 ? r : 1
-}
-
-function parseAspect(ratio: string): number {
-  const parts = ratio.split(':')
-  const w = Number(parts[0])
-  const h = Number(parts[1])
-  return w > 0 && h > 0 ? w / h : 16 / 9
 }
 
 // The height a new frame would get: taken directly when the aspect is "Custom",
@@ -1018,7 +674,7 @@ async function ensureCharGrid(
 
   // Share the line grid's cell dimensions and extend past the frame as needed.
   // Stretching letter spacing to fill the frame would misalign the characters.
-  const ext = gridExtent(g, frame.width, frame.height)
+  const ext = gridExtent(g)
   // One character per cell — so it subdivides (or coarsens) with the cell
   // density too. Coarse densities can leave a fractional count; round up so
   // the chars still cover the frame, and let the frame clip the overhang.
@@ -1057,8 +713,6 @@ async function ensureCharGrid(
 // ---------------------------------------------------------------------------
 // Grid drawn as real vector lines
 // ---------------------------------------------------------------------------
-
-type Segment = [number, number, number, number] // x1, y1, x2, y2
 
 // One VectorNode holds every line of a layer as a single multi-segment path,
 // so a 3× grid costs two nodes instead of several hundred rectangles.
@@ -1128,41 +782,14 @@ async function ensureGridLines(
   // diff line counts when the density or params change.
   for (const child of container.children.slice()) child.remove()
 
-  // Same full-bleed extent as the char grid, so the two line up exactly.
-  const ext = gridExtent(g, frame.width, frame.height)
-  const right = ext.startX + ext.width
-  const bottom = ext.startY + ext.height
-
-  // Subdivided by the cell density, matching the layout grid.
+  // The segments share the char grid's full-bleed extent and cell density, so
+  // the drawn lines and the characters line up exactly.
   const d = clampDensity(p.cellDensity)
-  const stepX = g.u / d
-  const stepY = g.cellH / d
-
-  // Always omit lines on or beyond the frame boundary. Edge cull also removes
-  // nearby interior lines within edgeCullPct of a step to avoid darkening the edge.
-  const cullOn = flag(p.edgeCull, DEFAULT_PARAMS.edgeCull)
-  const cull = edgeCullRatioOf(p)
-  const tolX = stepX * cull
-  const tolY = stepY * cull
-
-  // Coarse densities can leave a fractional line count; the loop floor just
-  // stops at the last coarse line inside the extent.
-  const lastCol = Math.floor(ext.cols * d + 1e-9)
-  const lastRow = Math.floor(ext.rows * d + 1e-9)
-
-  const cells: Segment[] = []
-  for (let i = 0; i <= lastCol; i++) {
-    const x = ext.startX + i * stepX
-    if (x < EDGE_CULL_EPSILON || x > frame.width - EDGE_CULL_EPSILON) continue
-    if (cullOn && (x < tolX || frame.width - x < tolX)) continue
-    cells.push([x, ext.startY, x, bottom])
-  }
-  for (let j = 0; j <= lastRow; j++) {
-    const y = ext.startY + j * stepY
-    if (y < EDGE_CULL_EPSILON || y > frame.height - EDGE_CULL_EPSILON) continue
-    if (cullOn && (y < tolY || frame.height - y < tolY)) continue
-    cells.push([ext.startX, y, right, y])
-  }
+  const cells = gridLineSegments(g, frame.width, frame.height, {
+    density: d,
+    edgeCull: flag(p.edgeCull, DEFAULT_PARAMS.edgeCull),
+    edgeCullPct: edgeCullPctOf(p),
+  })
   // Only the cell grid is drawn — the columns stay a Figma layout grid.
   drawLines(container, `Cell Grid ${d}x`, cells, COLOR_LINES, 1.0)
 
@@ -1346,7 +973,7 @@ async function ensureSpecimens(
 
 async function applyGrids(frame: FrameNode, p: Params): Promise<void> {
   const stored = getStoredData(frame)
-  const g = computeGrid(p, frame.width, frame.height)
+  const g = computeGrid(gridSpecOf(p, frame.width, frame.height))
 
   frame.layoutGrids = buildLayoutGrids(g, columnCountOf(p), p.cellDensity)
 
@@ -1589,7 +1216,7 @@ function sendActionState(): void {
   // there is one, otherwise against the "New frame" params.
   const W = frame ? frame.width : Math.max(1, Math.round(lastParams.frameWidth))
   const H = frame ? frame.height : frameHeightOf(lastParams, W)
-  const g = computeGrid(lastParams, W, H)
+  const g = computeGrid(gridSpecOf(lastParams, W, H))
 
   // Offer removal for a gridded frame, apply for an ungridded frame, and creation
   // when the selection does not resolve to a frame.
@@ -1627,7 +1254,9 @@ function sendActionState(): void {
       frameHeightParam: lastParams.frameHeight,
       frameAspect: lastParams.frameAspect,
       cellLadder: g.cellLadder,
-      cellColumns: g.cellColumnsTaken,
+      // In Solve the grid is the solver's business, so the Manual request is
+      // echoed back untouched rather than overwritten with the solved count.
+      cellColumns: g.solved ? manualColumnsOf(lastParams) : g.cellColumnsTaken,
       targetMarginPx: lastParams.targetMarginPx,
       targetGutterPx: lastParams.targetGutterPx,
       actualAspect: g.actualAspect,

@@ -11,6 +11,7 @@ export default defineConfig({
   publicDir: 'components/src/assets/',
   entry: [
     'components/src/asciidoc/index.tsx',
+    'components/src/grid/index.ts',
     'components/src/syntax/index.ts',
     'components/src/ui/index.ts',
     'icons/index.ts',

@@ -81,7 +81,7 @@ This is type-checked, and will throw an error if the corresponding icon doesn't 
 
 ## Usage
 
-This package provides two main entry points:
+This package provides three main entry points:
 
 ### UI Components (`@oxide/design-system/ui`)
 
@@ -125,4 +125,44 @@ content: [
   './app/**/*.{ts,tsx}',
   'node_modules/@oxide/design-system/components/**/*.{ts,tsx,jsx,js}',
 ],
+```
+
+### Grid math (`@oxide/design-system/grid`)
+
+The maths behind the dual-grid Figma plugin: computes an ASCII cell grid aligned with a
+column grid, where margin, column and gutter widths are all whole multiples of the cell
+size. Pure TypeScript with no dependencies. See `plugins/dual-grid/README.md` for the
+derivation.
+
+`computeGrid` takes the layout column count, the frame size, and either pixel targets
+(`mode: 'auto'` — a solver finds the closest whole-cell fit) or explicit cell counts
+(`mode: 'manual'`):
+
+```ts
+import { computeGrid, gridLineSegments } from '@oxide/design-system/grid'
+
+const grid = computeGrid({
+  mode: 'auto', // or 'manual' with marginCells / gutterCells
+  columns: 12, // layout columns
+  width: 1920, // frame size, px
+  height: 1080,
+  targetMarginPx: 50, // the solver aims at these…
+  targetGutterPx: 20,
+  targetCellColumns: 89, // …and at this ASCII column count
+  // optional: cellAspect, snapRows, pixelSnap, snapTolerancePx, aspectTolerancePct
+})
+
+grid.N // ASCII grid columns
+grid.rows // ASCII grid rows
+grid.u // cell width, px
+grid.cellH // cell height, px
+grid.solvedM // margin in cells
+grid.solvedG // gutter in cells
+grid.margin // margin in px (effectiveMargin includes the pixel-snap remainder)
+grid.gutterWidth // gutter in px
+grid.columnWidth // column width in px
+
+// The cell grid as drawable [x1, y1, x2, y2] line segments, with lines near
+// the frame edge culled.
+const segments = gridLineSegments(grid, 1920, 1080, { edgeCull: true })
 ```

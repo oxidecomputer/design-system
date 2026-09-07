@@ -4,6 +4,15 @@ A Figma plugin that generates aligned column and cell grids, an ASCII grid, and 
 specimens. It has its own `package.json` and `node_modules`, independent of the
 design-system root package. Run npm commands from this directory.
 
+The grid math (`computeGrid`, the solver, the cell ladder, `gridLineSegments`) lives in
+`components/src/grid/index.ts` at the repo root, published as
+`@oxide/design-system/grid` and tested by the root `test/grid.test.ts` vitest suite.
+`src/main.ts` imports it by relative path and Vite bundles it into `dist/main.js`, so
+the built plugin stays self-contained. Keep that module dependency-free, free of Figma
+types, and within ES2018 syntax. `src/main.ts` adapts stored `Params` to the module's
+`GridSpec` via `gridSpecOf` and keeps everything Figma-specific (layer creation, font
+probing, `buildLayoutGrids`).
+
 ## Build
 
 ```sh
