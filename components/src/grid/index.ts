@@ -431,6 +431,43 @@ export function computeGrid(spec: GridSpec): GridResult {
   }
 }
 
+// Snaps a target line height to a whole number of cell rows. Text set at the
+// returned height advances by whole cells, so with the first baseline seated
+// on a cell line every following baseline lands on the grid too. Font size is
+// the consumer's choice — typically a share of the line height.
+export function snapLineHeight(
+  g: GridResult,
+  targetPx: number,
+): { cells: number; px: number } {
+  const cells = Math.max(1, Math.round(targetPx / g.cellH))
+  return { cells, px: cells * g.cellH }
+}
+
+// Vertical font metrics in font units, as reported by capsize or fonttools;
+// descent is negative.
+export interface FontMetrics {
+  ascent: number
+  descent: number
+  lineGap: number
+  unitsPerEm: number
+}
+
+// Distance from the top of the line box to the first baseline. With a fixed
+// line height, renderers centre the font's em box in the line box (half
+// leading), so the baseline sits one ascent (plus half the line gap) below
+// that. To seat a text block's first baseline on cell row `r`:
+//
+//   y = g.rowOffset + r * g.cellH − baselineOffset(m, fontSize, lineHeight)
+export function baselineOffset(
+  m: FontMetrics,
+  fontSize: number,
+  lineHeight: number,
+): number {
+  const emBox = (fontSize * (m.ascent + m.lineGap + Math.abs(m.descent))) / m.unitsPerEm
+  const halfLeading = (lineHeight - emBox) / 2
+  return halfLeading + (fontSize * (m.ascent + m.lineGap / 2)) / m.unitsPerEm
+}
+
 // Extends the grid by whole cells past its own bounds so the rounding remainder
 // at the frame edges is covered too; the frame clips the overhang.
 export function gridExtent(g: GridResult): GridExtent {

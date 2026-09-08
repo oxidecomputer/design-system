@@ -16,6 +16,7 @@ import {
   gridExtent,
   gridLineSegments,
   parseAspect,
+  snapLineHeight,
   type GridResult,
   type GridSpec,
   type Segment,
@@ -845,7 +846,7 @@ async function ensureSpecimens(
   // line height still lands on the grid.
   const sized = specimensOf(p).map((spec) => ({
     spec,
-    cells: Math.max(1, Math.round((frame.height * spec.heightRatio) / g.cellH)),
+    cells: snapLineHeight(g, frame.height * spec.heightRatio).cells,
   }))
 
   // Each specimen's baseline sits on the cell line at the bottom of its own

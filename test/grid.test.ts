@@ -8,12 +8,14 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  baselineOffset,
   cellLadder,
   COLUMNS_WEIGHT,
   computeGrid,
   gridLineSegments,
   GUTTER_WEIGHT,
   pickCellOption,
+  snapLineHeight,
   snapUnit,
   SOLVE_MAX_COLUMN,
   SOLVE_MAX_GUTTER,
@@ -216,6 +218,49 @@ describe('computeGrid', () => {
   it('warns when the cell aspect deviates by more than 1%', () => {
     const g = computeGrid(manual({ pixelSnap: true, aspectTolerancePct: 5 }))
     expect(g.warn).toBe(Math.abs(g.deltaPct) > 1)
+  })
+})
+
+describe('snapLineHeight', () => {
+  const g = computeGrid(manual())
+
+  it('rounds a target to the nearest whole number of cell rows', () => {
+    const lh = snapLineHeight(g, 1080 * 0.06)
+    expect(lh.px).toBeCloseTo(lh.cells * g.cellH, 9)
+    expect(Math.abs(lh.px - 1080 * 0.06)).toBeLessThanOrEqual(g.cellH / 2)
+  })
+
+  it('never returns less than one cell', () => {
+    expect(snapLineHeight(g, 1).cells).toBe(1)
+    expect(snapLineHeight(g, 1).px).toBeCloseTo(g.cellH, 9)
+  })
+
+  it('a stack of snapped line heights stays on the grid', () => {
+    const heights = [0.02, 0.06, 0.12, 0.24].map((r) => snapLineHeight(g, 1080 * r))
+    const total = heights.reduce((sum, lh) => sum + lh.px, 0)
+    const cells = heights.reduce((sum, lh) => sum + lh.cells, 0)
+    expect(total).toBeCloseTo(cells * g.cellH, 9)
+  })
+})
+
+describe('baselineOffset', () => {
+  // Suisse Int'l, per the capsize metrics.
+  const suisse = { ascent: 986, descent: -311, lineGap: 0, unitsPerEm: 1000 }
+
+  it('is one ascent below the top when the line height equals the em box', () => {
+    const emBox = 100 * ((986 + 311) / 1000)
+    expect(baselineOffset(suisse, 100, emBox)).toBeCloseTo(98.6, 9)
+  })
+
+  it('splits extra leading evenly above and below', () => {
+    const emBox = 100 * ((986 + 311) / 1000)
+    expect(baselineOffset(suisse, 100, emBox + 20)).toBeCloseTo(98.6 + 10, 9)
+  })
+
+  it('counts half the line gap above the baseline', () => {
+    const gapped = { ...suisse, lineGap: 40 }
+    const emBox = 100 * ((986 + 40 + 311) / 1000)
+    expect(baselineOffset(gapped, 100, emBox)).toBeCloseTo(98.6 + 2, 9)
   })
 })
 

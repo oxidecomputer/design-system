@@ -81,7 +81,7 @@ This is type-checked, and will throw an error if the corresponding icon doesn't 
 
 ## Usage
 
-This package provides three main entry points:
+This package provides four main entry points:
 
 ### UI Components (`@oxide/design-system/ui`)
 
@@ -139,7 +139,7 @@ derivation.
 (`mode: 'manual'`):
 
 ```ts
-import { computeGrid, gridLineSegments } from '@oxide/design-system/grid'
+import { computeGrid, gridLineSegments, snapLineHeight } from '@oxide/design-system/grid'
 
 const grid = computeGrid({
   mode: 'auto', // or 'manual' with marginCells / gutterCells
@@ -165,4 +165,42 @@ grid.columnWidth // column width in px
 // The cell grid as drawable [x1, y1, x2, y2] line segments, with lines near
 // the frame edge culled.
 const segments = gridLineSegments(grid, 1920, 1080, { edgeCull: true })
+
+// A line height snapped to whole cell rows, so text set at it keeps its
+// baselines on the grid. Pick the font size as a share of the result.
+const lh = snapLineHeight(grid, 1080 * 0.12) // { cells: 3, px: 129.6 }
+const fontSize = lh.px * 0.92
 ```
+
+To place text by coordinate (canvas, SVG, Figma), `baselineOffset(metrics, fontSize,
+lineHeight)` gives the distance from the top of the line box to the first baseline, so
+`y = grid.rowOffset + row * grid.cellH - baselineOffset(...)` seats it on a cell row.
+In CSS, pair with the capsize entry point below instead.
+
+### Capsize (`@oxide/design-system/capsize`)
+
+A [capsize](https://seek-oss.github.io/capsize/)-style React hook that trims the space
+above the cap height and below the baseline, so the element's box runs exactly from cap
+top to baseline. Anchor the trimmed box's bottom edge to a grid row and the text sits on
+the baseline grid — no offset arithmetic needed:
+
+```tsx
+import { computeGrid, snapLineHeight } from '@oxide/design-system/grid'
+import { useCapsize } from '@oxide/design-system/capsize'
+
+const grid = computeGrid({ ... })
+const lh = snapLineHeight(grid, height * 0.12)
+
+const { styles, className } = useCapsize({
+  fontFamily: 'suisse-intl', // or pass `metrics` for other fonts
+  fontSize: lh.px * 0.92,
+  lineHeight: lh.px,
+})
+
+// bottom-0 lands on the container edge — a grid line — and capsize makes the
+// element's bottom edge the baseline.
+<h1 className={cn('absolute bottom-0', className)} style={styles}>…</h1>
+```
+
+The pure computation is also exported as `capsize(options)` (returns `styles`,
+`className` and the `cssText` for the trim pseudo-elements) for non-React or SSR use.
