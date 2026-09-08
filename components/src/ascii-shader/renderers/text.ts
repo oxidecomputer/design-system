@@ -29,16 +29,14 @@ export function createTextRenderer(): Renderer {
   function render(context: Context, buffer: Cell[]): void {
     if (element !== context.settings.element) {
       element = context.settings.element
-      // The renderer owns the element's children. Drop any pre-existing
-      // content (placeholder text, whitespace, comments) — a stray non-element
-      // node would shift every row's index.
+      // A stray non-element child (placeholder text, whitespace, comments)
+      // would shift every row's index.
       element.textContent = ''
       backBuffer.length = 0
     }
 
-    // Apply the settings defaults to the element so cells matching them
-    // (which are elided to bare spans) show the intended colors, matching the
-    // canvas renderer.
+    // Cells matching the settings defaults are elided to bare spans, so the
+    // defaults go on the element itself.
     const baseColor = context.settings.color ? cssColorValue(context.settings.color) : ''
     if (baseColor !== appliedColor) {
       appliedColor = baseColor
@@ -58,7 +56,6 @@ export function createTextRenderer(): Renderer {
       backBuffer.length = 0
     }
 
-    // Match the row-span count to the grid.
     while (element.childElementCount < rows) {
       const span = document.createElement('span')
       span.style.display = 'block'
@@ -81,9 +78,8 @@ export function createTextRenderer(): Renderer {
         const oldCell = backBuffer[idx]
         if (!isSameCell(newCell, oldCell)) {
           rowNeedsUpdate = true
-          // Copy field values (never store a reference — the engine mutates
-          // the same buffer cells in place across frames, which would make
-          // old === new and kill the diff), reusing the existing object.
+          // Copy values, never the reference: the engine mutates cells in
+          // place, so a stored reference would make old === new.
           if (oldCell) {
             oldCell.char = newCell.char
             oldCell.color = newCell.color
@@ -109,7 +105,6 @@ export function createTextRenderer(): Renderer {
       for (let i = 0; i < cols; i++) {
         const currCell = buffer[i + offs]
 
-        // A style change starts a new span; same-styled runs share one.
         if (!isSameCellStyle(currCell, prevCell)) {
           if (tagIsOpen) html += '</span>'
 
@@ -136,7 +131,7 @@ export function createTextRenderer(): Renderer {
         html += '</span>'
       }
 
-      // Write the row (children, not childNodes — only elements count as rows)
+      // children, not childNodes: only elements count as rows.
       const childNode = element.children[j] as HTMLSpanElement
       childNode.innerHTML = html
     }
@@ -145,9 +140,8 @@ export function createTextRenderer(): Renderer {
   function dispose() {
     if (element) {
       element.innerHTML = ''
-      // Remove the base colors applied from settings — a later animation
-      // reusing this element (with different or no colors) would otherwise
-      // inherit them, since it only writes colors its own settings define.
+      // A later animation reusing this element would otherwise inherit the
+      // base colors, since it only writes colors its own settings define.
       if (appliedColor) element.style.color = ''
       if (appliedBackground) element.style.background = ''
     }
@@ -162,9 +156,8 @@ export function createTextRenderer(): Renderer {
 const ESCAPE_RE = /[&<>]/g
 const ESCAPES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;' }
 
-// Cells usually hold single characters but the type allows any string; keep
-// markup-significant characters from corrupting the row's innerHTML (or
-// injecting live markup from untrusted cell content).
+// Cells can hold any string; unescaped & < > would corrupt the row's
+// innerHTML (or inject live markup from untrusted cell content).
 function escapeChar(char: string | undefined): string {
   if (!char) return ' '
   if (char === '&') return '&amp;'

@@ -6,7 +6,6 @@
  * Copyright Oxide Computer Company
  */
 
-/** A single character cell in the grid. */
 export interface Cell {
   char: string
   color?: string
@@ -14,7 +13,6 @@ export interface Cell {
   fontWeight?: string | number
 }
 
-/** Measured font metrics for the target element's monospaced font. */
 export interface Metrics {
   aspect: number
   cellWidth: number
@@ -23,7 +21,7 @@ export interface Metrics {
   fontSize: number
 }
 
-/** Pointer state in cell coordinates, with the previous frame's state in `p`. */
+/** Pointer state in cell coordinates. `p` is the previous frame. */
 export interface Cursor {
   x: number
   y: number
@@ -36,37 +34,34 @@ export interface Cursor {
 }
 
 export interface Settings {
-  /** Target element: a <pre> (text renderer) or <canvas> (canvas renderer). */
+  /** Target: <pre> (text renderer) or <canvas> (canvas renderer). */
   element: HTMLElement
-  /** Grid columns. Omit to derive from the element's width. */
+  /** Omit to derive from the element's width. */
   cols?: number
-  /** Grid rows. Omit to derive from the element's height. */
+  /** Omit to derive from the element's height. */
   rows?: number
-  /** Target frames per second. Default 30. */
+  /** Default 30. */
   fps?: number
-  /** Loop length in frames. Omit for an endless animation. */
+  /** Loop length in frames. Omit for endless. */
   frames?: number
-  /** When `frames` is set: wrap back to 0 (true, default) or stop ('ended'). */
+  /** When `frames` is set: wrap to 0 (default) or stop and emit `'ended'`. */
   loop?: boolean
-  /** Start playing once fonts are ready and the program has booted. Default true. */
+  /** Play once fonts are ready and `boot` has run. Default true. */
   autoplay?: boolean
-  /** 'text' | 'canvas' | custom Renderer. Default: inferred from the element. */
+  /** `'text'` | `'canvas'` | custom. Default: inferred from the element. */
   renderer?: 'text' | 'canvas' | Renderer
-  /** Default text color. Cells without an explicit color use this. */
   color?: string
-  /** Background color. Omit for transparent (canvas) / inherited (text). */
+  /** Omit for transparent (canvas) / inherited (text). */
   backgroundColor?: string
-  /** Default font weight. */
   fontWeight?: string | number
-  /** Padding in CSS pixels around the grid (canvas renderer only). */
+  /** CSS pixels around the grid. Canvas renderer only. */
   padding?: number
-  /** Extra backing-store resolution above devicePixelRatio (canvas only). Default 1. */
+  /** Extra backing-store scale above devicePixelRatio. Canvas only. Default 1. */
   supersample?: number
-  /** Exposed on context.settings for programs to branch on. Default false. */
+  /** On `context.settings` for programs to branch on. Default false. */
   reducedMotion?: boolean
 }
 
-/** Settings after defaults have been applied. */
 export type ResolvedSettings = Settings & {
   fps: number
   loop: boolean
@@ -74,11 +69,11 @@ export type ResolvedSettings = Settings & {
   reducedMotion: boolean
 }
 
-/** Per-frame snapshot passed to every program function. Frozen. */
+/** Frozen per-frame snapshot passed to every program function. */
 export interface Context {
-  /** Current frame index. Deterministic — prefer this over `time` for animation. */
+  /** Prefer this over `time` for animation. Advances once per rendered frame. */
   frame: number
-  /** Accumulated play time in ms. Pauses while paused. */
+  /** Accumulated play time in ms. Does not advance while paused. */
   time: number
   cols: number
   rows: number
@@ -87,18 +82,17 @@ export interface Context {
   height: number
   settings: ResolvedSettings
   runtime: {
-    /** Measured render rate (may be below settings.fps under load). */
+    /** Measured render rate; may sit below `settings.fps` under load. */
     fps: number
   }
 }
 
 /**
- * A program is a plain object (usually an imported module) with optional
- * lifecycle functions. `main` runs once per cell per frame; its return value
- * is merged into the cell (a string sets `char`).
+ * `main` runs once per cell per frame; its return is merged into the cell
+ * (a string sets `char`).
  *
- * `userData` is deliberately `any` (not `unknown`): programs declare their own
- * userData shape and `unknown` would force a cast in every hook.
+ * `userData` is `any` on purpose: programs declare their own shape, and
+ * `unknown` would force a cast in every hook.
  */
 /* oxlint-disable typescript/no-explicit-any */
 export interface Program {
@@ -114,12 +108,11 @@ export interface Program {
   ) => Cell | string | undefined
   post?: (context: Context, cursor: Cursor, buffer: Cell[], userData: any) => void
   cleanup?: () => void
-  /** Pointer event handlers: pointerMove, pointerDown, pointerUp. */
+  /** pointerMove / pointerDown / pointerUp. */
   [key: string]: any
 }
 /* oxlint-enable typescript/no-explicit-any */
 
-/** Draws the cell buffer to the target element. */
 export interface Renderer {
   render(context: Context, buffer: Cell[]): void
   dispose?(): void

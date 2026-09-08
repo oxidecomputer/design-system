@@ -37,9 +37,8 @@ export function resolveColor(color: string): string {
   const cached = resolvedColorCache.get(value)
   if (cached !== undefined) return cached
 
-  // A probe inside a sentinel-colored wrapper: if the var is undefined, color
-  // becomes invalid at computed-value time and inherits the sentinel, which we
-  // detect and treat as unresolvable.
+  // An undefined var makes `color` invalid at computed-value time, so the
+  // probe inherits the wrapper's sentinel — that's the unresolvable case.
   const sentinel = 'rgb(1, 2, 3)'
   const wrapper = document.createElement('span')
   wrapper.style.color = sentinel

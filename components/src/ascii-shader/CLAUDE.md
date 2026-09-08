@@ -43,7 +43,7 @@ These are deliberate changes from play.core and the two forks. Don't regress the
 - **`updateSettings({ fps })` works.** The frame interval was previously
   computed once at init; the app worked around it by destroying and
   recreating the whole controller. It's recomputed on every patch, and
-  `undefined` values in a patch are ignored so partial patches are safe.
+  `undefined` values are ignored so partial patches are safe.
 - **`'frame'` fires only on actual renders.** `onFrameUpdate` used to fire
   every loop iteration, including paused no-ops, driving redundant React
   state updates. Events are a small emitter
@@ -59,7 +59,7 @@ These are deliberate changes from play.core and the two forks. Don't regress the
   stops on the last frame and emits `'ended'` (upstream could only wrap).
 - **`boot` gets a sized buffer** and the first frame draws synchronously at
   boot, so paused/`autoplay: false` mounts still show frame 0.
-- **`dispose()` actually cleans up**: cancels the pending rAF, removes the
+- **`dispose()` cleans up fully**: cancels the pending rAF, removes the
   pointer listeners (the website fork leaked them), and clears the renderer's
   DOM.
 - **Layout reads only when needed**: the per-frame `getBoundingClientRect()`

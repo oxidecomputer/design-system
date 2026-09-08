@@ -16,36 +16,31 @@ const prefersReducedMotion = () =>
 
 export interface AsciiAnimationProps {
   program: Program
-  /** Override the program's grid (e.g. a smaller grid on mobile). */
+  /** Override the program's grid. */
   cols?: number
   rows?: number
   fps?: number
   frames?: number
   renderer?: 'text' | 'canvas'
   /**
-   * Play only while the element is on screen (default true). The animation
-   * starts once at least `visibleThreshold` of it is visible and pauses when
-   * it leaves the viewport.
+   * Play only while on screen (default true). Starts once at least
+   * `visibleThreshold` is visible; pauses when it leaves the viewport.
    */
   playOnVisible?: boolean
-  /** Intersection ratio required to start playing. Default 0.25. */
+  /** Intersection ratio to start playing. Default 0.25. */
   visibleThreshold?: number
   className?: string
-  /** Accessible description of the animation. */
   alt?: string
-  /** Passed as the last argument to every program function. */
+  /** Passed to every program hook. */
   userData?: unknown
-  /** Access the controller (seek, events, export) after mount. */
+  /** Controller after mount (seek, events, export). */
   onReady?: (animation: AsciiAnimation) => void
 }
 
 /**
- * Mounts a program into a <pre> (text renderer) or <canvas>. When cols/rows
- * are known and the text renderer is used, an invisible spacer <pre> reserves
- * the exact final size so the font-loading boot delay causes no layout shift.
- *
- * Honors prefers-reduced-motion by setting `settings.reducedMotion`, which
- * programs are expected to branch on (e.g. jump to their final state).
+ * Mount a program into a <pre> or <canvas>. When cols/rows are known on the
+ * text renderer, a hidden spacer <pre> reserves the final size while fonts
+ * load. Sets `settings.reducedMotion` from `prefers-reduced-motion`.
  */
 export function AsciiAnimation({
   program,
@@ -64,15 +59,12 @@ export function AsciiAnimation({
   const containerRef = useRef<HTMLDivElement>(null)
   const elementRef = useRef<HTMLElement>(null)
   const animationRef = useRef<AsciiAnimation | null>(null)
-  // Visibility-playback bookkeeping: whether the observer has started playback
-  // yet, and whether the current pause is the observer's own doing (so it may
-  // undo it) rather than a controller pause or a `loop: false` ending.
+  // Observer may undo its own pause, but not a controller pause or `loop: false`.
   const startedByObserverRef = useRef(false)
   const pausedByObserverRef = useRef(false)
 
-  // (Re)create the animation when the program or renderer changes (the
-  // renderer decides which DOM element is mounted). Everything else is pushed
-  // in via updateSettings so a prop tweak doesn't re-boot the program.
+  // Recreate only when program or renderer changes; other props go through
+  // updateSettings below.
   useEffect(() => {
     const element = elementRef.current
     if (!element) return
@@ -103,17 +95,14 @@ export function AsciiAnimation({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [program, renderer])
 
-  // Keep the program's userData in sync with the prop.
   useEffect(() => {
     animationRef.current?.setUserData(userData)
   }, [userData])
 
-  // Live-update the grid/timing overrides without recreating the animation.
   useEffect(() => {
     animationRef.current?.updateSettings({ cols, rows, fps, frames })
   }, [cols, rows, fps, frames])
 
-  // Track prefers-reduced-motion for the lifetime of the mount.
   useEffect(() => {
     if (typeof matchMedia === 'undefined') return
     const query = matchMedia(REDUCED_MOTION_QUERY)
@@ -123,13 +112,11 @@ export function AsciiAnimation({
     return () => query.removeEventListener('change', apply)
   }, [])
 
-  // Visibility-gated playback.
   useEffect(() => {
     const container = containerRef.current
     if (!playOnVisible) return
     if (!container || typeof IntersectionObserver === 'undefined') {
-      // No way to observe visibility (jsdom, older WebViews) — play
-      // immediately rather than never starting.
+      // jsdom / older WebViews: play rather than never start.
       animationRef.current?.play()
       return
     }
@@ -140,8 +127,6 @@ export function AsciiAnimation({
         const animation = animationRef.current
         if (!animation) return
         if (entry.isIntersecting && entry.intersectionRatio >= visibleThreshold) {
-          // Only start playback once, or undo the observer's own pause —
-          // never override a controller pause or an ended animation.
           if (!startedByObserverRef.current || pausedByObserverRef.current) {
             startedByObserverRef.current = true
             pausedByObserverRef.current = false
@@ -163,8 +148,7 @@ export function AsciiAnimation({
   const isCanvas = renderer === 'canvas'
   const showSpacer = !isCanvas && !!gridCols && !!gridRows
 
-  // The rendered output is an image of text, not an <img> — role="img" on
-  // the wrapper is the correct semantics for AT.
+  // Output is an image of text, not an <img>.
   /* oxlint-disable jsx-a11y/prefer-tag-over-role */
   return (
     <div

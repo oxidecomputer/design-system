@@ -15,8 +15,7 @@ export class FPSMeter {
 
   update(time: number): number {
     if (this.ptime === 0) {
-      // Baseline the first window at the current timestamp; measuring against
-      // 0 would divide by total page uptime and report a near-zero fps.
+      // Baseline here; measuring from 0 would divide by total page uptime.
       this.ptime = time
       return this.fps
     }

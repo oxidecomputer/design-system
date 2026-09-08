@@ -31,11 +31,9 @@ export interface ColoredSegment {
 }
 
 /**
- * Group a flat cell buffer into per-row runs of same-colored text, so e.g.
- * SVG export can reproduce per-cell colors. Cells without an explicit color
- * fall back to `defaultColor`. Each returned row is exactly `cols` characters
- * wide (short rows are padded with spaces) so vertical positioning stays
- * aligned, matching `getContent`.
+ * Group a flat cell buffer into per-row runs of same-colored text (e.g. for
+ * SVG export). Cells without a color get `defaultColor`; rows are padded to
+ * `cols` with spaces, matching `getContent`.
  */
 export const getColoredRows = (
   buffer: Cell[],

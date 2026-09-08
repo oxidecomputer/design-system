@@ -25,8 +25,7 @@ export function waitForFonts(): Promise<void> {
           if (--count > 0) requestAnimationFrame(tick)
           else resolve()
         }
-        // Start the chain with a rAF (not a sync call) so three frames are
-        // actually awaited — the empirically derived count for the bug above.
+        // rAF, not a sync call, so three real frames pass.
         requestAnimationFrame(tick)
       })
   )
@@ -69,8 +68,7 @@ export function calcMetrics(el: HTMLElement, fontWeight?: string | number): Metr
     el.removeChild(span)
   }
 
-  // A hidden element (display: none) measures 0, which would propagate
-  // NaN/Infinity into grid and cursor math — fall back to a rough estimate.
+  // display:none measures 0, which turns into NaN in grid/cursor math.
   if (!(cellWidth > 0)) {
     cellWidth = (fontSize > 0 ? fontSize : 16) * 0.6
   }

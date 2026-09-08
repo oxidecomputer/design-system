@@ -15,15 +15,14 @@ import { invariant, type Cell, type Context, type Renderer } from '../types.js'
  * store is sized at devicePixelRatio × settings.supersample.
  */
 export function createCanvasRenderer(): Renderer {
-  // Cache the applied size so the bitmap is only reallocated when the grid,
-  // padding, or scale actually changes.
+  // Reallocate the bitmap only when the size or scale changes.
   let appliedWidth = 0
   let appliedHeight = 0
   let appliedScale = 0
   let boundCanvas: HTMLCanvasElement | null = null
   let boundCtx: CanvasRenderingContext2D | null = null
-  // resolveColor does string scans per call — a one-entry cache covers long
-  // runs of identically-colored cells.
+  // One-entry cache: resolveColor scans strings, and same-colored runs are
+  // the common case.
   let lastRawColor = ''
   let lastResolvedColor = ''
   const resolveCellColor = (color: string) => {
@@ -96,8 +95,7 @@ export function createCanvasRenderer(): Renderer {
     ctx.scale(scale, scale)
     ctx.textBaseline = 'top'
 
-    // Track the active fill color and font so canvas state is only touched
-    // when a cell differs from the previous one.
+    // Touch fillStyle/font only when they change between cells.
     let currentColor = ''
     let currentWeight = ''
     const setColor = (color: string) => {
@@ -136,8 +134,7 @@ export function createCanvasRenderer(): Renderer {
     ctx.restore()
   }
 
-  // Clear the bitmap so a disposed animation doesn't leave its last frame on
-  // a reused canvas.
+  // Don't leave the last frame on a reused canvas.
   function dispose() {
     if (boundCanvas && boundCtx) {
       boundCtx.clearRect(0, 0, boundCanvas.width, boundCanvas.height)
