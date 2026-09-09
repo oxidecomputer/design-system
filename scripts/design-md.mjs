@@ -3,7 +3,7 @@
 //   node scripts/design-md.mjs          rewrite design.md in place
 //   node scripts/design-md.mjs --check  exit 1 if design.md is out of date
 import { readFileSync, writeFileSync } from 'node:fs'
-import { join, dirname } from 'node:path'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -62,7 +62,11 @@ function renderColorsExamples() {
     const token = typeof e === 'string' ? e : e.token
     const value = colors[`--color-${token}`]
     if (!value) throw new Error(`--color-${token} not found in styles/main.css`)
-    return [`--color-${token}:`, `${value};`, typeof e === 'string' ? comment(token) : e.note]
+    return [
+      `--color-${token}:`,
+      `${value};`,
+      typeof e === 'string' ? comment(token) : e.note,
+    ]
   })
   const w0 = Math.max(...rows.map((r) => r[0].length))
   const w1 = Math.max(...rows.map((r) => r[1].length))
@@ -88,7 +92,9 @@ const updated = doc.replace(
   },
 )
 if (found !== Object.keys(REGIONS).length) {
-  throw new Error(`expected ${Object.keys(REGIONS).length} @generated regions, found ${found}`)
+  throw new Error(
+    `expected ${Object.keys(REGIONS).length} @generated regions, found ${found}`,
+  )
 }
 
 if (process.argv.includes('--check')) {
