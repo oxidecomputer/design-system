@@ -19,6 +19,8 @@ export type Icon =
   | { name: 'add-roundel'; size: 24 }
   | { name: 'affinity'; size: 16 }
   | { name: 'affinity'; size: 24 }
+  | { name: 'archive'; size: 16 }
+  | { name: 'archive'; size: 24 }
   | { name: 'auto-restart'; size: 12 }
   | { name: 'calendar'; size: 16 }
   | { name: 'calendar'; size: 24 }
