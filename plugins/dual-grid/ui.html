@@ -1,0 +1,1596 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <script>
+      // Accessing localStorage throws in Figma's originless iframe.
+      // Install the shim before any other scripts run.
+      ;(function () {
+        try {
+          window.localStorage.getItem('probe')
+          return
+        } catch (e) {}
+        var store = {}
+        var shim = {
+          getItem: function (k) {
+            return Object.prototype.hasOwnProperty.call(store, k) ? store[k] : null
+          },
+          setItem: function (k, v) {
+            store[k] = String(v)
+          },
+          removeItem: function (k) {
+            delete store[k]
+          },
+          clear: function () {
+            store = {}
+          },
+          key: function (i) {
+            return Object.keys(store)[i] || null
+          },
+        }
+        Object.defineProperty(shim, 'length', {
+          get: function () {
+            return Object.keys(store).length
+          },
+        })
+        try {
+          Object.defineProperty(window, 'localStorage', {
+            value: shim,
+            configurable: true,
+          })
+        } catch (e) {
+          window.localStorage = shim
+        }
+      })()
+    </script>
+    <style>
+      /* ----- theme tokens -------------------------------------------------
+         Figma injects --figma-color-* into the plugin iframe; the fallbacks
+         keep the panel legible when opened outside Figma (e.g. in a browser
+         while iterating on the markup). */
+      :root {
+        /* Driven by Figma's theme class (see .figma-dark below) rather than the
+           OS, so the panel can't disagree with the Figma window around it. */
+        color-scheme: light;
+        --bg: var(--figma-color-bg, #ffffff);
+        --fg: var(--figma-color-text, #1e1e1e);
+        --fg-secondary: var(--figma-color-text-secondary, #8c8c8c);
+        --fg-ondisabled: var(--figma-color-text-ondisabled, #b3b3b3);
+        --fg-onbrand: var(--figma-color-text-onbrand, #ffffff);
+        --border: var(--figma-color-border, #e6e6e6);
+        /* Input fills sit *lighter* than the panel in dark mode, which is
+           bg-tertiary rather than bg-secondary. */
+        --field: var(--figma-color-bg-tertiary, #f0f0f0);
+        --track: var(--figma-color-border-strong, #b3b3b3);
+        --brand: var(--figma-color-bg-brand, #0d99ff);
+        --brand-hover: var(--figma-color-bg-brand-hover, #007be5);
+        --disabled: var(--figma-color-bg-disabled, #d9d9d9);
+        --danger: var(--figma-color-bg-danger, #f24822);
+        --danger-hover: var(--figma-color-bg-danger-hover, #d63a1a);
+      }
+      /* Figma stamps this class on <html> when themeColors is enabled. */
+      html.figma-dark {
+        color-scheme: dark;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: auto;
+        min-height: 0;
+      }
+      body {
+        font-family:
+          Inter,
+          'Inter var',
+          -apple-system,
+          system-ui,
+          sans-serif;
+        font-size: 11px;
+        line-height: 1.3;
+        color: var(--fg);
+        background: var(--bg);
+        -webkit-font-smoothing: antialiased;
+      }
+      #plugin-root {
+        height: auto;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ----- fig-content / fig-group / fig-field ------------------------- */
+      fig-content {
+        display: block;
+      }
+      fig-group {
+        display: block;
+        padding: 14px 16px 16px;
+      }
+      fig-group + fig-group {
+        box-shadow: inset 0 1px 0 0 var(--border);
+      }
+      fig-group > .fig-group-header {
+        font-weight: 600;
+        font-size: 11px;
+        color: var(--fg);
+        margin-bottom: 12px;
+      }
+      /* A collapsible group's header is a real <button>, so it is reachable
+               by keyboard and announces its state. Reset the UA button chrome. */
+      fig-group[collapsible] > .fig-group-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
+        padding: 0;
+        border: 0;
+        background: none;
+        font: inherit;
+        font-weight: 600;
+        color: var(--fg);
+        cursor: default;
+        text-align: left;
+      }
+      fig-group[collapsible] > .fig-group-header:focus-visible {
+        outline: 1px solid var(--brand);
+        outline-offset: 2px;
+      }
+      .fig-chevron {
+        flex: none;
+        width: 10px;
+        height: 6px;
+        background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+          no-repeat center;
+        transition: transform 0.12s ease;
+      }
+      fig-group[collapsed] > .fig-group-header {
+        margin-bottom: 0;
+      }
+      fig-group[collapsed] .fig-chevron {
+        transform: rotate(-90deg);
+      }
+      fig-group[collapsed] > .fig-group-body {
+        display: none;
+      }
+      fig-group > .fig-group-body {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      fig-field {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 24px;
+      }
+      fig-field > .fig-field-label {
+        flex: 0 0 72px;
+        min-width: 0;
+        color: var(--fg-secondary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      fig-field > .fig-field-control {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+      }
+
+      /* ----- shared filled input chrome ----------------------------------
+         The <select> must be listed here too — without it the dropdown falls
+         through to native UA styling and ignores the panel theme entirely. */
+      .fig-input,
+      fig-dropdown > select {
+        font-family: inherit;
+        font-size: 11px;
+        color: var(--fg);
+        background: var(--field);
+        border: 1px solid transparent;
+        border-radius: 5px;
+        height: 26px;
+        padding: 0 8px;
+        min-width: 0;
+      }
+      .fig-input:hover:not(:disabled),
+      fig-dropdown > select:hover:not(:disabled) {
+        border-color: var(--track);
+      }
+      /* Mirroring a selected frame: the values are facts about that frame,
+               not settings. They read as inert through the flat background and the
+               absent hover, not through faint text — these are numbers you are
+               meant to be able to read, so they keep the normal text colour.
+               --fg-ondisabled is far too low-contrast for that. */
+      .fig-input:disabled,
+      fig-dropdown > select:disabled {
+        color: var(--fg);
+        background: transparent;
+        border-color: var(--border);
+      }
+      .fig-input:focus,
+      fig-dropdown > select:focus {
+        outline: none;
+        border-color: var(--brand);
+      }
+
+      /* ----- fig-dropdown ------------------------------------------------ */
+      fig-dropdown {
+        display: block;
+        min-width: 0;
+      }
+      fig-dropdown[full] {
+        width: 100%;
+      }
+      fig-dropdown > select {
+        width: 100%;
+        appearance: none;
+        cursor: default;
+        padding-right: 24px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 8px center;
+      }
+
+      /* ----- fig-slider -------------------------------------------------- */
+      fig-slider {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        min-width: 0;
+      }
+      fig-slider > input[type='range'] {
+        flex: 1;
+        min-width: 0;
+        -webkit-appearance: none;
+        appearance: none;
+        height: 4px;
+        border-radius: 999px;
+        background: var(--track);
+        margin: 0;
+        cursor: default;
+      }
+      fig-slider > input[type='range']::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+        cursor: default;
+      }
+      fig-slider > input[type='range']::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
+        border: none;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+        cursor: default;
+      }
+      /* Sliders that snap to a fixed set of values show their value as text
+               rather than in an input: typing into one only ever snapped to the
+               nearest legal entry, which made it look editable when it wasn't.
+               Width matches the number input so rows still line up. */
+      fig-slider > .fig-slider-value {
+        flex: 0 0 46px;
+        padding: 0 8px;
+        color: var(--fg);
+        font-variant-numeric: tabular-nums;
+      }
+      fig-slider > input[type='number'] {
+        flex: 0 0 46px;
+        width: 46px;
+        text-align: left;
+      }
+      fig-slider > input[type='number']::-webkit-outer-spin-button,
+      fig-slider > input[type='number']::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      /* ----- fig-switch -------------------------------------------------- */
+      fig-switch {
+        display: inline-block;
+        position: relative;
+        width: 28px;
+        height: 16px;
+        flex: none;
+      }
+      /* The checkbox covers the whole switch (transparent, on top) so
+               clicks land on the real control and it stays keyboard-focusable.
+               A zero-sized input would leave the visible track inert: it is
+               only a <span>, so it has no label association to forward a
+               click to the checkbox. */
+      fig-switch > input {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        opacity: 0;
+        z-index: 1;
+        cursor: default;
+      }
+      fig-switch > .fig-switch-track {
+        position: absolute;
+        inset: 0;
+        border-radius: 999px;
+        background: var(--track);
+        pointer-events: none;
+        transition: background 0.12s ease;
+      }
+      fig-switch > .fig-switch-track::before {
+        content: '';
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        left: 2px;
+        top: 2px;
+        border-radius: 50%;
+        background: #ffffff;
+        transition: transform 0.12s ease;
+      }
+      fig-switch > input:checked + .fig-switch-track {
+        background: var(--brand);
+      }
+      fig-switch > input:checked + .fig-switch-track::before {
+        transform: translateX(12px);
+      }
+      fig-switch > input:focus-visible + .fig-switch-track {
+        box-shadow: 0 0 0 2px var(--brand);
+      }
+
+      /* ----- fig-input-number -------------------------------------------- */
+      fig-input-text {
+        display: block;
+        width: 100%;
+        min-width: 0;
+      }
+      fig-input-text > input {
+        width: 100%;
+      }
+      fig-input-number {
+        display: flex;
+        align-items: center;
+        position: relative;
+        width: 100%;
+        min-width: 0;
+      }
+      fig-input-number > input {
+        width: 100%;
+        padding-right: 26px;
+      }
+      fig-input-number > .fig-units {
+        position: absolute;
+        right: 8px;
+        pointer-events: none;
+        color: var(--fg-secondary);
+      }
+
+      fig-field[hidden] {
+        display: none;
+      }
+
+      /* The achieved value is shown inside the field, before the unit, as
+               `64      (60) px` — so the target and the result read together. */
+      fig-input-number.has-actual > input {
+        padding-right: 68px;
+      }
+      fig-input-number > .fig-units .actual {
+        color: var(--fg-secondary);
+      }
+      fig-input-number > .fig-units .actual.warn {
+        color: var(--danger);
+      }
+
+      /* ----- live preview values ------------------------------------------ */
+      .fig-preview {
+        font-variant-numeric: tabular-nums;
+        color: var(--fg);
+      }
+      .fig-preview .warn {
+        color: var(--danger);
+      }
+      .fig-preview .dim {
+        color: var(--fg-secondary);
+      }
+
+      /* ----- fig-footer -------------------------------------------------- */
+      fig-footer {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 20px 16px 16px;
+        background-color: var(--figma-color-bg, #ffffff);
+        box-shadow: inset 0 1px 0 0 var(--figma-color-border, #e6e6e6);
+        /* The panel is resized to fit its content, so the body only
+                   scrolls once the content passes the height clamp — sticky
+                   keeps the action button on screen in exactly that case, and
+                   sits in the normal flow otherwise. The opaque background
+                   above stops scrolled content showing through. */
+        position: sticky;
+        bottom: 0;
+        z-index: 2;
+      }
+      /* Status label sits above its button, matching the reference layout. */
+      fig-footer > .fig-action {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+      }
+      fig-footer button {
+        width: 100%;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 500;
+        height: 32px;
+        padding: 0 12px;
+        border: none;
+        border-radius: 6px;
+        color: var(--fg-onbrand);
+        background: var(--brand);
+        cursor: default;
+      }
+      fig-footer button:hover:not(:disabled) {
+        background: var(--brand-hover);
+      }
+      fig-footer button.danger:not(:disabled) {
+        background: var(--danger);
+      }
+      fig-footer button.danger:hover:not(:disabled) {
+        background: var(--danger-hover);
+      }
+      fig-footer button:disabled {
+        color: var(--fg-ondisabled);
+        background: var(--disabled);
+      }
+      fig-footer button.secondary {
+        color: var(--fg);
+        background: transparent;
+        border: 1px solid var(--border);
+      }
+      fig-footer button.secondary:hover:not(:disabled) {
+        background: transparent;
+        border-color: var(--fg-secondary);
+      }
+      /* Staging textarea for the legacy copy command. Kept out of the
+               measured layout so copying never resizes the panel. */
+      .clipboard-stage {
+        position: fixed;
+        top: -100px;
+        left: 0;
+        width: 10px;
+        height: 10px;
+        opacity: 0;
+      }
+      fig-footer label {
+        color: var(--fg-secondary);
+      }
+      fig-footer label:empty {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="plugin-root">
+      <fig-content>
+        <fig-group name="Grid">
+          <fig-field label="Mode">
+            <fig-dropdown id="mode" value="Manual" full>
+              <option selected>Manual</option>
+              <option>Solve</option>
+            </fig-dropdown>
+          </fig-field>
+          <fig-field label="Columns">
+            <fig-slider
+              id="columnCount"
+              values="1,2,3,4,6,9,12"
+              value="12"
+              readout
+            ></fig-slider>
+          </fig-field>
+          <fig-field label="Margin cells" data-mode="Manual">
+            <fig-slider
+              id="marginCells"
+              min="0"
+              max="24"
+              step="1"
+              value="3"
+              text
+            ></fig-slider>
+          </fig-field>
+          <fig-field label="Gutter cells" data-mode="Manual">
+            <fig-slider
+              id="gutterMultiple"
+              min="1"
+              max="6"
+              step="1"
+              value="1"
+              text
+            ></fig-slider>
+          </fig-field>
+          <fig-field label="Margin" data-mode="Solve">
+            <fig-input-number id="targetMarginPx" value="50" units="px"></fig-input-number>
+          </fig-field>
+          <fig-field label="Gutter" data-mode="Solve">
+            <fig-input-number id="targetGutterPx" value="20" units="px"></fig-input-number>
+          </fig-field>
+          <!-- The plugin supplies valid cell counts on each state update. -->
+          <fig-field label="Cell columns" data-mode="Manual">
+            <fig-slider id="cellColumns" values="89" value="89" readout></fig-slider>
+          </fig-field>
+          <!-- Target cell count, matching the quantity set by the Manual slider. -->
+          <fig-field label="Cell columns" data-mode="Solve">
+            <fig-input-number id="targetColumns" value="89" units="cols"></fig-input-number>
+          </fig-field>
+          <fig-field label="Snap rows">
+            <fig-switch id="snapRows" checked></fig-switch>
+          </fig-field>
+          <fig-field label="Pixel snap">
+            <fig-switch id="pixelPerfect"></fig-switch>
+          </fig-field>
+          <!-- Pixel-rounding tolerance per cell, shown only with Pixel snap on.
+               0 disables snapping; 0.5 always snaps. -->
+          <fig-field label="Snap tol." id="snapTolField" hidden>
+            <fig-input-number
+              id="snapTolerancePx"
+              value="0.5"
+              units="px"
+            ></fig-input-number>
+          </fig-field>
+          <!-- With Snap rows on, the row count may move within this
+                         share of the aspect target to land an integer row
+                         height (24 × 45 instead of 25 × 43.2 at 1920×1080).
+                         0 keeps the natural row count. -->
+          <fig-field label="Aspect tol." id="aspectTolField" hidden>
+            <fig-input-number id="aspectTolPct" value="5" units="%"></fig-input-number>
+          </fig-field>
+          <fig-field label="Grid size">
+            <span class="fig-preview" id="preview-size">—</span>
+          </fig-field>
+          <!-- Labelled w×h to leave "Cell size" to the control above. -->
+          <fig-field label="Cell w×h">
+            <span class="fig-preview" id="preview-cell">—</span>
+          </fig-field>
+          <fig-field label="Column">
+            <span class="fig-preview" id="preview-column">—</span>
+          </fig-field>
+        </fig-group>
+
+        <!-- Less frequently used controls and derived cell values. -->
+        <fig-group name="Advanced" collapsible collapsed>
+          <!-- Cull interior lines near the frame edge. Lines on or beyond
+               the boundary are always culled. -->
+          <fig-field label="Edge cull">
+            <fig-switch id="edgeCull" checked></fig-switch>
+          </fig-field>
+          <!-- Culling distance from the boundary, as a percentage of line spacing. -->
+          <fig-field label="Cull tol." id="edgeCullPctField">
+            <fig-input-number id="edgeCullPct" value="20" units="%"></fig-input-number>
+          </fig-field>
+          <fig-field label="Aspect ratio">
+            <fig-slider
+              id="cellAspect"
+              min="1"
+              max="4"
+              step="0.1"
+              value="2"
+              text
+            ></fig-slider>
+          </fig-field>
+          <fig-field label="Cell density">
+            <fig-dropdown id="cellDensity" value="1x" full>
+              <option>0.25x</option>
+              <option>0.5x</option>
+              <option selected>1x</option>
+              <option>2x</option>
+              <option>3x</option>
+            </fig-dropdown>
+          </fig-field>
+          <fig-field label="Grid lines">
+            <fig-switch id="showLines" checked></fig-switch>
+          </fig-field>
+          <fig-field label="Specimens">
+            <fig-switch id="showSpecimens" checked></fig-switch>
+          </fig-field>
+          <fig-field label="Cells">
+            <span class="fig-preview" id="preview-solved">—</span>
+          </fig-field>
+          <!-- Family only; the style is resolved per family, since a
+                         family's regular is not reliably named "Regular". Both
+                         fall back to any installed mono / any regular. -->
+          <fig-field label="Mono font">
+            <fig-input-text
+              id="monoFamily"
+              value="GT America Mono"
+              placeholder="GT America Mono"
+            ></fig-input-text>
+          </fig-field>
+          <fig-field label="Sans font">
+            <fig-input-text
+              id="sansFamily"
+              value="Suisse Int'l"
+              placeholder="Suisse Int'l"
+            ></fig-input-text>
+          </fig-field>
+          <!-- Comma-separated % of the frame height, one specimen per
+                         entry. Junk entries are dropped; an empty or unusable
+                         list falls back to the built-in scale. -->
+          <fig-field label="Mono sizes">
+            <fig-input-text id="monoSizes" value="2" placeholder="2"></fig-input-text>
+          </fig-field>
+          <fig-field label="Sans sizes">
+            <fig-input-text
+              id="sansSizes"
+              value="6, 12, 24"
+              placeholder="6, 12, 24"
+            ></fig-input-text>
+          </fig-field>
+        </fig-group>
+
+        <!-- Describes the frame that "Create frame" would make — or, when
+                     one is selected, the frame itself, mirrored read-only. -->
+        <fig-group name="Frame">
+          <fig-field label="Aspect">
+            <fig-dropdown id="frameAspect" value="16:9" full>
+              <option selected>16:9</option>
+              <option>4:3</option>
+              <option>1:1</option>
+              <option>9:16</option>
+              <option>Custom</option>
+            </fig-dropdown>
+          </fig-field>
+          <fig-field label="Width">
+            <fig-input-number id="frameWidth" value="1920" units="px"></fig-input-number>
+          </fig-field>
+          <!-- Only meaningful when the aspect is Custom; otherwise the
+                         height is derived, and shown only to mirror a selection. -->
+          <fig-field label="Height" id="frameHeightField" hidden>
+            <fig-input-number id="frameHeight" value="1080" units="px"></fig-input-number>
+          </fig-field>
+        </fig-group>
+      </fig-content>
+
+      <fig-footer>
+        <!-- The plugin sets the action and label from the current selection. -->
+        <div class="fig-action">
+          <label id="action-status" for="action-primary"></label>
+          <button id="action-primary" type="submit">Create frame</button>
+        </div>
+        <!-- Copies the previewed grid as the partial-settings JSON that
+                     Mitos accepts on paste, so its ASCII canvas picks up the
+                     same columns, rows, cell shape and export size. -->
+        <button id="copy-mitos" type="button" class="secondary">Copy config</button>
+      </fig-footer>
+    </div>
+
+    <script>
+      // ---------------------------------------------------------------------
+      // Minimal propskit-compatible custom elements. Defined after the markup
+      // is parsed so each element's light-DOM children already exist.
+      // ---------------------------------------------------------------------
+
+      // Re-dispatches a bubbling 'change' from the host element so callers can
+      // listen on the <fig-*> tag rather than the inner native control.
+      //
+      // The inner control's own event must be stopped first: it bubbles through
+      // the host too, so a listener on <fig-*> would otherwise fire twice per
+      // interaction (and trigger two live reapplies).
+      function emit(host, innerEvent) {
+        if (innerEvent) innerEvent.stopPropagation()
+        host.dispatchEvent(new CustomEvent('change', { bubbles: true }))
+      }
+
+      class FigContent extends HTMLElement {}
+      class FigFooter extends HTMLElement {}
+
+      class FigGroup extends HTMLElement {
+        connectedCallback() {
+          if (this._built) return
+          this._built = true
+          const collapsible = this.hasAttribute('collapsible')
+          // A plain group keeps its <div> header; a collapsible one needs
+          // a button so the disclosure works from the keyboard too.
+          const header = document.createElement(collapsible ? 'button' : 'div')
+          header.className = 'fig-group-header'
+          const body = document.createElement('div')
+          body.className = 'fig-group-body'
+          while (this.firstChild) body.appendChild(this.firstChild)
+
+          if (collapsible) {
+            header.type = 'button'
+            const chevron = document.createElement('span')
+            chevron.className = 'fig-chevron'
+            header.appendChild(chevron)
+            const text = document.createElement('span')
+            text.textContent = this.getAttribute('name') || ''
+            header.appendChild(text)
+            const sync = () =>
+              header.setAttribute(
+                'aria-expanded',
+                this.hasAttribute('collapsed') ? 'false' : 'true',
+              )
+            sync()
+            header.addEventListener('click', () => {
+              this.toggleAttribute('collapsed')
+              sync()
+              // The panel height is driven by measurement, so the
+              // window has to be told the content changed size.
+              reportHeight()
+            })
+          } else {
+            header.textContent = this.getAttribute('name') || ''
+          }
+
+          this.appendChild(header)
+          this.appendChild(body)
+        }
+      }
+
+      class FigField extends HTMLElement {
+        connectedCallback() {
+          if (this._built) return
+          this._built = true
+          const label = document.createElement('div')
+          label.className = 'fig-field-label'
+          label.textContent = this.getAttribute('label') || ''
+          label.title = label.textContent
+          const control = document.createElement('div')
+          control.className = 'fig-field-control'
+          while (this.firstChild) control.appendChild(this.firstChild)
+          this.appendChild(label)
+          this.appendChild(control)
+        }
+      }
+
+      class FigDropdown extends HTMLElement {
+        connectedCallback() {
+          if (this._built) return
+          this._built = true
+          const select = document.createElement('select')
+          const options = Array.prototype.slice.call(this.querySelectorAll('option'))
+          options.forEach((o) => select.appendChild(o))
+          this.appendChild(select)
+          this._select = select
+          if (this.hasAttribute('value')) select.value = this.getAttribute('value')
+          select.addEventListener('change', (e) => {
+            this.setAttribute('value', select.value)
+            emit(this, e)
+          })
+        }
+        get value() {
+          return this._select ? this._select.value : this.getAttribute('value')
+        }
+        get disabled() {
+          return this._select ? this._select.disabled : this.hasAttribute('disabled')
+        }
+        set disabled(v) {
+          if (this._select) this._select.disabled = !!v
+          this.toggleAttribute('disabled', !!v)
+        }
+        set value(v) {
+          if (this._select) this._select.value = v
+          this.setAttribute('value', v)
+        }
+      }
+
+      class FigSlider extends HTMLElement {
+        connectedCallback() {
+          if (this._built) return
+          this._built = true
+
+          // `values="1,2,3,4,6,9,12"` makes the track step through an
+          // explicit list instead of a uniform range: the slider runs
+          // over list indices while value/display stay the real number.
+          const list = this.getAttribute('values')
+          this._values = list ? list.split(',').map((v) => Number(v.trim())) : null
+
+          const min = this._values ? '0' : this.getAttribute('min') || '0'
+          const max = this._values
+            ? String(this._values.length - 1)
+            : this.getAttribute('max') || '100'
+          const step = this._values ? '1' : this.getAttribute('step') || '1'
+          const attrValue = this.getAttribute('value')
+          const value = attrValue !== null ? attrValue : min
+
+          const range = document.createElement('input')
+          range.type = 'range'
+          range.min = min
+          range.max = max
+          range.step = step
+          range.value = this._values ? String(this._indexOf(Number(value))) : value
+          this.appendChild(range)
+          this._range = range
+
+          // Use `readout` for fixed-list values and `text` for an editable
+          // numeric field when any in-range value is allowed.
+          if (this.hasAttribute('readout')) {
+            const out = document.createElement('span')
+            out.className = 'fig-slider-value'
+            this.appendChild(out)
+            this._out = out
+          }
+
+          // `text` opts in to the numeric field beside the track.
+          if (this.hasAttribute('text')) {
+            const num = document.createElement('input')
+            num.type = 'number'
+            num.className = 'fig-input'
+            if (this._values) {
+              num.min = String(this._values[0])
+              num.max = String(this._values[this._values.length - 1])
+              num.step = '1'
+            } else {
+              num.min = min
+              num.max = max
+              num.step = step
+            }
+            num.value = value
+            this.appendChild(num)
+            this._num = num
+
+            num.addEventListener('input', (e) => {
+              // Typed values snap to the nearest allowed entry.
+              const v = this._values
+                ? this._values[this._indexOf(Number(num.value))]
+                : Number(num.value)
+              range.value = this._values ? String(this._indexOf(v)) : num.value
+              this.setAttribute('value', v)
+              this._paint()
+              emit(this, e)
+            })
+          }
+
+          range.addEventListener('input', (e) => {
+            const v = this._values ? this._values[Number(range.value)] : Number(range.value)
+            if (this._num) this._num.value = v
+            this.setAttribute('value', v)
+            this._paint()
+            emit(this, e)
+          })
+
+          this._paint()
+        }
+        // Replace allowed values when grid parameters change. Match the current
+        // value, not its index, to preserve the requested count where possible.
+        setValues(list) {
+          if (!this._range || !list || !list.length) return
+          const same =
+            this._values &&
+            this._values.length === list.length &&
+            this._values.every((v, i) => v === list[i])
+          if (same) return
+          const current = this.value
+          this._values = list.slice()
+          this._range.min = '0'
+          this._range.max = String(list.length - 1)
+          this._range.step = '1'
+          if (this._num) {
+            this._num.min = String(list[0])
+            this._num.max = String(list[list.length - 1])
+          }
+          // Setter re-snaps and repaints; it does not emit, so
+          // rebuilding the ladder never looks like a user edit.
+          this.value = current
+        }
+        // Index of the closest allowed value (list mode only). Exact
+        // ties keep the lower value: 5 -> 4, not 6.
+        _indexOf(v) {
+          let best = 0
+          let bestDist = Infinity
+          this._values.forEach((allowed, i) => {
+            const dist = Math.abs(allowed - v)
+            if (dist < bestDist) {
+              bestDist = dist
+              best = i
+            }
+          })
+          return best
+        }
+        // The filled portion of the track left of the thumb. A range input has
+        // no native way to style it, so it's painted as a hard-stop gradient.
+        _paint() {
+          const r = this._range
+          if (!r) return
+          if (this._out) this._out.textContent = this.value
+          const min = Number(r.min)
+          const max = Number(r.max)
+          const pct = max > min ? ((Number(r.value) - min) / (max - min)) * 100 : 0
+          r.style.background =
+            'linear-gradient(to right, var(--brand) ' +
+            pct +
+            '%, var(--track) ' +
+            pct +
+            '%)'
+        }
+        get value() {
+          if (!this._range) return Number(this.getAttribute('value'))
+          // In list mode the range holds an index, not the value.
+          return this._values
+            ? this._values[Number(this._range.value)]
+            : Number(this._range.value)
+        }
+        set value(v) {
+          const n = Number(v)
+          const snapped = this._values ? this._values[this._indexOf(n)] : n
+          if (this._range) {
+            this._range.value = this._values ? String(this._indexOf(n)) : v
+          }
+          if (this._num) this._num.value = snapped
+          this.setAttribute('value', snapped)
+          this._paint()
+        }
+      }
+
+      class FigSwitch extends HTMLElement {
+        connectedCallback() {
+          if (this._built) return
+          this._built = true
+          const input = document.createElement('input')
+          input.type = 'checkbox'
+          input.checked = this.hasAttribute('checked')
+          const track = document.createElement('span')
+          track.className = 'fig-switch-track'
+          this.appendChild(input)
+          this.appendChild(track)
+          this._input = input
+          input.addEventListener('change', (e) => {
+            this.toggleAttribute('checked', input.checked)
+            emit(this, e)
+          })
+        }
+        get checked() {
+          return this._input ? this._input.checked : this.hasAttribute('checked')
+        }
+        set checked(v) {
+          if (this._input) this._input.checked = !!v
+          this.toggleAttribute('checked', !!v)
+        }
+      }
+
+      // Themed text input for font family names.
+      class FigInputText extends HTMLElement {
+        connectedCallback() {
+          if (this._built) return
+          this._built = true
+          const input = document.createElement('input')
+          input.type = 'text'
+          input.className = 'fig-input'
+          input.spellcheck = false
+          input.value = this.getAttribute('value') || ''
+          if (this.hasAttribute('placeholder')) {
+            input.placeholder = this.getAttribute('placeholder')
+          }
+          this.appendChild(input)
+          this._input = input
+          input.addEventListener('input', (e) => {
+            this.setAttribute('value', input.value)
+            emit(this, e)
+          })
+        }
+        get value() {
+          return this._input ? this._input.value : this.getAttribute('value') || ''
+        }
+        set value(v) {
+          const next = v == null ? '' : String(v)
+          if (this._input) this._input.value = next
+          this.setAttribute('value', next)
+        }
+      }
+
+      class FigInputNumber extends HTMLElement {
+        connectedCallback() {
+          if (this._built) return
+          this._built = true
+          const input = document.createElement('input')
+          input.type = 'number'
+          input.className = 'fig-input'
+          input.value = this.getAttribute('value') || '0'
+          this.appendChild(input)
+          this._input = input
+
+          const units = this.getAttribute('units')
+          this._unitsText = units || ''
+          const span = document.createElement('span')
+          span.className = 'fig-units'
+          span.textContent = this._unitsText
+          this.appendChild(span)
+          this._units = span
+
+          input.addEventListener('input', (e) => {
+            this.setAttribute('value', input.value)
+            emit(this, e)
+          })
+        }
+        get value() {
+          return this._input
+            ? Number(this._input.value)
+            : Number(this.getAttribute('value'))
+        }
+        get disabled() {
+          return this._input ? this._input.disabled : this.hasAttribute('disabled')
+        }
+        set disabled(v) {
+          if (this._input) this._input.disabled = !!v
+          this.toggleAttribute('disabled', !!v)
+        }
+        set value(v) {
+          if (this._input) this._input.value = v
+          this.setAttribute('value', v)
+        }
+        // Shows the achieved value in parentheses inside the field.
+        // Pass null to clear it.
+        setActual(text, isWarn) {
+          if (!this._units) return
+          this._units.textContent = ''
+          if (text !== null && text !== undefined && text !== '') {
+            const a = document.createElement('span')
+            a.className = 'actual' + (isWarn ? ' warn' : '')
+            a.textContent = '(' + text + ')'
+            this._units.appendChild(a)
+            this._units.appendChild(document.createTextNode(' ' + this._unitsText))
+            this.classList.add('has-actual')
+          } else {
+            this._units.textContent = this._unitsText
+            this.classList.remove('has-actual')
+          }
+        }
+      }
+
+      customElements.define('fig-content', FigContent)
+      customElements.define('fig-footer', FigFooter)
+      customElements.define('fig-group', FigGroup)
+      customElements.define('fig-field', FigField)
+      customElements.define('fig-dropdown', FigDropdown)
+      customElements.define('fig-slider', FigSlider)
+      customElements.define('fig-switch', FigSwitch)
+      customElements.define('fig-input-text', FigInputText)
+      customElements.define('fig-input-number', FigInputNumber)
+
+      // ---------------------------------------------------------------------
+      // Panel wiring
+      // ---------------------------------------------------------------------
+      const $ = (id) => document.getElementById(id)
+
+      // The snap and aspect tolerances only mean anything while Pixel
+      // snap is on, so the fields appear underneath the switch only then.
+      function applySnapTol() {
+        const off = !$('pixelPerfect').checked
+        $('snapTolField').hidden = off
+        $('aspectTolField').hidden = off
+        reportHeight()
+      }
+
+      // Same pattern for the cull tolerance under the Edge cull switch.
+      function applyEdgeCull() {
+        $('edgeCullPctField').hidden = !$('edgeCull').checked
+        reportHeight()
+      }
+
+      // Shows only the controls that belong to the active mode.
+      function applyMode() {
+        const mode = $('mode').value
+        document.querySelectorAll('fig-field[data-mode]').forEach((f) => {
+          f.hidden = f.getAttribute('data-mode') !== mode
+        })
+        reportHeight()
+      }
+
+      // Params that reapply live to a bound frame. frameWidth/frameAspect are
+      // deliberately excluded — they only feed the "Create frame" action.
+      const GRID_PARAM_IDS = [
+        'mode',
+        'columnCount',
+        'marginCells',
+        'gutterMultiple',
+        'targetMarginPx',
+        'targetGutterPx',
+        'targetColumns',
+        'cellColumns',
+        'cellAspect',
+        'snapRows',
+        'pixelPerfect',
+        'snapTolerancePx',
+        'aspectTolPct',
+        'edgeCull',
+        'edgeCullPct',
+        'cellDensity',
+        'showLines',
+        'showSpecimens',
+        'monoFamily',
+        'sansFamily',
+        'monoSizes',
+        'sansSizes',
+      ]
+
+      // Which action the single footer button performs, set by the plugin.
+      let currentAction = 'create'
+      // The last preview payload, kept so "Copy Mitos config" can
+      // serialise the grid the panel is currently showing.
+      let lastPreview = null
+      let suppressChange = false
+
+      // What the user set, as opposed to what is currently displayed. While
+      // a frame is selected the three Frame fields mirror that frame and are
+      // disabled, so these are kept aside and restored on deselection.
+      let ownFrame = {
+        frameWidth: 1920,
+        frameAspect: '16:9',
+        frameHeight: 1080,
+      }
+      // The selected frame's size, or null when nothing is bound.
+      let mirrored = null
+
+      const ASPECT_PRESETS = ['16:9', '4:3', '1:1', '9:16']
+
+      // The preset a size corresponds to, or "Custom" if it matches none.
+      function presetFor(width, height) {
+        for (const preset of ASPECT_PRESETS) {
+          const parts = preset.split(':')
+          const ratio = Number(parts[0]) / Number(parts[1])
+          if (Math.abs(width / height - ratio) < 0.005) return preset
+        }
+        return 'Custom'
+      }
+
+      // Writes either the mirrored frame or the user's own values into the
+      // three fields, and sets their enabled state to match.
+      function renderFrameFields() {
+        const showing = mirrored
+          ? {
+              frameWidth: Math.round(mirrored.width),
+              frameHeight: Math.round(mirrored.height),
+              frameAspect: presetFor(mirrored.width, mirrored.height),
+            }
+          : ownFrame
+
+        suppressChange = true
+        $('frameWidth').value = showing.frameWidth
+        $('frameHeight').value = showing.frameHeight
+        $('frameAspect').value = showing.frameAspect
+        suppressChange = false
+
+        for (const id of ['frameWidth', 'frameHeight', 'frameAspect']) {
+          $(id).disabled = !!mirrored
+        }
+        // The height is a real input only for a custom aspect; otherwise it
+        // is derived, and worth showing only to describe a selected frame.
+        $('frameHeightField').hidden = !mirrored && showing.frameAspect !== 'Custom'
+        reportHeight()
+      }
+
+      function getPanelParams() {
+        return {
+          mode: $('mode').value,
+          columnCount: $('columnCount').value,
+          marginCells: $('marginCells').value,
+          gutterMultiple: $('gutterMultiple').value,
+          targetMarginPx: $('targetMarginPx').value,
+          targetGutterPx: $('targetGutterPx').value,
+          targetColumns: $('targetColumns').value,
+          cellColumns: $('cellColumns').value,
+          cellAspect: $('cellAspect').value,
+          snapRows: $('snapRows').checked,
+          pixelPerfect: $('pixelPerfect').checked,
+          snapTolerancePx: $('snapTolerancePx').value,
+          aspectTolPct: $('aspectTolPct').value,
+          edgeCull: $('edgeCull').checked,
+          edgeCullPct: $('edgeCullPct').value,
+          // "2x" -> 2, "0.5x" -> 0.5 (parseFloat, since parseInt
+          // would read "0.25x" as 0)
+          cellDensity: parseFloat($('cellDensity').value) || 1,
+          showLines: $('showLines').checked,
+          showSpecimens: $('showSpecimens').checked,
+          monoFamily: $('monoFamily').value,
+          sansFamily: $('sansFamily').value,
+          monoSizes: $('monoSizes').value,
+          sansSizes: $('sansSizes').value,
+          // Always the user's own settings, never the mirrored size of
+          // a selected frame — those fields are read-only while a frame
+          // is bound, so reading them back would overwrite what the
+          // next Create frame should use.
+          frameWidth: ownFrame.frameWidth,
+          frameAspect: ownFrame.frameAspect,
+          frameHeight: ownFrame.frameHeight,
+        }
+      }
+
+      // Stored params can be missing fields, so fill anything absent
+      // rather than writing undefined into a control (which would snap a
+      // slider to its midpoint and clear a switch).
+      const PARAM_DEFAULTS = {
+        mode: 'Manual',
+        columnCount: 12,
+        marginCells: 3,
+        gutterMultiple: 1,
+        targetMarginPx: 50,
+        targetGutterPx: 20,
+        cellColumns: 89,
+        targetColumns: 89,
+        cellAspect: 2,
+        snapRows: true,
+        pixelPerfect: false,
+        snapTolerancePx: 0.5,
+        aspectTolPct: 5,
+        edgeCull: true,
+        edgeCullPct: 20,
+        cellDensity: 1,
+        showLines: true,
+        showSpecimens: true,
+        monoFamily: 'GT America Mono',
+        sansFamily: "Suisse Int'l",
+        monoSizes: '2',
+        sansSizes: '6, 12, 24',
+        frameWidth: 1920,
+        frameAspect: '16:9',
+        frameHeight: 1080,
+      }
+
+      function setPanelParams(raw) {
+        const p = Object.assign({}, PARAM_DEFAULTS)
+        for (const k in raw) {
+          if (raw[k] !== undefined && raw[k] !== null) p[k] = raw[k]
+        }
+        suppressChange = true
+        $('mode').value = p.mode
+        $('columnCount').value = p.columnCount
+        $('marginCells').value = p.marginCells
+        $('gutterMultiple').value = p.gutterMultiple
+        $('targetMarginPx').value = p.targetMarginPx
+        $('targetGutterPx').value = p.targetGutterPx
+        $('cellColumns').value = p.cellColumns
+        $('targetColumns').value = p.targetColumns
+        $('cellAspect').value = p.cellAspect
+        $('snapRows').checked = p.snapRows
+        $('pixelPerfect').checked = p.pixelPerfect
+        $('snapTolerancePx').value = p.snapTolerancePx
+        $('aspectTolPct').value = p.aspectTolPct
+        $('edgeCull').checked = p.edgeCull
+        $('edgeCullPct').value = p.edgeCullPct
+        applySnapTol()
+        applyEdgeCull()
+        $('cellDensity').value = (p.cellDensity || 1) + 'x'
+        $('showLines').checked = p.showLines
+        $('showSpecimens').checked = p.showSpecimens
+        $('monoFamily').value = p.monoFamily
+        $('sansFamily').value = p.sansFamily
+        $('monoSizes').value = p.monoSizes
+        $('sansSizes').value = p.sansSizes
+        ownFrame = {
+          frameWidth: p.frameWidth,
+          frameAspect: p.frameAspect,
+          frameHeight: p.frameHeight,
+        }
+        renderFrameFields()
+        suppressChange = false
+      }
+
+      function post(message) {
+        parent.postMessage({ pluginMessage: message }, '*')
+      }
+
+      // Preview immediately, but debounce document writes to avoid an undo step
+      // for every slider position. Flush when the interaction ends.
+      const REAPPLY_DEBOUNCE_MS = 150
+      let reapplyTimer = null
+
+      function paramsChanged(reapply) {
+        if (suppressChange) return
+        post({
+          type: 'params-changed',
+          params: getPanelParams(),
+          reapply: false,
+        })
+        if (!reapply) return
+        if (reapplyTimer !== null) clearTimeout(reapplyTimer)
+        reapplyTimer = setTimeout(flushReapply, REAPPLY_DEBOUNCE_MS)
+      }
+
+      function flushReapply() {
+        if (reapplyTimer !== null) {
+          clearTimeout(reapplyTimer)
+          reapplyTimer = null
+        }
+        post({
+          type: 'params-changed',
+          params: getPanelParams(),
+          reapply: true,
+        })
+      }
+
+      // Flush on pointer release or field commit. Capture is required because
+      // FigDropdown stops the native change event from bubbling. Defer the flush
+      // until the <fig-*> handler has scheduled its debounce to avoid two writes.
+      document.addEventListener(
+        'change',
+        (e) => {
+          const tag = e.target && e.target.tagName
+          if (tag !== 'INPUT' && tag !== 'SELECT') return
+          setTimeout(() => {
+            if (reapplyTimer !== null) flushReapply()
+          }, 0)
+        },
+        true,
+      )
+
+      $('mode').addEventListener('change', () => {
+        applyMode()
+        paramsChanged(true)
+      })
+
+      // Visibility only — the param change itself is posted by the
+      // generic listener below, like every other switch.
+      $('pixelPerfect').addEventListener('change', applySnapTol)
+      $('edgeCull').addEventListener('change', applyEdgeCull)
+      ;['marginCells', 'targetMarginPx', 'targetGutterPx', 'targetColumns'].forEach(
+        (id) => {
+          $(id).addEventListener('change', () => paramsChanged(true))
+        },
+      )
+
+      // These are independent of the density preset (which now defines the
+      // margin and gutter), so they do not flip the preset to "Custom".
+      ;[
+        'columnCount',
+        'gutterMultiple',
+        'cellColumns',
+        'cellAspect',
+        'snapRows',
+        'pixelPerfect',
+        'snapTolerancePx',
+        'aspectTolPct',
+        'edgeCull',
+        'edgeCullPct',
+        'cellDensity',
+        'showLines',
+        'showSpecimens',
+        'monoFamily',
+        'sansFamily',
+        'monoSizes',
+        'sansSizes',
+      ].forEach((id) => {
+        $(id).addEventListener('change', () => paramsChanged(true))
+      })
+      // These only feed "Create frame", so they never reapply. They are also
+      // the only fields that can be inert, so an edit while mirroring is
+      // ignored rather than written back over the user's own settings.
+      ;['frameWidth', 'frameHeight', 'frameAspect'].forEach((id) => {
+        $(id).addEventListener('change', () => {
+          if (mirrored || suppressChange) return
+          ownFrame[id] = $(id).value
+          if (id === 'frameAspect') renderFrameFields()
+          paramsChanged(false)
+        })
+      })
+
+      $('action-primary').addEventListener('click', () => {
+        post({
+          type: 'action',
+          action: currentAction,
+          params: getPanelParams(),
+        })
+      })
+
+      // ----- Mitos hand-off --------------------------------------------
+      // Mitos merges this JSON into its settings on paste. Character dimensions
+      // match mitos/app/components/dimension-utils.ts at its base font size.
+      const MITOS_CHAR_WIDTH = 7.45
+      const MITOS_FONT_SIZE = 12
+
+      function mitosConfig(p) {
+        const r4 = (n) => Math.round(n * 10000) / 10000
+        // The line height that makes a Mitos character cell the same
+        // shape as one grid cell (frameW/cols × frameH/rows). Mitos
+        // rederives its export height from width × content aspect, so
+        // the pasted export size only holds if this is consistent.
+        const lineHeight = r4(
+          (p.frameH * p.cols * MITOS_CHAR_WIDTH) / (p.frameW * p.rows * MITOS_FONT_SIZE),
+        )
+        return {
+          mitos: 'grid-config',
+          version: 1,
+          output: {
+            columns: p.cols,
+            rows: p.rows,
+            // Mitos's aspect field is pixel width over height;
+            // with the line height above it is the frame's ratio.
+            aspectRatio: r4(
+              (p.cols * MITOS_CHAR_WIDTH) / (p.rows * MITOS_FONT_SIZE * lineHeight),
+            ),
+            useImageAspectRatio: false,
+          },
+          // Padding must be zero: the grid runs full bleed, so any
+          // padding would shrink the cells relative to the frame.
+          // Width and height are the export size — the frame's own.
+          export: {
+            lineHeight: lineHeight,
+            padding: 0,
+            width: Math.round(p.frameW),
+            height: Math.round(p.frameH),
+          },
+        }
+      }
+
+      // navigator.clipboard is unreliable in Figma's iframe. Use a temporary
+      // textarea and execCommand from the click handler instead.
+      function copyToClipboard(text) {
+        const stage = document.createElement('textarea')
+        stage.className = 'clipboard-stage'
+        stage.value = text
+        document.body.appendChild(stage)
+        stage.select()
+        let ok = false
+        try {
+          ok = document.execCommand('copy')
+        } catch (e) {
+          ok = false
+        }
+        document.body.removeChild(stage)
+        return ok
+      }
+
+      $('copy-mitos').addEventListener('click', () => {
+        if (!lastPreview) return
+        const ok = copyToClipboard(JSON.stringify(mitosConfig(lastPreview), null, 2))
+        const button = $('copy-mitos')
+        button.textContent = ok ? 'Copied — paste into Mitos' : 'Copy failed'
+        clearTimeout(button._resetLabel)
+        button._resetLabel = setTimeout(() => {
+          button.textContent = 'Copy config'
+        }, 1600)
+      })
+
+      // ----- messages from code.ts -----------------------------------------
+      window.addEventListener('message', (event) => {
+        const msg = event.data && event.data.pluginMessage
+        if (!msg) return
+
+        if (msg.type === 'action-state') {
+          const button = $('action-primary')
+          currentAction = msg.action
+          button.textContent = msg.actionLabel
+          button.classList.toggle('danger', !!msg.actionDanger)
+          $('action-status').textContent = msg.status || ''
+          if (msg.preview) renderPreview(msg.preview)
+          reportHeight()
+        } else if (msg.type === 'params-change') {
+          setPanelParams(msg.params)
+        }
+      })
+
+      // Live preview of the grid the current params would produce, measured
+      // against the selected frame (or the "New frame" params if none).
+      function renderPreview(p) {
+        lastPreview = p
+        const px = (n) => (Math.round(n * 100) / 100).toLocaleString()
+        // The reachable column counts change with the margin, gutter,
+        // column count, Pixel snap and its tolerance, so the slider's
+        // stops are replaced rather than fixed at build time. Only
+        // Manual has a ladder; in Solve the grid is the solver's to
+        // choose.
+        // A bound frame turns the Frame group into a read-only mirror of
+        // that frame; with nothing selected it goes back to describing
+        // what Create frame would make.
+        const nextMirror =
+          p.source === 'selection' ? { width: p.frameW, height: p.frameH } : null
+        const changed =
+          !!nextMirror !== !!mirrored ||
+          (nextMirror &&
+            (nextMirror.width !== mirrored.width || nextMirror.height !== mirrored.height))
+        if (changed) {
+          mirrored = nextMirror
+          renderFrameFields()
+        }
+
+        if (p.cellLadder && p.cellLadder.length) {
+          $('cellColumns').setValues(p.cellLadder)
+        }
+        if (typeof p.cellColumns === 'number') {
+          $('cellColumns').value = p.cellColumns
+        }
+        // The frame's own size lives in the Frame group below, so it is
+        // not repeated here.
+        $('preview-size').innerHTML =
+          (p.columns ? p.columns + ' col <span class="dim">&middot;</span> ' : '') +
+          p.cols +
+          ' &times; ' +
+          p.rows +
+          ' <span class="dim">cells</span>'
+        const delta = p.deltaPct
+        const deltaTxt = (delta > 0 ? '+' : '') + Math.round(delta * 10) / 10 + '%'
+        // Show the rounding remainder split between the margins, and flag it
+        // when its magnitude exceeds one cell width.
+        const bleed = Math.abs(p.hRemainder || 0)
+        $('preview-cell').innerHTML =
+          px(p.u) +
+          ' &times; ' +
+          px(p.cellH) +
+          'px <span class="' +
+          (p.warn ? 'warn' : 'dim') +
+          '">(' +
+          deltaTxt +
+          ')</span>' +
+          (bleed >= 0.01
+            ? ' <span class="' +
+              (bleed > p.u ? 'warn' : 'dim') +
+              '">&middot; ' +
+              px(bleed) +
+              'px bleed</span>'
+            : '')
+        // Achieved values, shown inside the field that asked for them.
+        // Flagged when the result is more than a cell away from the ask.
+        const off = (got, want) => Math.abs(got - want) > p.u
+        $('targetMarginPx').setActual(
+          px(p.effectiveMargin),
+          off(p.effectiveMargin, p.targetMarginPx),
+        )
+        // Gutters use whole cells. Allow half a cell of rounding error before
+        // flagging a mismatch, rather than flagging every inexact pixel target.
+        $('targetGutterPx').setActual(
+          px(p.gutterPx),
+          Math.abs(p.gutterPx - p.targetGutterPx) > p.u / 2 + 1e-6,
+        )
+        // Flagged when the solver had to move more than 2% off the ask.
+        $('targetColumns').setActual(
+          p.cols,
+          Math.abs(p.cols - p.targetColumns) > p.targetColumns * 0.02,
+        )
+
+        // Show the derived cell multiples in both modes. Flag aspect deviation
+        // above 1%, including deviation allowed by Aspect tol. for pixel snapping.
+        $('preview-solved').innerHTML =
+          'm' +
+          p.solvedM +
+          ' k' +
+          p.solvedK +
+          ' g' +
+          p.solvedG +
+          ' <span class="' +
+          (p.warn ? 'warn' : 'dim') +
+          '">aspect Δ ' +
+          px(Math.abs(p.deltaPct)) +
+          '%</span>'
+        $('preview-column').innerHTML =
+          px(p.columnWidth) +
+          'px <span class="dim">col &middot; ' +
+          px(p.gutterPx) +
+          'px gut &middot; ' +
+          px(p.marginPx) +
+          'px marg</span>'
+      }
+
+      // ----- height reporting ----------------------------------------------
+      let rafId = null
+      function reportHeight() {
+        if (rafId !== null) return
+        rafId = requestAnimationFrame(() => {
+          rafId = null
+          const root = $('plugin-root')
+          const height = Math.ceil(root.getBoundingClientRect().height)
+          if (height > 0) post({ type: 'resize', height })
+        })
+      }
+
+      new ResizeObserver(reportHeight).observe($('plugin-root'))
+      // Dialogs mount as body children rather than resizing #plugin-root, so
+      // watch the body's child list too.
+      new MutationObserver(reportHeight).observe(document.body, {
+        childList: true,
+      })
+      applyMode()
+      applySnapTol()
+      applyEdgeCull()
+      renderFrameFields()
+      reportHeight()
+    </script>
+  </body>
+</html>
