@@ -94,7 +94,7 @@
 
   /* Syntax highlighting (consumed by oxide shiki theme) */
   --syntax-bg: var(--color-neutral-1300);
-  --syntax-fg: var(--color-neutral-500);
+  --syntax-fg: var(--color-neutral-300);
   --syntax-comment: var(--color-neutral-700);
   --syntax-string: var(--color-green-600);
   --syntax-operator: var(--color-green-500);
