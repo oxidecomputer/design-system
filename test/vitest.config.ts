@@ -8,4 +8,11 @@
 import tsconfigPaths from 'vite-tsconfig-paths'
 import { defineConfig } from 'vitest/config'
 
-export default defineConfig({ plugins: [tsconfigPaths()] })
+export default defineConfig({
+  plugins: [tsconfigPaths()],
+  test: {
+    // The Figma plugins carry their own plain-Node test scripts, run via
+    // `npm --prefix plugins/<name> test` — they are not vitest suites.
+    exclude: ['**/node_modules/**', 'plugins/**'],
+  },
+})
