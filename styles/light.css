@@ -105,7 +105,7 @@
   --syntax-fg: var(--color-neutral-300);
   --syntax-comment: var(--color-neutral-700);
   --syntax-string: var(--color-green-600);
-  --syntax-operator: var(--color-green-500);
+  --syntax-operator: var(--color-purple-600);
   --syntax-number: var(--color-yellow-600);
   --syntax-amber: var(--color-yellow-700);
   --syntax-keyword: var(--color-purple-600);
