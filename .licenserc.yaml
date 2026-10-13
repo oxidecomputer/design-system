@@ -17,5 +17,7 @@ header:
     - '**/*.md'
     - 'LICENSE'
     - 'components/src/asciidoc/use-delegated-links.ts'
+    # Tailwind's preflight, MIT
+    - 'styles/preflight.css'
 
   comment: on-failure

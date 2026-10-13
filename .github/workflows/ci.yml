@@ -30,3 +30,13 @@ jobs:
         run: npm run build
       - name: design.md up to date
         run: npm run design-md:check
+
+  # To run this check locally, install SkyWalking Eyes
+  # (https://github.com/apache/skywalking-eyes). On macOS you can `brew install
+  # license-eye` and run `license-eye header check` or `license-eye header fix`.
+  license:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check license headers
+        uses: apache/skywalking-eyes/header@a196742f472feaffafea537ce5a2a4c3c53a8de4 # v0.9.0
