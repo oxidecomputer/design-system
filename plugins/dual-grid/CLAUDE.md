@@ -113,7 +113,8 @@ Headless Chrome
 
 See `README.md` for the derivation and examples.
 
-- `N = 2m + ck + (c−1)g`, `u = W / N`. Margin, column and gutter widths are whole numbers of
+- `N = m + mR + ck + (c−1)g`, `u = W / N`. `mR = m` unless Asym. margin is on (Manual
+  mode only). Margin, column and gutter widths are whole numbers of
   cells summing to `N·u = W`, so every edge lands on a cell line. Keep these values in
   cells; arbitrary pixel values break alignment.
 - Choose cell density through `Cell columns`, not by minimising aspect error. Report the

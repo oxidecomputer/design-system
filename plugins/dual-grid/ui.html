@@ -1366,16 +1366,19 @@
       // generic listener below, like every other switch.
       $('pixelPerfect').addEventListener('change', applySnapTol)
       $('edgeCull').addEventListener('change', applyEdgeCull)
-      $('asymmetricMargin').addEventListener('change', applyAsymMargin)
-      ;['marginCells', 'targetMarginPx', 'targetGutterPx', 'targetColumns'].forEach(
-        (id) => {
-          $(id).addEventListener('change', () => paramsChanged(true))
-        },
-      )
-
-      // These are independent of the density preset (which now defines the
-      // margin and gutter), so they do not flip the preset to "Custom".
+      $('asymmetricMargin').addEventListener('change', () => {
+        // Start the right margin where the left one is, so unlinking alone
+        // does not move the grid.
+        if ($('asymmetricMargin').checked) {
+          $('marginRightCells').value = $('marginCells').value
+        }
+        applyAsymMargin()
+      })
       ;[
+        'marginCells',
+        'targetMarginPx',
+        'targetGutterPx',
+        'targetColumns',
         'columnCount',
         'asymmetricMargin',
         'marginRightCells',

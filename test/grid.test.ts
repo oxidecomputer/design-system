@@ -208,7 +208,7 @@ describe('computeGrid', () => {
     expect(g.gutterWidth).toBeCloseTo(g.solvedG * g.u, 9)
   })
 
-  it('with snapRows the rows fill the height; without, the last row overhangs', () => {
+  it('with snapRows the rows fill the height; without, the overhang is split top and bottom', () => {
     const snapped = computeGrid(manual({ snapRows: true }))
     expect(snapped.rows * snapped.cellH + snapped.vRemainder).toBeCloseTo(1080, 9)
     expect(snapped.rowOffset).toBeCloseTo(snapped.vRemainder / 2, 9)
@@ -216,6 +216,8 @@ describe('computeGrid', () => {
     const exact = computeGrid(manual({ snapRows: false, cellAspect: 2 }))
     expect(exact.cellH).toBeCloseTo(2 * exact.u, 9)
     expect(exact.rows * exact.cellH).toBeGreaterThanOrEqual(1080 - 1e-9)
+    expect(exact.rowOffset).toBeCloseTo(exact.vRemainder / 2, 9)
+    expect(exact.rowOffset).toBeLessThanOrEqual(0)
   })
 
   it('pixel snap with aspect tolerance finds an integer row height', () => {

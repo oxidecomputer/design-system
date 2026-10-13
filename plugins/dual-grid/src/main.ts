@@ -594,11 +594,17 @@ async function resolveFont(preferred: FontName[]): Promise<FontName> {
 
 // Measure the baseline from the bottom of a flat-footed capital's ink bounds.
 // Return null when bounds are unavailable so the caller can use the estimate below.
+// Cached by font and size so reapplying with unchanged sizes creates no temp nodes.
+const baselineOffsetCache = new Map<string, number | null>()
 async function measureBaselineOffset(
   font: FontName,
   fontSize: number,
   lineHeight: number,
 ): Promise<number | null> {
+  const key = `${font.family}|${font.style}|${fontSize}|${lineHeight}`
+  const cached = baselineOffsetCache.get(key)
+  if (cached !== undefined) return cached
+
   const probe = figma.createText()
   probe.fontName = font
   probe.fontSize = fontSize
@@ -610,6 +616,7 @@ async function measureBaselineOffset(
   const ink = probe.absoluteRenderBounds
   const offset = box && ink ? ink.y + ink.height - box.y : null
   probe.remove()
+  baselineOffsetCache.set(key, offset)
   return offset
 }
 
@@ -900,15 +907,14 @@ async function ensureSpecimens(
   // offsets to keep their baselines on the grid.
   const monoItems = fitting.filter((i) => i.spec.face === 'mono')
   const sansItems = fitting.filter((i) => i.spec.face !== 'mono')
-  const sansCells = sansItems.reduce((sum, i) => sum + i.cells, 0)
+  const monoEnd = SPECIMEN_START_CELL + monoItems.reduce((sum, i) => sum + i.cells, 0)
 
   // A baseline is not the bottom of the text — the descender hangs below it. So
   // the last baseline cannot sit on the final cell line, or the node's box spills
   // out of the frame. Reserve the measured descender, rounded up to whole cells,
   // which keeps every baseline on a cell line while the box stays inside.
-  const tail = sansItems[sansItems.length - 1]
-  let tailCells = 0
-  if (tail) {
+  async function tailCellsOf(tail: (typeof sized)[number] | undefined): Promise<number> {
+    if (!tail) return 0
     const lineHeight = tail.cells * g.cellH
     const fontSize = lineHeight * tail.spec.scale
     const offset = await measureBaselineOffset(sansFont, fontSize, lineHeight)
@@ -917,7 +923,22 @@ async function ensureSpecimens(
       (offset !== null ? offset : firstBaselineOffset(lineHeight, fontSize, sansProbe))
     // Add the same inset as the mono block. Rounding the descender alone can
     // leave almost no clearance from the frame edge.
-    tailCells = Math.max(0, Math.ceil(descender / g.cellH - 1e-9)) + SPECIMEN_START_CELL
+    return Math.max(0, Math.ceil(descender / g.cellH - 1e-9)) + SPECIMEN_START_CELL
+  }
+
+  // The fit budget cannot include the tail, which depends on which sans size ends
+  // up last, so drop the largest sans size until the two stacks no longer overlap.
+  let sansCells = 0
+  let tailCells = 0
+  for (;;) {
+    sansCells = sansItems.reduce((sum, i) => sum + i.cells, 0)
+    tailCells = await tailCellsOf(sansItems[sansItems.length - 1])
+    if (!sansItems.length || g.rows - sansCells - tailCells >= monoEnd) break
+    let largest = 0
+    sansItems.forEach((item, i) => {
+      if (item.cells > sansItems[largest].cells) largest = i
+    })
+    sansItems.splice(largest, 1)
   }
 
   // Clamped so a stack too tall for the frame still starts on the grid rather
@@ -1149,7 +1170,7 @@ async function handleAction(
     await serialiseApply(() => applyGrids(frame, p))
     figma.notify('Grids applied')
   } else {
-    await removeGrids(frame)
+    await serialiseApply(() => removeGrids(frame))
     figma.notify('Grids removed')
   }
 }

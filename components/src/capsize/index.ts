@@ -30,6 +30,7 @@ export const FONT_METRICS: Record<string, CapsizeFontMetrics> = {
     unitsPerEm: 1000,
   },
 }
+FONT_METRICS.sans = FONT_METRICS['suisse-intl']
 
 export interface CapsizeOptions {
   // Key into FONT_METRICS; ignored when metrics is given. Unknown families
@@ -86,7 +87,8 @@ function lineHeightProperties(
   rootSize = 16,
   fontSizePx?: number,
 ) {
-  if (lineHeight === undefined) return {}
+  // A normal line height equals the font's own, so there is no half leading.
+  if (lineHeight === undefined) return { '--line-height-offset': '0' }
 
   const lineHeightStr = typeof lineHeight === 'number' ? `${lineHeight}px` : lineHeight
 
@@ -164,6 +166,8 @@ export function capsize({
   }
 }
 
+const injectedClasses = new Set<string>()
+
 export const useCapsize = (options: CapsizeOptions): CapsizeResult => {
   const { fontFamily = 'sans', metrics, fontSize, lineHeight, rootSize = 16 } = options
 
@@ -186,7 +190,8 @@ export const useCapsize = (options: CapsizeOptions): CapsizeResult => {
       document.head.appendChild(styleElement)
     }
 
-    if (!styleElement.textContent?.includes(result.className)) {
+    if (!injectedClasses.has(result.className)) {
+      injectedClasses.add(result.className)
       styleElement.textContent += result.cssText
     }
   }, [result.cssText, result.className])

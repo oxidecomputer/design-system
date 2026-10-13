@@ -402,9 +402,9 @@ export function computeGrid(spec: GridSpec): GridResult {
     // remainder, split top and bottom like the horizontal one.
     cellH = snapUnit(H / rows, pixelSnap, snapTol)
   } else {
-    // Keep the aspect exact and let the last row run off the bottom edge rather
-    // than stopping the grid short — the overhang is clipped by the frame, the
-    // same way the side edges already bleed. Snapping is the opposite trade:
+    // Keep the aspect exact and let the rows overhang rather than stopping the
+    // grid short — the overhang is split top and bottom and clipped by the
+    // frame, the same way the side edges already bleed. Snapping is the opposite trade:
     // exact fit, approximate aspect.
     cellH = snapUnit(a * u, pixelSnap, snapTol)
     rows = Math.max(1, Math.ceil(H / cellH - 1e-9))

@@ -214,8 +214,8 @@ above the frame (`rowOffset = vRemainder/2 < 0`), causing a validation error.
 same amount, preserving the line positions. It also clamps small negative floating-point
 remainders from `H − rows·(H/rows)` when Snap rows is on.
 
-With **Snap rows** off, the exact cell aspect is preserved and the last row extends past the
-bottom edge, where it clips. With it on, rows fit exactly with an approximate aspect ratio.
+With **Snap rows** off, the exact cell aspect is preserved and the rows overhang the frame,
+split evenly between the top and bottom edges, where they clip. With it on, rows fit exactly with an approximate aspect ratio.
 Both modes fill the frame without changing column or margin calculations.
 
 If the achieved cell aspect deviates from the target by more than 1%, the panel flags it.
