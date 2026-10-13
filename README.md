@@ -20,10 +20,19 @@ Releases are managed via GitHub Actions workflows triggered from the Actions tab
   tag. Install it with `npm install @oxide/design-system@canary` to test changes before
   merging.
 
-## Syncing with Figma
+## Figma Plugins
 
-The Token Sync Figma plugin reads the CSS files in `styles/` directly and compares them
-against Figma variables. Changes can be applied from the plugin UI.
+Figma plugins live in `plugins/`. Each is a standalone npm project with its own
+`package.json` and `node_modules` — `cd plugins/<name> && npm install && npm run build`
+(or use the `dual-grid:*` / `token-sync:*` scripts at the root). Load a built plugin in
+Figma via **Plugins → Development → Import plugin from manifest…**.
+
+- `plugins/token-sync` — reads the CSS files in `styles/` and compares them against
+  Figma variables; changes can be applied from the plugin UI.
+- `plugins/dual-grid` — generates a synchronised column + cell grid, ASCII grid, and
+  type specimens on a frame.
+
+## Syncing with Figma
 
 To regenerate colour palettes, run `npm run color-gen:apply`. This updates the `--color-*`
 variables in `styles/main.css` and writes the accent override files.
@@ -72,7 +81,7 @@ This is type-checked, and will throw an error if the corresponding icon doesn't 
 
 ## Usage
 
-This package provides two main entry points:
+This package provides four main entry points:
 
 ### UI Components (`@oxide/design-system/ui`)
 
@@ -117,3 +126,81 @@ content: [
   'node_modules/@oxide/design-system/components/**/*.{ts,tsx,jsx,js}',
 ],
 ```
+
+### Grid math (`@oxide/design-system/grid`)
+
+The maths behind the dual-grid Figma plugin: computes an ASCII cell grid aligned with a
+column grid, where margin, column and gutter widths are all whole multiples of the cell
+size. Pure TypeScript with no dependencies. See `plugins/dual-grid/README.md` for the
+derivation.
+
+`computeGrid` takes the layout column count, the frame size, and either pixel targets
+(`mode: 'auto'` — a solver finds the closest whole-cell fit) or explicit cell counts
+(`mode: 'manual'`):
+
+```ts
+import { computeGrid, gridLineSegments, snapLineHeight } from '@oxide/design-system/grid'
+
+const grid = computeGrid({
+  mode: 'auto', // or 'manual' with marginCells / gutterCells
+  columns: 12, // layout columns
+  width: 1920, // frame size, px
+  height: 1080,
+  targetMarginPx: 50, // the solver aims at these…
+  targetGutterPx: 20,
+  targetCellColumns: 89, // …and at this ASCII column count
+  // optional: cellAspect, snapRows, pixelSnap, snapTolerancePx, aspectTolerancePct
+})
+
+grid.N // ASCII grid columns
+grid.rows // ASCII grid rows
+grid.u // cell width, px
+grid.cellH // cell height, px
+grid.solvedM // margin in cells
+grid.solvedG // gutter in cells
+grid.margin // margin in px (effectiveMargin includes the pixel-snap remainder)
+grid.gutterWidth // gutter in px
+grid.columnWidth // column width in px
+
+// The cell grid as drawable [x1, y1, x2, y2] line segments, with lines near
+// the frame edge culled.
+const segments = gridLineSegments(grid, 1920, 1080, { edgeCull: true })
+
+// A line height snapped to whole cell rows, so text set at it keeps its
+// baselines on the grid. Pick the font size as a share of the result.
+const lh = snapLineHeight(grid, 1080 * 0.12) // { cells: 3, px: 129.6 }
+const fontSize = lh.px * 0.92
+```
+
+To place text by coordinate (canvas, SVG, Figma), `baselineOffset(metrics, fontSize,
+lineHeight)` gives the distance from the top of the line box to the first baseline, so
+`y = grid.rowOffset + row * grid.cellH - baselineOffset(...)` seats it on a cell row.
+In CSS, pair with the capsize entry point below instead.
+
+### Capsize (`@oxide/design-system/capsize`)
+
+A [capsize](https://seek-oss.github.io/capsize/)-style React hook that trims the space
+above the cap height and below the baseline, so the element's box runs exactly from cap
+top to baseline. Anchor the trimmed box's bottom edge to a grid row and the text sits on
+the baseline grid — no offset arithmetic needed:
+
+```tsx
+import { computeGrid, snapLineHeight } from '@oxide/design-system/grid'
+import { useCapsize } from '@oxide/design-system/capsize'
+
+const grid = computeGrid({ ... })
+const lh = snapLineHeight(grid, height * 0.12)
+
+const { styles, className } = useCapsize({
+  fontFamily: 'suisse-intl', // or pass `metrics` for other fonts
+  fontSize: lh.px * 0.92,
+  lineHeight: lh.px,
+})
+
+// bottom-0 lands on the container edge — a grid line — and capsize makes the
+// element's bottom edge the baseline.
+<h1 className={cn('absolute bottom-0', className)} style={styles}>…</h1>
+```
+
+The pure computation is also exported as `capsize(options)` (returns `styles`,
+`className` and the `cssText` for the trim pseudo-elements) for non-React or SSR use.
