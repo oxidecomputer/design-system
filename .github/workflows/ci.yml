@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24.x
+          cache: npm
+      - run: npm ci
+      - name: Format
+        run: npx prettier --check .
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run tsc
+      - name: Test
+        run: npm test -- --run
+      - name: Build
+        run: npm run build
+      - name: design.md up to date
+        run: npm run design-md:check
+
+  # To run this check locally, install SkyWalking Eyes
+  # (https://github.com/apache/skywalking-eyes). On macOS you can `brew install
+  # license-eye` and run `license-eye header check` or `license-eye header fix`.
+  license:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Check license headers
+        uses: apache/skywalking-eyes/header@a196742f472feaffafea537ce5a2a4c3c53a8de4 # v0.9.0
