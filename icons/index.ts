@@ -119,6 +119,7 @@ export type Icon =
   | { name: 'new-window'; size: 16 }
   | { name: 'next-arrow'; size: 12 }
   | { name: 'notifications'; size: 16 }
+  | { name: 'notifications'; size: 24 }
   | { name: 'open-link'; size: 12 }
   | { name: 'organization'; size: 16 }
   | { name: 'organization'; size: 24 }
