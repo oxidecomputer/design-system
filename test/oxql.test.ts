@@ -5,9 +5,11 @@
  *
  * Copyright Oxide Computer Company
  */
+import type { BundledLanguage } from 'shiki'
 import { describe, expect, it } from 'vitest'
 
 import { getHighlighter } from '../components/src/asciidoc/util'
+import { oxideTheme } from '../components/src/syntax'
 
 /**
  * Tokenize OxQL and return each non-whitespace token with its innermost scope.
@@ -17,7 +19,12 @@ import { getHighlighter } from '../components/src/asciidoc/util'
 async function tokenize(code: string): Promise<[string, string][]> {
   const h = await getHighlighter()
   return h
-    .codeToTokensBase(code, { lang: 'oxql', theme: 'Oxide Dark', includeExplanation: true })
+    .codeToTokensBase(code, {
+      // custom language, so not in shiki's BundledLanguage union
+      lang: 'oxql' as BundledLanguage,
+      theme: oxideTheme,
+      includeExplanation: true,
+    })
     .flat()
     .flatMap((token) => token.explanation ?? [])
     .filter((e) => e.content.trim())
