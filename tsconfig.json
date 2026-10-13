@@ -22,5 +22,18 @@
     },
     "allowImportingTsExtensions": true
   },
-  "include": ["components/**/*.ts", "components/**/*.tsx", "scripts/**/*.ts"]  // Also added scripts
+  "include": [
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "scripts/**/*.ts",
+    "test/**/*.ts",
+    "test/**/*.tsx",
+    "icons/**/*.ts",
+    "icons/**/*.tsx",
+    "preview/**/*.ts",
+    "preview/**/*.tsx",
+    "color-gen/**/*.ts",
+    "color-gen/**/*.tsx",
+    "*.ts"
+  ]
 }

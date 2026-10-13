@@ -24,7 +24,9 @@ import {
   type GridSpec,
 } from '../components/src/grid/index'
 
-const manual = (overrides: Partial<GridSpec> = {}): GridSpec => ({
+const manual = (
+  overrides: Partial<Extract<GridSpec, { mode: 'manual' }>> = {},
+): GridSpec => ({
   mode: 'manual',
   columns: 12,
   width: 1920,
@@ -35,7 +37,7 @@ const manual = (overrides: Partial<GridSpec> = {}): GridSpec => ({
   ...overrides,
 })
 
-const auto = (overrides: Partial<GridSpec> = {}): GridSpec => ({
+const auto = (overrides: Partial<Extract<GridSpec, { mode: 'auto' }>> = {}): GridSpec => ({
   mode: 'auto',
   columns: 12,
   width: 1920,
