@@ -498,9 +498,21 @@
               readout
             ></fig-slider>
           </fig-field>
-          <fig-field label="Margin cells" data-mode="Manual">
+          <fig-field label="Margin cells" id="marginField" data-mode="Manual">
             <fig-slider
               id="marginCells"
+              min="0"
+              max="24"
+              step="1"
+              value="3"
+              text
+            ></fig-slider>
+          </fig-field>
+          <!-- Shown only in Manual with Asym. margin (under Advanced) on;
+               Margin cells then sets the left side. -->
+          <fig-field label="Right margin" id="marginRightField" hidden>
+            <fig-slider
+              id="marginRightCells"
               min="0"
               max="24"
               step="1"
@@ -568,6 +580,9 @@
 
         <!-- Less frequently used controls and derived cell values. -->
         <fig-group name="Advanced" collapsible collapsed>
+          <fig-field label="Asym. margin" data-mode="Manual">
+            <fig-switch id="asymmetricMargin"></fig-switch>
+          </fig-field>
           <!-- Cull interior lines near the frame edge. Lines on or beyond
                the boundary are always culled. -->
           <fig-field label="Edge cull">
@@ -1076,13 +1091,24 @@
         reportHeight()
       }
 
+      // The right margin only applies in Manual with the switch on, and the
+      // first margin field then reads as the left side.
+      function applyAsymMargin() {
+        const on = $('asymmetricMargin').checked
+        $('marginRightField').hidden = !on || $('mode').value !== 'Manual'
+        $('marginField').querySelector('.fig-field-label').textContent = on
+          ? 'Left margin'
+          : 'Margin cells'
+        reportHeight()
+      }
+
       // Shows only the controls that belong to the active mode.
       function applyMode() {
         const mode = $('mode').value
         document.querySelectorAll('fig-field[data-mode]').forEach((f) => {
           f.hidden = f.getAttribute('data-mode') !== mode
         })
-        reportHeight()
+        applyAsymMargin()
       }
 
       // Params that reapply live to a bound frame. frameWidth/frameAspect are
@@ -1091,6 +1117,8 @@
         'mode',
         'columnCount',
         'marginCells',
+        'asymmetricMargin',
+        'marginRightCells',
         'gutterMultiple',
         'targetMarginPx',
         'targetGutterPx',
@@ -1173,6 +1201,8 @@
           mode: $('mode').value,
           columnCount: $('columnCount').value,
           marginCells: $('marginCells').value,
+          asymmetricMargin: $('asymmetricMargin').checked,
+          marginRightCells: $('marginRightCells').value,
           gutterMultiple: $('gutterMultiple').value,
           targetMarginPx: $('targetMarginPx').value,
           targetGutterPx: $('targetGutterPx').value,
@@ -1211,6 +1241,8 @@
         mode: 'Manual',
         columnCount: 12,
         marginCells: 3,
+        asymmetricMargin: false,
+        marginRightCells: 3,
         gutterMultiple: 1,
         targetMarginPx: 50,
         targetGutterPx: 20,
@@ -1244,6 +1276,9 @@
         $('mode').value = p.mode
         $('columnCount').value = p.columnCount
         $('marginCells').value = p.marginCells
+        $('asymmetricMargin').checked = p.asymmetricMargin
+        $('marginRightCells').value = p.marginRightCells
+        applyAsymMargin()
         $('gutterMultiple').value = p.gutterMultiple
         $('targetMarginPx').value = p.targetMarginPx
         $('targetGutterPx').value = p.targetGutterPx
@@ -1331,6 +1366,7 @@
       // generic listener below, like every other switch.
       $('pixelPerfect').addEventListener('change', applySnapTol)
       $('edgeCull').addEventListener('change', applyEdgeCull)
+      $('asymmetricMargin').addEventListener('change', applyAsymMargin)
       ;['marginCells', 'targetMarginPx', 'targetGutterPx', 'targetColumns'].forEach(
         (id) => {
           $(id).addEventListener('change', () => paramsChanged(true))
@@ -1341,6 +1377,8 @@
       // margin and gutter), so they do not flip the preset to "Custom".
       ;[
         'columnCount',
+        'asymmetricMargin',
+        'marginRightCells',
         'gutterMultiple',
         'cellColumns',
         'cellAspect',
@@ -1550,6 +1588,7 @@
         $('preview-solved').innerHTML =
           'm' +
           p.solvedM +
+          (p.solvedMR !== undefined && p.solvedMR !== p.solvedM ? '/' + p.solvedMR : '') +
           ' k' +
           p.solvedK +
           ' g' +
@@ -1565,6 +1604,9 @@
           px(p.gutterPx) +
           'px gut &middot; ' +
           px(p.marginPx) +
+          (p.marginRightPx !== undefined && p.marginRightPx !== p.marginPx
+            ? '/' + px(p.marginRightPx)
+            : '') +
           'px marg</span>'
       }
 

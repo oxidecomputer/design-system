@@ -32,6 +32,23 @@ gutterWidth = g × u
 
 Margin and gutter are independent controls, both measured in whole cells.
 
+### Asymmetric margin
+
+In Manual mode, **Asym. margin** (under **Advanced**) shows a **Right margin** slider
+beneath **Margin cells** in the Grid group, which becomes **Left margin**. The left and right margins (`m`, `mR`) are then set separately,
+for example 8 cells on the left and 4 on the right:
+
+```
+N = m + mR + c·k + (c−1)·g
+```
+
+Both margins are still whole cells, so every edge stays on a cell line. The Pixel snap
+remainder is still split evenly between the two sides, so the cell grid remains centred.
+The column layout grid is anchored to the side with the wider effective margin, using
+`MIN` or `MAX` with that margin as its offset, because Figma rejects negative offsets.
+Type specimens align to the left margin. The panel shows both values, for example
+`m8/4 k6 g1`. Solve mode always uses symmetric margins.
+
 Column width is derived. With `m` and `g` fixed, the cells per column determine `N` and the
 cell size. The result is shown in the **Cells** row under **Advanced**
 (`m3 k15 g1 · aspect Δ 0%`).
@@ -207,7 +224,7 @@ If the achieved cell aspect deviates from the target by more than 1%, the panel 
 
 The **Grid** group contains mode, columns, margin, gutter, cell size, Snap rows, Pixel snap
 and derived values. Pixel snap reveals Snap tol. and Aspect tol. The **Advanced** section is
-collapsed by default and contains Edge cull, Cull tol., cell aspect, reference subdivision,
+collapsed by default and contains Asym. margin, Edge cull, Cull tol., cell aspect, reference subdivision,
 layer toggles and the `m/k/g` equation row. Its header is a `<button>` with `aria-expanded`
 for keyboard access. Toggling it updates the reported panel height.
 

@@ -179,6 +179,27 @@ describe('computeGrid', () => {
     expect(Math.abs(g.cellColumnsTaken - 89)).toBeLessThanOrEqual(6)
   })
 
+  it('marginRightCells sets the right margin independently of the left', () => {
+    const g = computeGrid(manual({ marginCells: 8, marginRightCells: 4 }))
+    expect(g.solvedM).toBe(8)
+    expect(g.solvedMR).toBe(4)
+    expect(g.N).toBe(8 + 4 + 12 * g.solvedK + 11 * g.solvedG)
+    expect(g.margin).toBeCloseTo(8 * g.u, 9)
+    expect(g.marginRight).toBeCloseTo(4 * g.u, 9)
+    expect(g.effectiveMargin + g.contentWidth + g.effectiveMarginRight).toBeCloseTo(1920, 9)
+    expect(g.cellLadder).toEqual(
+      cellLadder(1920, 12, 8, 1, false, 0.5, 4)
+        .map((o) => o.N)
+        .sort((a, b) => a - b),
+    )
+  })
+
+  it('omitting marginRightCells keeps the margins symmetric', () => {
+    const g = computeGrid(manual({ marginCells: 5 }))
+    expect(g.solvedMR).toBe(5)
+    expect(g.marginRight).toBe(g.margin)
+  })
+
   it('auto mode reports the solver result and an empty ladder', () => {
     const g = computeGrid(auto())
     expect(g.solved).toBe(true)

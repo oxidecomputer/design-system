@@ -28,7 +28,11 @@ interface Params {
   mode: GridMode
   columnCount: number // c: number of columns
   // Margin and gutter are independent cell counts; column width is derived.
-  marginCells: number // m — margin width in cells
+  marginCells: number // m — margin width in cells (the left margin if asymmetric)
+  // Manual mode: when on, marginRightCells sets the right margin and
+  // marginCells only the left.
+  asymmetricMargin: boolean
+  marginRightCells: number
   gutterMultiple: number // g: cells per gutter
   // Solve mode: targets the solver aims at instead of the multiples above.
   targetMarginPx: number
@@ -223,6 +227,8 @@ const DEFAULT_PARAMS: Params = {
   mode: 'Manual',
   columnCount: 12,
   marginCells: 3,
+  asymmetricMargin: false,
+  marginRightCells: 3,
   gutterMultiple: 1,
   targetMarginPx: 50,
   targetGutterPx: 20,
@@ -345,6 +351,7 @@ function gridSpecOf(p: Params, W: number, H: number): GridSpec {
     ...base,
     mode: 'manual',
     marginCells: marginCellsOf(p),
+    marginRightCells: p.asymmetricMargin === true ? marginRightCellsOf(p) : undefined,
     gutterCells: p.gutterMultiple,
     targetCellColumns: manualColumnsOf(p),
   }
@@ -417,16 +424,35 @@ function buildLayoutGrids(g: GridResult, columns: number, density: number): Layo
         visible: true,
       }
 
+  // Equal margins centre the columns. Unequal ones anchor them to a side by its
+  // margin instead; Figma rejects negative offsets, so the side with the wider
+  // effective margin is used (a pixel snap that rounds u up can push a narrow
+  // margin below zero).
+  const colColor = { r: 0.53, g: 0.2, b: 0.92, a: 0.3 }
+  const columnGrid =
+    g.solvedM === g.solvedMR
+      ? {
+          pattern: 'COLUMNS',
+          alignment: 'CENTER',
+          count: columns,
+          sectionSize: g.columnWidth,
+          gutterSize: g.gutterWidth,
+          color: colColor,
+          visible: true,
+        }
+      : {
+          pattern: 'COLUMNS',
+          alignment: g.effectiveMargin >= g.effectiveMarginRight ? 'MIN' : 'MAX',
+          count: columns,
+          sectionSize: g.columnWidth,
+          gutterSize: g.gutterWidth,
+          offset: Math.max(0, g.effectiveMargin, g.effectiveMarginRight),
+          color: colColor,
+          visible: true,
+        }
+
   return [
-    {
-      pattern: 'COLUMNS',
-      alignment: 'CENTER',
-      count: columns,
-      sectionSize: g.columnWidth,
-      gutterSize: g.gutterWidth,
-      color: { r: 0.53, g: 0.2, b: 0.92, a: 0.3 },
-      visible: true,
-    },
+    columnGrid,
     cellGrid,
     {
       pattern: 'ROWS',
@@ -460,6 +486,14 @@ function marginCellsOf(p: Params): number {
     return Math.max(0, Math.round(p.marginCells))
   }
   return DEFAULT_PARAMS.marginCells
+}
+
+// The right margin in cells, used only when asymmetricMargin is on.
+function marginRightCellsOf(p: Params): number {
+  if (typeof p.marginRightCells === 'number') {
+    return Math.max(0, Math.round(p.marginRightCells))
+  }
+  return marginCellsOf(p)
 }
 
 // 1x–3x subdivide the cell for finer reference; 0.5x and 0.25x coarsen it —
@@ -1266,6 +1300,8 @@ function sendActionState(): void {
       gutterPx: g.gutterWidth,
       marginPx: g.margin,
       effectiveMargin: g.effectiveMargin,
+      marginRightPx: g.marginRight,
+      solvedMR: g.solvedMR,
       hRemainder: g.hRemainder,
       rowOffset: g.rowOffset,
       vRemainder: g.vRemainder,

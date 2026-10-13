@@ -10,9 +10,12 @@
 // frame. Margin, column and gutter widths are whole multiples of the cell
 // width `u`, so every edge lands on a cell line:
 //
-//   N = 2m + c·k + (c−1)·g      (cells across the frame)
+//   N = m + mR + c·k + (c−1)·g  (cells across the frame)
 //   u = W / N                    (cell size = base unit)
 //   margin = m·u   column = k·u   gutter = g·u
+//
+// m is the left margin and mR the right; they are equal unless the spec sets
+// marginRightCells.
 //
 // See plugins/dual-grid/README.md for the derivation, solver weight
 // comparisons and measured error tables.
@@ -47,7 +50,9 @@ export type GridSpec = {
       // Margin and gutter are given directly as cell counts; column width is
       // derived from targetCellColumns via the ladder.
       mode: 'manual'
-      marginCells: number // m — margin width in cells
+      marginCells: number // m — margin width in cells (the left margin if asymmetric)
+      // mR — right margin width in cells. Omitted, it matches marginCells.
+      marginRightCells?: number
       gutterCells: number // g — cells per gutter
     }
   | {
@@ -63,6 +68,7 @@ export interface GridResult {
   N: number // whole cells that fit across the frame
   u: number // cell size = base unit
   solvedM: number // multiples actually used (from the spec or the solver)
+  solvedMR: number // right margin in cells; equals solvedM unless asymmetric
   solvedK: number
   solvedG: number
   solved: boolean // whether the solver chose them
@@ -71,8 +77,10 @@ export interface GridResult {
   columnWidth: number
   columnCells: number // columnWidth in whole cells (= k)
   gutterWidth: number
-  margin: number
-  effectiveMargin: number
+  margin: number // left margin, m·u
+  effectiveMargin: number // left margin including half the rounding remainder
+  marginRight: number
+  effectiveMarginRight: number
   contentWidth: number
   rows: number
   cellH: number
@@ -233,8 +241,8 @@ export function round2(n: number): number {
   return Math.round(n * 100) / 100
 }
 
-// The manual-mode cell ladder. With c, m and g fixed, k is the only free
-// variable in N = 2m + ck + (c−1)g. Possible counts step by c, giving a
+// The manual-mode cell ladder. With c, m, mR and g fixed, k is the only free
+// variable in N = m + mR + ck + (c−1)g. Possible counts step by c, giving a
 // discrete set of cell sizes u = W/N. Aspect deviation is reported, not used
 // to reject sizes.
 export function cellLadder(
@@ -244,10 +252,11 @@ export function cellLadder(
   g: number,
   pixelSnap: boolean,
   snapTolPx: number,
+  mRight: number = m,
 ): CellOption[] {
   const byCell = new Map<number, CellOption>()
   for (let k = 1; k <= SOLVE_MAX_COLUMN; k++) {
-    const N = 2 * m + c * k + (c - 1) * g
+    const N = m + mRight + c * k + (c - 1) * g
     const u = snapUnit(W / N, pixelSnap, snapTolPx)
     if (u < LADDER_MIN_CELL) continue
 
@@ -309,6 +318,7 @@ export function computeGrid(spec: GridSpec): GridResult {
   let solved: Solution | null = null
   let gm: number
   let m: number
+  let mR: number
   if (spec.mode === 'auto') {
     solved = solveMultiples(
       W,
@@ -321,26 +331,32 @@ export function computeGrid(spec: GridSpec): GridResult {
     )
     gm = solved.g
     m = solved.m
+    mR = solved.m
   } else {
     gm = Math.max(1, Math.round(spec.gutterCells))
     m = Math.max(0, Math.round(spec.marginCells))
+    mR =
+      spec.marginRightCells !== undefined
+        ? Math.max(0, Math.round(spec.marginRightCells))
+        : m
   }
   // Manual: the column count is picked straight off the ladder. The ladder depends
-  // on c, m, g, the pixel snap and its tolerance, so it is rebuilt whenever any of
+  // on c, m, mR, g, the pixel snap and its tolerance, so it is rebuilt whenever any of
   // those move and the request is re-snapped by *count* — 197 cells stays ≈197
   // across a margin change rather than sliding to whatever sits at the same
   // ladder index.
-  const ladder = solved ? [] : cellLadder(W, c, m, gm, pixelSnap, snapTol)
+  const ladder = solved ? [] : cellLadder(W, c, m, gm, pixelSnap, snapTol, mR)
   const chosen = solved ? null : pickCellOption(ladder, targetN)
   const k = solved ? solved.k : chosen ? chosen.k : 1
 
-  const N = 2 * m + c * k + (c - 1) * gm
+  const N = m + mR + c * k + (c - 1) * gm
   const uExact = W / N
   const u = snapUnit(uExact, pixelSnap, snapTol)
 
   const columnWidth = k * u
   const gutterWidth = gm * u
   const margin = m * u
+  const marginRight = mR * u
   const columnCells = k
   const contentWidth = c * columnWidth + (c - 1) * gutterWidth
 
@@ -348,6 +364,7 @@ export function computeGrid(spec: GridSpec): GridResult {
   // amount, so they stay in phase.
   const hRemainder = W - N * u
   const effectiveMargin = margin + hRemainder / 2
+  const effectiveMarginRight = marginRight + hRemainder / 2
   const offsetX = 0 // centring handles the phase; no offset needed
 
   let rows: number
@@ -403,6 +420,7 @@ export function computeGrid(spec: GridSpec): GridResult {
     N,
     u,
     solvedM: m,
+    solvedMR: mR,
     solvedK: k,
     solvedG: gm,
     solved: !!solved,
@@ -413,6 +431,8 @@ export function computeGrid(spec: GridSpec): GridResult {
     gutterWidth,
     margin,
     effectiveMargin,
+    marginRight,
+    effectiveMarginRight,
     contentWidth,
     rows,
     cellH,

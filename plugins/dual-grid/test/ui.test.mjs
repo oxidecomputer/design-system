@@ -107,18 +107,18 @@ setTimeout(async () => {
         .join('|'),
     )
     check(
-      '29 fig-field labels',
-      doc.querySelectorAll('.fig-field-label').length === 29,
+      '31 fig-field labels',
+      doc.querySelectorAll('.fig-field-label').length === 31,
       doc.querySelectorAll('.fig-field-label').length,
     )
     check(
-      '5 sliders (columns, margin, gutter cells, cell columns, aspect)',
-      doc.querySelectorAll('fig-slider input[type=range]').length === 5,
+      '6 sliders (columns, left/right margin, gutter cells, cell columns, aspect)',
+      doc.querySelectorAll('fig-slider input[type=range]').length === 6,
       doc.querySelectorAll('fig-slider input[type=range]').length,
     )
     check(
-      '5 switches',
-      doc.querySelectorAll('fig-switch input[type=checkbox]').length === 5,
+      '6 switches',
+      doc.querySelectorAll('fig-switch input[type=checkbox]').length === 6,
       doc.querySelectorAll('fig-switch input[type=checkbox]').length,
     )
     check(
@@ -227,6 +227,50 @@ setTimeout(async () => {
     // The column count is asked for directly in both modes. (aspectTolPct,
     // the row-height band, is a different control.)
     check('Manual shows the cell columns slider', visible('cellColumns'))
+
+    console.log('--- asymmetric margin ---')
+    const marginLabel = () =>
+      $('marginCells').closest('fig-field').querySelector('.fig-field-label').textContent
+    check(
+      'right margin hidden while the switch is off',
+      visible('asymmetricMargin') && !visible('marginRightCells'),
+    )
+    check('...and the margin reads as one value', marginLabel() === 'Margin cells')
+    sent.length = 0
+    $('asymmetricMargin').querySelector('input').click()
+    check('switching on shows the right margin', visible('marginRightCells'))
+    check('...and relabels the first as the left', marginLabel() === 'Left margin')
+    const r = $('marginRightCells').querySelector('input[type=range]')
+    r.value = '4'
+    r.dispatchEvent(new w.Event('input', { bubbles: true }))
+    const lastChange = sent.filter((x) => x.type === 'params-changed').pop()
+    check(
+      '...posts asymmetricMargin and marginRightCells',
+      !!lastChange &&
+        lastChange.params.asymmetricMargin === true &&
+        lastChange.params.marginRightCells === 4,
+      lastChange && JSON.stringify(lastChange.params.marginRightCells),
+    )
+    $('mode').querySelector('select').value = 'Solve'
+    $('mode')
+      .querySelector('select')
+      .dispatchEvent(new w.Event('change', { bubbles: true }))
+    check(
+      'Solve hides the margin switch and right margin',
+      !visible('asymmetricMargin') && !visible('marginRightCells'),
+    )
+    $('mode').querySelector('select').value = 'Manual'
+    $('mode')
+      .querySelector('select')
+      .dispatchEvent(new w.Event('change', { bubbles: true }))
+    check('back in Manual the right margin returns', visible('marginRightCells'))
+    $('asymmetricMargin').querySelector('input').click()
+    r.value = '3'
+    r.dispatchEvent(new w.Event('input', { bubbles: true }))
+    check(
+      'switching off hides it and restores the label',
+      !visible('marginRightCells') && marginLabel() === 'Margin cells',
+    )
 
     sent.length = 0
     $('mode').querySelector('select').value = 'Solve'
@@ -1257,6 +1301,7 @@ setTimeout(async () => {
         [
           'edgeCull',
           'edgeCullPct',
+          'asymmetricMargin',
           'cellAspect',
           'cellDensity',
           'showLines',
@@ -1271,6 +1316,7 @@ setTimeout(async () => {
           'mode',
           'columnCount',
           'marginCells',
+          'marginRightCells',
           'gutterMultiple',
           'cellColumns',
           'snapRows',

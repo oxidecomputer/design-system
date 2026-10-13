@@ -1047,6 +1047,82 @@ for (const [snap, pp] of [
   )
 }
 
+console.log('\n=== ASYMMETRIC MARGIN: left and right cell counts ===')
+for (const [ml, mr, pp, tol] of [
+  [8, 4, false, 0.5],
+  [4, 8, false, 0.5],
+  [8, 4, true, 0.5],
+  [0, 3, true, 0.5],
+  [1, 0, true, 0.5],
+  [2, 9, true, 0.1],
+]) {
+  const tag = `m${ml}/${mr} pp=${pp} tol=${tol}`
+  const { fr, pv } = await apply(1920, 1080, {
+    marginCells: ml,
+    asymmetricMargin: true,
+    marginRightCells: mr,
+    pixelPerfect: pp,
+    snapTolerancePx: tol,
+  })
+  check(
+    `${tag} -> N = mL + mR + ck + (c−1)g`,
+    pv.cols === ml + mr + 12 * pv.solvedK + 11 * pv.solvedG,
+    pv.cols + ' k=' + pv.solvedK,
+  )
+  check(`  reports both margins`, pv.solvedM === ml && pv.solvedMR === mr)
+  const colLG = fr.layoutGrids[0]
+  check(
+    `  column grid anchors to a side with a non-negative offset`,
+    (colLG.alignment === 'MIN' || colLG.alignment === 'MAX') && colLG.offset >= 0,
+    colLG.alignment + ' offset=' + colLG.offset,
+  )
+  const contentW = 12 * colLG.sectionSize + 11 * colLG.gutterSize
+  const contentLeft =
+    colLG.alignment === 'MIN' ? colLG.offset : 1920 - colLG.offset - contentW
+  // Every edge must stay on the cell grid: the content block starts mL cells
+  // past the cell origin, which the remainder centres.
+  const cellOrigin = pv.hRemainder / 2
+  check(
+    `  content starts mL cells from the cell origin`,
+    Math.abs((contentLeft - cellOrigin) / pv.u - ml) < 1e-6,
+    ((contentLeft - cellOrigin) / pv.u).toFixed(4),
+  )
+  check(
+    `  ...and ends mR cells before the far edge of the cell grid`,
+    Math.abs((cellOrigin + pv.cols * pv.u - (contentLeft + contentW)) / pv.u - mr) < 1e-6,
+  )
+  const specs = layer(fr, 'Type Specimens')
+  check(
+    `  specimens sit on the left margin`,
+    specs.children.every((n) => Math.abs(n.x - pv.effectiveMargin) < 1e-6),
+    specs.children.map((n) => n.x).join(','),
+  )
+}
+{
+  const { fr, pv } = await apply(1920, 1080, {
+    marginCells: 5,
+    asymmetricMargin: false,
+    marginRightCells: 11,
+  })
+  check(
+    'switch off -> marginRightCells is ignored, both sides use marginCells',
+    pv.solvedM === 5 && pv.solvedMR === 5 && fr.layoutGrids[0].alignment === 'CENTER',
+    pv.solvedM + '/' + pv.solvedMR + ' ' + fr.layoutGrids[0].alignment,
+  )
+}
+{
+  const { pv } = await apply(1920, 1080, {
+    mode: 'Solve',
+    asymmetricMargin: true,
+    marginRightCells: 11,
+  })
+  check(
+    'Solve ignores the asymmetric margin',
+    pv.solvedM === pv.solvedMR,
+    pv.solvedM + '/' + pv.solvedMR,
+  )
+}
+
 console.log('\n=== ALIGNMENT holds by construction (no phase to solve) ===')
 for (const [mc, gm, pp] of [
   [3, 1, false],
