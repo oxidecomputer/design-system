@@ -342,9 +342,10 @@ func main() {
         <CodeBlock
           lang="oxql"
           code={`get sled_data_link:bytes_sent
-    | filter timestamp > @now() - 1h
-    | align mean_within(5m)
-    | group_by [sled_serial]`}
+    | filter timestamp > @2024-01-01T12:30:00 && !(link_name == "net0" || kind ~= 'vnic')
+    | align mean_within(500ms)
+    | group_by [sled_serial, link_name], sum
+    | last 10`}
         />
       </Section>
 

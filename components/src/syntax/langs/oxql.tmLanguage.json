@@ -1,32 +1,20 @@
 {
   "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
   "name": "oxql",
-  "repository": {
-    "keywords": {
-      "patterns": [
-        {
-          "name": "keyword.control.oxql",
-          "match": "\\b(if|while|for|return)\\b"
-        }
-      ]
-    },
-    "strings": {
-      "name": "string.quoted.double.oxql",
-      "begin": "\"",
-      "end": "\"",
-      "patterns": [
-        {
-          "name": "constant.character.escape.oxql",
-          "match": "\\\\."
-        }
-      ]
-    }
-  },
+  "repository": {},
   "scopeName": "source.oxql",
   "patterns": [
     {
       "name": "keyword.control.oxql",
-      "match": "\\b(get|join|align|filter|group_by)\\b"
+      "match": "\\b(get|join|align|filter|group_by|first|last)\\b"
+    },
+    {
+      "name": "support.function.oxql",
+      "match": "\\b(mean_within|interpolate|mean|sum)\\b"
+    },
+    {
+      "name": "constant.language.boolean.oxql",
+      "match": "\\b(true|false)\\b"
     },
     {
       "name": "string.quoted.double.oxql",
@@ -51,33 +39,48 @@
       ]
     },
     {
-      "name": "constant.numeric.oxql",
-      "match": "\\b\\d+[smhdw]\\b"
-    },
-    {
-      "name": "constant.numeric.datetime.oxql",
-      "match": "@\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}"
-    },
-    {
       "name": "constant.numeric.function.oxql",
       "match": "@now\\(\\)"
     },
     {
-      "name": "constant.numeric.oxql",
+      "name": "constant.numeric.datetime.oxql",
+      "match": "@(\\d{4}-\\d{2}-\\d{2}(T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?)?|\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?)"
+    },
+    {
+      "name": "constant.numeric.duration.oxql",
+      "match": "\\b\\d+(Y|M|w|d|h|ms|us|ns|m|s)\\b"
+    },
+    {
+      "name": "constant.numeric.hex.oxql",
+      "match": "\\b0x[0-9a-fA-F]+\\b"
+    },
+    {
+      "name": "constant.numeric.float.oxql",
+      "match": "(\\b\\d+\\.\\d*|\\.\\d+)([eE]-?\\d+)?|\\b\\d+[eE]-?\\d+\\b"
+    },
+    {
+      "name": "constant.numeric.integer.oxql",
       "match": "\\b\\d+\\b"
     },
     {
-      "name": "comment.block.oxql",
-      "begin": "/\\*",
-      "end": "\\*/"
+      "name": "keyword.operator.comparison.oxql",
+      "match": "==|!=|>=|<=|~=|>|<"
     },
     {
-      "name": "comment.line.double-slash.oxql",
-      "match": "//.*$"
+      "name": "keyword.operator.logical.oxql",
+      "match": "\\|\\||&&|\\^|!"
     },
     {
       "name": "keyword.operator.oxql",
       "match": "\\|"
+    },
+    {
+      "name": "punctuation.separator.oxql",
+      "match": "[,;]"
+    },
+    {
+      "name": "punctuation.section.brackets.oxql",
+      "match": "[\\[\\]{}()]"
     }
   ]
 }
