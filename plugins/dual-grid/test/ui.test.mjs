@@ -1616,7 +1616,11 @@ setTimeout(async () => {
       $('action-primary').click()
       $('action-primary').click()
       check('a double-click posts one action', actions().length === 1, actions().length)
-      check('...and the button is disabled while it runs', $('action-primary').disabled)
+      check(
+        '...and the button is busy, not greyed out, while it runs',
+        $('action-primary').getAttribute('aria-busy') === 'true' &&
+          !$('action-primary').disabled,
+      )
       send({
         type: 'action-state',
         action: 'remove',
@@ -1625,7 +1629,10 @@ setTimeout(async () => {
         status: 'Live editing',
         preview: Object.assign({}, pvSolve, { source: 'selection' }),
       })
-      check('...and enabled again when the plugin replies', !$('action-primary').disabled)
+      check(
+        '...and no longer busy when the plugin replies',
+        !$('action-primary').hasAttribute('aria-busy'),
+      )
       sent.length = 0
       $('action-primary').click()
       check('a click just after the button relabels is ignored', actions().length === 0)
@@ -1746,6 +1753,36 @@ setTimeout(async () => {
         $('frameHeight').value === 2160,
         $('frameHeight').value,
       )
+    }
+
+    console.log('\n=== grid controls show only while live editing ===')
+    {
+      const shown = (el) => w.getComputedStyle(el).display !== 'none'
+      const groups = () => [...doc.querySelectorAll('fig-group')]
+      send({ type: 'action-state', action: 'create', actionLabel: 'Create frame' })
+      check(
+        'with no gridded frame, only the Frame group shows',
+        groups()
+          .filter(shown)
+          .map((g) => g.getAttribute('name'))
+          .join(',') === 'Frame',
+        groups()
+          .filter(shown)
+          .map((g) => g.getAttribute('name'))
+          .join(','),
+      )
+      check('...and Copy config is hidden', !shown($('copy-mitos')))
+      send({ type: 'action-state', action: 'apply', actionLabel: 'Apply grids' })
+      check('an ungridded frame still hides the grid controls', !shown(groups()[0]))
+      send({
+        type: 'action-state',
+        action: 'remove',
+        actionLabel: 'Remove grids',
+        status: 'Live editing',
+        live: true,
+      })
+      check('a gridded frame shows every group', groups().every(shown))
+      check('...and Copy config', shown($('copy-mitos')))
     }
 
     console.log('\n=== final error check ===')

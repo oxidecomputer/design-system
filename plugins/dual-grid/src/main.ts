@@ -1748,6 +1748,8 @@ function sendActionState(): void {
     actionLabel: label,
     actionDanger: action === 'remove',
     status: bound ? 'Live editing' : '',
+    // The grid controls only show on a gridded frame, so every edit is live.
+    live: bound,
     preview: {
       source: frame ? 'selection' : 'new frame',
       frameW: W,

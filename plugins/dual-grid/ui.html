@@ -483,6 +483,13 @@
       fig-footer .fig-status:empty {
         display: none;
       }
+      /* The grid controls apply live to a gridded frame and nothing else, so
+         they're hidden until one is selected. Create frame and Apply grids use
+         the settings last used. */
+      #plugin-root:not([data-live]) fig-group:not([name='Frame']),
+      #plugin-root:not([data-live]) #copy-mitos {
+        display: none;
+      }
     </style>
   </head>
   <body>
@@ -1605,7 +1612,10 @@
       $('action-primary').addEventListener('click', () => {
         if (actionInFlight || Date.now() - actionChangedAt < ACTION_SETTLE_MS) return
         actionInFlight = true
-        $('action-primary').disabled = true
+        // Busy, not disabled: greying the button out until the reply arrives
+        // flashes it between its old and new colours. actionInFlight already
+        // ignores further clicks.
+        $('action-primary').setAttribute('aria-busy', 'true')
         post({
           type: 'action',
           action: currentAction,
@@ -1691,11 +1701,12 @@
           const button = $('action-primary')
           if (msg.action !== currentAction) actionChangedAt = Date.now()
           actionInFlight = false
-          button.disabled = false
+          button.removeAttribute('aria-busy')
           currentAction = msg.action
           button.textContent = msg.actionLabel
           button.classList.toggle('danger', !!msg.actionDanger)
           $('action-status').textContent = msg.status || ''
+          $('plugin-root').toggleAttribute('data-live', !!msg.live)
           if (msg.preview) renderPreview(msg.preview)
           reportHeight()
         } else if (msg.type === 'params-change') {
