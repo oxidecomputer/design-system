@@ -137,11 +137,11 @@ derived.
 **Solve**: enter target margin and gutter widths in pixels and a cell column count. The
 solver finds the closest whole-cell multiples, preserving grid alignment.
 
-| Solve input  | Meaning                                                          |
-| ------------ | ---------------------------------------------------------------- |
-| Margin       | target margin in px (default 50)                                 |
-| Gutter       | target gutter in px (default 20)                                 |
-| Cell columns | target `N`, the same quantity Manual's slider sets (default 89)  |
+| Solve input  | Meaning                                                         |
+| ------------ | --------------------------------------------------------------- |
+| Margin       | target margin in px (default 50)                                |
+| Gutter       | target gutter in px (default 20)                                |
+| Cell columns | target `N`, the same quantity Manual's slider sets (default 89) |
 
 All three inputs are weighted targets, not hard constraints. Every combination produces a
 grid. Each field shows the achieved value in parentheses beside the target, such as
@@ -192,10 +192,9 @@ optional modes:
   columns, 2 margin cells and 1 gutter cell, `u = 22.069px` snaps to 22px, producing 132px
   columns, 22px gutters and 47px effective margins. Values outside the tolerance remain
   fractional. The default tolerance of 0.5 always snaps; 0 disables snapping, including the
-  row search below. The remainder,
-  `W − N·u`, is split evenly between the margins, keeping both grids aligned using Figma's
-  `CENTER` alignment. Rounding up can make the grid wider than the frame, extending it
-  beyond both edges.
+  row search below. The remainder, `W − N·u`, is split evenly between the margins, keeping
+  both grids aligned using Figma's `CENTER` alignment. Rounding up can make the grid wider
+  than the frame, extending it beyond both edges.
 
 **Aspect tol.** is shown while Pixel snap is on and is measured as a percentage of the
 target aspect ratio (default 5). With Snap rows on, it allows the row count to change within
@@ -262,11 +261,11 @@ elements styled with Figma's `--figma-color-*` theme tokens.
 
 One action button, whose label and action follow the selection, and **Copy config**:
 
-| Label            | Offered when                                    | Behavior                                                                               |
-| ---------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Label            | Offered when                                         | Behavior                                                                               |
+| ---------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | **Create frame** | nothing, or anything but a single frame, is selected | Creates a frame at the viewport center from the "New frame" params, then applies grids |
-| **Apply grids**  | one ungridded frame is selected                 | Applies 3 layout grids + char grid, lines and specimens                                |
-| **Remove grids** | that frame already has grids                    | Removes the plugin's layout grids and generated layers                                 |
+| **Apply grids**  | one ungridded frame is selected                      | Applies 3 layout grids + char grid, lines and specimens                                |
+| **Remove grids** | that frame already has grids                         | Removes the plugin's layout grids and generated layers                                 |
 
 The status text above the button reads `Live editing` while a gridded frame is targeted and
 is hidden otherwise. It is a plain `span`: a `<label for>` would forward clicks on it to the
@@ -333,9 +332,9 @@ regardless of the target frame's clip setting.
 
 ### Layer reuse
 
-Every layer the plugin creates carries a `dualGridRole` plugin-data mark, and the plugin only
-ever reuses or deletes marked layers. A user's layer that shares a generated name, or a layer
-the user adds inside `Grid Lines` or `Type Specimens`, is left alone.
+Every layer the plugin creates carries a `dualGridRole` plugin-data mark, and the plugin
+only ever reuses or deletes marked layers. A user's layer that shares a generated name, or a
+layer the user adds inside `Grid Lines` or `Type Specimens`, is left alone.
 
 A stored layer ID is used only if it resolves to a node inside the target frame. Otherwise,
 the first child marked with the expected role is reused, and other marked duplicates are
@@ -354,7 +353,8 @@ Layers and their contents are updated in place:
 - Specimens are matched by position in their family's size list (a `dualGridSlot` mark), so
   text typed into the third sans specimen stays with it whatever its size becomes, and its
   layer is renamed to match. Reapplying changes size, leading, tracking and position, but
-  preserves edited text. Specimens that no longer fit or are no longer requested are removed.
+  preserves edited text. Specimens that no longer fit or are no longer requested are
+  removed.
 
 Applies run through a single queue to prevent overlapping updates from creating duplicate
 layers before IDs have been stored. The test suite does not currently reproduce this race.
@@ -475,27 +475,34 @@ char grid draws in the resolved font, to keep character cells `u` wide.
 
 ## Colours
 
-Colours are defined as hex values at the top of `main.ts`:
+Colours are bound to design-system swatches from the team library, as `COLOR` variables.
+Each has a hex fallback, used when the library isn't enabled in the file or the swatch can't
+be found. Both are defined at the top of `main.ts`:
 
-| Constant      | Applies to                        | Value     |
-| ------------- | --------------------------------- | --------- |
-| `COLOR_BG`    | the frame fill, on _Create frame_ | `#000000` |
-| `COLOR_TEXT`  | the specimens                     | `#FFFFFF` |
-| `COLOR_CHAR`  | the char grid                     | `#333333` |
-| `COLOR_LINES` | the drawn cell-grid strokes       | `#666666` |
+| Applies to                        | Swatch             | Fallback  |
+| --------------------------------- | ------------------ | --------- |
+| the frame fill, on _Create frame_ | `base/neutral/100` | `#000000` |
+| the specimens                     | `base/green/1200`  | `#FFFFFF` |
+| the char grid                     | `base/neutral/500` | `#333333` |
+| the drawn cell-grid strokes       | `base/neutral/400` | `#666666` |
+
+The manifest requests the `teamlibrary` permission, which works for development and private
+plugins. The library must be enabled in the file (Assets → Libraries); Figma only lists
+variables from enabled libraries. A swatch matches either a variable with the full name or
+one named `neutral/400` in a `base` collection. The library is read once per plugin session,
+so enabling it while the plugin is open needs a relaunch.
 
 Figma's own layout-grid overlay colours (the purple column grid and the cyan cell grid) are
-separate, and set in `buildLayoutGrids`.
+separate, set in `buildLayoutGrids`, and stay literal: `VariableBindableLayoutGridField` is
+only `sectionSize | count | offset | gutterSize`, which excludes overlay colours.
 
-These colours are not bound to design-system `COLOR` variables because bindings have been
-unreliable. Relevant API limitations:
+Text fills are set with `setRangeFills` over the whole node. Figma stores them per
+character, and assigning the node-wide `fills` drops the variable binding on text.
 
-- Layout-grid colours cannot be bound. `VariableBindableLayoutGridField` is only
-  `sectionSize | count | offset | gutterSize`, which excludes overlay colours.
-- Text fills must be set by range. Figma stores them per character, and the API documents
-  `setRangeFills`, not the node-wide `fills` setter, as the route that "can be bound to
-  color variables by using `setBoundVariableForPaint`". Assigning only `fills` drops the
-  binding on text.
+Each bound paint's literal colour is the variable's value, resolved for the node it's
+applied to (`resolveForConsumer`), not the hex fallback. When a text range is re-set to a
+binding it already has, as on every live reapply, Figma keeps the binding but renders the
+paint's literal colour.
 
 ## State
 

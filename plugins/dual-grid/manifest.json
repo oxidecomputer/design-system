@@ -4,8 +4,7 @@
   "api": "1.0.0",
   "main": "dist/main.js",
   "ui": "ui.html",
-  "editorType": [
-    "figma"
-  ],
-  "documentAccess": "dynamic-page"
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "permissions": ["teamlibrary"]
 }

@@ -555,30 +555,23 @@ const COLOR_TEXT = hex('#FFFFFF') // specimen text
 const COLOR_CHAR = hex('#333333') // the ASCII char grid
 const COLOR_LINES = hex('#666666') // the drawn cell-grid strokes
 
+const SWATCH_BG = 'base/neutral/100'
+const SWATCH_TEXT = 'base/green/1200'
+const SWATCH_CHAR = 'base/neutral/500'
 const SWATCH_LINES = 'base/neutral/400'
 
 // Swatch names are the full path, e.g. `base/neutral/400`. Depending on how the
 // tokens were synced, the library may store that as a variable named
-// `base/neutral/400` or as `neutral/400` inside a `base` collection, so both
-// spellings match.
-function swatchMatches(swatch: string, collection: string, variable: string): boolean {
-  return variable === swatch || `${collection}/${variable}` === swatch
-}
-
-// Resolved once per plugin session: listing library variables is a network
-// round trip, and live reapplies run on every slider change.
+// `base/neutral/400` or as `neutral/400` inside a `base` collection, so the
+// index holds both spellings.
+//
+// Built once per plugin session: listing library variables is a network round
+// trip, and live reapplies run on every slider change.
+let libraryIndex: Promise<Map<string, string>> | null = null
 const swatchCache = new Map<string, Promise<Variable | null>>()
 
-function findSwatch(swatch: string): Promise<Variable | null> {
-  let found = swatchCache.get(swatch)
-  if (!found) {
-    found = lookupSwatch(swatch)
-    swatchCache.set(swatch, found)
-  }
-  return found
-}
-
-async function lookupSwatch(swatch: string): Promise<Variable | null> {
+async function buildLibraryIndex(): Promise<Map<string, string>> {
+  const keys = new Map<string, string>()
   try {
     // Only libraries enabled in the current file are listed.
     const collections =
@@ -587,25 +580,76 @@ async function lookupSwatch(swatch: string): Promise<Variable | null> {
       const vars = await figma.teamLibrary.getVariablesInLibraryCollectionAsync(
         collection.key,
       )
-      const hit = vars.find(
-        (v) => v.resolvedType === 'COLOR' && swatchMatches(swatch, collection.name, v.name),
-      )
-      if (hit) return await figma.variables.importVariableByKeyAsync(hit.key)
+      for (const v of vars) {
+        if (v.resolvedType !== 'COLOR') continue
+        const full = `${collection.name}/${v.name}`
+        if (!keys.has(full)) keys.set(full, v.key)
+        if (!keys.has(v.name)) keys.set(v.name, v.key)
+      }
     }
   } catch (err) {
-    console.warn(`Swatch ${swatch} unavailable: ${(err as Error).message}`)
+    console.warn(`Library swatches unavailable: ${(err as Error).message}`)
   }
-  return null
+  return keys
+}
+
+function findSwatch(swatch: string): Promise<Variable | null> {
+  let found = swatchCache.get(swatch)
+  if (!found) {
+    found = importSwatch(swatch)
+    swatchCache.set(swatch, found)
+  }
+  return found
+}
+
+async function importSwatch(swatch: string): Promise<Variable | null> {
+  if (!libraryIndex) libraryIndex = buildLibraryIndex()
+  const key = (await libraryIndex).get(swatch)
+  if (!key) return null
+  try {
+    return await figma.variables.importVariableByKeyAsync(key)
+  } catch (err) {
+    console.warn(`Swatch ${swatch} unavailable: ${(err as Error).message}`)
+    return null
+  }
+}
+
+// Figma stores text fills per character, and only setRangeFills keeps a
+// variable binding on text; assigning `fills` drops it. An empty node has no
+// range to set, so it takes the node-wide fill.
+function fillText(node: TextNode, paint: SolidPaint): void {
+  const length = node.characters.length
+  if (length > 0) node.setRangeFills(0, length, [paint])
+  else node.fills = [paint]
 }
 
 // A solid paint bound to the swatch, or the literal fallback when the swatch
-// can't be found.
-async function swatchPaint(swatch: string, fallback: RGB): Promise<SolidPaint> {
-  const paint: SolidPaint = { type: 'SOLID', color: fallback }
+// can't be found. The paint's literal colour is the variable's value as
+// `consumer` resolves it (its mode comes from the node's ancestors). Re-setting
+// a text range to a binding it already has keeps the binding but renders the
+// paint's literal colour, so a fallback colour there shows on the canvas.
+async function swatchPaint(
+  swatch: string,
+  fallback: RGB,
+  consumer: SceneNode,
+): Promise<SolidPaint> {
   const variable = await findSwatch(swatch)
-  return variable
-    ? figma.variables.setBoundVariableForPaint(paint, 'color', variable)
-    : paint
+  if (!variable) return { type: 'SOLID', color: fallback }
+  let color = fallback
+  let opacity = 1
+  try {
+    const { value } = variable.resolveForConsumer(consumer)
+    const c = value as RGBA
+    color = { r: c.r, g: c.g, b: c.b }
+    if (typeof c.a === 'number') opacity = c.a
+  } catch (err) {
+    console.warn(`Swatch ${swatch} unresolved: ${(err as Error).message}`)
+  }
+  return figma.variables.setBoundVariableForPaint(
+    { type: 'SOLID', color, opacity },
+    'color',
+    variable,
+  )
 }
 
 // The overlay colors of the plugin's three layout grids. They also identify the
@@ -1095,7 +1139,7 @@ async function ensureCharGrid(
   node.x = ext.startX
   node.y = ext.startY
 
-  node.fills = [{ type: 'SOLID', color: COLOR_CHAR }]
+  fillText(node, await swatchPaint(SWATCH_CHAR, COLOR_CHAR, node))
 
   return node.id
 }
@@ -1188,7 +1232,7 @@ async function ensureGridLines(
     edgeCullPct: edgeCullPctOf(p),
   })
   // Only the cell grid is drawn — the columns stay a Figma layout grid.
-  const paint = await swatchPaint(SWATCH_LINES, COLOR_LINES)
+  const paint = await swatchPaint(SWATCH_LINES, COLOR_LINES, container)
   const lines = drawLines(container, `Cell Grid ${d}x`, cells, paint, 1.0)
   if (lines) mark(lines, 'lines')
 
@@ -1242,6 +1286,7 @@ async function ensureSpecimens(
   await figma.loadFontAsync(monoFont)
   await figma.loadFontAsync(sansFont)
 
+  const textPaint = await swatchPaint(SWATCH_TEXT, COLOR_TEXT, container)
   const sized = sizeSpecimens(p, g, frame.height)
   const displayScale = displayScaleOf(p, frame.width)
 
@@ -1365,7 +1410,7 @@ async function ensureSpecimens(
       unit: 'PERCENT',
     }
     node.textCase = isMono ? 'UPPER' : 'ORIGINAL'
-    node.fills = [{ type: 'SOLID', color: COLOR_TEXT }]
+    fillText(node, textPaint)
 
     const targetBaseline = g.rowOffset + baselineCell * g.cellH
     const measured = await measureBaselineOffset(font, fontSize, lineHeight)
@@ -1519,14 +1564,14 @@ function frameWidthOf(p: Params): number {
   return Math.max(1, Math.round(positiveOr(p.frameWidth, DEFAULT_PARAMS.frameWidth)))
 }
 
-function createFrame(p: Params): FrameNode {
+async function createFrame(p: Params): Promise<FrameNode> {
   const W = frameWidthOf(p)
   const H = frameHeightOf(p, W)
 
   const frame = figma.createFrame()
   frame.name = 'Dual Grid Frame'
   frame.resize(W, H)
-  frame.fills = [{ type: 'SOLID', color: COLOR_BG }]
+  frame.fills = [await swatchPaint(SWATCH_BG, COLOR_BG, frame)]
 
   const center = figma.viewport.center
   frame.x = Math.round(center.x - W / 2)
@@ -1541,7 +1586,7 @@ async function handleAction(
   p: Params,
 ): Promise<void> {
   if (action === 'create') {
-    const frame = createFrame(p)
+    const frame = await createFrame(p)
     let notes: string[]
     try {
       notes = await serialiseApply(() => applyGrids(frame, p))

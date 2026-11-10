@@ -60,6 +60,11 @@ function makeText() {
     textAutoResize: 'NONE',
     textCase: 'ORIGINAL',
     fills: [],
+    // Whole-node ranges only: the plugin never styles part of a text node.
+    setRangeFills(start, end, fills) {
+      if (start !== 0 || end !== this.characters.length) throw new Error('partial range')
+      this.fills = fills
+    },
     locked: false,
     x: 0,
     y: 0,
@@ -2318,7 +2323,7 @@ console.log('\n=== new defaults ===')
   )
 }
 
-console.log('\n=== the palette is literal, and survives live reapplies ===')
+console.log('\n=== without the library, the palette falls back to hex ===')
 {
   const fr = makeFrame(1920, 1080)
   page.appendChild(fr)
@@ -2359,7 +2364,7 @@ console.log('\n=== the palette is literal, and survives live reapplies ===')
     layer(fr, 'Type Specimens').children.map(rgb).join(','),
   )
   check('the cell lines are grey', stroke() === '#666666', stroke())
-  check('nothing carries a variable binding any more', !chars().fills[0].boundVariables)
+  check('nothing is bound without the library', !chars().fills[0].boundVariables)
 
   for (let i = 0; i < 5; i++) {
     await uiHandler({
@@ -2378,6 +2383,107 @@ console.log('\n=== the palette is literal, and survives live reapplies ===')
   await uiHandler({ type: 'action', action: 'create', params: P })
   const made = page.children[page.children.length - 1]
   check('a created frame is black', rgb(made) === '#000000', rgb(made))
+}
+
+console.log('\n=== with the library, the palette binds to swatches ===')
+{
+  // One library collection named `base`, holding the swatches by their short
+  // names, plus a same-named FLOAT to check only COLOR variables match.
+  const libVars = ['neutral/100', 'neutral/400', 'neutral/500', 'green/1200'].map(
+    (name) => ({ name, key: 'key:' + name, resolvedType: 'COLOR' }),
+  )
+  libVars.unshift({ name: 'neutral/400', key: 'key:float', resolvedType: 'FLOAT' })
+  // Distinct from every hex fallback, so a paint carrying the fallback shows up.
+  const swatchValue = { r: 0.25, g: 0.5, b: 0.75, a: 1 }
+  let listings = 0
+  figma.teamLibrary = {
+    async getAvailableLibraryVariableCollectionsAsync() {
+      listings++
+      return [{ key: 'col:base', name: 'base' }]
+    },
+    async getVariablesInLibraryCollectionAsync(key) {
+      return key === 'col:base' ? libVars : []
+    },
+  }
+  figma.variables = {
+    async importVariableByKeyAsync(key) {
+      return {
+        id: 'var:' + key,
+        key,
+        resolveForConsumer: () => ({ value: swatchValue, resolvedType: 'COLOR' }),
+      }
+    },
+    setBoundVariableForPaint(paint, field, variable) {
+      return {
+        ...paint,
+        boundVariables: { [field]: { type: 'VARIABLE_ALIAS', id: variable.id } },
+      }
+    },
+  }
+  // Relaunch so the session's swatch cache starts empty.
+  vm.runInContext(code, newContext())
+
+  const fr = makeFrame(1920, 1080)
+  page.appendChild(fr)
+  page.selection = [fr]
+  await uiHandler({ type: 'action', action: 'apply', params: P })
+  const bound = (paint) => paint && paint.boundVariables && paint.boundVariables.color.id
+  const chars = () => fr.children.find((c) => c.name === 'Char Grid')
+  const stroke = () => layer(fr, 'Grid Lines').children[0].strokes[0]
+
+  check(
+    'the cell lines are neutral/400',
+    bound(stroke()) === 'var:key:neutral/400',
+    bound(stroke()),
+  )
+  check(
+    'the char grid is neutral/500',
+    bound(chars().fills[0]) === 'var:key:neutral/500',
+    bound(chars().fills[0]),
+  )
+  const specimens = layer(fr, 'Type Specimens').children
+  check(
+    'the specimens are green/1200',
+    specimens.length > 0 &&
+      specimens.every((n) => bound(n.fills[0]) === 'var:key:green/1200'),
+    specimens.map((n) => bound(n.fills[0])).join(','),
+  )
+
+  for (let i = 0; i < 5; i++) {
+    await uiHandler({
+      type: 'params-changed',
+      reapply: true,
+      params: { ...P, marginCells: 2 + i },
+    })
+  }
+  check(
+    'still bound after five live reapplies',
+    bound(chars().fills[0]) === 'var:key:neutral/500' &&
+      bound(stroke()) === 'var:key:neutral/400',
+  )
+  check('the library is listed once per session', listings === 1, listings)
+  // Figma renders a text range's literal colour when it's re-set to a binding
+  // it already has, so the literal must be the variable's value, not a fallback.
+  const literal = (paint) => paint.color.r === 0.25 && paint.color.b === 0.75
+  check(
+    "after reapplies, every paint's literal colour is the swatch's value",
+    literal(chars().fills[0]) &&
+      literal(stroke()) &&
+      layer(fr, 'Type Specimens').children.every((n) => literal(n.fills[0])),
+  )
+
+  page.selection = []
+  await uiHandler({ type: 'action', action: 'create', params: P })
+  const made = page.children[page.children.length - 1]
+  check(
+    'a created frame is neutral/100',
+    bound(made.fills[0]) === 'var:key:neutral/100',
+    bound(made.fills[0]),
+  )
+
+  delete figma.teamLibrary
+  delete figma.variables
+  vm.runInContext(code, newContext())
 }
 
 console.log('\n=== a custom frame aspect ===')
