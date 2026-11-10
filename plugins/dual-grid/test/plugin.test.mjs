@@ -3344,7 +3344,9 @@ console.log('--- fixes from the product description triage ---')
     const fr = await fresh(1920, 1080)
     const note = makeText()
     note.name = 'My note'
-    specimensOf(fr).length && layer(fr, 'Type Specimens').appendChild(note)
+    if (specimensOf(fr).length) {
+      layer(fr, 'Type Specimens').appendChild(note)
+    }
     const inLines = makeText()
     layer(fr, 'Grid Lines').appendChild(inLines)
     await reapply({ gutterMultiple: 2 })
