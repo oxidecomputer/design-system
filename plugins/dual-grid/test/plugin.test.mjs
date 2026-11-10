@@ -64,6 +64,14 @@ function makeText() {
     x: 0,
     y: 0,
     _resized: null,
+    _data: {},
+    getPluginData(k) {
+      return this._data[k] || ''
+    },
+    setPluginData(k, v) {
+      if (v === '') delete this._data[k]
+      else this._data[k] = v
+    },
     get width() {
       // Mock metrics: advance 60/100 units, bearings 8/100 (a plausible mono).
       if (this.textAutoResize === 'NONE' && this._resized) return this._resized[0]
@@ -260,6 +268,14 @@ const figma = {
       strokes: [],
       strokeWeight: 1,
       strokeAlign: 'CENTER',
+      _data: {},
+      getPluginData(k) {
+        return this._data[k] || ''
+      },
+      setPluginData(k, v) {
+        if (v === '') delete this._data[k]
+        else this._data[k] = v
+      },
       remove() {
         killNode(this)
       },
@@ -284,21 +300,24 @@ const figma = {
   mixed: Symbol('mixed'),
 }
 
-const ctx = vm.createContext({
-  figma,
-  console,
-  Math,
-  JSON,
-  Array,
-  Number,
-  String,
-  Object,
-  Symbol,
-  Promise,
-  Error,
-  __html__: '<html></html>',
-})
-vm.runInContext(code, ctx)
+// A fresh context per launch: running the bundle twice in one context would
+// redeclare its globals.
+const newContext = () =>
+  vm.createContext({
+    figma,
+    console,
+    Math,
+    JSON,
+    Array,
+    Number,
+    String,
+    Object,
+    Symbol,
+    Promise,
+    Error,
+    __html__: '<html></html>',
+  })
+vm.runInContext(code, newContext())
 
 // Mirrors SPECIMENS in main.ts, in order. Keep in step when one is added or
 // removed — several checks below are indexed off it.
@@ -2443,7 +2462,8 @@ console.log('\n=== duplicated layers are reconciled, not multiplied ===')
     )
   }
 
-  // 2. Stray duplicates left in the frame by whatever means.
+  // 2. The user's own layers that happen to share a generated name. The plugin
+  //    marks its layers, so these are neither reused nor deleted.
   {
     const fr = makeFrame(1920, 1080)
     page.appendChild(fr)
@@ -2456,14 +2476,25 @@ console.log('\n=== duplicated layers are reconciled, not multiplied ===')
     strayFrame.name = 'Type Specimens'
     fr.appendChild(strayFrame)
     await uiHandler({ type: 'action', action: 'apply', params: P })
+    const own = (n) =>
+      fr.children.filter((c) => c.name === n && c.getPluginData('dualGridRole') !== '')
     check(
-      'strays of the same name are cleared on the next apply',
-      allSingle(fr),
-      names.map((n) => n + ':' + countOf(fr, n)).join(' '),
+      "a user's same-named layers survive the next apply",
+      !stray.removed && !strayFrame.removed,
     )
     check(
-      '...and the surviving char grid is the real one',
-      fr.children.find((c) => c.name === 'Char Grid').characters.length > 100,
+      '...and the plugin still has exactly one of each of its own',
+      names.every((n) => own(n).length === 1),
+      names.map((n) => n + ':' + own(n).length).join(' '),
+    )
+    check(
+      '...and the char grid it updates is its own, not the stray',
+      own('Char Grid')[0].characters.length > 100 && stray.characters === '',
+    )
+    await uiHandler({ type: 'action', action: 'remove', params: P })
+    check(
+      'Remove grids keeps them too',
+      !stray.removed && !strayFrame.removed && names.every((n) => own(n).length === 0),
     )
   }
 
@@ -3164,6 +3195,296 @@ console.log('--- type scales with the frame, not the cell grid ---')
       c.toFixed(1),
   )
 }
+console.log('--- fixes from the product description triage ---')
+{
+  const near = (a, b) => Math.abs(a - b) < 1e-9
+  const optical = (size) => (0.981 / size - 0.0401) * 100
+  const fresh = async (w, h, over = {}) => {
+    const fr = makeFrame(w, h)
+    page.appendChild(fr)
+    page.selection = [fr]
+    await uiHandler({ type: 'action', action: 'apply', params: { ...P, ...over } })
+    return fr
+  }
+  const reapply = (over) =>
+    uiHandler({ type: 'params-changed', reapply: true, params: { ...P, ...over } })
+  const specimensOf = (fr) => layer(fr, 'Type Specimens').children
+
+  // Settings a frame never stored take their default, not the panel's value.
+  {
+    const fr = await fresh(1080, 1080)
+    const data = JSON.parse(fr.getPluginData('dualGrid'))
+    delete data.params.displayMode
+    fr.setPluginData('dualGrid', JSON.stringify(data))
+    await uiHandler({
+      type: 'params-changed',
+      reapply: false,
+      params: { ...P, displayMode: 'Print' },
+    })
+    page.selection = []
+    onSel()
+    page.selection = [fr]
+    onSel()
+    const loaded = figma.ui._all.filter((m) => m.type === 'params-change').pop()
+    check(
+      'a setting the frame never stored loads as its default',
+      loaded.params.displayMode === 'Screen',
+      loaded.params.displayMode,
+    )
+  }
+
+  // The user's own layers inside the generated frames survive writes.
+  {
+    const fr = await fresh(1920, 1080)
+    const note = makeText()
+    note.name = 'My note'
+    specimensOf(fr).length && layer(fr, 'Type Specimens').appendChild(note)
+    const inLines = makeText()
+    layer(fr, 'Grid Lines').appendChild(inLines)
+    await reapply({ gutterMultiple: 2 })
+    check("a user's text inside Type Specimens survives a write", !note.removed)
+    check("a user's layer inside Grid Lines survives a write", !inLines.removed)
+    check(
+      '...and the lines are still redrawn once',
+      layer(fr, 'Grid Lines').children.filter((c) => c.type === 'VECTOR').length === 1,
+    )
+  }
+
+  // Specimens are matched by position, so typed text follows the slot.
+  {
+    const fr = await fresh(1920, 1080)
+    const third = specimensOf(fr).find((n) => n.name === 'Sans 24%')
+    third.characters = 'My headline'
+    await reapply({ sansSizes: '6, 12, 2' })
+    await reapply({ sansSizes: '6, 12, 20' })
+    const now = specimensOf(fr).find((n) => n.name === 'Sans 20%')
+    check(
+      'typed text follows its specimen through intermediate sizes',
+      now && now.characters === 'My headline' && now === third,
+      now && now.characters,
+    )
+  }
+
+  // Layout grids the user made are kept by Apply and by Remove.
+  {
+    const fr = makeFrame(1920, 1080)
+    page.appendChild(fr)
+    const mine = {
+      pattern: 'ROWS',
+      alignment: 'MIN',
+      count: 4,
+      sectionSize: 10,
+      gutterSize: 0,
+      offset: 0,
+      color: { r: 1, g: 0, b: 0, a: 0.1 },
+      visible: true,
+    }
+    fr.layoutGrids = [mine]
+    page.selection = [fr]
+    await uiHandler({ type: 'action', action: 'apply', params: P })
+    check(
+      "Apply keeps the user's layout grid alongside the plugin's three",
+      fr.layoutGrids.length === 4 && fr.layoutGrids[0].count === 4,
+      fr.layoutGrids.length,
+    )
+    await reapply({ columnCount: 6 })
+    check(
+      "...and a reapply does not duplicate the plugin's",
+      fr.layoutGrids.length === 4,
+      fr.layoutGrids.length,
+    )
+    await uiHandler({ type: 'action', action: 'remove', params: P })
+    check(
+      "Remove keeps the user's layout grid",
+      fr.layoutGrids.length === 1 && fr.layoutGrids[0].count === 4,
+      fr.layoutGrids.length,
+    )
+  }
+
+  // A second action while one is running is ignored.
+  {
+    page.selection = []
+    const before = page.children.length
+    await Promise.all([
+      uiHandler({ type: 'action', action: 'create', params: P }),
+      uiHandler({ type: 'action', action: 'create', params: P }),
+    ])
+    check(
+      'a double-click on Create frame makes one frame',
+      page.children.length === before + 1,
+      page.children.length - before,
+    )
+  }
+
+  // Remove on a frame that is not gridded changes nothing.
+  {
+    const fr = makeFrame(800, 600)
+    page.appendChild(fr)
+    const mine = {
+      pattern: 'ROWS',
+      alignment: 'MIN',
+      count: 4,
+      sectionSize: 10,
+      gutterSize: 0,
+      offset: 0,
+      color: { r: 1, g: 0, b: 0, a: 0.1 },
+      visible: true,
+    }
+    fr.layoutGrids = [mine]
+    page.selection = [fr]
+    notices.length = 0
+    await uiHandler({ type: 'action', action: 'remove', params: P })
+    check(
+      'Remove grids on an ungridded frame leaves its layout grids',
+      fr.layoutGrids.length === 1,
+    )
+    check(
+      '...and says there was nothing to remove',
+      /no grids/.test(notices.map((n) => n.msg).join(' ')),
+    )
+  }
+
+  // A cached face this machine cannot load is re-measured, not fatal.
+  {
+    const fr = await fresh(1920, 1080)
+    const data = JSON.parse(fr.getPluginData('dualGrid'))
+    data.state.fontProbe.family = 'Missing Mono'
+    fr.setPluginData('dualGrid', JSON.stringify(data))
+    notices.length = 0
+    await reapply({ gutterMultiple: 2 })
+    check(
+      'a stale font cache does not fail the write',
+      !notices.some((n) => n.opts && n.opts.error),
+      notices.map((n) => n.msg).join(' | '),
+    )
+    const after = JSON.parse(fr.getPluginData('dualGrid'))
+    check(
+      '...and the face is measured again',
+      after.state.fontProbe.family !== 'Missing Mono',
+      after.state.fontProbe.family,
+    )
+  }
+
+  // The sans fallback tries the family's other styles before the list.
+  {
+    AVAILABLE.push({ fontName: { family: 'Book Sans', style: 'Book' } })
+    const fr = await fresh(1920, 1080, { sansFamily: 'Book Sans' })
+    const sans = specimensOf(fr).find((n) => n.name === 'Sans 6%')
+    check(
+      'a sans family without a Regular uses its own style',
+      sans.fontName.family === 'Book Sans' && sans.fontName.style === 'Book',
+      JSON.stringify(sans.fontName),
+    )
+    AVAILABLE.pop()
+  }
+
+  // Ties drop the largest specimen first.
+  {
+    const fr = await fresh(1920, 200)
+    const names = specimensOf(fr).map((n) => n.name)
+    check(
+      'on a short frame the smaller sans sizes are kept, the larger dropped',
+      names.includes('Sans 6%') && !names.includes('Sans 24%'),
+      names.join(','),
+    )
+  }
+
+  // An unusable Width falls back to the default.
+  {
+    page.selection = []
+    await uiHandler({ type: 'action', action: 'create', params: { ...P, frameWidth: 0 } })
+    const made = page.selection[0]
+    check(
+      'an empty Width creates a 1920 × 1080 frame',
+      made.width === 1920 && made.height === 1080,
+      made.width + 'x' + made.height,
+    )
+  }
+
+  // A failed Create frame leaves nothing behind.
+  {
+    page.selection = []
+    const before = page.children.filter((c) => !c.removed).length
+    const load = figma.loadFontAsync
+    figma.loadFontAsync = async () => {
+      throw new Error('no fonts')
+    }
+    notices.length = 0
+    await uiHandler({ type: 'action', action: 'create', params: P })
+    figma.loadFontAsync = load
+    check(
+      'a failed Create frame removes the frame it made',
+      page.children.filter((c) => !c.removed).length === before,
+    )
+    check(
+      '...and refreshes the footer',
+      figma.ui._last.type === 'action-state' && figma.ui._last.action === 'create',
+    )
+  }
+
+  // Snap tol. 0 turns snapping off, row search included.
+  {
+    await fresh(1920, 1080)
+    await uiHandler({
+      type: 'params-changed',
+      reapply: false,
+      params: { ...P, pixelPerfect: true, snapTolerancePx: 0 },
+    })
+    const off0 = figma.ui._last.preview
+    await uiHandler({
+      type: 'params-changed',
+      reapply: false,
+      params: { ...P, pixelPerfect: false },
+    })
+    const off = figma.ui._last.preview
+    check(
+      'Pixel snap at tolerance 0 gives the same rows as Pixel snap off',
+      off0.rows === off.rows && near(off0.cellH, off.cellH),
+      off0.rows + 'x' + off0.cellH + ' vs ' + off.rows + 'x' + off.cellH,
+    )
+  }
+
+  // One column can reach the default cell count.
+  {
+    await uiHandler({
+      type: 'params-changed',
+      reapply: false,
+      params: { ...P, columnCount: 1, cellColumns: 89, frameWidth: 1920 },
+    })
+    check(
+      'one column reaches 89 cell columns',
+      figma.ui._last.preview.cols === 89,
+      figma.ui._last.preview.cols,
+    )
+  }
+
+  // An unfinished curve pair is ignored rather than read as 0.
+  {
+    const fr = await fresh(1920, 1080, { sansTracking: '6:' })
+    const sans = specimensOf(fr).find((n) => n.name === 'Sans 6%')
+    check(
+      '"6:" in Sans track leaves optical tracking',
+      near(sans.letterSpacing.value, optical(sans.fontSize)),
+      sans.letterSpacing.value,
+    )
+  }
+
+  // Opening the plugin with a gridded frame selected loads its settings.
+  {
+    const fr = await fresh(1080, 1080, { columnCount: 4, displayMode: 'Social' })
+    page.selection = [fr]
+    figma.ui._all.length = 0
+    // Relaunch the plugin, as Figma does, with the frame already selected.
+    vm.runInContext(code, newContext())
+    const loaded = figma.ui._all.find((m) => m.type === 'params-change')
+    check(
+      'launching with a gridded frame selected loads its settings',
+      loaded && loaded.params.columnCount === 4 && loaded.params.displayMode === 'Social',
+      loaded && loaded.params.columnCount,
+    )
+  }
+}
+
 console.log(
   '\n' + (fails ? fails + ' FAILURE(S)' : 'ALL PASS') + ' — ' + checks + ' checks',
 )

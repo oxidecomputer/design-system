@@ -6,7 +6,7 @@ Figma plugin that overlays two aligned grids on a frame:
 - a cell grid where every cell is one base unit wide
 
 The column grid's gutter spans a whole number of cells, one by default. Each cell is `u`
-pixels wide. A monospaced layer of `x` characters shows the cell grid, the panel displays
+pixels wide. A monospaced layer of `.` characters shows the cell grid, the panel displays
 computed values, and type specimens align to the grid.
 
 ## The grid equation
@@ -27,7 +27,7 @@ gutterWidth = g × u
 | `c`    | Columns      | number of columns      | 12      |
 | `m`    | Margin cells | margin width in cells  | 3       |
 | `g`    | Gutter cells | cells per gutter       | 1       |
-| `N`    | Cell columns | cells across the frame | 197     |
+| `N`    | Cell columns | cells across the frame | 89      |
 | `k`    | _(derived)_  | cells per column       | —       |
 
 Margin and gutter are independent controls, both measured in whole cells.
@@ -74,7 +74,9 @@ keep their exact fractions. Duplicate rounded sizes are merged. At the default t
 0.5px, all sizes snap, leaving 21 whole-pixel values. Lowering the tolerance preserves more
 fractional sizes.
 
-The full range extends down to `LADDER_MIN_CELL` (2px) and up to a 66px cell at `k = 1`.
+The full range extends down to `LADDER_MIN_CELL` (2px) and up to a 66px cell at `k = 1`. The
+ladder offers at most `LADDER_MAX_CELL_COLUMNS` (600) cells across, so with few columns a
+column can be much wider than the solver's 48 cells: one column still reaches 89.
 
 **Cell columns** steps through these sizes, expressed as `N`, the number of cells across the
 frame. Every stop produces a valid grid. Requested counts snap to the nearest available
@@ -93,8 +95,10 @@ across the ladder at typical settings. **Aspect tol.** serves a different purpos
 aspect deviation to obtain an integer row height (see Modes).
 
 The ladder is rebuilt whenever `c`, `m`, `g`, Pixel snap or the snap tolerance changes. The
-current setting is matched by count, not slider position, so a setting of 197 columns stays
-near 197 after a margin change.
+current setting is matched by count, not slider position, so a setting of 89 columns stays
+near 89 after a margin change. The panel keeps the count the user asked for separately from
+the rung the slider shows, so a change and its reverse (12 → 1 → 12 columns, Pixel snap on
+and off) return to the same grid.
 
 Pixel snap is off by default because rounding can substantially change the margins. The
 remainder, `W − N·u`, is split between them. Without snapping it is zero. At 1920px wide, a
@@ -137,7 +141,7 @@ solver finds the closest whole-cell multiples, preserving grid alignment.
 | ------------ | ---------------------------------------------------------------- |
 | Margin       | target margin in px (default 50)                                 |
 | Gutter       | target gutter in px (default 20)                                 |
-| Cell columns | target `N`, the same quantity Manual's slider sets (default 197) |
+| Cell columns | target `N`, the same quantity Manual's slider sets (default 89)  |
 
 All three inputs are weighted targets, not hard constraints. Every combination produces a
 grid. Each field shows the achieved value in parentheses beside the target, such as
@@ -187,16 +191,19 @@ optional modes:
   within **Snap tol.**, measured in pixels per cell. For example, at 1920px wide with 12
   columns, 2 margin cells and 1 gutter cell, `u = 22.069px` snaps to 22px, producing 132px
   columns, 22px gutters and 47px effective margins. Values outside the tolerance remain
-  fractional. The default tolerance of 0.5 always snaps; 0 disables snapping. The remainder,
+  fractional. The default tolerance of 0.5 always snaps; 0 disables snapping, including the
+  row search below. The remainder,
   `W − N·u`, is split evenly between the margins, keeping both grids aligned using Figma's
   `CENTER` alignment. Rounding up can make the grid wider than the frame, extending it
   beyond both edges.
 
 **Aspect tol.** is shown while Pixel snap is on and is measured as a percentage of the
 target aspect ratio (default 5). With Snap rows on, it allows the row count to change within
-that tolerance to find a row height that snaps. At the defaults, this gives 24 rows of 45px
-instead of 25 rows of 43.2px, filling 1080px exactly. Among qualifying counts, the closest
-aspect ratio wins. A tolerance of 0 disables the search and keeps the original row count.
+that tolerance to find a row height that snaps. At the defaults (Snap tol. 0.5) the natural
+25 rows already snap, to 43px, filling 1075px; with a tighter Snap tol. such as 0.1 the
+search finds 24 rows of 45px instead, filling 1080px exactly. Among qualifying counts, the
+closest aspect ratio wins. A tolerance of 0 disables the search and keeps the original row
+count.
 
 The layout grids, drawn lines and char grid share `u` and an origin, so characters remain
 aligned with the lines after snapping. They extend past the frame and clip where needed.
@@ -253,16 +260,21 @@ elements styled with Figma's `--figma-color-*` theme tokens.
 
 ## Actions
 
-Two footer buttons, each enabled by the current selection:
+One action button, whose label and action follow the selection, and **Copy config**:
 
-| Button           | Enabled when                  | Behavior                                                                               |
-| ---------------- | ----------------------------- | -------------------------------------------------------------------------------------- |
-| **Create frame** | nothing is selected           | Creates a frame at the viewport center from the "New frame" params, then applies grids |
-| **Apply grids**  | exactly one frame is selected | Applies 3 layout grids + char grid, lines and specimens                                |
-| **Remove grids** | that frame already has grids  | Clears the layout grids and deletes the generated layers                               |
+| Label            | Offered when                                    | Behavior                                                                               |
+| ---------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------- |
+| **Create frame** | nothing, or anything but a single frame, is selected | Creates a frame at the viewport center from the "New frame" params, then applies grids |
+| **Apply grids**  | one ungridded frame is selected                 | Applies 3 layout grids + char grid, lines and specimens                                |
+| **Remove grids** | that frame already has grids                    | Removes the plugin's layout grids and generated layers                                 |
 
-The second button toggles its own label between _Apply grids_ and _Remove grids_, and its
-status label reads `Select a frame` when disabled or `Live editing` when bound.
+The status text above the button reads `Live editing` while a gridded frame is targeted and
+is hidden otherwise. It is a plain `span`: a `<label for>` would forward clicks on it to the
+button. The button is disabled from a click until the plugin replies, and ignores clicks for
+400ms after it changes action, so a double-click cannot run an action twice or run the next
+one. The plugin also ignores an action that arrives while another is running, and checks a
+frame really has grids before removing them. If a fallback face was used, the action's
+notice says so (`Grids applied · using Inter instead of Suisse Int'l`).
 
 The panel uses the nearest frame at or above the selection that has grid data. Selecting a
 layer inside a gridded frame keeps live editing active. Ancestors without grid data are
@@ -307,7 +319,7 @@ Generated layers are unlocked children of the target frame:
   path, rather than one node per line. The **Grid lines** switch sets the container's
   `visible` property without rebuilding it. Columns are represented only by a Figma layout
   grid.
-- **Char grid**: `x` characters filling every cell, with font size calculated so each
+- **Char grid**: `.` characters filling every cell, with font size calculated so each
   character measures `u` and auto width produces the correct box.
 - **Type specimens**: a `Type Specimens` frame with grid-aligned text down the left of the
   content area, toggled with the **Specimens** switch. See below.
@@ -321,18 +333,28 @@ regardless of the target frame's clip setting.
 
 ### Layer reuse
 
+Every layer the plugin creates carries a `dualGridRole` plugin-data mark, and the plugin only
+ever reuses or deletes marked layers. A user's layer that shares a generated name, or a layer
+the user adds inside `Grid Lines` or `Type Specimens`, is left alone.
+
 A stored layer ID is used only if it resolves to a node inside the target frame. Otherwise,
-the first child with the expected name and type is reused, and other children with that name
-are deleted. This handles duplicated frames, whose copied `pluginData` still points to the
-original layers, and older data without `linesId` or `specimensId`. `removeGrids` also
-checks frame ownership and removes matching layers by name.
+the first child marked with the expected role is reused, and other marked duplicates are
+deleted. Figma copies plugin data with a duplicated frame, so a copy finds its own layers by
+mark even though its stored IDs point to the original. Frames gridded by an older version
+have unmarked layers; on a gridded frame with no layer marked for a role, the first child
+with that role's name and type is adopted and marked. `removeGrids` checks frame ownership,
+removes the marked layers (or, on such an older frame, the named ones), and removes only the
+plugin's own layout grids, recognised by their overlay colours. Any layout grids the user
+made are kept by both Apply and Remove.
 
 Layers and their contents are updated in place:
 
 - The char grid's `characters` is rewritten only when the grid shape changes. This avoids an
   expensive assignment and preserves per-character styling during live edits.
-- Specimens are matched by layer name. Reapplying changes size, leading, tracking and
-  position, but preserves edited text. Specimens that no longer fit are removed.
+- Specimens are matched by position in their family's size list (a `dualGridSlot` mark), so
+  text typed into the third sans specimen stays with it whatever its size becomes, and its
+  layer is renamed to match. Reapplying changes size, leading, tracking and position, but
+  preserves edited text. Specimens that no longer fit or are no longer requested are removed.
 
 Applies run through a single queue to prevent overlapping updates from creating duplicate
 layers before IDs have been stored. The test suite does not currently reproduce this race.
@@ -442,9 +464,14 @@ each family, since regular styles have different names (GT America Mono uses `Re
 
 The defaults are GT America Mono / Regular OCC and Suisse Int'l Regular. Font measurements
 are cached per frame and font family. Changing a family triggers new measurements;
-reapplying with the same family creates no temporary probe nodes. If a face is unavailable,
-the plugin tries another style in the family, then a family matching `/mono/i`, then any
-available regular font. It measures the resolved font to keep character cells `u` wide.
+reapplying with the same family creates no temporary probe nodes. The cache is discarded if
+a cached face can no longer be loaded (the frame was last written on a machine with fonts
+this one lacks) or if a fallback was cached and the requested family is now installed. If a
+mono face is unavailable, the plugin tries another style in the family, then a family
+matching `/mono/i`, then any available regular font. For sans it tries the family's Regular,
+then another regular-weight style of the family (Book, Roman, Normal, Text), then any style
+of the family, then Suisse Int'l and Inter, then any regular. It measures the character the
+char grid draws in the resolved font, to keep character cells `u` wide.
 
 ## Colours
 
@@ -454,8 +481,8 @@ Colours are defined as hex values at the top of `main.ts`:
 | ------------- | --------------------------------- | --------- |
 | `COLOR_BG`    | the frame fill, on _Create frame_ | `#000000` |
 | `COLOR_TEXT`  | the specimens                     | `#FFFFFF` |
-| `COLOR_CHAR`  | the char grid                     | `#666666` |
-| `COLOR_LINES` | the drawn cell-grid strokes       | `#333333` |
+| `COLOR_CHAR`  | the char grid                     | `#333333` |
+| `COLOR_LINES` | the drawn cell-grid strokes       | `#666666` |
 
 Figma's own layout-grid overlay colours (the purple column grid and the cyan cell grid) are
 separate, and set in `buildLayoutGrids`.

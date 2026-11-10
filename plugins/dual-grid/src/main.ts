@@ -195,6 +195,10 @@ interface SpecimenSpec {
   scale: number // fontSize as a share of the requested line height
   trackingPct: number | null // letter spacing in % of the font size; null = optical
   text: string
+  // Position in its family's size list, e.g. "sans:2". Specimens are matched by
+  // slot, so text typed into the third sans specimen stays with the third one
+  // whatever its size becomes.
+  slot: string
 }
 
 // A curve keyed by specimen size (% of frame height), written as
@@ -213,8 +217,13 @@ function parseCurve(raw: string | undefined, min: number, max: number): Curve | 
   for (const entry of text.split(',')) {
     const parts = entry.split(':')
     if (parts.length !== 2) continue
-    const x = Number(parts[0].trim().replace('%', ''))
-    const y = Number(parts[1].trim().replace('%', ''))
+    const xText = parts[0].trim().replace('%', '')
+    const yText = parts[1].trim().replace('%', '')
+    // Number('') is 0, so an unfinished pair such as "6:" would otherwise read as
+    // a real value of 0 mid-typing.
+    if (!xText || !yText) continue
+    const x = Number(xText)
+    const y = Number(yText)
     if (Number.isFinite(x) && x > 0 && inRange(y)) points.push([x, y])
   }
   if (!points.length) return null
@@ -296,7 +305,8 @@ function specimensOf(p: Params): SpecimenSpec[] {
   const monoTracking = trackingCurveOf(p.monoTracking, DEFAULT_PARAMS.monoTracking)
   const sansTracking = trackingCurveOf(p.sansTracking, DEFAULT_PARAMS.sansTracking)
   const mono = parseSizesPct(p.monoSizes, DEFAULT_PARAMS.monoSizes).map(
-    (pct): SpecimenSpec => ({
+    (pct, i): SpecimenSpec => ({
+      slot: `mono:${i}`,
       name: `Mono ${pct}%`,
       face: 'mono',
       heightRatio: pct / 100,
@@ -306,7 +316,8 @@ function specimensOf(p: Params): SpecimenSpec[] {
     }),
   )
   const sans = parseSizesPct(p.sansSizes, DEFAULT_PARAMS.sansSizes).map(
-    (pct): SpecimenSpec => ({
+    (pct, i): SpecimenSpec => ({
+      slot: `sans:${i}`,
       name: `Sans ${pct}%`,
       face: 'sans',
       heightRatio: pct / 100,
@@ -422,6 +433,8 @@ figma.showUI(__html__, { width: PANEL_WIDTH, height: 320, themeColors: true })
 
 figma.on('selectionchange', () => onSelectionChange())
 
+let actionBusy = false
+
 figma.ui.onmessage = async (msg) => {
   if (!msg || typeof msg !== 'object') return
 
@@ -439,12 +452,23 @@ figma.ui.onmessage = async (msg) => {
       if (msg.reapply) await maybeLiveReapply(lastParams)
       sendActionState()
     } else if (msg.type === 'action') {
-      lastParams = msg.params
-      await handleAction(msg.action, lastParams)
+      // One action at a time: a second press while one is running (a
+      // double-click) is ignored rather than queued.
+      if (actionBusy) return
+      actionBusy = true
+      try {
+        lastParams = msg.params
+        await handleAction(msg.action, lastParams)
+      } finally {
+        actionBusy = false
+      }
       sendActionState()
     }
   } catch (err) {
     figma.notify('⚠ ' + (err as Error).message, { error: true })
+    // A failed write can leave the frame in a different state from the one the
+    // footer describes, so refresh it.
+    sendActionState()
   }
 }
 
@@ -514,8 +538,9 @@ function gridSpecOf(p: Params, W: number, H: number): GridSpec {
 }
 
 // ----- palette -------------------------------------------------------------
-// Plain literal colours. Binding these to design-system COLOR variables does
-// not work reliably in practice — see the README before attempting it.
+// Colours come from design-system swatches in the team library, bound as
+// COLOR variables. The hex values are fallbacks for files where the library
+// isn't enabled, so the plugin still draws something sensible.
 function hex(value: string): RGB {
   const n = parseInt(value.replace('#', ''), 16)
   return {
@@ -529,6 +554,82 @@ const COLOR_BG = hex('#000000') // the frame fill, on Create frame
 const COLOR_TEXT = hex('#FFFFFF') // specimen text
 const COLOR_CHAR = hex('#333333') // the ASCII char grid
 const COLOR_LINES = hex('#666666') // the drawn cell-grid strokes
+
+const SWATCH_LINES = 'base/neutral/400'
+
+// Swatch names are the full path, e.g. `base/neutral/400`. Depending on how the
+// tokens were synced, the library may store that as a variable named
+// `base/neutral/400` or as `neutral/400` inside a `base` collection, so both
+// spellings match.
+function swatchMatches(swatch: string, collection: string, variable: string): boolean {
+  return variable === swatch || `${collection}/${variable}` === swatch
+}
+
+// Resolved once per plugin session: listing library variables is a network
+// round trip, and live reapplies run on every slider change.
+const swatchCache = new Map<string, Promise<Variable | null>>()
+
+function findSwatch(swatch: string): Promise<Variable | null> {
+  let found = swatchCache.get(swatch)
+  if (!found) {
+    found = lookupSwatch(swatch)
+    swatchCache.set(swatch, found)
+  }
+  return found
+}
+
+async function lookupSwatch(swatch: string): Promise<Variable | null> {
+  try {
+    // Only libraries enabled in the current file are listed.
+    const collections =
+      await figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync()
+    for (const collection of collections) {
+      const vars = await figma.teamLibrary.getVariablesInLibraryCollectionAsync(
+        collection.key,
+      )
+      const hit = vars.find(
+        (v) => v.resolvedType === 'COLOR' && swatchMatches(swatch, collection.name, v.name),
+      )
+      if (hit) return await figma.variables.importVariableByKeyAsync(hit.key)
+    }
+  } catch (err) {
+    console.warn(`Swatch ${swatch} unavailable: ${(err as Error).message}`)
+  }
+  return null
+}
+
+// A solid paint bound to the swatch, or the literal fallback when the swatch
+// can't be found.
+async function swatchPaint(swatch: string, fallback: RGB): Promise<SolidPaint> {
+  const paint: SolidPaint = { type: 'SOLID', color: fallback }
+  const variable = await findSwatch(swatch)
+  return variable
+    ? figma.variables.setBoundVariableForPaint(paint, 'color', variable)
+    : paint
+}
+
+// The overlay colors of the plugin's three layout grids. They also identify the
+// plugin's grids on a frame, so applying and removing leave any layout grids the
+// user made alone.
+const GRID_COLOR_COLUMNS = { r: 0.53, g: 0.2, b: 0.92, a: 0.3 }
+const GRID_COLOR_CELLS = { r: 0, g: 0.85, b: 0.9, a: 0.3 }
+
+function isOwnLayoutGrid(grid: LayoutGrid): boolean {
+  if (grid.pattern === 'GRID') return false
+  const c = grid.color
+  if (!c) return false
+  const same = (o: RGBA) =>
+    Math.abs(c.r - o.r) < 0.005 &&
+    Math.abs(c.g - o.g) < 0.005 &&
+    Math.abs(c.b - o.b) < 0.005 &&
+    Math.abs(c.a - o.a) < 0.005
+  return same(GRID_COLOR_COLUMNS) || same(GRID_COLOR_CELLS)
+}
+
+// The frame's layout grids with the plugin's own replaced by `ours`.
+function withOwnLayoutGrids(frame: FrameNode, ours: LayoutGrid[]): LayoutGrid[] {
+  return frame.layoutGrids.filter((grid) => !isOwnLayoutGrid(grid)).concat(ours)
+}
 
 function buildLayoutGrids(g: GridResult, columns: number, density: number): LayoutGrid[] {
   const d = clampDensity(density)
@@ -566,7 +667,7 @@ function buildLayoutGrids(g: GridResult, columns: number, density: number): Layo
         count: cellCount,
         sectionSize: cellStep,
         gutterSize: 0,
-        color: { r: 0, g: 0.85, b: 0.9, a: 0.3 },
+        color: GRID_COLOR_CELLS,
         visible: true,
       }
     : {
@@ -576,7 +677,7 @@ function buildLayoutGrids(g: GridResult, columns: number, density: number): Layo
         sectionSize: cellStep,
         gutterSize: 0,
         offset: (((g.hRemainder / 2) % cellStep) + cellStep) % cellStep,
-        color: { r: 0, g: 0.85, b: 0.9, a: 0.3 },
+        color: GRID_COLOR_CELLS,
         visible: true,
       }
 
@@ -584,7 +685,7 @@ function buildLayoutGrids(g: GridResult, columns: number, density: number): Layo
   // margin instead; Figma rejects negative offsets, so the side with the wider
   // effective margin is used (a pixel snap that rounds u up can push a narrow
   // margin below zero).
-  const colColor = { r: 0.53, g: 0.2, b: 0.92, a: 0.3 }
+  const colColor = GRID_COLOR_COLUMNS
   const columnGrid =
     g.solvedM === g.solvedMR
       ? {
@@ -617,7 +718,7 @@ function buildLayoutGrids(g: GridResult, columns: number, density: number): Layo
       sectionSize: stepY,
       gutterSize: 0,
       offset: rowOffset,
-      color: { r: 0, g: 0.85, b: 0.9, a: 0.3 },
+      color: GRID_COLOR_CELLS,
       visible: true,
     },
   ] as LayoutGrid[]
@@ -666,7 +767,7 @@ function clampDensity(d: number): number {
 // else derived from the ratio.
 function frameHeightOf(p: Params, W: number): number {
   if (p.frameAspect === 'Custom') {
-    return Math.max(1, Math.round(p.frameHeight || DEFAULT_PARAMS.frameHeight))
+    return Math.round(positiveOr(p.frameHeight, DEFAULT_PARAMS.frameHeight))
   }
   return Math.max(1, Math.round(W / parseAspect(p.frameAspect)))
 }
@@ -702,9 +803,11 @@ async function probeFont(family: string): Promise<FontProbe> {
   const probe = figma.createText()
   probe.fontName = fontName
   probe.fontSize = 100
-  probe.characters = 'X'
+  // Measure the character the char grid draws, so a proportional face still
+  // advances exactly one cell per character.
+  probe.characters = CHAR_GRID_GLYPH
   const w1 = probe.width
-  probe.characters = 'XX'
+  probe.characters = CHAR_GRID_GLYPH + CHAR_GRID_GLYPH
   const w2 = probe.width
   probe.remove()
 
@@ -746,6 +849,51 @@ async function resolveFont(preferred: FontName[]): Promise<FontName> {
   }
   const regular = available.find((f) => f.fontName.style === 'Regular')
   return (regular || available[0]).fontName
+}
+
+// Any installed style of the requested family before the fixed preference list,
+// preferring a regular-weight name, so a family whose regular is "Book" or
+// "Roman" is still used.
+async function resolveSansFont(family: string): Promise<FontName> {
+  const available = await figma.listAvailableFontsAsync()
+  const inFamily = available.filter((f) => f.fontName.family === family)
+  const regularish = (style: string) => /^(regular|book|roman|normal|text)$/i.test(style)
+  const own =
+    inFamily.find((f) => f.fontName.style === 'Regular') ||
+    inFamily.find((f) => regularish(f.fontName.style)) ||
+    inFamily[0]
+  if (own) return own.fontName
+  return resolveFont([
+    SANS_FONT,
+    { family: 'Suisse Intl', style: 'Regular' },
+    { family: 'Inter', style: 'Regular' },
+  ])
+}
+
+// Cached measurements are keyed by the family names typed, but describe the
+// faces actually found. They are stale if either face can no longer be loaded
+// (the frame was last written on a machine with fonts this one lacks), or if a
+// fallback was cached and the requested family is now installed.
+async function cacheUsable(
+  state: StoredData['state'],
+  monoWanted: string,
+  sansWanted: string,
+): Promise<boolean> {
+  const mono = state.fontProbe
+  const sans = state.sansProbe
+  if (!mono || !state.monoProbe || !sans) return false
+  try {
+    await figma.loadFontAsync({ family: mono.family, style: mono.style })
+    await figma.loadFontAsync({ family: sans.family, style: sans.style })
+  } catch {
+    return false
+  }
+  if (mono.family === monoWanted && sans.family === sansWanted) return true
+  const available = await figma.listAvailableFontsAsync()
+  const installed = (family: string) => available.some((f) => f.fontName.family === family)
+  if (mono.family !== monoWanted && installed(monoWanted)) return false
+  if (sans.family !== sansWanted && installed(sansWanted)) return false
+  return true
 }
 
 // Measure the baseline from the bottom of a flat-footed capital's ink bounds.
@@ -799,10 +947,16 @@ function firstBaselineOffset(
 // Layer creation / update
 // ---------------------------------------------------------------------------
 
+// The character drawn in every cell of the char grid.
+const CHAR_GRID_GLYPH = '.'
 const CHAR_GRID_NAME = 'Char Grid'
 const GRID_LINES_NAME = 'Grid Lines'
 const SPECIMENS_NAME = 'Type Specimens'
-const GENERATED_NAMES = [CHAR_GRID_NAME, GRID_LINES_NAME, SPECIMENS_NAME]
+const GENERATED_TYPES: Record<string, string> = {
+  [CHAR_GRID_NAME]: 'TEXT',
+  [GRID_LINES_NAME]: 'FRAME',
+  [SPECIMENS_NAME]: 'FRAME',
+}
 
 function isInside(node: BaseNode, frame: FrameNode): boolean {
   let current: BaseNode | null = node
@@ -813,17 +967,44 @@ function isInside(node: BaseNode, frame: FrameNode): boolean {
   return false
 }
 
-// Reuse the stored layer only if it belongs to this frame. Duplicated frames
-// retain IDs pointing to the original, and older data may have no layer IDs.
-// Fall back to the first child with the expected name and type; remove duplicates.
+// Every layer the plugin creates is marked with its role, so the plugin only
+// ever reuses or deletes its own layers, never a user's layer that happens to
+// share a name. Figma copies plugin data when a frame is duplicated, so a copy's
+// layers keep their marks.
+const ROLE_KEY = 'dualGridRole'
+const SLOT_KEY = 'dualGridSlot'
+// The names an older version gave its specimens, e.g. "Sans 12%".
+const LEGACY_SPECIMEN_NAME = /^(Mono|Sans) \d+(\.\d+)?%$/
+type Role = 'charGrid' | 'gridLines' | 'specimens' | 'lines' | 'specimen'
+
+function roleOf(node: BaseNode): string {
+  return 'getPluginData' in node ? node.getPluginData(ROLE_KEY) : ''
+}
+
+function mark(node: SceneNode, role: Role): void {
+  node.setPluginData(ROLE_KEY, role)
+}
+
+// The frame's generated layers carry marks unless an older version made them.
+function hasMarkedLayers(frame: FrameNode): boolean {
+  return frame.children.some((child) => roleOf(child) !== '')
+}
+
+// Reuse the stored layer only if it belongs to this frame: duplicated frames
+// retain IDs pointing to the original. Otherwise take the first child marked with
+// this role, and delete any other marked duplicates. Layers from an older version
+// carry no mark; they are adopted by name and type, but only on a gridded frame
+// with no layer marked for this role, so a user's same-named layer is never taken
+// over once the frame has been written by this version.
 async function claimLayer(
   frame: FrameNode,
   name: string,
   type: 'TEXT' | 'FRAME',
   storedId: string | null | undefined,
+  role: Role,
 ): Promise<SceneNode | null> {
-  const sameName = frame.children.filter(
-    (child) => child.name === name && child.type === type,
+  const marked = frame.children.filter(
+    (child) => child.type === type && roleOf(child) === role,
   )
 
   let chosen: SceneNode | null = null
@@ -839,11 +1020,20 @@ async function claimLayer(
       chosen = node as SceneNode
     }
   }
-  if (!chosen) chosen = sameName[0] || null
+  if (!chosen) chosen = marked[0] || null
+  // No layer has this role's mark yet, so on a gridded frame any match by name
+  // is an older version's layer.
+  if (!chosen && getStoredData(frame)) {
+    chosen =
+      frame.children.find(
+        (child) => child.name === name && child.type === type && roleOf(child) === '',
+      ) || null
+  }
 
-  for (const other of sameName) {
+  for (const other of marked) {
     if (other !== chosen) other.remove()
   }
+  if (chosen) mark(chosen, role)
   return chosen
 }
 
@@ -859,11 +1049,13 @@ async function ensureCharGrid(
     CHAR_GRID_NAME,
     'TEXT',
     existingId,
+    'charGrid',
   )) as TextNode | null
   if (!node) {
     node = figma.createText()
     node.name = CHAR_GRID_NAME
     frame.appendChild(node)
+    mark(node, 'charGrid')
   }
 
   const fontName: FontName = { family: probe.family, style: probe.style }
@@ -894,7 +1086,7 @@ async function ensureCharGrid(
   // cell, so letting the node size to its content gives the right box — and
   // avoids a fixed frame that would wrap or clip the rows.
   node.textAutoResize = 'WIDTH_AND_HEIGHT'
-  const rowLine = '.'.repeat(cols)
+  const rowLine = CHAR_GRID_GLYPH.repeat(cols)
   // Avoid rewriting unchanged text: assigning thousands of characters is
   // expensive and resets per-character styling, including bound fills.
   const wanted = new Array(rows).fill(rowLine).join('\n')
@@ -918,7 +1110,7 @@ function drawLines(
   parent: FrameNode,
   name: string,
   segs: Segment[],
-  color: RGB,
+  paint: SolidPaint,
   weight: number,
 ): VectorNode | null {
   if (segs.length === 0) return null
@@ -943,7 +1135,7 @@ function drawLines(
   node.x = minX
   node.y = minY
   node.fills = []
-  node.strokes = [{ type: 'SOLID', color }]
+  node.strokes = [paint]
   node.strokeWeight = weight
   node.strokeAlign = 'CENTER'
   return node
@@ -960,11 +1152,13 @@ async function ensureGridLines(
     GRID_LINES_NAME,
     'FRAME',
     existingId,
+    'gridLines',
   )) as FrameNode | null
   if (!container) {
     container = figma.createFrame()
     container.name = GRID_LINES_NAME
     frame.appendChild(container)
+    mark(container, 'gridLines')
   }
 
   container.fills = []
@@ -977,8 +1171,13 @@ async function ensureGridLines(
   container.visible = flag(p.showLines, DEFAULT_PARAMS.showLines)
 
   // Rebuilt from scratch each time — cheap at two nodes, and avoids having to
-  // diff line counts when the density or params change.
-  for (const child of container.children.slice()) child.remove()
+  // diff line counts when the density or params change. Only the plugin's own
+  // vectors are removed (unmarked ones are from an older version, which put
+  // nothing else here); anything the user adds is kept.
+  for (const child of container.children.slice()) {
+    const role = roleOf(child)
+    if (role === 'lines' || (role === '' && child.type === 'VECTOR')) child.remove()
+  }
 
   // The segments share the char grid's full-bleed extent and cell density, so
   // the drawn lines and the characters line up exactly.
@@ -989,7 +1188,9 @@ async function ensureGridLines(
     edgeCullPct: edgeCullPctOf(p),
   })
   // Only the cell grid is drawn — the columns stay a Figma layout grid.
-  drawLines(container, `Cell Grid ${d}x`, cells, COLOR_LINES, 1.0)
+  const paint = await swatchPaint(SWATCH_LINES, COLOR_LINES)
+  const lines = drawLines(container, `Cell Grid ${d}x`, cells, paint, 1.0)
+  if (lines) mark(lines, 'lines')
 
   return container.id
 }
@@ -1014,11 +1215,13 @@ async function ensureSpecimens(
     SPECIMENS_NAME,
     'FRAME',
     existingId,
+    'specimens',
   )) as FrameNode | null
   if (!container) {
     container = figma.createFrame()
     container.name = SPECIMENS_NAME
     frame.appendChild(container)
+    mark(container, 'specimens')
   }
 
   container.fills = []
@@ -1088,7 +1291,8 @@ async function ensureSpecimens(
     if (!sansItems.length || g.rows - sansCells - tailCells >= monoEnd) break
     let largest = 0
     sansItems.forEach((item, i) => {
-      if (item.rows > sansItems[largest].rows) largest = i
+      // >= so a tie goes to the later, larger size: the list is sorted ascending.
+      if (item.rows >= sansItems[largest].rows) largest = i
     })
     sansItems.splice(largest, 1)
   }
@@ -1097,11 +1301,19 @@ async function ensureSpecimens(
   // than above it, in which case it clips as it did before.
   const sansStart = Math.max(SPECIMEN_START_CELL, g.rows - sansCells - tailCells)
 
-  // Match specimens by layer name and update them in place to preserve edited
-  // text and avoid resetting per-character styling during live updates.
-  const reusable = new Map<string, TextNode>()
+  // Match specimens by slot and update them in place to preserve edited text and
+  // avoid resetting per-character styling during live updates. Specimens from an
+  // older version carry no mark and are matched by name instead. Other layers in
+  // the container are the user's and are left alone.
+  const bySlot = new Map<string, TextNode>()
+  const byLegacyName = new Map<string, TextNode>()
   for (const child of container.children) {
-    if (child.type === 'TEXT') reusable.set(child.name, child as TextNode)
+    if (child.type !== 'TEXT') continue
+    if (roleOf(child) === 'specimen') {
+      bySlot.set(child.getPluginData(SLOT_KEY), child as TextNode)
+    } else if (roleOf(child) === '' && LEGACY_SPECIMEN_NAME.test(child.name)) {
+      byLegacyName.set(child.name, child as TextNode)
+    }
   }
 
   // Reuse the node of that name if there is one, else make it. `characters` is
@@ -1115,9 +1327,11 @@ async function ensureSpecimens(
     const probe = isMono ? monoProbe : sansProbe
     const lineHeight = mult * g.cellH
 
-    let node = reusable.get(spec.name) || null
+    let node = bySlot.get(spec.slot) || byLegacyName.get(spec.name) || null
     if (node) {
-      reusable.delete(spec.name)
+      bySlot.delete(spec.slot)
+      byLegacyName.delete(spec.name)
+      node.name = spec.name
     } else {
       node = figma.createText()
       node.name = spec.name
@@ -1126,8 +1340,11 @@ async function ensureSpecimens(
       node.textAlignHorizontal = 'LEFT'
       node.textAlignVertical = 'TOP'
       node.textAutoResize = 'WIDTH_AND_HEIGHT'
-      node.characters = spec.text
+      // The mono placeholder names the face actually drawn, which may be a fallback.
+      node.characters = isMono ? `${font.family} · 0123456789` : spec.text
     }
+    mark(node, 'specimen')
+    node.setPluginData(SLOT_KEY, spec.slot)
     if (node.parent !== container) container.appendChild(node)
 
     // Only reassigned when it differs: setting fontName re-shapes the text.
@@ -1170,8 +1387,9 @@ async function ensureSpecimens(
     await place(item, cell)
   }
 
-  // Remove specimens that are no longer used.
-  reusable.forEach((node) => node.remove())
+  // Remove the plugin's specimens that are no longer used.
+  bySlot.forEach((node) => node.remove())
+  byLegacyName.forEach((node) => node.remove())
 
   return container.id
 }
@@ -1180,11 +1398,16 @@ async function ensureSpecimens(
 // Apply / remove / create
 // ---------------------------------------------------------------------------
 
-async function applyGrids(frame: FrameNode, p: Params): Promise<void> {
+// Returns a note for each family that was replaced by a fallback face, for the
+// actions to report. Live reapplies do not report them, to avoid a notice per edit.
+async function applyGrids(frame: FrameNode, p: Params): Promise<string[]> {
   const stored = getStoredData(frame)
   const g = computeGrid(gridSpecOf(p, frame.width, frame.height))
 
-  frame.layoutGrids = buildLayoutGrids(g, columnCountOf(p), p.cellDensity)
+  frame.layoutGrids = withOwnLayoutGrids(
+    frame,
+    buildLayoutGrids(g, columnCountOf(p), p.cellDensity),
+  )
 
   const monoWanted = p.monoFamily || DEFAULT_PARAMS.monoFamily
   const sansWanted = p.sansFamily || DEFAULT_PARAMS.sansFamily
@@ -1194,7 +1417,8 @@ async function applyGrids(frame: FrameNode, p: Params): Promise<void> {
   const cache =
     stored &&
     (stored.state.probedMono || DEFAULT_PARAMS.monoFamily) === monoWanted &&
-    (stored.state.probedSans || DEFAULT_PARAMS.sansFamily) === sansWanted
+    (stored.state.probedSans || DEFAULT_PARAMS.sansFamily) === sansWanted &&
+    (await cacheUsable(stored.state, monoWanted, sansWanted))
       ? stored.state
       : null
 
@@ -1204,15 +1428,7 @@ async function applyGrids(frame: FrameNode, p: Params): Promise<void> {
     (cache && cache.monoProbe) ||
     (await probeMetrics({ family: fontProbe.family, style: fontProbe.style }))
   const sansProbe =
-    (cache && cache.sansProbe) ||
-    (await probeMetrics(
-      await resolveFont([
-        { family: sansWanted, style: 'Regular' },
-        SANS_FONT,
-        { family: 'Suisse Intl', style: 'Regular' },
-        { family: 'Inter', style: 'Regular' },
-      ]),
-    ))
+    (cache && cache.sansProbe) || (await probeMetrics(await resolveSansFont(sansWanted)))
   const charGridId = await ensureCharGrid(
     frame,
     g,
@@ -1251,10 +1467,20 @@ async function applyGrids(frame: FrameNode, p: Params): Promise<void> {
       sansProbe,
     },
   })
+
+  const notes: string[] = []
+  if (fontProbe.family !== monoWanted)
+    notes.push(`${fontProbe.family} instead of ${monoWanted}`)
+  if (sansProbe.family !== sansWanted)
+    notes.push(`${sansProbe.family} instead of ${sansWanted}`)
+  return notes
 }
 
 async function removeGrids(frame: FrameNode): Promise<void> {
-  frame.layoutGrids = []
+  frame.layoutGrids = withOwnLayoutGrids(frame, [])
+  // Decided before anything is removed: a frame written by an older version has
+  // no marked layers, and its generated layers are found by name and type.
+  const legacy = !hasMarkedLayers(frame)
 
   const stored = getStoredData(frame)
   if (stored) {
@@ -1274,17 +1500,27 @@ async function removeGrids(frame: FrameNode): Promise<void> {
     }
   }
 
-  // Then anything of ours still in the frame — layers an older version never
-  // stored an id for, and duplicates left by a previous apply.
+  // Then anything of ours still in the frame: marked duplicates left by a
+  // previous apply, and on a legacy frame, layers an older version never stored
+  // an id for. A user's layer that merely shares a name is kept.
   for (const child of frame.children.slice()) {
-    if (GENERATED_NAMES.indexOf(child.name) !== -1) child.remove()
+    const role = roleOf(child)
+    const own = role === 'charGrid' || role === 'gridLines' || role === 'specimens'
+    const legacyOwn = legacy && role === '' && GENERATED_TYPES[child.name] === child.type
+    if (own || legacyOwn) child.remove()
   }
 
   clearStoredData(frame)
 }
 
+// The width a new frame would get. Empty, zero and negative entries use the
+// default rather than producing a 1px frame.
+function frameWidthOf(p: Params): number {
+  return Math.max(1, Math.round(positiveOr(p.frameWidth, DEFAULT_PARAMS.frameWidth)))
+}
+
 function createFrame(p: Params): FrameNode {
-  const W = Math.max(1, Math.round(p.frameWidth))
+  const W = frameWidthOf(p)
   const H = frameHeightOf(p, W)
 
   const frame = figma.createFrame()
@@ -1306,10 +1542,18 @@ async function handleAction(
 ): Promise<void> {
   if (action === 'create') {
     const frame = createFrame(p)
-    await serialiseApply(() => applyGrids(frame, p))
+    let notes: string[]
+    try {
+      notes = await serialiseApply(() => applyGrids(frame, p))
+    } catch (err) {
+      // Leave nothing behind: a frame with layout grids but no layers or stored
+      // settings is neither gridded nor clean.
+      if (!frame.removed) frame.remove()
+      throw err
+    }
     figma.currentPage.selection = [frame]
     figma.viewport.scrollAndZoomIntoView([frame])
-    figma.notify('Frame created')
+    figma.notify(withNotes('Frame created', notes))
     return
   }
 
@@ -1320,12 +1564,22 @@ async function handleAction(
   }
 
   if (action === 'apply') {
-    await serialiseApply(() => applyGrids(frame, p))
-    figma.notify('Grids applied')
+    const notes = await serialiseApply(() => applyGrids(frame, p))
+    figma.notify(withNotes('Grids applied', notes))
   } else {
+    // The panel's button can be stale (after an undo, or a collaborator removing
+    // the grid), so check the frame really carries grids before touching it.
+    if (!getStoredData(frame)) {
+      figma.notify('This frame has no grids to remove')
+      return
+    }
     await serialiseApply(() => removeGrids(frame))
     figma.notify('Grids removed')
   }
+}
+
+function withNotes(message: string, notes: string[]): string {
+  return notes.length ? `${message} · using ${notes.join(', ')}` : message
 }
 
 // Queue applies so asynchronous font loading and measurement cannot interleave
@@ -1410,7 +1664,9 @@ function onSelectionChange(): void {
   if (frame) {
     const stored = getStoredData(frame)
     if (stored) {
-      lastParams = { ...lastParams, ...stored.params }
+      // Over the defaults, not the last settings: a frame gridded before a setting
+      // existed was made with that setting's default.
+      lastParams = { ...DEFAULT_PARAMS, ...stored.params }
       figma.ui.postMessage({ type: 'params-change', params: lastParams })
     }
   }
@@ -1423,7 +1679,7 @@ function sendActionState(): void {
 
   // Live preview of the resulting grid. Measured against the selected frame if
   // there is one, otherwise against the "New frame" params.
-  const W = frame ? frame.width : Math.max(1, Math.round(lastParams.frameWidth))
+  const W = frame ? frame.width : frameWidthOf(lastParams)
   const H = frame ? frame.height : frameHeightOf(lastParams, W)
   const g = computeGrid(gridSpecOf(lastParams, W, H))
   const specimenSizes = sizeSpecimens(lastParams, g, H).map((i) => ({
@@ -1478,6 +1734,14 @@ function sendActionState(): void {
       gutterPx: g.gutterWidth,
       marginPx: g.margin,
       effectiveMargin: g.effectiveMargin,
+      effectiveMarginRight: g.effectiveMarginRight,
+      // The targets the solver actually used, for flagging achieved values.
+      targetMarginUsed: Math.max(0, lastParams.targetMarginPx || 0),
+      targetGutterUsed: Math.max(1, lastParams.targetGutterPx || 0),
+      targetColumnsUsed: Math.max(
+        1,
+        Math.round(lastParams.targetColumns || DEFAULT_PARAMS.targetColumns),
+      ),
       marginRightPx: g.marginRight,
       solvedMR: g.solvedMR,
       hRemainder: g.hRemainder,
@@ -1512,5 +1776,6 @@ function sendActionState(): void {
 // ---------------------------------------------------------------------------
 
 // Run after the constants used by computeGrid are initialised to avoid a
-// temporal-dead-zone error.
-sendActionState()
+// temporal-dead-zone error. Resolves the selection the plugin opened with, so a
+// gridded frame selected at launch loads its stored settings.
+onSelectionChange()

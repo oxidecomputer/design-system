@@ -838,10 +838,10 @@ setTimeout(async () => {
       $('preview-size').textContent,
     )
     check(
-      'column row reports derived px for col/gutter/margin',
+      'column row reports derived px for col/gutter/margin, the margin as drawn',
       /132px col/.test($('preview-column').textContent) &&
         /24px gut/.test($('preview-column').textContent) &&
-        /66px marg/.test($('preview-column').textContent),
+        /47px marg/.test($('preview-column').textContent),
       $('preview-column').textContent,
     )
     send({
@@ -1580,6 +1580,172 @@ setTimeout(async () => {
         opticalTracking: false,
       })
       check('a custom Sans track says it overrides the scale', /overrides/.test(over), over)
+    }
+
+    console.log('\n=== fixes from the product description triage ===')
+    {
+      const newFrame = (extra) =>
+        send({
+          type: 'action-state',
+          action: 'create',
+          actionLabel: 'Create frame',
+          status: '',
+          preview: Object.assign(
+            {},
+            pvSolve,
+            { source: 'new frame', mode: 'Manual' },
+            extra,
+          ),
+        })
+      const actions = () => sent.filter((m) => m.type === 'action')
+      newFrame()
+      await sleep(450)
+
+      // The status is plain text; clicking it does not press the button.
+      check(
+        'the status label is not a <label>',
+        $('action-status').tagName !== 'LABEL',
+        $('action-status').tagName,
+      )
+      sent.length = 0
+      $('action-status').dispatchEvent(new w.MouseEvent('click', { bubbles: true }))
+      check('clicking the status posts no action', actions().length === 0)
+
+      // One action per press, and none in the moment after the button relabels.
+      sent.length = 0
+      $('action-primary').click()
+      $('action-primary').click()
+      check('a double-click posts one action', actions().length === 1, actions().length)
+      check('...and the button is disabled while it runs', $('action-primary').disabled)
+      send({
+        type: 'action-state',
+        action: 'remove',
+        actionLabel: 'Remove grids',
+        actionDanger: true,
+        status: 'Live editing',
+        preview: Object.assign({}, pvSolve, { source: 'selection' }),
+      })
+      check('...and enabled again when the plugin replies', !$('action-primary').disabled)
+      sent.length = 0
+      $('action-primary').click()
+      check('a click just after the button relabels is ignored', actions().length === 0)
+      await sleep(450)
+      $('action-primary').click()
+      check(
+        '...but a deliberate click after that runs',
+        actions().length === 1 && actions()[0].action === 'remove',
+      )
+      newFrame()
+      await sleep(450)
+
+      // Loading a frame's mode shows that mode's controls.
+      send({ type: 'params-change', params: { mode: 'Solve' } })
+      check(
+        'loading a Solve frame shows the Solve targets and hides the Manual sliders',
+        !$('targetMarginPx').closest('fig-field').hidden &&
+          $('marginCells').closest('fig-field').hidden,
+      )
+      send({ type: 'params-change', params: { mode: 'Manual' } })
+      check(
+        '...and loading a Manual frame swaps them back',
+        $('targetMarginPx').closest('fig-field').hidden &&
+          !$('marginCells').closest('fig-field').hidden,
+      )
+
+      // The requested Manual count is kept, not replaced by the rung shown.
+      send({ type: 'params-change', params: { cellColumns: 185 } })
+      newFrame({ cellLadder: [161, 173, 197], cellColumns: 173 })
+      check(
+        'the slider shows the rung taken',
+        $('cellColumns').value === 173,
+        $('cellColumns').value,
+      )
+      check(
+        '...while the panel still asks for the count requested',
+        getSentParams().cellColumns === 185,
+        getSentParams().cellColumns,
+      )
+      newFrame({ cellLadder: [], cellColumns: 29 })
+      check(
+        'with no reachable rung the slider shows the count used',
+        $('cellColumns').value === 29,
+        $('cellColumns').value,
+      )
+      newFrame()
+
+      // A slider's box shows the clamped value once committed.
+      const box = $('marginCells').querySelector('input[type=number]')
+      box.value = '40'
+      box.dispatchEvent(new w.Event('input', { bubbles: true }))
+      box.dispatchEvent(new w.Event('change', { bubbles: true }))
+      await sleep(5)
+      check('a typed 40 in Margin cells shows 24 on commit', box.value === '24', box.value)
+      send({ type: 'params-change', params: { marginCells: 3 } })
+
+      // Closing the panel writes a change still waiting in the debounce.
+      sent.length = 0
+      const gutter = $('gutterMultiple').querySelector('input[type=number]')
+      gutter.value = '2'
+      gutter.dispatchEvent(new w.Event('input', { bubbles: true }))
+      w.dispatchEvent(new w.Event('pagehide'))
+      check(
+        'closing within the debounce writes the pending change',
+        reapplies().length === 1,
+        reapplies().length,
+      )
+      await sleep(DEBOUNCE_WAIT)
+      check('...once', reapplies().length === 1, reapplies().length)
+
+      // Achieved values are judged against the target the solver used.
+      newFrame({ mode: 'Solve', cols: 89, targetColumns: 0, targetColumnsUsed: 89 })
+      check(
+        'an empty Solve Cell columns is not flagged when 89 is reached',
+        !$('targetColumns').querySelector('.warn'),
+      )
+
+      // Labels name their controls.
+      const named = $('marginCells')
+        .querySelector('input[type=range]')
+        .getAttribute('aria-labelledby')
+      check(
+        'a control is named by its field label',
+        named && doc.getElementById(named).textContent === 'Margin cells',
+        named,
+      )
+
+      // Small slips.
+      $('asymmetricMargin').querySelector('input').click()
+      await sleep(5)
+      const marginLabel = $('marginField').querySelector('.fig-field-label')
+      check(
+        'the Left margin tooltip follows its label',
+        marginLabel.title === 'Left margin',
+        marginLabel.title,
+      )
+      $('asymmetricMargin').querySelector('input').click()
+      await sleep(5)
+      newFrame({ columns: 1 })
+      check(
+        'one column reports no gutter',
+        !/gut/.test($('preview-column').textContent),
+        $('preview-column').textContent,
+      )
+      newFrame()
+      const width = $('frameWidth').querySelector('input')
+      width.value = '3840'
+      width.dispatchEvent(new w.Event('input', { bubbles: true }))
+      await sleep(5)
+      const aspect = $('frameAspect').querySelector('select')
+      aspect.value = '16:9'
+      aspect.dispatchEvent(new w.Event('change', { bubbles: true }))
+      aspect.value = 'Custom'
+      aspect.dispatchEvent(new w.Event('change', { bubbles: true }))
+      await sleep(5)
+      check(
+        'switching to Custom keeps the preset height',
+        $('frameHeight').value === 2160,
+        $('frameHeight').value,
+      )
     }
 
     console.log('\n=== final error check ===')

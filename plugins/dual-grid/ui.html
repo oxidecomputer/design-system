@@ -477,10 +477,10 @@
         height: 10px;
         opacity: 0;
       }
-      fig-footer label {
+      fig-footer .fig-status {
         color: var(--fg-secondary);
       }
-      fig-footer label:empty {
+      fig-footer .fig-status:empty {
         display: none;
       }
     </style>
@@ -566,7 +566,8 @@
           </fig-field>
           <!-- With Snap rows on, the row count may move within this
                          share of the aspect target to land an integer row
-                         height (24 × 45 instead of 25 × 43.2 at 1920×1080).
+                         height (24 × 45 instead of 25 × 43.2 at 1920×1080 with
+                         Snap tol. 0.1).
                          0 keeps the natural row count. -->
           <fig-field label="Aspect tol." id="aspectTolField" hidden>
             <fig-input-number id="aspectTolPct" value="5" units="%"></fig-input-number>
@@ -750,7 +751,9 @@
       <fig-footer>
         <!-- The plugin sets the action and label from the current selection. -->
         <div class="fig-action">
-          <label id="action-status" for="action-primary"></label>
+          <!-- Plain text, not a <label>: a label for the button would forward
+               clicks on the status to it. -->
+          <span id="action-status" class="fig-status" aria-live="polite"></span>
           <button id="action-primary" type="submit">Create frame</button>
         </div>
         <!-- Copies the previewed grid as the partial-settings JSON that
@@ -824,11 +827,13 @@
       }
 
       class FigField extends HTMLElement {
+        static count = 0
         connectedCallback() {
           if (this._built) return
           this._built = true
           const label = document.createElement('div')
           label.className = 'fig-field-label'
+          label.id = 'fig-field-label-' + ++FigField.count
           label.textContent = this.getAttribute('label') || ''
           label.title = label.textContent
           const control = document.createElement('div')
@@ -836,6 +841,16 @@
           while (this.firstChild) control.appendChild(this.firstChild)
           this.appendChild(label)
           this.appendChild(control)
+          // Name the field's controls after its label, for screen readers. The
+          // <fig-*> children build their inputs when they upgrade, after this,
+          // so wait a tick for them to exist.
+          if (label.textContent) {
+            setTimeout(() => {
+              control.querySelectorAll('input, select').forEach((el) => {
+                el.setAttribute('aria-labelledby', label.id)
+              })
+            }, 0)
+          }
         }
       }
 
@@ -934,6 +949,11 @@
               this.setAttribute('value', v)
               this._paint()
               emit(this, e)
+            })
+            // On commit, show what was applied: the range clamps and steps a
+            // typed value, and the box should not keep claiming otherwise.
+            num.addEventListener('change', () => {
+              num.value = this.value
             })
           }
 
@@ -1168,9 +1188,9 @@
       function applyAsymMargin() {
         const on = $('asymmetricMargin').checked
         $('marginRightField').hidden = !on || $('mode').value !== 'Manual'
-        $('marginField').querySelector('.fig-field-label').textContent = on
-          ? 'Left margin'
-          : 'Margin cells'
+        const marginLabel = $('marginField').querySelector('.fig-field-label')
+        marginLabel.textContent = on ? 'Left margin' : 'Margin cells'
+        marginLabel.title = marginLabel.textContent
         reportHeight()
       }
 
@@ -1233,6 +1253,16 @@
 
       // Which action the single footer button performs, set by the plugin.
       let currentAction = 'create'
+      // An action is in flight from click until the plugin's next state arrives.
+      let actionInFlight = false
+      // When the button last changed to a different action. A second click of a
+      // double-click landing just after the relabel must not run the new action.
+      let actionChangedAt = 0
+      const ACTION_SETTLE_MS = 400
+      // The Manual cell column count the user asked for. The slider shows the
+      // nearest rung the plugin took, which can differ; sending the request
+      // rather than the rung keeps the count from drifting as other settings change.
+      let cellColumnsRequest = null
       // The last preview payload, kept so "Copy Mitos config" can
       // serialise the grid the panel is currently showing.
       let lastPreview = null
@@ -1298,7 +1328,10 @@
           targetMarginPx: $('targetMarginPx').value,
           targetGutterPx: $('targetGutterPx').value,
           targetColumns: $('targetColumns').value,
-          cellColumns: $('cellColumns').value,
+          // The count asked for, not the rung shown, so a change and its
+          // reverse return to the same grid.
+          cellColumns:
+            cellColumnsRequest !== null ? cellColumnsRequest : $('cellColumns').value,
           cellAspect: $('cellAspect').value,
           snapRows: $('snapRows').checked,
           pixelPerfect: $('pixelPerfect').checked,
@@ -1383,6 +1416,7 @@
         }
         suppressChange = true
         $('mode').value = p.mode
+        applyMode()
         $('columnCount').value = p.columnCount
         $('marginCells').value = p.marginCells
         $('asymmetricMargin').checked = p.asymmetricMargin
@@ -1392,6 +1426,7 @@
         $('targetMarginPx').value = p.targetMarginPx
         $('targetGutterPx').value = p.targetGutterPx
         $('cellColumns').value = p.cellColumns
+        cellColumnsRequest = p.cellColumns
         $('targetColumns').value = p.targetColumns
         $('cellAspect').value = p.cellAspect
         $('snapRows').checked = p.snapRows
@@ -1476,6 +1511,16 @@
         true,
       )
 
+      // Closing the plugin tears the panel down without a change event, so
+      // write anything still waiting in the debounce on the way out.
+      const flushPending = () => {
+        if (reapplyTimer !== null) flushReapply()
+      }
+      window.addEventListener('pagehide', flushPending)
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') flushPending()
+      })
+
       $('mode').addEventListener('change', () => {
         applyMode()
         paramsChanged(true)
@@ -1486,6 +1531,9 @@
       $('pixelPerfect').addEventListener('change', applySnapTol)
       $('edgeCull').addEventListener('change', applyEdgeCull)
       $('displayMode').addEventListener('change', applyDisplayMode)
+      $('cellColumns').addEventListener('change', () => {
+        if (!suppressChange) cellColumnsRequest = $('cellColumns').value
+      })
       $('asymmetricMargin').addEventListener('change', () => {
         // Start the right margin where the left one is, so unlinking alone
         // does not move the grid.
@@ -1536,6 +1584,18 @@
       ;['frameWidth', 'frameHeight', 'frameAspect'].forEach((id) => {
         $(id).addEventListener('change', () => {
           if (mirrored || suppressChange) return
+          // Switching to Custom starts from the height the preset gave, so
+          // the frame does not change shape until the height is edited.
+          if (
+            id === 'frameAspect' &&
+            $(id).value === 'Custom' &&
+            ownFrame.frameAspect !== 'Custom'
+          ) {
+            const parts = String(ownFrame.frameAspect).split(':')
+            const ratio = Number(parts[0]) / Number(parts[1])
+            if (ratio > 0)
+              ownFrame.frameHeight = Math.max(1, Math.round(ownFrame.frameWidth / ratio))
+          }
           ownFrame[id] = $(id).value
           if (id === 'frameAspect') renderFrameFields()
           paramsChanged(false)
@@ -1543,6 +1603,9 @@
       })
 
       $('action-primary').addEventListener('click', () => {
+        if (actionInFlight || Date.now() - actionChangedAt < ACTION_SETTLE_MS) return
+        actionInFlight = true
+        $('action-primary').disabled = true
         post({
           type: 'action',
           action: currentAction,
@@ -1626,6 +1689,9 @@
 
         if (msg.type === 'action-state') {
           const button = $('action-primary')
+          if (msg.action !== currentAction) actionChangedAt = Date.now()
+          actionInFlight = false
+          button.disabled = false
           currentAction = msg.action
           button.textContent = msg.actionLabel
           button.classList.toggle('danger', !!msg.actionDanger)
@@ -1639,6 +1705,10 @@
 
       // Live preview of the grid the current params would produce, measured
       // against the selected frame (or the "New frame" params if none).
+      function numOr(value, fallback) {
+        return typeof value === 'number' ? value : fallback
+      }
+
       function renderPreview(p) {
         lastPreview = p
         const px = (n) => (Math.round(n * 100) / 100).toLocaleString()
@@ -1661,8 +1731,12 @@
           renderFrameFields()
         }
 
+        // With no reachable rung the grid uses the count it reports, so make
+        // that the slider's only stop rather than leaving a stale ladder.
         if (p.cellLadder && p.cellLadder.length) {
           $('cellColumns').setValues(p.cellLadder)
+        } else if (p.mode !== 'Solve' && typeof p.cellColumns === 'number') {
+          $('cellColumns').setValues([p.cellColumns])
         }
         if (typeof p.cellColumns === 'number') {
           $('cellColumns').value = p.cellColumns
@@ -1701,19 +1775,20 @@
         const off = (got, want) => Math.abs(got - want) > p.u
         $('targetMarginPx').setActual(
           px(p.effectiveMargin),
-          off(p.effectiveMargin, p.targetMarginPx),
+          off(p.effectiveMargin, numOr(p.targetMarginUsed, p.targetMarginPx)),
         )
         // Gutters use whole cells. Allow half a cell of rounding error before
         // flagging a mismatch, rather than flagging every inexact pixel target.
         $('targetGutterPx').setActual(
           px(p.gutterPx),
-          Math.abs(p.gutterPx - p.targetGutterPx) > p.u / 2 + 1e-6,
+          Math.abs(p.gutterPx - numOr(p.targetGutterUsed, p.targetGutterPx)) >
+            p.u / 2 + 1e-6,
         )
         // Flagged when the solver had to move more than 2% off the ask.
-        $('targetColumns').setActual(
-          p.cols,
-          Math.abs(p.cols - p.targetColumns) > p.targetColumns * 0.02,
-        )
+        // Compared against the targets the solver used, which differ from the
+        // fields when a field is empty or out of range.
+        const wantCols = numOr(p.targetColumnsUsed, p.targetColumns)
+        $('targetColumns').setActual(p.cols, Math.abs(p.cols - wantCols) > wantCols * 0.02)
 
         // Show the derived cell multiples in both modes. Flag aspect deviation
         // above 1%, including deviation allowed by Aspect tol. for pixel snapping.
@@ -1748,14 +1823,17 @@
             ' <span class="dim">&middot; &times;' +
             Math.round(scale * 100) / 100 +
             '</span>'
+        // The margins as drawn, including any bleed from Pixel snap. One
+        // column has no gutter to report.
+        const marginL = numOr(p.effectiveMargin, p.marginPx)
+        const marginR = numOr(p.effectiveMarginRight, p.marginRightPx)
         $('preview-column').innerHTML =
           px(p.columnWidth) +
           'px <span class="dim">col &middot; ' +
-          px(p.gutterPx) +
-          'px gut &middot; ' +
-          px(p.marginPx) +
-          (p.marginRightPx !== undefined && p.marginRightPx !== p.marginPx
-            ? '/' + px(p.marginRightPx)
+          (p.columns === 1 ? '' : px(p.gutterPx) + 'px gut &middot; ') +
+          px(marginL) +
+          (marginR !== undefined && Math.abs(marginR - marginL) > 1e-6
+            ? '/' + px(marginR)
             : '') +
           'px marg</span>'
       }
