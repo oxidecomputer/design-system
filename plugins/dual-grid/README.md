@@ -198,11 +198,13 @@ optional modes:
 
 **Aspect tol.** is shown while Pixel snap is on and is measured as a percentage of the
 target aspect ratio (default 5). With Snap rows on, it allows the row count to change within
-that tolerance to find a row height that snaps. At the defaults (Snap tol. 0.5) the natural
-25 rows already snap, to 43px, filling 1075px; with a tighter Snap tol. such as 0.1 the
-search finds 24 rows of 45px instead, filling 1080px exactly. Among qualifying counts, the
-closest aspect ratio wins. A tolerance of 0 disables the search and keeps the original row
-count.
+that tolerance to find a whole-pixel row height that fills the frame. The count leaving the
+smallest gap or overhang wins, so a height that divides the frame exactly is always taken
+when one is in range; ties go to the closest aspect ratio, then to the natural count. At
+1920×1080 the natural 25 rows would round to 43px and leave 5px, so the search takes 24 rows
+of 45px, filling 1080px exactly. When no exact fit is in range, the closest one is kept and
+its small remainder is split top and bottom (at 1440×900 with 16px cells, 29 rows of 31px
+leave 1px). A tolerance of 0 disables the search and keeps the original row count.
 
 The layout grids, drawn lines and char grid share `u` and an origin, so characters remain
 aligned with the lines after snapping. They extend past the frame and clip where needed.
