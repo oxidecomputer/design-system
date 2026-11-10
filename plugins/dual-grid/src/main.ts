@@ -23,6 +23,7 @@ import {
 } from '../../../components/src/grid'
 
 type GridMode = 'Manual' | 'Solve'
+type DisplayMode = 'Screen' | 'Social' | 'Print' | 'Custom'
 
 interface Params {
   mode: GridMode
@@ -67,6 +68,21 @@ interface Params {
   // See parseSizesPct for validation and fallbacks.
   monoSizes: string
   sansSizes: string
+  // Round specimen font sizes to whole pixels. Line heights stay on cell steps,
+  // which may be fractional, so baselines remain on the grid.
+  snapFontPx: boolean
+  // Leading (line height ÷ font size) and tracking (% of font size) curves.
+  // See parseCurve for the format. Empty sans tracking uses the optical curve.
+  monoLeading: string
+  sansLeading: string
+  monoTracking: string
+  sansTracking: string
+  // How large the frame appears to its reader; see displayScaleOf. Shown width
+  // is read only in Custom, print width and distance only in Print.
+  displayMode: DisplayMode
+  shownWidthPx: number
+  printWidthMm: number
+  viewingDistanceCm: number
   // All three are used only by the "create frame" action. When a frame is
   // selected the panel mirrors its real size into these fields instead, read
   // only, so they always describe the frame in front of you.
@@ -130,8 +146,45 @@ function opticalTrackingPct(fontSize: number): number {
   return (0.981 / fontSize - 0.0401) * 100
 }
 
-// Mono is set uppercase at a flat 4% per the design system's mono scale.
-const MONO_TRACKING_PCT = 4
+// The optical curve was tuned on a laptop screen, so it describes type by how
+// large it looks there. A frame seen at a different size passes the curve the
+// laptop px its type appears as: fontSize × displayScaleOf(p, frameWidth).
+//
+// A laptop CSS px is about 1/125 in, seen from about 22 in, so it subtends
+// 1/2750 of a radian. Physical type converts through that angle.
+const LAPTOP_PX_PER_RADIAN = 2750
+// The CSS px width a phone feed shows a post at. The same post appears in
+// desktop feeds too, at about 550px, but type has to work at the smallest size
+// it is seen, so the phone sets the tracking. Phones are held closer than
+// laptops and their CSS px are already sized for it, so no distance term is
+// needed.
+const SOCIAL_FEED_PX = 400
+
+function positiveOr(value: number | undefined, fallback: number): number {
+  return typeof value === 'number' && value > 0 ? value : fallback
+}
+
+// The width the frame appears as, in laptop px.
+function apparentWidthOf(p: Params, frameWidth: number): number {
+  switch (p.displayMode) {
+    case 'Social':
+      return SOCIAL_FEED_PX
+    case 'Custom':
+      return positiveOr(p.shownWidthPx, DEFAULT_PARAMS.shownWidthPx)
+    case 'Print': {
+      const widthMm = positiveOr(p.printWidthMm, DEFAULT_PARAMS.printWidthMm)
+      const distanceMm =
+        positiveOr(p.viewingDistanceCm, DEFAULT_PARAMS.viewingDistanceCm) * 10
+      return (LAPTOP_PX_PER_RADIAN * widthMm) / distanceMm
+    }
+    default:
+      return frameWidth
+  }
+}
+
+function displayScaleOf(p: Params, frameWidth: number): number {
+  return frameWidth > 0 ? apparentWidthOf(p, frameWidth) / frameWidth : 1
+}
 
 // Size specimens relative to frame height, then round line heights to whole
 // cells. This keeps the type scale largely independent of cell density.
@@ -139,34 +192,77 @@ interface SpecimenSpec {
   name: string
   face: 'mono' | 'sans'
   heightRatio: number // share of the frame height, before snapping
-  scale: number // fontSize as a share of the snapped line height
+  scale: number // fontSize as a share of the requested line height
+  trackingPct: number | null // letter spacing in % of the font size; null = optical
   text: string
 }
 
-// Font size as a share of the line box, increasing with specimen size to reduce
-// leading. Custom sizes interpolate between reference points and clamp at the ends.
-const SANS_SCALE_CURVE: Array<[number, number]> = [
-  [0.06, 0.82],
-  [0.12, 0.92],
-  [0.24, 1.0],
-]
-// Mono starts at a 2% caption with font size 0.62 of line height.
-// Larger mono sizes use tighter leading, closer to the sans scale.
-const MONO_SCALE_CURVE: Array<[number, number]> = [
-  [0.02, 0.62],
-  [0.12, 0.8],
-]
+// A curve keyed by specimen size (% of frame height), written as
+// "size: value" pairs separated by commas, e.g. "6: 1.22, 12: 1.09, 24: 1".
+// A single bare number is a constant. Values between points interpolate
+// linearly and clamp beyond the ends. Entries outside [min, max] are ignored;
+// if none remain the curve is null and the caller falls back.
+type Curve = Array<[number, number]>
+function parseCurve(raw: string | undefined, min: number, max: number): Curve | null {
+  const text = typeof raw === 'string' ? raw.trim() : ''
+  if (!text) return null
+  const inRange = (n: number) => Number.isFinite(n) && n >= min && n <= max
+  const bare = Number(text.replace('%', ''))
+  if (inRange(bare)) return [[0, bare]]
+  const points: Curve = []
+  for (const entry of text.split(',')) {
+    const parts = entry.split(':')
+    if (parts.length !== 2) continue
+    const x = Number(parts[0].trim().replace('%', ''))
+    const y = Number(parts[1].trim().replace('%', ''))
+    if (Number.isFinite(x) && x > 0 && inRange(y)) points.push([x, y])
+  }
+  if (!points.length) return null
+  points.sort((a, b) => a[0] - b[0])
+  // Keep the first value for a repeated size, so the curve stays a function.
+  return points.filter((pt, i) => i === 0 || pt[0] !== points[i - 1][0])
+}
 
-function scaleAt(curve: Array<[number, number]>, ratio: number): number {
-  if (ratio <= curve[0][0]) return curve[0][1]
+// `inverse` interpolates linearly in 1/x rather than x, so each segment
+// follows y = a / x + b — the shape of the optical tracking curve. Two points
+// then pin down exactly one such curve: the design system's curve, moved to
+// pass through them. Sizes are all positive (see parseCurve), so 1/x is safe.
+function curveAt(curve: Curve, x: number, inverse = false): number {
+  if (x <= curve[0][0]) return curve[0][1]
+  const t = (v: number) => (inverse ? 1 / v : v)
   for (let i = 1; i < curve.length; i++) {
-    if (ratio <= curve[i][0]) {
+    if (x <= curve[i][0]) {
       const [x0, y0] = curve[i - 1]
       const [x1, y1] = curve[i]
-      return y0 + ((ratio - x0) / (x1 - x0)) * (y1 - y0)
+      return y0 + ((t(x) - t(x0)) / (t(x1) - t(x0))) * (y1 - y0)
     }
   }
   return curve[curve.length - 1][1]
+}
+
+// Leading is line height ÷ font size. Below 1 has no effect, since font size is
+// capped at the snapped line height; the upper bound only rejects typos.
+const LEADING_MIN = 0.5
+const LEADING_MAX = 5
+// Tracking in % of the font size, Figma's PERCENT unit. Wide enough for
+// letterspaced caps; beyond it is almost certainly a typo.
+const TRACKING_MIN = -50
+const TRACKING_MAX = 100
+
+function leadingCurveOf(raw: string | undefined, fallback: string): Curve {
+  return (
+    parseCurve(raw, LEADING_MIN, LEADING_MAX) ||
+    (parseCurve(fallback, LEADING_MIN, LEADING_MAX) as Curve)
+  )
+}
+
+// Empty or unusable sans tracking means the optical curve, so null is a valid
+// result here rather than a reason to fall back.
+function trackingCurveOf(raw: string | undefined, fallback: string): Curve | null {
+  return (
+    parseCurve(raw, TRACKING_MIN, TRACKING_MAX) ||
+    parseCurve(fallback, TRACKING_MIN, TRACKING_MAX)
+  )
 }
 
 // Ignore invalid entries and use the fallback if none remain. Sort ascending
@@ -195,12 +291,17 @@ function sansSpecimenText(pct: number): string {
 }
 
 function specimensOf(p: Params): SpecimenSpec[] {
+  const monoLeading = leadingCurveOf(p.monoLeading, DEFAULT_PARAMS.monoLeading)
+  const sansLeading = leadingCurveOf(p.sansLeading, DEFAULT_PARAMS.sansLeading)
+  const monoTracking = trackingCurveOf(p.monoTracking, DEFAULT_PARAMS.monoTracking)
+  const sansTracking = trackingCurveOf(p.sansTracking, DEFAULT_PARAMS.sansTracking)
   const mono = parseSizesPct(p.monoSizes, DEFAULT_PARAMS.monoSizes).map(
     (pct): SpecimenSpec => ({
       name: `Mono ${pct}%`,
       face: 'mono',
       heightRatio: pct / 100,
-      scale: scaleAt(MONO_SCALE_CURVE, pct / 100),
+      scale: 1 / curveAt(monoLeading, pct),
+      trackingPct: monoTracking ? curveAt(monoTracking, pct, true) : null,
       text: 'GT America Mono · 0123456789',
     }),
   )
@@ -209,11 +310,54 @@ function specimensOf(p: Params): SpecimenSpec[] {
       name: `Sans ${pct}%`,
       face: 'sans',
       heightRatio: pct / 100,
-      scale: scaleAt(SANS_SCALE_CURVE, pct / 100),
+      scale: 1 / curveAt(sansLeading, pct),
+      trackingPct: sansTracking ? curveAt(sansTracking, pct, true) : null,
       text: sansSpecimenText(pct),
     }),
   )
   return mono.concat(sans)
+}
+
+interface SizedSpecimen {
+  spec: SpecimenSpec
+  cells: number // line height in cells; a multiple of 0.5 below HALF_CELL_BELOW
+  rows: number // whole cells the specimen occupies in the stack
+  fontSize: number
+}
+
+// Line heights shorter than this many cells snap to half cells instead of
+// whole ones. A whole-cell step is a large share of a short line, so 1 → 2
+// cells doubles the leading; half steps halve that jump. Above it, a cell is a
+// small enough share that whole cells read as even. The stack still advances
+// in whole cells (see `rows`), so every baseline stays on a cell line; only a
+// second line of wrapped text would fall on a half-cell line.
+const HALF_CELL_BELOW = 4
+
+function snapSpecimenLineHeight(g: GridResult, target: number): number {
+  const exact = target / g.cellH
+  if (exact < HALF_CELL_BELOW) return Math.max(0.5, Math.round(exact * 2) / 2)
+  return snapLineHeight(g, target).cells
+}
+
+// Size each specimen from the frame height. The line height snaps to cells
+// (see snapSpecimenLineHeight). Font size follows the requested line height
+// rather than the snapped one, so fractional percentages still change the type
+// when they round to the same number of cells. It is capped at the line height
+// so leading never goes below 1.0, where text would overlap the specimen above.
+function sizeSpecimens(p: Params, g: GridResult, frameHeight: number): SizedSpecimen[] {
+  const snapFont = flag(p.snapFontPx, DEFAULT_PARAMS.snapFontPx)
+  return specimensOf(p).map((spec) => {
+    const target = frameHeight * spec.heightRatio
+    const cells = snapSpecimenLineHeight(g, target)
+    const lineHeight = cells * g.cellH
+    const raw = Math.min(target * spec.scale, lineHeight)
+    // Rounded down where rounding up would pass the cap. At least 1px, so a
+    // tiny specimen never rounds to an invalid size of 0.
+    const fontSize = snapFont
+      ? Math.max(1, Math.min(Math.round(raw), Math.floor(lineHeight + 1e-9)))
+      : raw
+    return { spec, cells, rows: Math.ceil(cells), fontSize }
+  })
 }
 
 // Cell row the specimen stack starts on.
@@ -252,6 +396,18 @@ const DEFAULT_PARAMS: Params = {
   // The reference specimen scale: a 2% mono caption, then sans at 6/12/24%.
   monoSizes: '2',
   sansSizes: '6, 12, 24',
+  snapFontPx: false,
+  // Leading opens up at small sizes and closes to 1.0 for display sans. Mono is
+  // set uppercase at a flat 4% per the design system's mono scale.
+  monoLeading: '2: 1.6, 12: 1.25',
+  sansLeading: '6: 1.22, 12: 1.09, 24: 1',
+  monoTracking: '4',
+  sansTracking: '',
+  displayMode: 'Screen',
+  shownWidthPx: SOCIAL_FEED_PX,
+  // A4 read in the hand.
+  printWidthMm: 210,
+  viewingDistanceCm: 40,
   frameWidth: 1920,
   frameAspect: '16:9',
   frameHeight: 1080, // 1920 at 16:9, so switching to Custom changes nothing
@@ -883,23 +1039,19 @@ async function ensureSpecimens(
   await figma.loadFontAsync(monoFont)
   await figma.loadFontAsync(sansFont)
 
-  // Size each specimen from the frame height, then snap to whole cells so the
-  // line height still lands on the grid.
-  const sized = specimensOf(p).map((spec) => ({
-    spec,
-    cells: snapLineHeight(g, frame.height * spec.heightRatio).cells,
-  }))
+  const sized = sizeSpecimens(p, g, frame.height)
+  const displayScale = displayScaleOf(p, frame.width)
 
   // Each specimen's baseline sits on the cell line at the bottom of its own
   // block, so the stack never overlaps and every baseline is on the grid. Only
   // include what fits — dropping the largest keeps everything on canvas instead
   // of hanging the display sizes off the bottom.
   const budget = g.rows - SPECIMEN_START_CELL
-  const fitting: typeof sized = []
+  const fitting: SizedSpecimen[] = []
   let used = 0
   for (const item of sized) {
-    if (used + item.cells > budget) continue
-    used += item.cells
+    if (used + item.rows > budget) continue
+    used += item.rows
     fitting.push(item)
   }
 
@@ -907,16 +1059,16 @@ async function ensureSpecimens(
   // offsets to keep their baselines on the grid.
   const monoItems = fitting.filter((i) => i.spec.face === 'mono')
   const sansItems = fitting.filter((i) => i.spec.face !== 'mono')
-  const monoEnd = SPECIMEN_START_CELL + monoItems.reduce((sum, i) => sum + i.cells, 0)
+  const monoEnd = SPECIMEN_START_CELL + monoItems.reduce((sum, i) => sum + i.rows, 0)
 
   // A baseline is not the bottom of the text — the descender hangs below it. So
   // the last baseline cannot sit on the final cell line, or the node's box spills
   // out of the frame. Reserve the measured descender, rounded up to whole cells,
   // which keeps every baseline on a cell line while the box stays inside.
-  async function tailCellsOf(tail: (typeof sized)[number] | undefined): Promise<number> {
+  async function tailCellsOf(tail: SizedSpecimen | undefined): Promise<number> {
     if (!tail) return 0
     const lineHeight = tail.cells * g.cellH
-    const fontSize = lineHeight * tail.spec.scale
+    const fontSize = tail.fontSize
     const offset = await measureBaselineOffset(sansFont, fontSize, lineHeight)
     const descender =
       lineHeight -
@@ -931,12 +1083,12 @@ async function ensureSpecimens(
   let sansCells = 0
   let tailCells = 0
   for (;;) {
-    sansCells = sansItems.reduce((sum, i) => sum + i.cells, 0)
+    sansCells = sansItems.reduce((sum, i) => sum + i.rows, 0)
     tailCells = await tailCellsOf(sansItems[sansItems.length - 1])
     if (!sansItems.length || g.rows - sansCells - tailCells >= monoEnd) break
     let largest = 0
     sansItems.forEach((item, i) => {
-      if (item.cells > sansItems[largest].cells) largest = i
+      if (item.rows > sansItems[largest].rows) largest = i
     })
     sansItems.splice(largest, 1)
   }
@@ -955,15 +1107,13 @@ async function ensureSpecimens(
   // Reuse the node of that name if there is one, else make it. `characters` is
   // written only on creation, so edited specimen text survives a reapply.
   const place = async (
-    spec: SpecimenSpec,
-    mult: number,
+    { spec, cells: mult, fontSize }: SizedSpecimen,
     baselineCell: number,
   ): Promise<void> => {
     const isMono = spec.face === 'mono'
     const font = isMono ? monoFont : sansFont
     const probe = isMono ? monoProbe : sansProbe
     const lineHeight = mult * g.cellH
-    const fontSize = lineHeight * spec.scale
 
     let node = reusable.get(spec.name) || null
     if (node) {
@@ -991,7 +1141,10 @@ async function ensureSpecimens(
     node.fontSize = fontSize
     node.lineHeight = { value: lineHeight, unit: 'PIXELS' }
     node.letterSpacing = {
-      value: isMono ? MONO_TRACKING_PCT : opticalTrackingPct(fontSize),
+      value:
+        spec.trackingPct !== null
+          ? spec.trackingPct
+          : opticalTrackingPct(fontSize * displayScale),
       unit: 'PERCENT',
     }
     node.textCase = isMono ? 'UPPER' : 'ORIGINAL'
@@ -1006,15 +1159,15 @@ async function ensureSpecimens(
   }
 
   let cell = SPECIMEN_START_CELL
-  for (const { spec, cells: mult } of monoItems) {
-    cell += mult
-    await place(spec, mult, cell)
+  for (const item of monoItems) {
+    cell += item.rows
+    await place(item, cell)
   }
 
   cell = sansStart
-  for (const { spec, cells: mult } of sansItems) {
-    cell += mult
-    await place(spec, mult, cell)
+  for (const item of sansItems) {
+    cell += item.rows
+    await place(item, cell)
   }
 
   // Remove specimens that are no longer used.
@@ -1273,6 +1426,10 @@ function sendActionState(): void {
   const W = frame ? frame.width : Math.max(1, Math.round(lastParams.frameWidth))
   const H = frame ? frame.height : frameHeightOf(lastParams, W)
   const g = computeGrid(gridSpecOf(lastParams, W, H))
+  const specimenSizes = sizeSpecimens(lastParams, g, H).map((i) => ({
+    face: i.spec.face,
+    size: i.fontSize,
+  }))
 
   // Offer removal for a gridded frame, apply for an ungridded frame, and creation
   // when the selection does not resolve to a frame.
@@ -1328,6 +1485,17 @@ function sendActionState(): void {
       vRemainder: g.vRemainder,
       offsetX: g.offsetX,
       columnWidth: g.columnWidth,
+      // Font size of each requested specimen, smallest first. Sizes that do
+      // not fit the frame are still listed; the stack drops them on apply.
+      monoFontSizes: specimenSizes.filter((s) => s.face === 'mono').map((s) => s.size),
+      sansFontSizes: specimenSizes.filter((s) => s.face === 'sans').map((s) => s.size),
+      displayScale: displayScaleOf(lastParams, W),
+      // A custom sans tracking curve replaces the optical one, so the display
+      // scale then has nothing to act on.
+      opticalTracking: !trackingCurveOf(
+        lastParams.sansTracking,
+        DEFAULT_PARAMS.sansTracking,
+      ),
       columnCells: g.columnCells,
       marginCells: g.solvedM,
       contentWidth: g.contentWidth,

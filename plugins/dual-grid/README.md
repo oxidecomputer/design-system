@@ -35,19 +35,20 @@ Margin and gutter are independent controls, both measured in whole cells.
 ### Asymmetric margin
 
 In Manual mode, **Asym. margin** (under **Advanced**) shows a **Right margin** slider
-beneath **Margin cells** in the Grid group, which becomes **Left margin**. The left and right margins (`m`, `mR`) are then set separately,
-for example 8 cells on the left and 4 on the right:
+beneath **Margin cells** in the Grid group, which becomes **Left margin**. The left and
+right margins (`m`, `mR`) are then set separately, for example 8 cells on the left and 4 on
+the right:
 
 ```
 N = m + mR + c·k + (c−1)·g
 ```
 
 Both margins are still whole cells, so every edge stays on a cell line. The Pixel snap
-remainder is still split evenly between the two sides, so the cell grid remains centred.
-The column layout grid is anchored to the side with the wider effective margin, using
-`MIN` or `MAX` with that margin as its offset, because Figma rejects negative offsets.
-Type specimens align to the left margin. The panel shows both values, for example
-`m8/4 k6 g1`. Solve mode always uses symmetric margins.
+remainder is still split evenly between the two sides, so the cell grid remains centred. The
+column layout grid is anchored to the side with the wider effective margin, using `MIN` or
+`MAX` with that margin as its offset, because Figma rejects negative offsets. Type specimens
+align to the left margin. The panel shows both values, for example `m8/4 k6 g1`. Solve mode
+always uses symmetric margins.
 
 Column width is derived. With `m` and `g` fixed, the cells per column determine `N` and the
 cell size. The result is shown in the **Cells** row under **Advanced**
@@ -215,8 +216,9 @@ same amount, preserving the line positions. It also clamps small negative floati
 remainders from `H − rows·(H/rows)` when Snap rows is on.
 
 With **Snap rows** off, the exact cell aspect is preserved and the rows overhang the frame,
-split evenly between the top and bottom edges, where they clip. With it on, rows fit exactly with an approximate aspect ratio.
-Both modes fill the frame without changing column or margin calculations.
+split evenly between the top and bottom edges, where they clip. With it on, rows fit exactly
+with an approximate aspect ratio. Both modes fill the frame without changing column or
+margin calculations.
 
 If the achieved cell aspect deviates from the target by more than 1%, the panel flags it.
 
@@ -224,9 +226,9 @@ If the achieved cell aspect deviates from the target by more than 1%, the panel 
 
 The **Grid** group contains mode, columns, margin, gutter, cell size, Snap rows, Pixel snap
 and derived values. Pixel snap reveals Snap tol. and Aspect tol. The **Advanced** section is
-collapsed by default and contains Asym. margin, Edge cull, Cull tol., cell aspect, reference subdivision,
-layer toggles and the `m/k/g` equation row. Its header is a `<button>` with `aria-expanded`
-for keyboard access. Toggling it updates the reported panel height.
+collapsed by default and contains Asym. margin, Edge cull, Cull tol., cell aspect, reference
+subdivision, layer toggles and the `m/k/g` equation row. Its header is a `<button>` with
+`aria-expanded` for keyboard access. Toggling it updates the reported panel height.
 
 ### Reapply is debounced
 
@@ -338,14 +340,67 @@ layers before IDs have been stored. The test suite does not currently reproduce 
 ## Type specimens
 
 Each specimen's line height is a proportion of the frame height, rounded to a whole multiple
-of cell height so baselines align to cell lines. Font size is a share of the line box, with
-leading decreasing from about 1.35× at small sizes to 1.0× at display sizes. Custom sizes
-interpolate between reference points.
+of cell height so baselines align to cell lines. Font size is a share of the requested line
+height, before rounding. By default leading decreases from 1.6× for the mono caption and
+1.22× for small sans to 1.0× at display sizes. Custom sizes interpolate between reference
+points. Because font size uses the requested height, fractional percentages such as `2.5`
+change the type even when they round to the same number of cells. Font size is capped at the
+snapped line height, so leading never drops below 1.0×.
 
 Under **Advanced**, **Mono sizes** and **Sans sizes** accept comma-separated percentages of
 frame height, one specimen per entry (defaults `2` and `6, 12, 24`). Values are sorted
 ascending, duplicates removed, and invalid entries ignored. Empty or invalid lists fall back
-to the built-in scale.
+to the built-in scale. The resulting font sizes are shown under each field.
+
+**Mono leading**, **Sans leading**, **Mono track** and **Sans track** set the curves. Each
+takes one number for every size, or `size: value` pairs keyed by the same percentages as the
+size fields, for example `6: 1.22, 12: 1.09, 24: 1`. Values hold beyond the first and last
+points. Leading is line height ÷ font size, applied to the requested line height: the size
+field sets the line box, and leading sets how much of it the type fills. Leading
+interpolates linearly between points.
+
+Tracking is a percentage of the font size. Between points it follows the shape of the
+optical curve, `a / size + b`, so two points such as `6: 2, 24: -2` give the design system's
+curve moved to start and end at those values: it falls quickly through the small sizes and
+levels off toward display. Empty or invalid entries fall back to the defaults; for sans
+tracking that is the optical curve below, keyed by font size in pixels.
+
+### Display scale
+
+The optical curve was tuned on a laptop screen, so it describes type by how large it looks
+there. **Display** sets how large the frame is seen. The curve is then evaluated at the size
+the type appears at, `fontSize × k`, rather than its pixel size. Font sizes and line heights
+are unchanged; only the optical sans tracking moves. A custom **Sans track** curve, and mono
+tracking, are keyed by frame height and ignore it.
+
+`k` is the width the frame appears as, in laptop px, divided by the frame width:
+
+| Display | Appears as                            | 1080px frame |
+| ------- | ------------------------------------- | ------------ |
+| Screen  | the frame width                       | ×1           |
+| Social  | 400px                                 | ×0.37        |
+| Custom  | **Shown width**                       | —            |
+| Print   | 2750 × **Print width** ÷ **Distance** | —            |
+
+Screen means the frame is seen at its own pixel size, as a web page is. A social post is
+not: a 1080px post is shown about 400px wide in a phone feed and about 550px wide in a
+desktop feed. The type has to work at the smallest of these, so **Social** uses the phone
+width; at 550px the small sizes are slightly looser than they need to be. Phones are held
+closer than laptops, and their CSS px are already sized for it, so no distance is needed.
+Print converts by visual angle: a laptop CSS px is about 1/125 in seen from about 22 in, or
+1/2750 of a radian. An A1 poster (594mm) read from 3m appears 544px wide; A4 (210mm) at 40cm
+appears 1444px wide. **Reads as** shows the sans sizes as the curve sees them, and `k`.
+
+So a 120px headline on a 1080 post in a phone feed is tracked as a 44px headline (−0.018em
+rather than −0.032em), and small text on it opens up to match.
+
+**Snap font** rounds each font size to the nearest whole pixel (minimum 1px), rounding down
+where rounding up would pass the line height. Line heights are unaffected.
+
+Line heights under four cells snap to half cells, so a short line can be 1.5 or 2.5 cells
+rather than jumping between whole cells. Each specimen still occupies whole cells in the
+stack, so its baseline lands on a cell line; only a wrapped second line would fall on a
+half-cell line.
 
 Sizing relative to the frame keeps the type scale largely independent of cell size. Doubling
 frame height roughly doubles the type; changing cell size affects only the rounding, which

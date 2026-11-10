@@ -107,8 +107,8 @@ setTimeout(async () => {
         .join('|'),
     )
     check(
-      '31 fig-field labels',
-      doc.querySelectorAll('.fig-field-label').length === 31,
+      '43 fig-field labels',
+      doc.querySelectorAll('.fig-field-label').length === 43,
       doc.querySelectorAll('.fig-field-label').length,
     )
     check(
@@ -117,13 +117,13 @@ setTimeout(async () => {
       doc.querySelectorAll('fig-slider input[type=range]').length,
     )
     check(
-      '6 switches',
-      doc.querySelectorAll('fig-switch input[type=checkbox]').length === 6,
+      '7 switches',
+      doc.querySelectorAll('fig-switch input[type=checkbox]').length === 7,
       doc.querySelectorAll('fig-switch input[type=checkbox]').length,
     )
     check(
-      '8 number inputs: 3 solver targets + snap/aspect tol. + edge cull + frame width/height',
-      doc.querySelectorAll('fig-input-number input').length === 8,
+      '11 number inputs: 3 solver targets + snap/aspect tol. + edge cull + frame width/height + display width/print width/distance',
+      doc.querySelectorAll('fig-input-number input').length === 11,
       doc.querySelectorAll('fig-input-number input').length,
     )
 
@@ -150,6 +150,45 @@ setTimeout(async () => {
       'specimens switch present + on',
       $('showSpecimens') && $('showSpecimens').checked === true,
     )
+    check(
+      'leading and tracking fields show the default curves',
+      $('monoLeading').value === '2: 1.6, 12: 1.25' &&
+        $('sansLeading').value === '6: 1.22, 12: 1.09, 24: 1' &&
+        $('monoTracking').value === '4' &&
+        $('sansTracking').value === '' &&
+        $('sansTracking').querySelector('input').placeholder === 'Optical, or 6: 2, 24: -2',
+    )
+    sent.length = 0
+    {
+      const input = $('sansLeading').querySelector('input')
+      input.value = '6: 1.5, 24: 1'
+      input.dispatchEvent(new w.Event('input', { bubbles: true }))
+      await sleep(DEBOUNCE_WAIT)
+    }
+    check(
+      'editing Sans leading reapplies with the new curve',
+      reapplies().some((x) => x.params.sansLeading === '6: 1.5, 24: 1'),
+      JSON.stringify(sent.map((x) => x.params && x.params.sansLeading)),
+    )
+    send({ type: 'params-change', params: { monoTracking: '6', sansTracking: '6: 1' } })
+    check(
+      'params from the plugin restore the tracking fields',
+      $('monoTracking').value === '6' && $('sansTracking').value === '6: 1',
+    )
+    check(
+      'Snap font switch present + off by default',
+      $('snapFontPx') && $('snapFontPx').checked === false,
+    )
+    sent.length = 0
+    $('snapFontPx').querySelector('input').click()
+    await sleep(DEBOUNCE_WAIT)
+    check(
+      'toggling Snap font reapplies with snapFontPx true',
+      reapplies().some((x) => x.params.snapFontPx === true),
+      JSON.stringify(sent.map((x) => x.params && x.params.snapFontPx)),
+    )
+    $('snapFontPx').querySelector('input').click()
+    await sleep(DEBOUNCE_WAIT)
 
     console.log('\n=== Manual: margin and gutter are separate; no column control ===')
     check('the column multiple slider is gone', !$('columnMultiple'))
@@ -777,8 +816,20 @@ setTimeout(async () => {
         columnWidth: 132,
         columnCells: 6,
         contentWidth: 1826,
+        monoFontSizes: [13.3],
+        sansFontSizes: [38.512, 86.4, 187.84],
       },
     })
+    check(
+      'mono sizes row shows the resulting font size',
+      /^13\.3\s*px$/.test($('preview-monoSizes').textContent.trim()),
+      $('preview-monoSizes').textContent,
+    )
+    check(
+      'sans sizes row lists each font size, rounded',
+      /^38\.51 · 86\.4 · 187\.84\s*px$/.test($('preview-sansSizes').textContent.trim()),
+      $('preview-sansSizes').textContent,
+    )
     check(
       'grid size row shows columns + cells, and not the frame size',
       /12 col/.test($('preview-size').textContent) &&
@@ -954,19 +1005,24 @@ setTimeout(async () => {
     )
 
     console.log('\n=== switches still clickable (regression guard) ===')
-    ;['snapRows', 'pixelPerfect', 'edgeCull', 'showLines', 'showSpecimens'].forEach(
-      (id) => {
-        const host = $(id),
-          before = host.checked
-        host
-          .querySelector('input')
-          .dispatchEvent(new w.MouseEvent('click', { bubbles: true }))
-        check('click toggles ' + id, host.checked === !before)
-        host
-          .querySelector('input')
-          .dispatchEvent(new w.MouseEvent('click', { bubbles: true }))
-      },
-    )
+    ;[
+      'snapRows',
+      'pixelPerfect',
+      'edgeCull',
+      'showLines',
+      'showSpecimens',
+      'snapFontPx',
+    ].forEach((id) => {
+      const host = $(id),
+        before = host.checked
+      host
+        .querySelector('input')
+        .dispatchEvent(new w.MouseEvent('click', { bubbles: true }))
+      check('click toggles ' + id, host.checked === !before)
+      host
+        .querySelector('input')
+        .dispatchEvent(new w.MouseEvent('click', { bubbles: true }))
+    })
 
     console.log('\n=== Snap/Aspect tol. appear only while Pixel snap is on ===')
     {
@@ -1447,6 +1503,83 @@ setTimeout(async () => {
       )
       await sleep(1700) // let the label reset before the error check below
       delete doc.execCommand
+    }
+
+    console.log('\n=== display scale ===')
+    {
+      const pick = async (value) => {
+        sent.length = 0
+        const sel = $('displayMode').querySelector('select')
+        sel.value = value
+        sel.dispatchEvent(new w.Event('change', { bubbles: true }))
+        await sleep(5)
+      }
+      const shown = () =>
+        ['shownWidthField', 'printWidthField', 'viewingDistanceField']
+          .filter((id) => !$(id).hidden)
+          .join(',')
+      check('Screen shows no extra fields', shown() === '', shown())
+      await pick('Social')
+      check('a feed preset shows no extra fields', shown() === '', shown())
+      check(
+        'the mode posts and reapplies',
+        sent.some((m) => m.type === 'params-changed' && m.params.displayMode === 'Social'),
+      )
+      await pick('Custom')
+      check('Custom shows only the shown width', shown() === 'shownWidthField', shown())
+      await pick('Print')
+      check(
+        'Print shows the width and distance',
+        shown() === 'printWidthField,viewingDistanceField',
+        shown(),
+      )
+      const dist = $('viewingDistanceCm').querySelector('input')
+      dist.value = '300'
+      dist.dispatchEvent(new w.Event('input', { bubbles: true }))
+      await sleep(5)
+      check(
+        'the distance posts as a number',
+        sent.some((m) => m.type === 'params-changed' && m.params.viewingDistanceCm === 300),
+      )
+
+      send({
+        type: 'params-change',
+        params: { displayMode: 'Custom', shownWidthPx: 720 },
+      })
+      check(
+        'restored params set the mode, its field and its visibility',
+        $('displayMode').value === 'Custom' &&
+          $('shownWidthPx').value === 720 &&
+          shown() === 'shownWidthField',
+        $('displayMode').value + ' ' + shown(),
+      )
+      send({ type: 'params-change', params: {} })
+      check('missing params fall back to Screen', $('displayMode').value === 'Screen')
+
+      const readout = (extra) => {
+        send({
+          type: 'action-state',
+          status: '',
+          preview: Object.assign({}, pvSolve, extra),
+        })
+        return $('preview-display').textContent.replace(/\s+/g, ' ').trim()
+      }
+      const text = readout({
+        sansFontSizes: [64.8, 129.6],
+        displayScale: 0.5,
+        opticalTracking: true,
+      })
+      check(
+        'the readout lists the seen sizes and the scale',
+        text === '32 · 65 px · ×0.5',
+        text,
+      )
+      const over = readout({
+        sansFontSizes: [64.8],
+        displayScale: 0.5,
+        opticalTracking: false,
+      })
+      check('a custom Sans track says it overrides the scale', /overrides/.test(over), over)
     }
 
     console.log('\n=== final error check ===')

@@ -402,6 +402,11 @@
       .fig-preview .dim {
         color: var(--fg-secondary);
       }
+      /* Derived values for the input above, tucked up against it. */
+      fig-field.fig-subpreview {
+        min-height: 16px;
+        margin-top: -6px;
+      }
 
       /* ----- fig-footer -------------------------------------------------- */
       fig-footer {
@@ -643,12 +648,79 @@
           <fig-field label="Mono sizes">
             <fig-input-text id="monoSizes" value="2" placeholder="2"></fig-input-text>
           </fig-field>
+          <fig-field label="" class="fig-subpreview">
+            <span class="fig-preview" id="preview-monoSizes">—</span>
+          </fig-field>
+          <!-- Leading and tracking take one number, or "size: value" pairs
+               keyed by the same percentages as the sizes above. Leading
+               interpolates linearly; tracking follows the optical curve's
+               a / size + b shape between points. Empty falls back to the
+               built-in curve; for sans tracking that is the optical curve. -->
+          <fig-field label="Mono leading">
+            <fig-input-text
+              id="monoLeading"
+              value="2: 1.6, 12: 1.25"
+              placeholder="2: 1.6, 12: 1.25"
+            ></fig-input-text>
+          </fig-field>
+          <fig-field label="Mono track">
+            <fig-input-text id="monoTracking" value="4" placeholder="4"></fig-input-text>
+          </fig-field>
           <fig-field label="Sans sizes">
             <fig-input-text
               id="sansSizes"
               value="6, 12, 24"
               placeholder="6, 12, 24"
             ></fig-input-text>
+          </fig-field>
+          <fig-field label="" class="fig-subpreview">
+            <span class="fig-preview" id="preview-sansSizes">—</span>
+          </fig-field>
+          <fig-field label="Sans leading">
+            <fig-input-text
+              id="sansLeading"
+              value="6: 1.22, 12: 1.09, 24: 1"
+              placeholder="6: 1.22, 12: 1.09, 24: 1"
+            ></fig-input-text>
+          </fig-field>
+          <fig-field label="Sans track">
+            <fig-input-text
+              id="sansTracking"
+              value=""
+              placeholder="Optical, or 6: 2, 24: -2"
+            ></fig-input-text>
+          </fig-field>
+          <!-- How large the frame appears to its reader. The optical
+               tracking curve is evaluated at the size the type looks on a
+               laptop: a feed's shown width, or for print the physical width
+               and viewing distance. -->
+          <fig-field label="Display">
+            <fig-dropdown id="displayMode" value="Screen" full>
+              <option selected>Screen</option>
+              <option>Social</option>
+              <option>Print</option>
+              <option>Custom</option>
+            </fig-dropdown>
+          </fig-field>
+          <fig-field label="Shown width" id="shownWidthField" hidden>
+            <fig-input-number id="shownWidthPx" value="400" units="px"></fig-input-number>
+          </fig-field>
+          <fig-field label="Print width" id="printWidthField" hidden>
+            <fig-input-number id="printWidthMm" value="210" units="mm"></fig-input-number>
+          </fig-field>
+          <fig-field label="Distance" id="viewingDistanceField" hidden>
+            <fig-input-number
+              id="viewingDistanceCm"
+              value="40"
+              units="cm"
+            ></fig-input-number>
+          </fig-field>
+          <fig-field label="Reads as">
+            <span class="fig-preview" id="preview-display">—</span>
+          </fig-field>
+          <!-- Rounds font sizes only; line heights stay on cell steps. -->
+          <fig-field label="Snap font">
+            <fig-switch id="snapFontPx"></fig-switch>
           </fig-field>
         </fig-group>
 
@@ -1102,6 +1174,16 @@
         reportHeight()
       }
 
+      // Custom asks for the shown width; Print for the printed width and
+      // the distance it is read from. The presets need neither.
+      function applyDisplayMode() {
+        const mode = $('displayMode').value
+        $('shownWidthField').hidden = mode !== 'Custom'
+        $('printWidthField').hidden = mode !== 'Print'
+        $('viewingDistanceField').hidden = mode !== 'Print'
+        reportHeight()
+      }
+
       // Shows only the controls that belong to the active mode.
       function applyMode() {
         const mode = $('mode').value
@@ -1138,6 +1220,15 @@
         'sansFamily',
         'monoSizes',
         'sansSizes',
+        'monoLeading',
+        'sansLeading',
+        'monoTracking',
+        'sansTracking',
+        'displayMode',
+        'shownWidthPx',
+        'printWidthMm',
+        'viewingDistanceCm',
+        'snapFontPx',
       ]
 
       // Which action the single footer button performs, set by the plugin.
@@ -1224,6 +1315,15 @@
           sansFamily: $('sansFamily').value,
           monoSizes: $('monoSizes').value,
           sansSizes: $('sansSizes').value,
+          monoLeading: $('monoLeading').value,
+          sansLeading: $('sansLeading').value,
+          monoTracking: $('monoTracking').value,
+          sansTracking: $('sansTracking').value,
+          displayMode: $('displayMode').value,
+          shownWidthPx: $('shownWidthPx').value,
+          printWidthMm: $('printWidthMm').value,
+          viewingDistanceCm: $('viewingDistanceCm').value,
+          snapFontPx: $('snapFontPx').checked,
           // Always the user's own settings, never the mirrored size of
           // a selected frame — those fields are read-only while a frame
           // is bound, so reading them back would overwrite what the
@@ -1262,6 +1362,15 @@
         sansFamily: "Suisse Int'l",
         monoSizes: '2',
         sansSizes: '6, 12, 24',
+        monoLeading: '2: 1.6, 12: 1.25',
+        sansLeading: '6: 1.22, 12: 1.09, 24: 1',
+        monoTracking: '4',
+        sansTracking: '',
+        displayMode: 'Screen',
+        shownWidthPx: 400,
+        printWidthMm: 210,
+        viewingDistanceCm: 40,
+        snapFontPx: false,
         frameWidth: 1920,
         frameAspect: '16:9',
         frameHeight: 1080,
@@ -1300,6 +1409,16 @@
         $('sansFamily').value = p.sansFamily
         $('monoSizes').value = p.monoSizes
         $('sansSizes').value = p.sansSizes
+        $('monoLeading').value = p.monoLeading
+        $('sansLeading').value = p.sansLeading
+        $('monoTracking').value = p.monoTracking
+        $('sansTracking').value = p.sansTracking
+        $('displayMode').value = p.displayMode
+        $('shownWidthPx').value = p.shownWidthPx
+        $('printWidthMm').value = p.printWidthMm
+        $('viewingDistanceCm').value = p.viewingDistanceCm
+        applyDisplayMode()
+        $('snapFontPx').checked = !!p.snapFontPx
         ownFrame = {
           frameWidth: p.frameWidth,
           frameAspect: p.frameAspect,
@@ -1366,6 +1485,7 @@
       // generic listener below, like every other switch.
       $('pixelPerfect').addEventListener('change', applySnapTol)
       $('edgeCull').addEventListener('change', applyEdgeCull)
+      $('displayMode').addEventListener('change', applyDisplayMode)
       $('asymmetricMargin').addEventListener('change', () => {
         // Start the right margin where the left one is, so unlinking alone
         // does not move the grid.
@@ -1398,6 +1518,15 @@
         'sansFamily',
         'monoSizes',
         'sansSizes',
+        'monoLeading',
+        'sansLeading',
+        'monoTracking',
+        'sansTracking',
+        'displayMode',
+        'shownWidthPx',
+        'printWidthMm',
+        'viewingDistanceCm',
+        'snapFontPx',
       ].forEach((id) => {
         $(id).addEventListener('change', () => paramsChanged(true))
       })
@@ -1601,6 +1730,24 @@
           '">aspect Δ ' +
           px(Math.abs(p.deltaPct)) +
           '%</span>'
+        // Resulting font sizes for each specimen list, after the line
+        // height snaps to whole cells.
+        const sizes = (list) =>
+          list && list.length
+            ? list.map(px).join(' <span class="dim">&middot;</span> ') +
+              ' <span class="dim">px</span>'
+            : '—'
+        $('preview-monoSizes').innerHTML = sizes(p.monoFontSizes)
+        $('preview-sansSizes').innerHTML = sizes(p.sansFontSizes)
+        // The sans sizes as the optical curve sees them. A custom Sans
+        // track replaces that curve, so the scale then changes nothing.
+        const scale = p.displayScale || 1
+        $('preview-display').innerHTML = !p.opticalTracking
+          ? '<span class="dim">Sans track overrides</span>'
+          : sizes((p.sansFontSizes || []).map((s) => Math.round(s * scale))) +
+            ' <span class="dim">&middot; &times;' +
+            Math.round(scale * 100) / 100 +
+            '</span>'
         $('preview-column').innerHTML =
           px(p.columnWidth) +
           'px <span class="dim">col &middot; ' +

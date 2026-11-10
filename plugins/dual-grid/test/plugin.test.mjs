@@ -310,6 +310,22 @@ const SPECIMEN_RATIOS = {
   'Sans 24%': 0.24,
 }
 
+// Specimen line heights, written independently of main.ts: under four cells
+// they snap to half cells (minimum half a cell), from four up to whole cells.
+const HALF_CELL_BELOW = 4
+const specimenCells = (askedPx, cellH) => {
+  const exact = askedPx / cellH
+  return exact < HALF_CELL_BELOW
+    ? Math.max(0.5, Math.round(exact * 2) / 2)
+    : Math.max(1, Math.round(exact))
+}
+// Whole cells, or half cells for lines under the threshold.
+const onCellStep = (lineHeight, cellH) => {
+  const cells = lineHeight / cellH
+  const step = cells < HALF_CELL_BELOW ? 0.5 : 1
+  return Math.abs(cells / step - Math.round(cells / step)) < 1e-6
+}
+
 const P = {
   mode: 'Manual',
   columnCount: 12,
@@ -331,6 +347,15 @@ const P = {
   cellDensity: 1,
   showLines: true,
   showSpecimens: true,
+  monoLeading: '2: 1.6, 12: 1.25',
+  sansLeading: '6: 1.22, 12: 1.09, 24: 1',
+  monoTracking: '4',
+  sansTracking: '',
+  displayMode: 'Screen',
+  shownWidthPx: 400,
+  printWidthMm: 210,
+  viewingDistanceCm: 40,
+  snapFontPx: false,
   frameWidth: 1920,
   frameAspect: '16:9',
 }
@@ -1319,24 +1344,29 @@ console.log('\n=== TYPE SPECIMENS ===')
     JSON.stringify(mono.letterSpacing),
   )
   check(
-    'mono line height snaps to whole cells',
-    Math.abs(
-      mono.lineHeight.value / pv.cellH - Math.round(mono.lineHeight.value / pv.cellH),
-    ) < 1e-9,
+    'mono line height snaps to half cells (it is under four cells)',
+    onCellStep(mono.lineHeight.value, pv.cellH),
     (mono.lineHeight.value / pv.cellH).toFixed(4) + ' cells',
   )
   check(
     'mono line height ≈ 2% of the frame height (snapped)',
-    Math.abs(
-      mono.lineHeight.value - Math.max(1, Math.round((1080 * 0.02) / pv.cellH)) * pv.cellH,
-    ) < 1e-9,
+    Math.abs(mono.lineHeight.value - specimenCells(1080 * 0.02, pv.cellH) * pv.cellH) <
+      1e-9,
     mono.lineHeight.value.toFixed(2) + ' (2% of 1080 = 21.6)',
   )
   check(
-    'mono font size is a proportion of the line height',
-    Math.abs(mono.fontSize - mono.lineHeight.value * 0.62) < 1e-9 &&
-      mono.fontSize < mono.lineHeight.value,
+    'mono font size is a proportion of the requested line height',
+    Math.abs(mono.fontSize - Math.min((1080 * 0.02) / 1.6, mono.lineHeight.value)) < 1e-9 &&
+      mono.fontSize <= mono.lineHeight.value,
     mono.fontSize.toFixed(2),
+  )
+
+  check(
+    'preview reports the font size of every generated specimen',
+    pv.monoFontSizes.length === 1 &&
+      Math.abs(pv.monoFontSizes[0] - mono.fontSize) < 1e-9 &&
+      sans.every((n) => pv.sansFontSizes.some((s) => Math.abs(s - n.fontSize) < 1e-9)),
+    JSON.stringify({ mono: pv.monoFontSizes, sans: pv.sansFontSizes }),
   )
 
   console.log('--- sans: 1x, 2x, 4x, 8x cell height ---')
@@ -1344,17 +1374,15 @@ console.log('\n=== TYPE SPECIMENS ===')
     .map((n) => [n, SPECIMEN_RATIOS[n.name]])
     .filter(([n, r]) => !!n && !!r)
     .forEach(([n, ratio]) => {
-      const want = Math.max(1, Math.round((1080 * ratio) / pv.cellH))
+      const want = specimenCells(1080 * ratio, pv.cellH)
       check(
         `sans ${ratio * 100}% -> ${want} cells of line height`,
         Math.abs(n.lineHeight.value - want * pv.cellH) < 1e-9,
         n.lineHeight.value.toFixed(2) + ' vs ' + (want * pv.cellH).toFixed(2),
       )
       check(
-        `sans ${ratio * 100}% line height is a whole number of cells`,
-        Math.abs(
-          n.lineHeight.value / pv.cellH - Math.round(n.lineHeight.value / pv.cellH),
-        ) < 1e-9,
+        `sans ${ratio * 100}% line height is on a cell step`,
+        onCellStep(n.lineHeight.value, pv.cellH),
       )
       check(
         `sans ${ratio * 100}% uses Suisse Int'l (or fallback)`,
@@ -1450,6 +1478,292 @@ console.log('--- specimens toggle ---')
   check(
     'still one container',
     fr.children.filter((c) => c.name === 'Type Specimens').length === 1,
+  )
+}
+
+console.log('--- fractional sizes change the type within one cell count ---')
+{
+  // All round to half a cell (22.5px) on this 45px-cell grid.
+  const sizes = ['1.8', '2', '2.2', '2.4']
+  const runs = []
+  for (const m of sizes) {
+    const { fr, pv } = await apply(1920, 1080, { monoSizes: m, sansSizes: m })
+    const [mono, sans] = layer(fr, 'Type Specimens').children
+    runs.push({ m, cellH: pv.cellH, mono, sans })
+  }
+  const lh = (n) => n.lineHeight.value
+  check(
+    'these sizes share one line height',
+    runs.every((r) => lh(r.mono) === lh(runs[0].mono) && lh(r.sans) === lh(runs[0].sans)),
+    runs.map((r) => lh(r.mono) + '/' + lh(r.sans)).join(','),
+  )
+  check(
+    'mono font size still grows with each step',
+    runs.every((r, i) => i === 0 || r.mono.fontSize > runs[i - 1].mono.fontSize),
+    runs.map((r) => r.mono.fontSize.toFixed(2)).join(','),
+  )
+  check(
+    'sans font size grows until it reaches the line height, never past it',
+    runs.every(
+      (r, i) =>
+        r.sans.fontSize <= lh(r.sans) + 1e-9 &&
+        (i === 0 ||
+          r.sans.fontSize > runs[i - 1].sans.fontSize ||
+          Math.abs(r.sans.fontSize - lh(r.sans)) < 1e-9),
+    ),
+    runs.map((r) => r.sans.fontSize.toFixed(2) + '/' + lh(r.sans)).join(','),
+  )
+}
+
+console.log('--- leading and tracking curves ---')
+{
+  const specimens = async (over) => {
+    const { fr } = await apply(1920, 1080, {
+      monoSizes: '2',
+      sansSizes: '6, 12, 24',
+      ...over,
+    })
+    const out = {}
+    for (const n of layer(fr, 'Type Specimens').children) out[n.name] = n
+    return out
+  }
+  const optical = (size) => (0.981 / size - 0.0401) * 100
+  const near = (a, b) => Math.abs(a - b) < 1e-9
+
+  const base = await specimens({})
+  check(
+    'default: mono tracking is 4%, sans follows the optical curve',
+    base['Mono 2%'].letterSpacing.value === 4 &&
+      ['Sans 6%', 'Sans 12%', 'Sans 24%'].every((k) =>
+        near(base[k].letterSpacing.value, optical(base[k].fontSize)),
+      ),
+  )
+
+  // Leading 2 everywhere: font size = requested line height / 2.
+  const flat = await specimens({ sansLeading: '2', monoLeading: '2' })
+  check(
+    'a bare leading number applies at every size',
+    near(flat['Sans 6%'].fontSize, (1080 * 0.06) / 2) &&
+      near(flat['Sans 24%'].fontSize, (1080 * 0.24) / 2) &&
+      near(flat['Mono 2%'].fontSize, (1080 * 0.02) / 2),
+    ['Sans 6%', 'Sans 24%', 'Mono 2%'].map((k) => flat[k].fontSize.toFixed(2)).join(','),
+  )
+  check(
+    'leading changes font size, not line height',
+    ['Sans 6%', 'Sans 12%', 'Sans 24%', 'Mono 2%'].every(
+      (k) => flat[k].lineHeight.value === base[k].lineHeight.value,
+    ),
+  )
+
+  // Points interpolate linearly between sizes and clamp beyond the ends.
+  const pts = await specimens({ sansLeading: '6: 2, 24: 1.25' })
+  check(
+    'leading points interpolate between sizes and clamp at the ends',
+    near(pts['Sans 6%'].fontSize, (1080 * 0.06) / 2) &&
+      near(pts['Sans 12%'].fontSize, (1080 * 0.12) / (2 - (0.75 * 6) / 18)) &&
+      near(pts['Sans 24%'].fontSize, (1080 * 0.24) / 1.25),
+    ['Sans 6%', 'Sans 12%', 'Sans 24%'].map((k) => pts[k].fontSize.toFixed(2)).join(','),
+  )
+
+  const tr = await specimens({ sansTracking: '6: 2, 24: -2', monoTracking: '10%' })
+  check(
+    'tracking points and a bare % apply',
+    near(tr['Sans 6%'].letterSpacing.value, 2) &&
+      near(tr['Sans 24%'].letterSpacing.value, -2) &&
+      tr['Mono 2%'].letterSpacing.value === 10,
+  )
+  // Through (6, 2) and (24, -2), a / x + b gives a = 32, b = -10/3, so 12% sits
+  // at 32/12 - 10/3 = -2/3: below the straight-line value of 2/3, as the
+  // optical curve falls fastest at small sizes.
+  check(
+    'tracking between points follows the optical curve shape, a / size + b',
+    near(tr['Sans 12%'].letterSpacing.value, -2 / 3),
+    tr['Sans 12%'].letterSpacing.value.toFixed(4),
+  )
+  // One size per run, so neither is dropped for lack of room.
+  const below = await specimens({ sansSizes: '3', sansTracking: '6: 2, 24: -2' })
+  const above = await specimens({ sansSizes: '30', sansTracking: '6: 2, 24: -2' })
+  check(
+    'tracking holds its end values beyond the first and last points',
+    !!below['Sans 3%'] &&
+      !!above['Sans 30%'] &&
+      near(below['Sans 3%'].letterSpacing.value, 2) &&
+      near(above['Sans 30%'].letterSpacing.value, -2),
+  )
+
+  const junk = await specimens({
+    sansLeading: 'abc',
+    monoLeading: '0',
+    sansTracking: 'nope',
+    monoTracking: '',
+  })
+  check(
+    'unusable curves fall back to the defaults',
+    ['Sans 6%', 'Sans 12%', 'Sans 24%', 'Mono 2%'].every(
+      (k) =>
+        near(junk[k].fontSize, base[k].fontSize) &&
+        near(junk[k].letterSpacing.value, base[k].letterSpacing.value),
+    ),
+  )
+
+  const capped = await specimens({ sansLeading: '0.5' })
+  check(
+    'leading below 1 is capped: font size never exceeds the line height',
+    ['Sans 6%', 'Sans 12%', 'Sans 24%'].every(
+      (k) => capped[k].fontSize <= capped[k].lineHeight.value + 1e-9,
+    ),
+  )
+}
+
+console.log(
+  '--- Display scale evaluates the optical curve at the size the type is seen ---',
+)
+{
+  const optical = (size) => (0.981 / size - 0.0401) * 100
+  const near = (a, b) => Math.abs(a - b) < 1e-9
+  // A 1080 square, the size of a feed post.
+  const post = async (over) => {
+    const { fr, pv } = await apply(1080, 1080, { sansSizes: '6, 12, 24', ...over })
+    const out = {}
+    for (const n of layer(fr, 'Type Specimens').children) out[n.name] = n
+    return { out, pv }
+  }
+  const sans = ['Sans 6%', 'Sans 12%', 'Sans 24%']
+  const follows = (out, k) =>
+    sans.every((name) =>
+      near(out[name].letterSpacing.value, optical(out[name].fontSize * k)),
+    )
+
+  const screen = await post({})
+  check('Screen evaluates the curve at the font size', follows(screen.out, 1))
+  check('Screen reports a scale of 1', screen.pv.displayScale === 1, screen.pv.displayScale)
+
+  const phone = await post({ displayMode: 'Social' })
+  check(
+    'Social scales by 400 / frame width',
+    follows(phone.out, 400 / 1080) && near(phone.pv.displayScale, 400 / 1080),
+    phone.pv.displayScale,
+  )
+  check(
+    '...which opens up tracking, since the type is seen smaller',
+    sans.every(
+      (name) => phone.out[name].letterSpacing.value > screen.out[name].letterSpacing.value,
+    ),
+  )
+  check(
+    'the display scale leaves font sizes and line heights alone',
+    sans.every(
+      (name) =>
+        phone.out[name].fontSize === screen.out[name].fontSize &&
+        phone.out[name].lineHeight.value === screen.out[name].lineHeight.value,
+    ),
+  )
+
+  const custom = await post({ displayMode: 'Custom', shownWidthPx: 720 })
+  check('Custom scales by shown width / frame width', follows(custom.out, 720 / 1080))
+  const badCustom = await post({ displayMode: 'Custom', shownWidthPx: 0 })
+  check('an unusable shown width falls back to 400px', follows(badCustom.out, 400 / 1080))
+
+  // 2750 laptop px per radian: 594mm seen from 3m appears 544.5px wide.
+  const poster = await post({
+    displayMode: 'Print',
+    printWidthMm: 594,
+    viewingDistanceCm: 300,
+  })
+  check(
+    'Print scales by 2750 × width / distance / frame width',
+    follows(poster.out, (2750 * 594) / 3000 / 1080) &&
+      near(poster.pv.displayScale, (2750 * 594) / 3000 / 1080),
+    poster.pv.displayScale,
+  )
+  const badPrint = await post({
+    displayMode: 'Print',
+    printWidthMm: -1,
+    viewingDistanceCm: 0,
+  })
+  check(
+    'unusable print values fall back to A4 at 40cm',
+    follows(badPrint.out, (2750 * 210) / 400 / 1080),
+  )
+
+  const unknown = await post({ displayMode: 'Billboard' })
+  check('an unknown display mode is treated as Screen', follows(unknown.out, 1))
+
+  const curve = await post({ displayMode: 'Social', sansTracking: '6: 2, 24: -2' })
+  check(
+    'a custom sans tracking curve ignores the display scale',
+    near(curve.out['Sans 6%'].letterSpacing.value, 2) &&
+      near(curve.out['Sans 24%'].letterSpacing.value, -2) &&
+      curve.pv.opticalTracking === false,
+  )
+  check(
+    'the optical curve is reported as active by default',
+    screen.pv.opticalTracking === true,
+  )
+  check(
+    'mono tracking ignores the display scale',
+    phone.out['Mono 2%'].letterSpacing.value === 4,
+  )
+}
+
+console.log('--- Snap font rounds font sizes, not line heights ---')
+{
+  const { fr } = await apply(1920, 1080)
+  page.selection = [fr]
+  const before = layer(fr, 'Type Specimens').children.map((n) => ({
+    name: n.name,
+    fontSize: n.fontSize,
+    lineHeight: n.lineHeight.value,
+  }))
+  check(
+    'off: some font sizes are fractional',
+    before.some((n) => !Number.isInteger(n.fontSize)),
+    before.map((n) => n.fontSize).join(','),
+  )
+  await uiHandler({
+    type: 'params-changed',
+    params: { ...P, snapFontPx: true },
+    reapply: true,
+  })
+  const after = layer(fr, 'Type Specimens').children
+  check(
+    'on: every font size is a whole pixel, nearest without passing the line height',
+    after.every((n) => {
+      const b = before.find((x) => x.name === n.name)
+      const want = Math.min(Math.round(b.fontSize), Math.floor(b.lineHeight + 1e-9))
+      return b && Number.isInteger(n.fontSize) && n.fontSize === want
+    }),
+    after.map((n) => n.fontSize).join(','),
+  )
+  check(
+    'on: line heights are unchanged',
+    after.every((n) => {
+      const b = before.find((x) => x.name === n.name)
+      return b && n.lineHeight.value === b.lineHeight
+    }),
+  )
+  const pv = figma.ui._last.preview
+  check(
+    'on: preview reports the rounded sizes',
+    pv.monoFontSizes.concat(pv.sansFontSizes).every(Number.isInteger) &&
+      after.every((n) => pv.monoFontSizes.concat(pv.sansFontSizes).includes(n.fontSize)),
+    JSON.stringify({ mono: pv.monoFontSizes, sans: pv.sansFontSizes }),
+  )
+  check('same specimen layers reused', after.length === before.length)
+
+  // 2.5% of 1080 is 27px, which snaps to a half-cell line (22.5px). At leading
+  // 1 the font is capped at 22.5px; rounding that up to 23 would pass the line
+  // height, so it rounds down instead.
+  const { fr: capFr } = await apply(1920, 1080, {
+    monoSizes: '2.5',
+    monoLeading: '1',
+    snapFontPx: true,
+  })
+  const capped = layer(capFr, 'Type Specimens').children.find((n) => n.name === 'Mono 2.5%')
+  check(
+    'on: rounds down rather than past the line height',
+    !!capped && capped.fontSize === 22 && capped.lineHeight.value === 22.5,
+    capped && capped.fontSize + ' in ' + capped.lineHeight.value,
   )
 }
 
@@ -2359,12 +2673,11 @@ console.log('\n=== a live reapply updates in place, it does not recreate ===')
     spec().children[0].characters,
   )
   check(
-    'but the metrics did update — line height is a whole number of cells',
+    'but the metrics did update — line height is on a cell step',
     (() => {
       const pv = figma.ui._last.preview
       const n = spec().children[0]
-      const mult = n.lineHeight.value / pv.cellH
-      return Math.abs(mult - Math.round(mult)) < 1e-6 && n.fontSize > 0
+      return onCellStep(n.lineHeight.value, pv.cellH) && n.fontSize > 0
     })(),
     spec().children[0].lineHeight.value.toFixed(2),
   )
@@ -2700,24 +3013,21 @@ for (const [w, h] of [
   const kids = layer(fr, 'Type Specimens').children
   const ratios = SPECIMEN_RATIOS
   kids.forEach((n) => {
-    const want = Math.max(1, Math.round((h * ratios[n.name]) / pv.cellH))
+    const want = specimenCells(h * ratios[n.name], pv.cellH)
     check(
       `${w}x${h} ${n.name}: ${want} cells (${(want * pv.cellH).toFixed(0)}px ≈ ${(h * ratios[n.name]).toFixed(0)}px asked)`,
       Math.abs(n.lineHeight.value - want * pv.cellH) < 1e-9,
       n.lineHeight.value.toFixed(2),
     )
-    check(
-      `  snapped to a whole number of cells`,
-      Math.abs(n.lineHeight.value / pv.cellH - Math.round(n.lineHeight.value / pv.cellH)) <
-        1e-9,
-    )
-    // Within half a cell, except where the ask is under half a cell and the
-    // one-cell floor takes over — a specimen cannot be shorter than a row.
+    check(`  snapped to a cell step`, onCellStep(n.lineHeight.value, pv.cellH))
+    // Within half a step: a quarter cell under the threshold, half a cell
+    // above it. Below a quarter cell the half-cell floor takes over.
     const asked = h * ratios[n.name]
+    const tol = (asked / pv.cellH < HALF_CELL_BELOW ? 0.25 : 0.5) * pv.cellH
     check(
-      `  within half a cell of the requested proportion (or clamped to one)`,
-      Math.abs(n.lineHeight.value - asked) <= pv.cellH / 2 + 1e-6 ||
-        (asked < pv.cellH && Math.abs(n.lineHeight.value - pv.cellH) < 1e-9),
+      `  within half a step of the requested proportion (or clamped to half a cell)`,
+      Math.abs(n.lineHeight.value - asked) <= tol + 1e-6 ||
+        (asked < pv.cellH / 2 && Math.abs(n.lineHeight.value - pv.cellH / 2) < 1e-9),
       'off by ' +
         Math.abs(n.lineHeight.value - asked).toFixed(2) +
         'px, cellH=' +
@@ -2759,7 +3069,7 @@ console.log('\n=== custom specimen sizes ===')
     ['Sans 16%', 16],
   ]) {
     const n = kids.find((k) => k.name === name)
-    const want = Math.max(1, Math.round((1080 * pct) / 100 / pv.cellH)) * pv.cellH
+    const want = specimenCells((1080 * pct) / 100, pv.cellH) * pv.cellH
     check(
       `${name} line height ≈ ${pct}% of the frame, snapped to cells`,
       !!n && Math.abs(n.lineHeight.value - want) < 1e-9,
