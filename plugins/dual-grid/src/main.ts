@@ -23,7 +23,7 @@ import {
 } from '../../../components/src/grid'
 
 type GridMode = 'Manual' | 'Solve'
-type DisplayMode = 'Screen' | 'Social' | 'Print' | 'Custom'
+type DisplayMode = 'Screen' | 'Print' | 'Custom'
 
 interface Params {
   mode: GridMode
@@ -71,13 +71,8 @@ interface Params {
   // Round specimen font sizes to whole pixels. Line heights stay on cell steps,
   // which may be fractional, so baselines remain on the grid.
   snapFontPx: boolean
-  // Leading (line height ÷ font size) at each family's smallest and largest
-  // size; sizes between follow from them (see leadingOf). Empty means the
-  // built-in value. Tracking has no setting: mono is a flat 4%, sans optical.
-  monoLeadingMin: string
-  monoLeadingMax: string
-  sansLeadingMin: string
-  sansLeadingMax: string
+  // Leading and tracking have no settings: both follow the design system's type
+  // scale at the size the type is seen (see opticalLeading, opticalTrackingPct).
   // How large the frame appears to its reader; see displayScaleOf. Shown width
   // is read only in Custom, print width and distance only in Print.
   displayMode: DisplayMode
@@ -147,19 +142,36 @@ function opticalTrackingPct(fontSize: number): number {
   return (0.981 / fontSize - 0.0401) * 100
 }
 
-// The optical curve was tuned on a laptop screen, so it describes type by how
-// large it looks there. A frame seen at a different size passes the curve the
-// laptop px its type appears as: fontSize × displayScaleOf(p, frameWidth).
+// Leading fitted to the design system's sans scale in styles/main.css, from
+// 135% at 11px to 110% at 50px and 90% at the 65px hero:
+//
+//   line height ÷ font size = 1.9091 − 0.2118 · ln(fontSize)
+//
+// a least-squares fit in log(size), within 0.065 of every utility below 65px.
+// The alternative, a / size + b like the tracking curve, levels off near 1.05
+// for display type; the scale keeps tightening, and so does this. Clamped to
+// the scale's own range, 90%–137.5%, since specimens are often seen far larger
+// than its largest size.
+const LEADING_MIN = 0.9
+const LEADING_MAX = 1.375
+function opticalLeading(fontSize: number): number {
+  const leading = 1.9091 - 0.2118 * Math.log(fontSize)
+  return Math.max(LEADING_MIN, Math.min(LEADING_MAX, leading))
+}
+
+// The design system's mono utilities sit near 140% at every size (11–14px), as
+// their tracking sits at a flat 4%.
+const MONO_LEADING = 1.4
+
+// Both optical curves were tuned on a laptop screen, so they describe type by
+// how large it looks there. A frame seen at a different size passes the curves
+// the laptop px its type appears as: fontSize × displayScaleOf(p, frameWidth).
 //
 // A laptop CSS px is about 1/125 in, seen from about 22 in, so it subtends
 // 1/2750 of a radian. Physical type converts through that angle.
 const LAPTOP_PX_PER_RADIAN = 2750
-// The CSS px width a phone feed shows a post at. The same post appears in
-// desktop feeds too, at about 550px, but type has to work at the smallest size
-// it is seen, so the phone sets the tracking. Phones are held closer than
-// laptops and their CSS px are already sized for it, so no distance term is
-// needed.
-const SOCIAL_FEED_PX = 400
+// Custom's starting shown width, in laptop px: a phone-sized view.
+const DEFAULT_SHOWN_WIDTH_PX = 400
 
 function positiveOr(value: number | undefined, fallback: number): number {
   return typeof value === 'number' && value > 0 ? value : fallback
@@ -168,8 +180,6 @@ function positiveOr(value: number | undefined, fallback: number): number {
 // The width the frame appears as, in laptop px.
 function apparentWidthOf(p: Params, frameWidth: number): number {
   switch (p.displayMode) {
-    case 'Social':
-      return SOCIAL_FEED_PX
     case 'Custom':
       return positiveOr(p.shownWidthPx, DEFAULT_PARAMS.shownWidthPx)
     case 'Print': {
@@ -194,11 +204,6 @@ interface SpecimenSpec {
   face: 'mono' | 'sans'
   pct: number // requested size, % of the frame height
   heightRatio: number // share of the frame height, before snapping
-  scale: number // fontSize as a share of the requested line height
-  leading: number // requested line height ÷ font size, before snapping
-  trackingPct: number | null // letter spacing in % of the font size; null = optical
-  // The built-in leading at this size, which the panel shows as a placeholder.
-  autoLeading: number
   text: string
   // Position in its family's size list, e.g. "sans:2". Specimens are matched by
   // slot, so text typed into the third sans specimen stays with the third one
@@ -206,66 +211,9 @@ interface SpecimenSpec {
   slot: string
 }
 
-// Built-in leading at two reference sizes (% of frame height). Leading opens
-// up at small sizes and closes to 1.0 for display sans.
-type Curve = Array<[number, number]>
-const MONO_LEADING_CURVE: Curve = [
-  [2, 1.6],
-  [12, 1.25],
-]
-const SANS_LEADING_CURVE: Curve = [
-  [6, 1.22],
-  [24, 1],
-]
 // Mono is set uppercase at a flat 4%, per the design system's mono scale. Sans
 // follows the optical curve (see opticalTrackingPct).
 const MONO_TRACKING_PCT = 4
-
-// Interpolates linearly in log(size) and clamps beyond the ends. A type scale
-// steps by a constant ratio, so this spaces leading evenly across its steps.
-function curveAt(curve: Curve, x: number): number {
-  if (x <= curve[0][0]) return curve[0][1]
-  for (let i = 1; i < curve.length; i++) {
-    if (x <= curve[i][0]) {
-      const [x0, y0] = curve[i - 1]
-      const [x1, y1] = curve[i]
-      return y0 + (Math.log(x / x0) / Math.log(x1 / x0)) * (y1 - y0)
-    }
-  }
-  return curve[curve.length - 1][1]
-}
-
-// Leading is line height ÷ font size. Below 1 has no effect, since font size is
-// capped at the snapped line height; the upper bound only rejects typos.
-const LEADING_MIN = 0.5
-const LEADING_MAX = 5
-
-function leadingParam(raw: string | undefined): number | null {
-  const text = typeof raw === 'string' ? raw.trim() : ''
-  const n = Number(text)
-  return text && Number.isFinite(n) && n >= LEADING_MIN && n <= LEADING_MAX ? n : null
-}
-
-// The leading curve for one family: the set (or built-in) leading at its
-// smallest and largest size, with the sizes between interpolated. A single
-// size takes the smallest-size value.
-function leadingOf(
-  sizes: number[],
-  builtIn: Curve,
-  minRaw?: string,
-  maxRaw?: string,
-): Curve {
-  const lo = sizes[0]
-  const hi = sizes[sizes.length - 1]
-  const atLo = leadingParam(minRaw)
-  const atHi = leadingParam(maxRaw)
-  const loValue = atLo !== null ? atLo : curveAt(builtIn, lo)
-  if (hi === lo) return [[lo, loValue]]
-  return [
-    [lo, loValue],
-    [hi, atHi !== null ? atHi : curveAt(builtIn, hi)],
-  ]
-}
 
 // Ignore invalid entries and use the fallback if none remain. Sort ascending
 // for placement, and deduplicate to avoid reusing one layer for multiple entries.
@@ -293,45 +241,44 @@ function sansSpecimenText(pct: number): string {
 }
 
 function specimensOf(p: Params): SpecimenSpec[] {
-  const family = (
-    face: 'mono' | 'sans',
-    sizes: number[],
-    builtIn: Curve,
-    minRaw?: string,
-    maxRaw?: string,
-  ): SpecimenSpec[] => {
-    const curve = leadingOf(sizes, builtIn, minRaw, maxRaw)
-    return sizes.map((pct, i) => {
-      const leading = curveAt(curve, pct)
-      return {
-        slot: `${face}:${i}`,
-        name: `${face === 'mono' ? 'Mono' : 'Sans'} ${pct}%`,
-        face,
-        pct,
-        heightRatio: pct / 100,
-        leading,
-        scale: 1 / leading,
-        trackingPct: face === 'mono' ? MONO_TRACKING_PCT : null,
-        autoLeading: curveAt(builtIn, pct),
-        text: face === 'mono' ? 'GT America Mono · 0123456789' : sansSpecimenText(pct),
-      }
-    })
-  }
-  return family(
-    'mono',
-    parseSizesPct(p.monoSizes, DEFAULT_PARAMS.monoSizes),
-    MONO_LEADING_CURVE,
-    p.monoLeadingMin,
-    p.monoLeadingMax,
-  ).concat(
-    family(
-      'sans',
-      parseSizesPct(p.sansSizes, DEFAULT_PARAMS.sansSizes),
-      SANS_LEADING_CURVE,
-      p.sansLeadingMin,
-      p.sansLeadingMax,
-    ),
+  const family = (face: 'mono' | 'sans', sizes: number[]): SpecimenSpec[] =>
+    sizes.map((pct, i) => ({
+      slot: `${face}:${i}`,
+      name: `${face === 'mono' ? 'Mono' : 'Sans'} ${pct}%`,
+      face,
+      pct,
+      heightRatio: pct / 100,
+      text: face === 'mono' ? 'GT America Mono · 0123456789' : sansSpecimenText(pct),
+    }))
+  return family('mono', parseSizesPct(p.monoSizes, DEFAULT_PARAMS.monoSizes)).concat(
+    family('sans', parseSizesPct(p.sansSizes, DEFAULT_PARAMS.sansSizes)),
   )
+}
+
+// The font size that fills a line box at the design system's leading for the
+// size it is seen at. Leading depends on the font size, so this solves
+// fontSize × leading(fontSize × displayScale) = lineBox. The left side rises with
+// font size (the fitted leading falls more slowly than size grows, and is flat
+// where clamped), so there is one answer, found by bisection.
+function fontSizeForLineBox(
+  face: 'mono' | 'sans',
+  lineBox: number,
+  displayScale: number,
+): number {
+  if (face === 'mono') return lineBox / MONO_LEADING
+  let lo = lineBox / LEADING_MAX
+  let hi = lineBox / LEADING_MIN
+  for (let i = 0; i < 50; i++) {
+    const mid = (lo + hi) / 2
+    if (mid * opticalLeading(mid * displayScale) < lineBox) lo = mid
+    else hi = mid
+  }
+  return (lo + hi) / 2
+}
+
+// The letter spacing a specimen gets, in % of its font size.
+function trackingOf(face: 'mono' | 'sans', fontSize: number, displayScale: number): number {
+  return face === 'mono' ? MONO_TRACKING_PCT : opticalTrackingPct(fontSize * displayScale)
 }
 
 interface SizedSpecimen {
@@ -356,17 +303,23 @@ function snapSpecimenLineHeight(g: GridResult, target: number): number {
 }
 
 // Size each specimen from the frame height. The line height snaps to cells
-// (see snapSpecimenLineHeight). Font size follows the requested line height
-// rather than the snapped one, so fractional percentages still change the type
-// when they round to the same number of cells. It is capped at the line height
-// so leading never goes below 1.0, where text would overlap the specimen above.
-function sizeSpecimens(p: Params, g: GridResult, frameHeight: number): SizedSpecimen[] {
+// (see snapSpecimenLineHeight). Font size fills the requested line height at
+// the design system's leading, rather than the snapped one, so fractional
+// percentages still change the type when they round to the same number of
+// cells. It is capped at the line height so leading never goes below 1.0, where
+// text would overlap the specimen above.
+function sizeSpecimens(
+  p: Params,
+  g: GridResult,
+  frameHeight: number,
+  displayScale: number,
+): SizedSpecimen[] {
   const snapFont = flag(p.snapFontPx, DEFAULT_PARAMS.snapFontPx)
   return specimensOf(p).map((spec) => {
     const target = frameHeight * spec.heightRatio
     const cells = snapSpecimenLineHeight(g, target)
     const lineHeight = cells * g.cellH
-    const raw = Math.min(target * spec.scale, lineHeight)
+    const raw = Math.min(fontSizeForLineBox(spec.face, target, displayScale), lineHeight)
     // Rounded down where rounding up would pass the cap. At least 1px, so a
     // tiny specimen never rounds to an invalid size of 0.
     const fontSize = snapFont
@@ -413,13 +366,8 @@ const DEFAULT_PARAMS: Params = {
   monoSizes: '2',
   sansSizes: '6, 12, 24',
   snapFontPx: false,
-  // Empty: the built-in leading curves apply.
-  monoLeadingMin: '',
-  monoLeadingMax: '',
-  sansLeadingMin: '',
-  sansLeadingMax: '',
   displayMode: 'Screen',
-  shownWidthPx: SOCIAL_FEED_PX,
+  shownWidthPx: DEFAULT_SHOWN_WIDTH_PX,
   // A4 read in the hand.
   printWidthMm: 210,
   viewingDistanceCm: 40,
@@ -1333,8 +1281,8 @@ async function ensureSpecimens(
   await figma.loadFontAsync(sansFont)
 
   const textPaint = await swatchPaint(SWATCH_TEXT, COLOR_TEXT, container)
-  const sized = sizeSpecimens(p, g, frame.height)
   const displayScale = displayScaleOf(p, frame.width)
+  const sized = sizeSpecimens(p, g, frame.height, displayScale)
 
   // Each specimen takes a block of whole cells with its baseline on the block's
   // bottom line, so the stack never overlaps. Only include what fits — dropping
@@ -1540,10 +1488,7 @@ async function ensureSpecimens(
     node.lineHeight = { value: lineHeight, unit: 'PIXELS' }
     node.leadingTrim = 'CAP_HEIGHT'
     node.letterSpacing = {
-      value:
-        spec.trackingPct !== null
-          ? spec.trackingPct
-          : opticalTrackingPct(fontSize * displayScale),
+      value: trackingOf(spec.face, fontSize, displayScale),
       unit: 'PERCENT',
     }
     node.textCase = isMono ? 'UPPER' : 'ORIGINAL'
@@ -1835,6 +1780,17 @@ function selectedFrame(): FrameNode | null {
   return agreed
 }
 
+// Stored params over the defaults: a frame gridded before a setting existed was
+// made with that setting's default. A display mode the panel doesn't offer is
+// Screen, which is what the plugin draws it as (see apparentWidthOf), so the
+// panel shows the setting in use.
+const DISPLAY_MODES: DisplayMode[] = ['Screen', 'Print', 'Custom']
+function paramsOfStored(stored: Partial<Params>): Params {
+  const p: Params = { ...DEFAULT_PARAMS, ...stored }
+  if (DISPLAY_MODES.indexOf(p.displayMode) < 0) p.displayMode = 'Screen'
+  return p
+}
+
 // Selecting a frame that already carries grid state restores its stored params
 // into the panel, so the controls always describe the bound frame.
 function onSelectionChange(): void {
@@ -1842,9 +1798,7 @@ function onSelectionChange(): void {
   if (frame) {
     const stored = getStoredData(frame)
     if (stored) {
-      // Over the defaults, not the last settings: a frame gridded before a setting
-      // existed was made with that setting's default.
-      lastParams = { ...DEFAULT_PARAMS, ...stored.params }
+      lastParams = paramsOfStored(stored.params)
       figma.ui.postMessage({ type: 'params-change', params: lastParams })
     }
   }
@@ -1861,7 +1815,7 @@ function sendActionState(): void {
   const H = frame ? frame.height : frameHeightOf(lastParams, W)
   const g = computeGrid(gridSpecOf(lastParams, W, H))
   const displayScale = displayScaleOf(lastParams, W)
-  const specimenSizes = sizeSpecimens(lastParams, g, H).map((i) => {
+  const specimenSizes = sizeSpecimens(lastParams, g, H, displayScale).map((i) => {
     const lineHeight = i.cells * g.cellH
     return {
       face: i.spec.face,
@@ -1871,11 +1825,7 @@ function sendActionState(): void {
       // What the type is actually set at, after the line height snaps to
       // cells and the font size is capped by it.
       leading: lineHeight / i.fontSize,
-      autoLeading: i.spec.autoLeading,
-      tracking:
-        i.spec.trackingPct !== null
-          ? i.spec.trackingPct
-          : opticalTrackingPct(i.fontSize * displayScale),
+      tracking: trackingOf(i.spec.face, i.fontSize, displayScale),
     }
   })
 

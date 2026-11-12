@@ -7,14 +7,15 @@
   "main": "dist/main.js",
   "scripts": {
     "tsc": "tsc -p tsconfig.json",
-    "build": "tsc -p tsconfig.json && vite build",
-    "dev": "nodemon -e ts --exec \"npm run build\"",
+    "build": "tsc -p tsconfig.json && vite build && vite build -c vite.ui.config.ts && node scripts/inline-ui.mjs",
+    "dev": "nodemon -e ts,html,js --ignore dist --exec \"npm run build\"",
     "test": "npm run build && npm run test:plugin && npm run test:ui",
     "test:plugin": "node test/plugin.test.mjs",
     "test:ui": "node test/ui.test.mjs"
   },
   "devDependencies": {
     "@figma/plugin-typings": "^1.117.1",
+    "@rogieking/figui3": "11.6.10",
     "jsdom": "^29.1.1",
     "nodemon": "^3.1.10",
     "typescript": "^5.9.3",

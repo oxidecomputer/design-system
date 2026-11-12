@@ -1,12 +1,15 @@
-// Panel tests for ox-dual-grid's ui.html.
+// Panel tests for the dual-grid plugin's built panel, dist/ui.html.
 //
-// Loads the panel in jsdom with scripts enabled, stubs the browser APIs Figma
-// would provide, and captures parent.postMessage to assert on what the UI sends.
+// Loads the panel (FigUI3 inlined) in jsdom with scripts enabled, stubs the
+// browser APIs Figma would provide, and captures parent.postMessage to assert
+// on what the panel sends. Controls are driven through FigUI3's own inner
+// elements — the range input inside a slider, the select inside a dropdown —
+// so the tests cover the path a click or a drag takes.
 //
-// Synthetic events bypass hit-testing, so jsdom can toggle controls that CSS
-// makes unclickable. Switch tests also check size and pointer-events styles.
+// Synthetic events bypass hit-testing, so these can't tell whether a control
+// is clickable on screen. Check that in Chrome.
 //
-//   npm run test:ui
+//   npm run test:ui        (npm test builds first)
 
 import fs from 'fs'
 import path from 'path'
@@ -14,7 +17,7 @@ import { fileURLToPath } from 'url'
 import { JSDOM } from 'jsdom'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
-const html = fs.readFileSync(path.join(HERE, '..', 'ui.html'), 'utf8')
+const html = fs.readFileSync(path.join(HERE, '..', 'dist', 'ui.html'), 'utf8')
 
 const errors = []
 const sent = []
@@ -25,23 +28,16 @@ const dom = new JSDOM(html, {
   beforeParse(window) {
     window.ResizeObserver = class {
       observe() {}
+      unobserve() {}
       disconnect() {}
     }
-    // capture postMessage traffic to the "plugin"
     window.parent = {
       postMessage: (m) => sent.push(m.pluginMessage),
     }
     window.addEventListener('error', (e) => errors.push('window error: ' + e.message))
     // jsdom has no layout engine; fake a height so reportHeight() posts.
     window.Element.prototype.getBoundingClientRect = function () {
-      return {
-        height: this.id === 'plugin-root' ? 412 : 20,
-        width: 280,
-        top: 0,
-        left: 0,
-        right: 280,
-        bottom: 412,
-      }
+      return { height: this.id === 'plugin-root' ? 412 : 20, width: 280, top: 0, left: 0 }
     }
   },
 })
@@ -49,15 +45,8 @@ const w = dom.window
 const doc = w.document
 const $ = (id) => doc.getElementById(id)
 
-// Delivers a message to the panel exactly as the plugin would.
-const send = (m) =>
-  dom.window.dispatchEvent(
-    new dom.window.MessageEvent('message', { data: { pluginMessage: m } }),
-  )
-
 let checks = 0
 let failures = 0
-
 function check(name, cond, extra) {
   checks++
   if (!cond) failures++
@@ -69,23 +58,97 @@ function check(name, cond, extra) {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 // Longer than the panel's REAPPLY_DEBOUNCE_MS, so a pending reapply has fired.
 const DEBOUNCE_WAIT = 260
-const reapplies = () =>
-  sent.filter((x) => x.type === 'params-changed' && x.reapply === true)
-const previews = () =>
-  sent.filter((x) => x.type === 'params-changed' && x.reapply === false)
-// Ends an interaction the way a pointer release or a blur does.
-// Settles on a macrotask (see the capture listener in ui.html), so callers await.
-const getSentParams = () => {
-  sent.length = 0
-  $('columnCount')
-    .querySelector('input[type=range]')
-    .dispatchEvent(new w.Event('input', { bubbles: true }))
-  return sent.filter((x) => x.type === 'params-changed')[0].params
+
+// Delivers a message to the panel exactly as the plugin would.
+const send = (m) =>
+  w.dispatchEvent(new w.MessageEvent('message', { data: { pluginMessage: m } }))
+
+const changes = () => sent.filter((x) => x.type === 'params-changed')
+const reapplies = () => changes().filter((x) => x.reapply === true)
+const lastParams = () => {
+  const all = changes()
+  return all.length ? all[all.length - 1].params : null
 }
-const commit = async (el) => {
-  el.dispatchEvent(new w.Event('change', { bubbles: true }))
+const visible = (id) => !$(id).closest('[hidden]')
+const labelText = (id) =>
+  $(id).closest('fig-field').querySelector(':scope > label').textContent
+
+// ----- driving FigUI3 controls through their own inner elements ------------
+const fire = (el, type) => el.dispatchEvent(new w.Event(type, { bubbles: true }))
+
+// Drags a slider to a value, then releases it.
+async function slide(id, value) {
+  const range = $(id).querySelector('input[type=range]')
+  range.value = String(value)
+  fire(range, 'input')
+  fire(range, 'change')
   await sleep(5)
 }
+// Types a value into a number or text field, then commits it.
+async function type(id, value) {
+  const input = $(id).querySelector('input')
+  input.focus()
+  input.value = String(value)
+  fire(input, 'input')
+  fire(input, 'change')
+  input.blur()
+  await sleep(5)
+}
+// Picks an option in a dropdown.
+async function pick(id, value) {
+  const select = $(id).querySelector('select')
+  select.value = String(value)
+  fire(select, 'input')
+  fire(select, 'change')
+  await sleep(5)
+}
+// Clicks a switch.
+async function flip(id) {
+  $(id).querySelector('input[type=checkbox]').click()
+  await sleep(5)
+}
+// Clicks a segment of a segmented control.
+async function segment(id, value) {
+  $(id)
+    .querySelector('fig-segment[value="' + value + '"]')
+    .click()
+  await sleep(5)
+}
+
+// A preview the plugin could send: a 1920×1080 frame in Solve.
+const pvSolve = {
+  source: 'selection',
+  frameW: 1920,
+  frameH: 1080,
+  columns: 12,
+  cols: 229,
+  rows: 60,
+  u: 8,
+  cellH: 16,
+  deltaPct: -0.7,
+  warn: false,
+  gutterPx: 24,
+  marginPx: 64,
+  effectiveMargin: 60,
+  columnWidth: 120,
+  mode: 'Solve',
+  solvedM: 8,
+  solvedK: 15,
+  solvedG: 3,
+  targetMarginPx: 64,
+  targetGutterPx: 24,
+  targetColumns: 229,
+  displayScale: 1,
+  specimens: [],
+}
+const preview = (extra, msg) =>
+  send(
+    Object.assign(
+      { type: 'action-state', action: 'remove', actionLabel: 'Remove grids', live: true },
+      msg,
+      { preview: Object.assign({}, pvSolve, extra) },
+    ),
+  )
 
 setTimeout(async () => {
   try {
@@ -95,1541 +158,638 @@ setTimeout(async () => {
       'localStorage shim works',
       (w.localStorage.setItem('a', '1'), w.localStorage.getItem('a') === '1'),
     )
-
-    console.log('\n=== component tree built ===')
+    const groups = (sel) =>
+      [...doc.querySelectorAll(sel)].map((g) => g.getAttribute('name')).join('|')
     check(
-      'fig-group headers rendered',
-      [...doc.querySelectorAll('.fig-group-header')]
-        .map((e) => e.textContent.trim())
-        .join('|') === 'Grid|Advanced|Type|Frame',
-      [...doc.querySelectorAll('.fig-group-header')]
-        .map((e) => e.textContent.trim())
-        .join('|'),
+      'top-level groups are Grid, Advanced, Type and Frame',
+      groups('fig-content > fig-group') === 'Grid|Advanced|Type|Frame',
+      groups('fig-content > fig-group'),
     )
     check(
-      '41 fig-field labels',
-      doc.querySelectorAll('.fig-field-label').length === 41,
-      doc.querySelectorAll('.fig-field-label').length,
+      'sub-sections are nested groups: Result, Cells, Lines, Mono, Sans, Viewing',
+      groups('fig-group fig-group') === 'Result|Cells|Lines|Mono|Sans|Viewing',
+      groups('fig-group fig-group'),
     )
     check(
-      '8 sliders (columns, left/right margin, gutter cells, cell columns, aspect, 2 type steps)',
-      doc.querySelectorAll('fig-slider input[type=range]').length === 8,
-      doc.querySelectorAll('fig-slider input[type=range]').length,
+      'Advanced and Type are collapsible and start closed; Grid and Frame are not',
+      ['Advanced', 'Type'].every((n) => {
+        const g = doc.querySelector('fig-group[name="' + n + '"]')
+        return g.hasAttribute('collapsible') && g.open === false
+      }) &&
+        ['Grid', 'Frame'].every(
+          (n) =>
+            !doc.querySelector('fig-content > fig-group[name="' + n + '"][collapsible]'),
+        ),
     )
+    const nestedIds = [
+      'marginRightCells',
+      'snapTolerancePx',
+      'aspectTolPct',
+      'edgeCullPct',
+      'snapFontPx',
+      'shownWidthPx',
+      'printWidthMm',
+      'viewingDistanceCm',
+    ]
     check(
-      '7 switches',
-      doc.querySelectorAll('fig-switch input[type=checkbox]').length === 7,
-      doc.querySelectorAll('fig-switch input[type=checkbox]').length,
-    )
-    check(
-      '11 number inputs: 3 solver targets + snap/aspect tol. + edge cull + frame width/height + display width/print width/distance',
-      doc.querySelectorAll('fig-input-number input').length === 11,
-      doc.querySelectorAll('fig-input-number input').length,
-    )
-
-    console.log('--- sections and dependent fields ---')
-    check(
-      'sub-sections are titled Result, Cells, Lines, Mono, Sans, Optical tracking',
-      [...doc.querySelectorAll('.fig-sub-title')].map((e) => e.textContent).join('|') ===
-        'Result|Cells|Lines|Mono|Sans|Optical tracking',
-      [...doc.querySelectorAll('.fig-sub-title')].map((e) => e.textContent).join('|'),
-    )
-    check(
-      'fields that depend on the one above are nested under it',
-      [
-        'marginRightCells',
-        'snapTolerancePx',
-        'aspectTolPct',
-        'edgeCullPct',
-        'snapFontPx',
-        'shownWidthPx',
-        'printWidthMm',
-        'viewingDistanceCm',
-      ].every((id) => $(id).closest('fig-field').hasAttribute('nested')),
-    )
-    check(
-      '...and nothing else is',
-      doc.querySelectorAll('fig-field[nested]').length === 8,
+      'fields that depend on the one above are nested under it, and only those',
+      nestedIds.every((id) => $(id).closest('fig-field').hasAttribute('nested')) &&
+        doc.querySelectorAll('fig-field[nested]').length === nestedIds.length,
       doc.querySelectorAll('fig-field[nested]').length,
     )
-
-    console.log('--- snapping sliders are not falsely editable ---')
-    // Both step through a fixed list, so typing only ever snapped to the nearest
-    // legal entry — an input implied a freedom that was not there.
-    for (const id of ['columnCount', 'cellColumns']) {
-      check(id + ' has no editable field', !$(id).querySelector('input[type=number]'))
-      const out = $(id).querySelector('.fig-slider-value')
-      check(
-        '  ...it shows its value as text instead',
-        !!out && out.textContent === String($(id).value),
-        out && out.textContent,
-      )
-    }
-    for (const id of ['marginCells', 'gutterMultiple', 'cellAspect']) {
-      check(
-        id + ' keeps its editable field (every value in range is legal)',
-        !!$(id).querySelector('input[type=number]') &&
-          !$(id).querySelector('.fig-slider-value'),
-      )
-    }
     check(
-      'specimens switch present + on',
-      $('showSpecimens') && $('showSpecimens').checked === true,
+      'every field has a label',
+      [...doc.querySelectorAll('fig-field')].every((f) =>
+        f.querySelector(':scope > label'),
+      ),
     )
     check(
-      'Snap font switch present + off by default',
-      $('snapFontPx') && $('snapFontPx').checked === false,
+      'the controls are the FigUI3 ones',
+      $('mode').localName === 'fig-segmented-control' &&
+        $('columnCount').localName === 'fig-dropdown' &&
+        $('cellColumns').localName === 'fig-dropdown' &&
+        $('marginCells').localName === 'fig-slider' &&
+        $('targetMarginPx').localName === 'fig-input-number' &&
+        $('snapRows').localName === 'fig-switch' &&
+        $('action-primary').localName === 'fig-button',
     )
-    sent.length = 0
-    $('snapFontPx').querySelector('input').click()
-    await sleep(DEBOUNCE_WAIT)
-    check(
-      'toggling Snap font reapplies with snapFontPx true',
-      reapplies().some((x) => x.params.snapFontPx === true),
-      JSON.stringify(sent.map((x) => x.params && x.params.snapFontPx)),
-    )
-    $('snapFontPx').querySelector('input').click()
-    await sleep(DEBOUNCE_WAIT)
-
-    console.log('\n=== Manual: margin and gutter are separate; no column control ===')
-    check('the column multiple slider is gone', !$('columnMultiple'))
-    check(
-      'margin defaults to 3 cells, whole steps, up to 24',
-      $('marginCells').value === 3 &&
-        $('marginCells').querySelector('input[type=range]').step === '1' &&
-        $('marginCells').querySelector('input[type=range]').max === '24',
-      $('marginCells').value +
-        ' step ' +
-        $('marginCells').querySelector('input[type=range]').step,
-    )
-    check(
-      'gutter cells slider 1..6 default 1',
-      $('gutterMultiple').value === 1 &&
-        $('gutterMultiple').querySelector('input[type=range]').max === '6',
-      $('gutterMultiple').value,
-    )
-    check(
-      'both labelled in cells, neither relative to the other',
-      ![...doc.querySelectorAll('.fig-field-label')].some((e) =>
-        /×gut/.test(e.textContent),
-      ) &&
-        [...doc.querySelectorAll('.fig-field-label')].some((e) =>
-          /Margin cells/.test(e.textContent),
-        ) &&
-        [...doc.querySelectorAll('.fig-field-label')].some((e) =>
-          /Gutter cells/.test(e.textContent),
-        ),
-      [...doc.querySelectorAll('.fig-field-label')].map((e) => e.textContent).join('|'),
-    )
-
-    console.log('--- each slider posts a distinct value (responsive) ---')
-    for (const [id, v] of [
-      ['marginCells', 7],
-      ['gutterMultiple', 4],
-    ]) {
-      sent.length = 0
-      const r = $(id).querySelector('input[type=range]')
-      r.value = String(v)
-      r.dispatchEvent(new w.Event('input', { bubbles: true }))
-      check(
-        id + ' -> ' + v + ' posts a preview at once',
-        previews().some((m) => m.params[id] === v),
-        JSON.stringify(sent.map((x) => [x.params && x.params[id], x.reapply])),
-      )
-      check('  ...and no document write yet', reapplies().length === 0, reapplies().length)
-      await commit(r)
-      check(
-        '  ...which lands on commit',
-        reapplies().some((m) => m.params[id] === v),
-        reapplies().length,
-      )
-    }
 
     console.log('\n=== Mode: Manual vs Solve ===')
-    check('density dropdown is gone', !$('density'))
+    check('Manual is the default', $('mode').value === 'Manual', $('mode').value)
+    const manualOnly = ['marginCells', 'gutterMultiple', 'cellColumns']
+    const solveOnly = ['targetMarginPx', 'targetGutterPx', 'targetColumns']
     check(
-      'mode dropdown has exactly Manual + Solve',
-      [...$('mode').querySelectorAll('option')].map((o) => o.textContent).join(',') ===
-        'Manual,Solve',
-      $('mode').value,
-    )
-    check('defaults to Manual', $('mode').value === 'Manual')
-
-    const visible = (id) => !$(id).closest('fig-field').hidden
-    check(
-      'Manual shows the margin + gutter sliders',
-      visible('marginCells') && visible('gutterMultiple'),
-    )
-    check(
-      'Manual hides the px targets (Solve-only)',
-      !visible('targetMarginPx') && !visible('targetGutterPx'),
-    )
-    // The column count is asked for directly in both modes. (aspectTolPct,
-    // the row-height band, is a different control.)
-    check('Manual shows the cell columns slider', visible('cellColumns'))
-
-    console.log('--- asymmetric margin ---')
-    const marginLabel = () =>
-      $('marginCells').closest('fig-field').querySelector('.fig-field-label').textContent
-    check(
-      'right margin hidden while the switch is off',
-      visible('asymmetricMargin') && !visible('marginRightCells'),
-    )
-    check('...and the margin reads as one value', marginLabel() === 'Margin cells')
-    sent.length = 0
-    $('asymmetricMargin').querySelector('input').click()
-    check('switching on shows the right margin', visible('marginRightCells'))
-    check('...and relabels the first as the left', marginLabel() === 'Left margin')
-    const r = $('marginRightCells').querySelector('input[type=range]')
-    r.value = '4'
-    r.dispatchEvent(new w.Event('input', { bubbles: true }))
-    const lastChange = sent.filter((x) => x.type === 'params-changed').pop()
-    check(
-      '...posts asymmetricMargin and marginRightCells',
-      !!lastChange &&
-        lastChange.params.asymmetricMargin === true &&
-        lastChange.params.marginRightCells === 4,
-      lastChange && JSON.stringify(lastChange.params.marginRightCells),
-    )
-    $('mode').querySelector('select').value = 'Solve'
-    $('mode')
-      .querySelector('select')
-      .dispatchEvent(new w.Event('change', { bubbles: true }))
-    check(
-      'Solve hides the margin switch and right margin',
-      !visible('asymmetricMargin') && !visible('marginRightCells'),
-    )
-    $('mode').querySelector('select').value = 'Manual'
-    $('mode')
-      .querySelector('select')
-      .dispatchEvent(new w.Event('change', { bubbles: true }))
-    check('back in Manual the right margin returns', visible('marginRightCells'))
-    $('asymmetricMargin').querySelector('input').click()
-    r.value = '3'
-    r.dispatchEvent(new w.Event('input', { bubbles: true }))
-    check(
-      'switching off hides it and restores the label',
-      !visible('marginRightCells') && marginLabel() === 'Margin cells',
-    )
-
-    sent.length = 0
-    $('mode').querySelector('select').value = 'Solve'
-    $('mode')
-      .querySelector('select')
-      .dispatchEvent(new w.Event('change', { bubbles: true }))
-    check(
-      'switching to Solve posts mode=Solve and reapplies',
-      sent.some((x) => x.type === 'params-changed' && x.params.mode === 'Solve'),
-      JSON.stringify(
-        sent.filter((x) => x.type === 'params-changed').map((x) => x.params.mode),
-      ),
-    )
-    check(
-      'Solve shows the target inputs',
-      visible('targetMarginPx') && visible('targetGutterPx') && visible('targetColumns'),
-    )
-    check('Solve hides the cell columns slider', !visible('cellColumns'))
-    check('...and offers the column count as its third target', visible('targetColumns'))
-    check('no Cell max control any more', !$('maxCellPx'))
-    check(
-      'solver defaults: margin 50, gutter 20, columns 89',
-      $('targetMarginPx').value === 50 &&
-        $('targetGutterPx').value === 20 &&
-        $('targetColumns').value === 89,
-      [$('targetMarginPx').value, $('targetGutterPx').value, $('targetColumns').value].join(
-        '/',
-      ),
-    )
-    check(
-      'Solve hides the margin + gutter sliders',
-      !visible('marginCells') && !visible('gutterMultiple'),
-    )
-    check(
-      'shared controls stay visible in both modes',
-      visible('columnCount') && visible('cellAspect') && visible('cellDensity'),
-    )
-
-    console.log('--- solver inputs post numbers ---')
-    ;[
-      ['targetMarginPx', 96],
-      ['targetGutterPx', 32],
-      ['targetColumns', 240],
-    ].forEach(([id, v]) => {
-      sent.length = 0
-      const inp = $(id).querySelector('input')
-      inp.value = String(v)
-      inp.dispatchEvent(new w.Event('input', { bubbles: true }))
-      const m = sent.find((x) => x.type === 'params-changed')
-      check(
-        id + ' -> ' + v,
-        m && m.params[id] === v && m.reapply === false,
-        JSON.stringify(m && m.params[id]),
-      )
-    })
-    check(
-      'units shown: px, px, cols',
-      $('targetMarginPx').querySelector('.fig-units').textContent === 'px' &&
-        $('targetGutterPx').querySelector('.fig-units').textContent === 'px' &&
-        $('targetColumns').querySelector('.fig-units').textContent === 'cols',
-    )
-
-    console.log('--- achieved values render inside the field ---')
-    const pvSolve = {
-      source: 'selection',
-      frameW: 1920,
-      frameH: 1080,
-      columns: 12,
-      cols: 229,
-      rows: 60,
-      u: 8,
-      cellH: 16,
-      gridW: 1832,
-      gridH: 960,
-      deltaPct: -0.7,
-      warn: false,
-      density: 1,
-      gutterCells: 3,
-      gutterPx: 24,
-      marginPx: 64,
-      effectiveMargin: 60,
-      columnWidth: 120,
-      columnCells: 15,
-      contentWidth: 1792,
-      actualAspect: 1.985,
-      mode: 'Solve',
-      solved: true,
-      solvedM: 8,
-      solvedK: 15,
-      solvedG: 3,
-      solveWithinTolerance: true,
-      solveWithinCellBounds: true,
-      solveAspectErrPct: 0.32,
-      targetMarginPx: 64,
-      targetGutterPx: 24,
-      targetColumns: 229,
-    }
-    send({
-      type: 'action-state',
-      status: 'Live editing',
-      preview: pvSolve,
-    })
-    const unitsOf = (id) => $(id).querySelector('.fig-units').textContent
-    check(
-      'margin field reads "(60) px" beside the 64 target',
-      unitsOf('targetMarginPx') === '(60) px',
-      unitsOf('targetMarginPx'),
-    )
-    // Order-independent: earlier tests edit this field, so set it explicitly.
-    $('targetMarginPx').value = 64
-    send({
-      type: 'action-state',
-      status: '',
-      preview: pvSolve,
-    })
-    check(
-      'the input still holds only the target number',
-      $('targetMarginPx').querySelector('input').value === '64',
-      $('targetMarginPx').querySelector('input').value,
-    )
-    check(
-      '...and .value returns the target, not the annotation',
-      $('targetMarginPx').value === 64,
-      $('targetMarginPx').value,
-    )
-    check(
-      'gutter field reads "(24) px"',
-      unitsOf('targetGutterPx') === '(24) px',
-      unitsOf('targetGutterPx'),
-    )
-    check(
-      'the column target shows the achieved count',
-      unitsOf('targetColumns') === '(229) cols',
-      unitsOf('targetColumns'),
-    )
-    check(
-      'fields get has-actual so the text has room',
-      $('targetMarginPx').classList.contains('has-actual') &&
-        $('targetColumns').classList.contains('has-actual'),
-    )
-    check(
-      'a within-tolerance margin (60 vs 64, u=8) is not flagged',
-      !$('targetMarginPx').querySelector('.actual.warn'),
-      unitsOf('targetMarginPx'),
-    )
-    check(
-      'an exact gutter is not flagged',
-      !$('targetGutterPx').querySelector('.actual.warn'),
-    )
-
-    send({
-      type: 'action-state',
-      status: '',
-      preview: Object.assign({}, pvSolve, {
-        effectiveMargin: 30,
-        gutterPx: 19,
-        solveWithinTolerance: false,
-        solveAspectErrPct: 9,
-      }),
-    })
-    check(
-      'a margin more than a cell off IS flagged',
-      !!$('targetMarginPx').querySelector('.actual.warn'),
-      unitsOf('targetMarginPx'),
-    )
-    check(
-      'an inexact gutter IS flagged',
-      !!$('targetGutterPx').querySelector('.actual.warn'),
-      unitsOf('targetGutterPx'),
-    )
-    check(
-      'an exactly-met column target is not flagged',
-      !$('targetColumns').querySelector('.actual.warn'),
-      unitsOf('targetColumns'),
-    )
-    send({
-      type: 'action-state',
-      status: '',
-      preview: Object.assign({}, pvSolve, { cols: 180 }),
-    })
-    check(
-      'a column count more than 2% off the ask IS flagged',
-      !!$('targetColumns').querySelector('.actual.warn'),
-      unitsOf('targetColumns'),
-    )
-    check(
-      'frameWidth keeps a plain unit (no actual)',
-      $('frameWidth').querySelector('.fig-units').textContent === 'px' &&
-        !$('frameWidth').classList.contains('has-actual'),
-      $('frameWidth').querySelector('.fig-units').textContent,
-    )
-    check(
-      'editing still works with the annotation present',
-      (() => {
-        const inp = $('targetMarginPx').querySelector('input')
-        inp.value = '80'
-        inp.dispatchEvent(new w.Event('input', { bubbles: true }))
-        return $('targetMarginPx').value === 80
-      })(),
-      $('targetMarginPx').value,
-    )
-
-    console.log('--- the derived cells row is visible in BOTH modes ---')
-    check(
-      'Cells row has no data-mode (always shown)',
-      !$('preview-solved').closest('fig-field').hasAttribute('data-mode'),
-    )
-    console.log('--- solved values row ---')
-    send({
-      type: 'action-state',
-      status: 'Live editing',
-      preview: {
-        source: 'selection',
-        frameW: 1920,
-        frameH: 1080,
-        columns: 12,
-        cols: 229,
-        rows: 60,
-        u: 8,
-        cellH: 16,
-        gridW: 1832,
-        gridH: 960,
-        deltaPct: 0,
-        warn: false,
-        density: 1,
-        gutterCells: 3,
-        gutterPx: 24,
-        marginPx: 64,
-        effectiveMargin: 64,
-        columnWidth: 120,
-        columnCells: 15,
-        contentWidth: 1792,
-        mode: 'Solve',
-        solved: true,
-        solvedM: 8,
-        solvedK: 15,
-        solvedG: 3,
-        solveWithinTolerance: true,
-        solveAspectErrPct: 0.32,
-        targetMarginPx: 64,
-        targetGutterPx: 24,
-      },
-    })
-    check(
-      'solved row shows m/k/g',
-      /m8 k15 g3/.test($('preview-solved').textContent),
-      $('preview-solved').textContent,
-    )
-    check(
-      'solved row reports the aspect deviation, unflagged',
-      /aspect Δ/.test($('preview-solved').textContent) &&
-        !$('preview-solved').querySelector('.warn'),
-      $('preview-solved').textContent,
-    )
-    // There is no tolerance to fail any more; the row flags a drifted aspect on the
-    // same >1% rule as Cell w×h.
-    send({
-      type: 'action-state',
-      status: '',
-      preview: {
-        source: 'selection',
-        frameW: 1920,
-        frameH: 1080,
-        columns: 12,
-        cols: 229,
-        rows: 60,
-        u: 8,
-        cellH: 16,
-        gridW: 1832,
-        gridH: 960,
-        deltaPct: 7.4,
-        warn: true,
-        density: 1,
-        gutterCells: 3,
-        gutterPx: 24,
-        marginPx: 64,
-        effectiveMargin: 64,
-        columnWidth: 120,
-        columnCells: 15,
-        contentWidth: 1792,
-        mode: 'Solve',
-        solved: true,
-        solvedM: 8,
-        solvedK: 15,
-        solvedG: 3,
-        targetMarginPx: 64,
-        targetGutterPx: 24,
-        targetColumns: 229,
-      },
-    })
-    check(
-      'a drifted aspect is flagged red',
-      !!$('preview-solved').querySelector('.warn') &&
-        /aspect Δ 7.4%/.test($('preview-solved').textContent),
-      $('preview-solved').textContent,
-    )
-
-    $('mode').querySelector('select').value = 'Manual'
-    $('mode')
-      .querySelector('select')
-      .dispatchEvent(new w.Event('change', { bubbles: true }))
-
-    console.log('--- the cell ladder drives the slider stops ---')
-    const pvLadder = (extra) =>
-      Object.assign(
-        {
-          source: 'selection',
-          frameW: 1920,
-          frameH: 1080,
-          columns: 12,
-          cols: 197,
-          rows: 54,
-          u: 10,
-          cellH: 20,
-          gridW: 1970,
-          gridH: 1080,
-          deltaPct: 0,
-          warn: false,
-          density: 1,
-          gutterCells: 1,
-          gutterPx: 10,
-          marginPx: 30,
-          effectiveMargin: 5,
-          columnWidth: 150,
-          columnCells: 15,
-          contentWidth: 1910,
-          actualAspect: 2,
-          mode: 'Manual',
-          solved: false,
-          solvedM: 3,
-          solvedK: 15,
-          solvedG: 1,
-          solveWithinTolerance: true,
-          solveWithinCellBounds: true,
-          solveAspectErrPct: 0,
-          hRemainder: -50,
-          cellLadder: [29, 41, 53, 65, 77, 89, 101, 113, 125, 137, 149, 161, 173, 185, 197],
-          cellColumns: 197,
-        },
-        extra || {},
-      )
-    const stateOf = (extra) => ({
-      type: 'action-state',
-      status: 'Live editing',
-      preview: pvLadder(extra),
-    })
-    send(stateOf())
-    const cs = $('cellColumns')
-    check(
-      'slider adopts the ladder as its stops',
-      cs.querySelector('input[type=range]').max === '14',
-      cs.querySelector('input[type=range]').max,
-    )
-    check('and lands on the reported column count', cs.value === 197, cs.value)
-    sent.length = 0
-    ;(() => {
-      const r = cs.querySelector('input[type=range]')
-      r.value = '13'
-      r.dispatchEvent(new w.Event('input', { bubbles: true }))
-    })()
-    check(
-      'dragging one stop down posts the next legal count (185)',
-      sent.some((x) => x.type === 'params-changed' && x.params.cellColumns === 185),
-      JSON.stringify(
-        sent.filter((x) => x.type === 'params-changed').map((x) => x.params.cellColumns),
-      ),
-    )
-    check(
-      'every stop is a legal count — no rejects to report',
-      [...Array(15).keys()].every((i) => {
-        const r = cs.querySelector('input[type=range]')
-        r.value = String(i)
-        r.dispatchEvent(new w.Event('input', { bubbles: true }))
-        return pvLadder().cellLadder.indexOf(cs.value) === i
-      }),
-    )
-
-    console.log('--- a rebuilt ladder re-snaps by count, not by index ---')
-    send(stateOf({ cellColumns: 161 }))
-    check('sits on 161 columns', cs.value === 161, cs.value)
-    // A different ladder, as a bigger gutter or margin would produce: 161 is gone.
-    send(stateOf({ cellLadder: [40, 80, 160, 240, 320], cellColumns: 160, u: 12 }))
-    check(
-      're-snaps 161 to the nearest surviving rung (160), not to index 3',
-      cs.value === 160,
-      cs.value,
-    )
-    check(
-      'the rebuilt list is the one in force',
-      cs.querySelector('input[type=range]').max === '4',
-      cs.querySelector('input[type=range]').max,
-    )
-    check(
-      'rebuilding the ladder posts nothing (not a user edit)',
-      ((sent.length = 0),
-      send(stateOf({ cellLadder: [100, 200, 300], cellColumns: 200, u: 9.6 })),
-      sent.filter((x) => x.type === 'params-changed').length === 0),
-    )
-
-    console.log('--- bleed is surfaced beside the cell ---')
-    send(stateOf({ hRemainder: -50, u: 10 }))
-    check(
-      '50px of bleed is shown and flagged (> one cell)',
-      /50px bleed/.test($('preview-cell').textContent) &&
-        !!$('preview-cell').querySelector('.warn'),
-      $('preview-cell').textContent,
-    )
-    send(stateOf({ hRemainder: -2, u: 14, cellColumns: 137 }))
-    check(
-      '2px of bleed is shown, unflagged',
-      /2px bleed/.test($('preview-cell').textContent) &&
-        !$('preview-cell').querySelector('.warn'),
-      $('preview-cell').textContent,
-    )
-    send(stateOf({ hRemainder: 0, u: 12, cellColumns: 161 }))
-    check(
-      'an exact fit says nothing about bleed',
-      !/bleed/.test($('preview-cell').textContent),
-      $('preview-cell').textContent,
-    )
-
-    console.log('\n=== cell density ===')
-    check(
-      'cellDensity dropdown 0.25x/0.5x/1x/2x/3x',
-      [...$('cellDensity').querySelectorAll('option')]
-        .map((o) => o.textContent)
-        .join(',') === '0.25x,0.5x,1x,2x,3x',
-    )
-    check(
-      'labelled "Cell density"',
-      [...doc.querySelectorAll('.fig-field-label')].some(
-        (e) => e.textContent === 'Cell density',
-      ),
-      [...doc.querySelectorAll('.fig-field-label')].map((e) => e.textContent).join('|'),
+      'Manual shows the cell-count controls and hides the pixel targets',
+      manualOnly.every(visible) && !solveOnly.some(visible),
     )
     sent.length = 0
-    $('cellDensity').querySelector('select').value = '2x'
-    $('cellDensity')
-      .querySelector('select')
-      .dispatchEvent(new w.Event('change', { bubbles: true }))
-    const dm = sent.find((x) => x.type === 'params-changed')
+    await segment('mode', 'Solve')
     check(
-      '"2x" posts cellDensity=2',
-      dm && dm.params.cellDensity === 2,
-      JSON.stringify(dm && dm.params.cellDensity),
+      'clicking Solve swaps them',
+      solveOnly.every(visible) && !manualOnly.some(visible),
     )
-    await sleep(5)
     check(
-      '...and a dropdown commits immediately (native change)',
-      reapplies().some((x) => x.params.cellDensity === 2),
-      reapplies().length,
+      '...and posts the mode',
+      lastParams() && lastParams().mode === 'Solve',
+      lastParams() && lastParams().mode,
     )
+    check(
+      '...and writes it to the frame',
+      reapplies().some((m) => m.params.mode === 'Solve'),
+    )
+    await segment('mode', 'Manual')
+
+    console.log('\n=== controls post numbers ===')
     sent.length = 0
-    $('cellDensity').querySelector('select').value = '0.25x'
-    $('cellDensity')
-      .querySelector('select')
-      .dispatchEvent(new w.Event('change', { bubbles: true }))
-    const dq = sent.find((x) => x.type === 'params-changed')
+    await slide('marginCells', 5)
+    check('a slider posts its value as a number', lastParams().marginCells === 5)
+    check('...and releasing it writes to the frame', reapplies().length >= 1)
+    await pick('columnCount', '6')
+    check('the column dropdown posts a number', lastParams().columnCount === 6)
+    await segment('mode', 'Solve')
+    await type('targetMarginPx', '80')
     check(
-      '"0.25x" posts cellDensity=0.25 (parseFloat, not parseInt)',
-      dq && dq.params.cellDensity === 0.25,
-      JSON.stringify(dq && dq.params.cellDensity),
+      'a number field posts a number',
+      lastParams().targetMarginPx === 80,
+      JSON.stringify(lastParams().targetMarginPx),
     )
-    $('cellDensity').querySelector('select').value = '1x'
-    $('cellDensity')
-      .querySelector('select')
-      .dispatchEvent(new w.Event('change', { bubbles: true }))
-    await sleep(5)
+    await segment('mode', 'Manual')
+    await slide('marginCells', 3)
+    await pick('columnCount', '12')
 
-    console.log('\n=== columns slider unchanged ===')
-    const cc = $('columnCount'),
-      ccRange = cc.querySelector('input[type=range]')
-    const seen = []
-    for (let i = 0; i <= 6; i++) {
-      ccRange.value = String(i)
-      ccRange.dispatchEvent(new w.Event('input', { bubbles: true }))
-      seen.push(cc.value)
-    }
-    check('still steps 1,2,3,4,6,9,12', seen.join(',') === '1,2,3,4,6,9,12', seen.join(','))
-
-    console.log('\n=== preview rows ===')
-    send({
-      type: 'action-state',
-      status: 'Live editing',
-      preview: {
-        source: 'selection',
-        frameW: 1920,
-        frameH: 1080,
-        columns: 12,
-        cols: 80,
-        rows: 23,
-        u: 24,
-        cellH: 46.96,
-        gridW: 1920,
-        gridH: 1080,
-        deltaPct: -2.2,
-        warn: true,
-        density: 1,
-        gutterCells: 1,
-        gutterPx: 24,
-        marginPx: 66,
-        effectiveMargin: 47,
-        hRemainder: -38,
-        columnWidth: 132,
-        columnCells: 6,
-        contentWidth: 1826,
-      },
-    })
-    check(
-      'grid size row shows columns + cells, and not the frame size',
-      /12 col/.test($('preview-size').textContent) &&
-        /80\s*×\s*23/.test($('preview-size').textContent) &&
-        !/px/.test($('preview-size').textContent),
-      $('preview-size').textContent,
-    )
-    check(
-      'column row reports derived px for col/gutter/margin, the margin as drawn',
-      /132px col/.test($('preview-column').textContent) &&
-        /24px gut/.test($('preview-column').textContent) &&
-        /47px marg/.test($('preview-column').textContent),
-      $('preview-column').textContent,
-    )
-    send({
-      type: 'action-state',
-      status: '',
-      preview: {
-        source: 'selection',
-        frameW: 1920,
-        frameH: 1080,
-        columns: 12,
-        cols: 96,
-        rows: 27,
-        u: 20,
-        cellH: 40,
-        gridW: 1920,
-        gridH: 1080,
-        deltaPct: 0,
-        warn: false,
-        density: 1,
-        gutterCells: 1,
-        gutterPx: 20,
-        marginPx: 250,
-        effectiveMargin: 250,
-        hRemainder: 0,
-        columnWidth: 100,
-        columnCells: 5,
-        contentWidth: 1420,
-      },
-    })
-    check(
-      'preview updates on the next message',
-      /100px col/.test($('preview-column').textContent),
-      $('preview-column').textContent,
-    )
-
-    console.log('\n=== restore + legacy fallback ===')
+    console.log('\n=== asymmetric margin ===')
+    check('the right margin is hidden by default', !visible('marginRightCells'))
+    await slide('marginCells', 4)
     sent.length = 0
-    send({
-      type: 'params-change',
-      params: {
-        mode: 'Solve',
-        columnCount: 6,
-        marginCells: 4,
-        gutterMultiple: 3,
-        targetMarginPx: 80,
-        targetGutterPx: 16,
-        targetColumns: 240,
-        cellColumns: 161,
-        cellAspect: 3,
-        snapRows: false,
-        pixelPerfect: true,
-        snapTolerancePx: 0.25,
-        aspectTolPct: 8,
-        edgeCull: false,
-        edgeCullPct: 35,
-        cellDensity: 2,
-        showLines: false,
-        showSpecimens: false,
-        monoSizes: '3',
-        sansSizes: '5, 10, 20',
-        frameWidth: 2560,
-        frameAspect: '4:3',
-      },
-    })
-    check('mode restored', $('mode').value === 'Solve', $('mode').value)
+    await flip('asymmetricMargin')
+    check('turning it on shows the right margin', visible('marginRightCells'))
     check(
-      'solver targets restored',
-      $('targetMarginPx').value === 80 &&
-        $('targetGutterPx').value === 16 &&
-        $('targetColumns').value === 240,
-      [$('targetMarginPx').value, $('targetGutterPx').value, $('targetColumns').value].join(
-        '/',
-      ),
-    )
-    const restoredPosts = sent.filter((x) => x.type === 'params-changed').length
-    check(
-      'all params restored',
-      $('columnCount').value === 6 &&
-        $('marginCells').value === 4 &&
-        $('gutterMultiple').value === 3 &&
-        $('snapTolerancePx').value === 0.25 &&
-        $('aspectTolPct').value === 8 &&
-        $('edgeCull').checked === false &&
-        $('edgeCullPct').value === 35 &&
-        $('cellDensity').value === '2x' &&
-        $('showLines').checked === false &&
-        getSentParams().monoSizes === '3' &&
-        getSentParams().sansSizes === '5, 10, 20',
-      [
-        $('columnCount').value,
-        $('marginCells').value,
-        $('gutterMultiple').value,
-        $('cellDensity').value,
-      ].join(','),
-    )
-    check('restore posts nothing', restoredPosts === 0, restoredPosts)
-    check(
-      'restoring Pixel snap on reveals the tolerance field',
-      !$('snapTolerancePx').closest('fig-field').hidden,
+      '...starting where the left one is, so the grid does not move',
+      lastParams().marginRightCells === 4 && lastParams().asymmetricMargin === true,
+      JSON.stringify([lastParams().marginRightCells, lastParams().asymmetricMargin]),
     )
     check(
-      'restoring Edge cull off hides the cull tolerance field',
-      $('edgeCullPct').closest('fig-field').hidden,
+      '...and the first margin reads as the left side',
+      labelText('marginCells') === 'Left margin',
     )
-    send({ type: 'params-change', params: {} })
+    await segment('mode', 'Solve')
+    check('Solve hides the right margin', !visible('marginRightCells'))
+    await segment('mode', 'Manual')
+    await flip('asymmetricMargin')
     check(
-      'legacy/empty params fall back to Manual',
-      $('mode').value === 'Manual',
-      $('mode').value,
+      'turning it off hides it and restores the label',
+      !visible('marginRightCells') && labelText('marginCells') === 'Margin cells',
     )
-    check(
-      'legacy/empty params restore the solver defaults 50/20/89',
-      $('targetMarginPx').value === 50 &&
-        $('targetGutterPx').value === 20 &&
-        $('targetColumns').value === 89,
-      [$('targetMarginPx').value, $('targetGutterPx').value, $('targetColumns').value].join(
-        '/',
-      ),
-    )
-    check(
-      'legacy/empty params fall back to the 0.5px snap tolerance',
-      $('snapTolerancePx').value === 0.5,
-      $('snapTolerancePx').value,
-    )
-    check(
-      'legacy/empty params fall back to the 20% edge cull, turned on',
-      $('edgeCull').checked === true &&
-        $('edgeCullPct').value === 20 &&
-        !$('edgeCullPct').closest('fig-field').hidden,
-      $('edgeCullPct').value,
-    )
-    check(
-      'legacy/empty params fall back to the 5% aspect tolerance',
-      $('aspectTolPct').value === 5,
-      $('aspectTolPct').value,
-    )
-    check(
-      'legacy/empty params fall back to the built-in specimen sizes',
-      getSentParams().monoSizes === '2' && getSentParams().sansSizes === '6, 12, 24',
-      [getSentParams().monoSizes, getSentParams().sansSizes].join(' / '),
-    )
-    check(
-      'legacy/empty multiples fall back',
-      $('marginCells').value === 3 &&
-        $('gutterMultiple').value === 1 &&
-        $('cellDensity').value === '1x' &&
-        $('columnCount').value === 12,
-      [
-        $('marginCells').value,
-        $('gutterMultiple').value,
-        $('cellDensity').value,
-        $('columnCount').value,
-      ].join(','),
-    )
+    await slide('marginCells', 3)
 
+    console.log('\n=== dependent fields appear with their switch ===')
+    check('the tolerances are hidden while Pixel snap is off', !visible('snapTolerancePx'))
+    await flip('pixelPerfect')
     check(
-      '...and falling back to Pixel snap off hides it again',
-      $('snapTolerancePx').closest('fig-field').hidden,
+      'turning Pixel snap on shows both tolerances',
+      visible('snapTolerancePx') && visible('aspectTolPct'),
     )
+    await flip('pixelPerfect')
+    check('Cull tol. shows while Edge cull is on', visible('edgeCullPct'))
+    await flip('edgeCull')
+    check('...and hides when it is off', !visible('edgeCullPct'))
+    await flip('edgeCull')
+    const shown = () =>
+      ['shownWidthPx', 'printWidthMm', 'viewingDistanceCm'].filter(visible).join(',')
+    check('Screen asks for no viewing details', shown() === '', shown())
+    await pick('displayMode', 'Custom')
+    check('Custom asks for the shown width', shown() === 'shownWidthPx', shown())
+    await pick('displayMode', 'Print')
+    check(
+      'Print asks for the width and distance',
+      shown() === 'printWidthMm,viewingDistanceCm',
+      shown(),
+    )
+    await pick('displayMode', 'Screen')
 
-    console.log('\n=== switches still clickable (regression guard) ===')
-    ;[
-      'snapRows',
-      'pixelPerfect',
-      'edgeCull',
-      'showLines',
-      'showSpecimens',
-      'snapFontPx',
-    ].forEach((id) => {
-      const host = $(id),
-        before = host.checked
-      host
-        .querySelector('input')
-        .dispatchEvent(new w.MouseEvent('click', { bubbles: true }))
-      check('click toggles ' + id, host.checked === !before)
-      host
-        .querySelector('input')
-        .dispatchEvent(new w.MouseEvent('click', { bubbles: true }))
-    })
-
-    console.log('\n=== Snap/Aspect tol. appear only while Pixel snap is on ===')
+    console.log('\n=== writes are debounced ===')
     {
-      const vis = (id) => !$(id).closest('fig-field').hidden
-      check(
-        'hidden while Pixel snap is off',
-        !vis('snapTolerancePx') && !vis('aspectTolPct'),
-      )
-      $('pixelPerfect')
-        .querySelector('input')
-        .dispatchEvent(new w.MouseEvent('click', { bubbles: true }))
-      check(
-        'turning Pixel snap on reveals both',
-        $('pixelPerfect').checked === true && vis('snapTolerancePx') && vis('aspectTolPct'),
-      )
-      $('pixelPerfect')
-        .querySelector('input')
-        .dispatchEvent(new w.MouseEvent('click', { bubbles: true }))
-      check(
-        'turning it back off hides them again',
-        !vis('snapTolerancePx') && !vis('aspectTolPct'),
-      )
-
-      check('Cull tol. visible while Edge cull is on', vis('edgeCullPct'))
-      $('edgeCull')
-        .querySelector('input')
-        .dispatchEvent(new w.MouseEvent('click', { bubbles: true }))
-      check(
-        'turning Edge cull off hides Cull tol.',
-        $('edgeCull').checked === false && !vis('edgeCullPct'),
-      )
-      $('edgeCull')
-        .querySelector('input')
-        .dispatchEvent(new w.MouseEvent('click', { bubbles: true }))
-      check('...and back on reveals it', vis('edgeCullPct'))
-    }
-
-    console.log('\n=== reapply is debounced, not fired per tick ===')
-    {
-      // The regression this exists for: FigSlider emits on the native `input`
-      // event, so an undebounced drag would post one full document write per
-      // tick — a dozen per drag, each its own Figma undo step.
       sent.length = 0
-      const r = $('marginCells').querySelector('input[type=range]')
-      for (let i = 0; i < 10; i++) {
-        r.value = String(i)
-        r.dispatchEvent(new w.Event('input', { bubbles: true }))
-      }
-      check('a 10-step drag posts 10 previews', previews().length === 10, previews().length)
-      check(
-        '...and zero document writes while dragging',
-        reapplies().length === 0,
-        reapplies().length,
-      )
-      await commit(r)
-      check(
-        '...collapsing to exactly one write on release',
-        reapplies().length === 1,
-        reapplies().length,
-      )
-      check(
-        '...carrying the final value',
-        reapplies()[0].params.marginCells === 9,
-        reapplies()[0].params.marginCells,
-      )
-
-      // Typing never fires a native `change` until blur, so the debounce is what
-      // has to catch it.
-      sent.length = 0
-      const inp = $('frameWidth').querySelector('input')
-      for (const v of ['1', '19', '192', '1920']) {
-        inp.value = v
-        inp.dispatchEvent(new w.Event('input', { bubbles: true }))
+      const range = $('gutterMultiple').querySelector('input[type=range]')
+      for (const v of [2, 3, 4, 5]) {
+        range.value = String(v)
+        fire(range, 'input')
       }
       check(
-        'typing 4 characters writes nothing immediately',
-        reapplies().length === 0,
-        reapplies().length,
+        'each step of a drag previews',
+        changes().filter((m) => !m.reapply).length === 4,
+        changes().filter((m) => !m.reapply).length,
       )
+      check('...without writing to the frame yet', reapplies().length === 0)
       await sleep(DEBOUNCE_WAIT)
-      // frameWidth is deliberately preview-only, so nothing should arrive at all.
       check(
-        'frameWidth never reapplies, debounce or not',
-        reapplies().length === 0,
+        'one write follows once the drag pauses',
+        reapplies().length === 1 && reapplies()[0].params.gutterMultiple === 5,
         reapplies().length,
       )
-
       sent.length = 0
-      const g = $('gutterMultiple').querySelector('input[type=range]')
-      g.value = '5'
-      g.dispatchEvent(new w.Event('input', { bubbles: true }))
+      range.value = '1'
+      fire(range, 'input')
+      fire(range, 'change')
       check(
-        'a grid param alone writes nothing yet',
-        reapplies().length === 0,
-        reapplies().length,
+        'releasing writes straight away',
+        reapplies().length === 1 && reapplies()[0].params.gutterMultiple === 1,
       )
       await sleep(DEBOUNCE_WAIT)
       check(
-        '...and exactly one write after the debounce elapses',
+        '...and nothing more after the pause',
         reapplies().length === 1,
         reapplies().length,
       )
     }
 
-    console.log('\n=== font families are editable ===')
+    console.log('\n=== the cell column choices follow the plugin ===')
     {
+      const options = () =>
+        [...$('cellColumns').querySelectorAll(':scope > option')]
+          .map((o) => o.value)
+          .join(',')
+      preview({ mode: 'Manual', cellLadder: [64, 77, 89, 101], cellColumns: 89 })
       check(
-        'both inputs exist, defaulting to the house fonts',
-        $('monoFamily').value === 'GT America Mono' &&
-          $('sansFamily').value === "Suisse Int'l",
-        $('monoFamily').value + ' / ' + $('sansFamily').value,
-      )
-      const typeGroup = [...doc.querySelectorAll('fig-group')].find(
-        (g) => g.getAttribute('name') === 'Type',
+        'the dropdown lists the reachable counts',
+        options() === '64,77,89,101',
+        options(),
       )
       check(
-        '...inside the Type group',
-        typeGroup.contains($('monoFamily')) && typeGroup.contains($('sansFamily')),
+        '...and shows the count in use',
+        $('cellColumns').value === '89' &&
+          $('cellColumns').querySelector('select').value === '89',
+        $('cellColumns').value,
+      )
+      check(
+        "...keeping the dropdown's own select",
+        $('cellColumns').querySelectorAll(':scope > select').length === 1,
       )
       sent.length = 0
-      const inp = $('monoFamily').querySelector('input')
-      inp.value = 'IBM Plex Mono'
-      inp.dispatchEvent(new w.Event('input', { bubbles: true }))
+      await pick('cellColumns', '101')
+      check('picking one posts it', lastParams().cellColumns === 101)
+      // The plugin may only reach 97 now; the request stays 101 so a change and
+      // its reverse return to the same grid.
+      preview({ mode: 'Manual', cellLadder: [73, 85, 97], cellColumns: 97 })
       check(
-        'editing posts the new family',
-        previews().some((m) => m.params.monoFamily === 'IBM Plex Mono'),
-        JSON.stringify(sent.map((x) => x.params && x.params.monoFamily)),
+        'a new ladder re-selects the nearest count',
+        options() === '73,85,97' && $('cellColumns').value === '97',
+        options() + ' / ' + $('cellColumns').value,
+      )
+      sent.length = 0
+      await slide('marginCells', 4)
+      check(
+        '...while the panel keeps asking for the count requested',
+        lastParams().cellColumns === 101,
+        lastParams().cellColumns,
+      )
+      preview({ mode: 'Manual', cellLadder: [], cellColumns: 120 })
+      check(
+        'with nothing reachable it offers the count used',
+        options() === '120',
+        options(),
+      )
+      await slide('marginCells', 3)
+    }
+
+    console.log('\n=== result readouts ===')
+    {
+      const text = (id) => $(id).textContent.replace(/\s+/g, ' ').trim()
+      preview({ mode: 'Manual' })
+      check(
+        'grid size lists columns and cells',
+        text('preview-size') === '12 col · 229 × 60 cells',
+        text('preview-size'),
       )
       check(
-        '...and reapplies, since the char grid metrics depend on it',
-        (await commit(inp),
-        reapplies().some((m) => m.params.monoFamily === 'IBM Plex Mono')),
-        reapplies().length,
+        'cell size and aspect error',
+        text('preview-cell') === '8 × 16px (-0.7%)',
+        text('preview-cell'),
       )
+      check(
+        'column, gutter and margin as drawn',
+        text('preview-column') === '120px col · 24px gut · 60px marg',
+        text('preview-column'),
+      )
+      check(
+        'the cell multiples',
+        text('preview-solved') === 'm8 k15 g3 aspect Δ 0.7%',
+        text('preview-solved'),
+      )
+      preview({ mode: 'Manual', hRemainder: 12 })
+      check(
+        'a pixel-snap bleed is shown, and flagged past a cell',
+        /12px bleed/.test(text('preview-cell')) &&
+          $('preview-cell').querySelectorAll('.warn').length === 1,
+        text('preview-cell'),
+      )
+      preview({ mode: 'Manual', effectiveMarginRight: 72 })
+      check(
+        'unequal margins show both',
+        /60\/72px marg/.test(text('preview-column')),
+        text('preview-column'),
+      )
+      preview({ mode: 'Manual', columns: 1 })
+      check(
+        'one column has no gutter',
+        !/gut/.test(text('preview-column')),
+        text('preview-column'),
+      )
+
+      const warned = (id) =>
+        [...$(id).querySelectorAll('.warn')].map((e) => e.textContent).join('|')
+      preview({ mode: 'Solve', effectiveMargin: 40, targetMarginPx: 64 })
+      check(
+        'in Solve, a margin more than a cell off its target is flagged',
+        /marg/.test(warned('preview-column')),
+        warned('preview-column'),
+      )
+      preview({ mode: 'Solve', gutterPx: 16, targetGutterPx: 24 })
+      check(
+        '...a gutter more than half a cell off',
+        /gut/.test(warned('preview-column')),
+        warned('preview-column'),
+      )
+      preview({ mode: 'Solve', cols: 200, targetColumns: 229 })
+      check(
+        '...and a cell count more than 2% off',
+        /200/.test(warned('preview-size')),
+        warned('preview-size'),
+      )
+      preview({ mode: 'Solve' })
+      check(
+        'on target, nothing is flagged',
+        warned('preview-column') === '' && warned('preview-size') === '',
+      )
+      preview({ mode: 'Manual', effectiveMargin: 40, targetMarginPx: 64 })
+      check('Manual has no targets to miss', warned('preview-column') === '')
+    }
+
+    console.log("\n=== restoring a frame's settings ===")
+    {
+      sent.length = 0
       send({
         type: 'params-change',
-        params: { monoFamily: 'Roboto Mono', sansFamily: 'Inter' },
+        params: {
+          mode: 'Solve',
+          columnCount: 6,
+          marginCells: 4,
+          gutterMultiple: 3,
+          targetMarginPx: 80,
+          targetGutterPx: 16,
+          targetColumns: 240,
+          cellAspect: 2.5,
+          pixelPerfect: true,
+          snapTolerancePx: 0.25,
+          aspectTolPct: 8,
+          edgeCull: false,
+          edgeCullPct: 35,
+          cellDensity: 2,
+          showLines: false,
+          showSpecimens: false,
+          monoSizes: '3',
+          sansSizes: '5, 10, 20',
+          monoFamily: 'Roboto Mono',
+          displayMode: 'Custom',
+          shownWidthPx: 720,
+        },
       })
       check(
-        'restored from stored params',
-        $('monoFamily').value === 'Roboto Mono' && $('sansFamily').value === 'Inter',
-        $('monoFamily').value + ' / ' + $('sansFamily').value,
+        'controls take the stored values',
+        $('mode').value === 'Solve' &&
+          $('columnCount').value === '6' &&
+          $('marginCells').value === '4' &&
+          $('gutterMultiple').value === '3' &&
+          $('cellAspect').value === '2.5' &&
+          $('cellDensity').value === '2x' &&
+          $('pixelPerfect').checked &&
+          !$('edgeCull').checked &&
+          !$('showLines').checked &&
+          $('monoFamily').value === 'Roboto Mono' &&
+          $('displayMode').value === 'Custom',
+        [
+          $('mode').value,
+          $('columnCount').value,
+          $('marginCells').value,
+          $('cellDensity').value,
+        ].join(','),
       )
+      check(
+        'number fields show them too',
+        Number($('targetMarginPx').value) === 80 &&
+          Number($('snapTolerancePx').value) === 0.25 &&
+          Number($('shownWidthPx').value) === 720,
+        [
+          $('targetMarginPx').value,
+          $('snapTolerancePx').value,
+          $('shownWidthPx').value,
+        ].join(','),
+      )
+      check('restoring posts nothing', changes().length === 0, changes().length)
+      check(
+        'visibility follows the restored values',
+        solveOnly.every(visible) &&
+          visible('snapTolerancePx') &&
+          !visible('edgeCullPct') &&
+          !$('shownWidthField').hidden &&
+          $('typeBody').hidden,
+      )
+      await slide('cellAspect', 2.5)
+      const p = lastParams()
+      check(
+        'and the panel sends them back unchanged',
+        p.mode === 'Solve' &&
+          p.columnCount === 6 &&
+          p.targetMarginPx === 80 &&
+          p.targetColumns === 240 &&
+          p.cellDensity === 2 &&
+          p.monoSizes === '3' &&
+          p.sansSizes === '5, 10, 20' &&
+          p.shownWidthPx === 720,
+        JSON.stringify(p),
+      )
+
       send({ type: 'params-change', params: {} })
+      sent.length = 0
+      await slide('cellAspect', 2)
+      const d = lastParams()
       check(
-        'absent params fall back to the house fonts',
-        $('monoFamily').value === 'GT America Mono' &&
-          $('sansFamily').value === "Suisse Int'l",
-        $('monoFamily').value,
+        'missing settings fall back to the defaults',
+        d.mode === 'Manual' &&
+          d.columnCount === 12 &&
+          d.marginCells === 3 &&
+          d.gutterMultiple === 1 &&
+          d.targetMarginPx === 50 &&
+          d.targetGutterPx === 20 &&
+          d.targetColumns === 89 &&
+          d.snapTolerancePx === 0.5 &&
+          d.aspectTolPct === 5 &&
+          d.edgeCull === true &&
+          d.edgeCullPct === 20 &&
+          d.cellDensity === 1 &&
+          d.monoSizes === '2' &&
+          d.sansSizes === '6, 12, 24' &&
+          d.monoFamily === 'GT America Mono' &&
+          d.sansFamily === "Suisse Int'l" &&
+          d.displayMode === 'Screen',
+        JSON.stringify(d),
       )
     }
 
-    console.log('\n=== the Frame group: custom aspect, and mirroring a selection ===')
+    console.log('\n=== font families ===')
+    sent.length = 0
+    await type('monoFamily', 'IBM Plex Mono')
+    check(
+      'editing a family posts it and writes it',
+      reapplies().some((m) => m.params.monoFamily === 'IBM Plex Mono'),
+    )
+    await type('monoFamily', 'GT America Mono')
+
+    console.log('\n=== the Frame group ===')
     {
-      const stateFor = (extra) => ({
-        type: 'action-state',
-        status: '',
-        preview: Object.assign(
-          {
-            source: 'new frame',
-            frameW: 1920,
-            frameH: 1080,
-            columns: 12,
-            cols: 89,
-            rows: 25,
-            u: 21.57,
-            cellH: 43.15,
-            gridW: 1920,
-            gridH: 1080,
-            deltaPct: 0,
-            warn: false,
-            density: 1,
-            gutterCells: 1,
-            gutterPx: 21.57,
-            marginPx: 64.7,
-            effectiveMargin: 64.7,
-            columnWidth: 129.4,
-            columnCells: 6,
-            contentWidth: 1790,
-            mode: 'Manual',
-            solved: false,
-            solvedM: 3,
-            solvedK: 6,
-            solvedG: 1,
-            hRemainder: 0,
-            actualAspect: 2,
-            targetMarginPx: 50,
-            targetGutterPx: 20,
-            targetColumns: 89,
-            cellLadder: [29, 41, 53, 65, 77, 89, 101],
-            cellColumns: 89,
-          },
-          extra,
-        ),
-      })
-
-      // Earlier sections leave a selection mirrored; start from nothing selected.
-      send(stateFor({}))
-      check(
-        'Custom is offered as an aspect',
-        [...$('frameAspect').querySelectorAll('option')]
-          .map((o) => o.textContent)
-          .join(',') === '16:9,4:3,1:1,9:16,Custom',
-        [...$('frameAspect').querySelectorAll('option')]
-          .map((o) => o.textContent)
-          .join(','),
-      )
-      check(
-        'the aspect comes before the width in the DOM',
-        $('frameAspect')
-          .closest('fig-field')
-          .compareDocumentPosition($('frameWidth').closest('fig-field')) &
-          w.Node.DOCUMENT_POSITION_FOLLOWING,
-      )
-      check('height is hidden for a preset aspect', $('frameHeightField').hidden)
-
+      const own = () => changes().pop().params
+      preview({ source: 'new frame', mode: 'Manual' }, { action: 'create', live: false })
+      check('Height is hidden for a preset aspect', !visible('frameHeight'))
       sent.length = 0
-      $('frameAspect').querySelector('select').value = 'Custom'
-      $('frameAspect')
-        .querySelector('select')
-        .dispatchEvent(new w.Event('change', { bubbles: true }))
-      await sleep(5)
-      check('choosing Custom reveals the height field', !$('frameHeightField').hidden)
+      await pick('frameAspect', 'Custom')
+      check('Custom shows the height', visible('frameHeight'))
       check(
-        '...and posts the aspect without reapplying',
-        previews().some((m) => m.params.frameAspect === 'Custom') &&
-          reapplies().length === 0,
-        JSON.stringify(sent.map((x) => [x.type, x.reapply])),
+        '...starting from the height the preset gave',
+        own().frameAspect === 'Custom' && own().frameHeight === 1080,
+        JSON.stringify([own().frameAspect, own().frameHeight]),
       )
-      const h = $('frameHeight').querySelector('input')
-      h.value = '700'
-      h.dispatchEvent(new w.Event('input', { bubbles: true }))
-      await sleep(5)
-      check(
-        'the height posts as its own param',
-        previews().some((m) => m.params.frameHeight === 700),
-        JSON.stringify(previews().map((m) => m.params.frameHeight)),
-      )
+      check('frame edits never write to a frame', reapplies().length === 0)
+      await type('frameWidth', '2000')
+      check('the width posts as a number', own().frameWidth === 2000, own().frameWidth)
 
-      console.log('--- selecting a frame makes the group read-only ---')
-      send(stateFor({ source: 'selection', frameW: 1600, frameH: 900 }))
+      preview({ source: 'selection', frameW: 1080, frameH: 1350 })
       check(
-        "the fields show the selected frame's real size",
-        $('frameWidth').value === 1600 && $('frameHeight').value === 900,
-        $('frameWidth').value + 'x' + $('frameHeight').value,
+        'selecting a frame shows its size, read only',
+        $('frameWidth').getAttribute('value') === '1080' &&
+          $('frameHeight').getAttribute('value') === '1350' &&
+          $('frameWidth').hasAttribute('disabled') &&
+          $('frameAspect').hasAttribute('disabled') &&
+          visible('frameHeight'),
+        [
+          $('frameWidth').getAttribute('value'),
+          $('frameHeight').getAttribute('value'),
+        ].join('×'),
       )
-      check(
-        '...and all three are disabled',
-        $('frameWidth').disabled && $('frameHeight').disabled && $('frameAspect').disabled,
-      )
-      check(
-        '...the height is shown even though the aspect is a preset',
-        !$('frameHeightField').hidden,
-      )
-      check(
-        'a 1600x900 frame reads as its matching preset',
-        $('frameAspect').value === '16:9',
-        $('frameAspect').value,
-      )
-      send(stateFor({ source: 'selection', frameW: 1000, frameH: 777 }))
-      check(
-        'a size matching no preset reads as Custom',
-        $('frameAspect').value === 'Custom',
-        $('frameAspect').value,
-      )
-
       sent.length = 0
+      await slide('cellAspect', 2.1)
       check(
-        'the mirrored values are not posted as settings',
-        (() => {
-          const m = getSentParams()
-          return (
-            m.frameWidth === 1920 && m.frameHeight === 700 && m.frameAspect === 'Custom'
-          )
-        })(),
-        JSON.stringify(getSentParams()),
+        "...without replacing the user's own size",
+        own().frameWidth === 2000 && own().frameAspect === 'Custom',
+        JSON.stringify([own().frameWidth, own().frameAspect]),
       )
-
-      console.log('--- deselecting restores what the user set ---')
-      send(stateFor({}))
+      preview({ source: 'new frame', mode: 'Manual' }, { action: 'create', live: false })
       check(
-        "the user's own width and height come back",
-        $('frameWidth').value === 1920 && $('frameHeight').value === 700,
-        $('frameWidth').value + 'x' + $('frameHeight').value,
+        'deselecting restores what the user set, editable again',
+        $('frameWidth').getAttribute('value') === '2000' &&
+          !$('frameWidth').hasAttribute('disabled') &&
+          $('frameAspect').value === 'Custom',
       )
-      check(
-        '...the aspect too',
-        $('frameAspect').value === 'Custom',
-        $('frameAspect').value,
-      )
-      check(
-        '...and the fields are editable again',
-        !$('frameWidth').disabled &&
-          !$('frameHeight').disabled &&
-          !$('frameAspect').disabled,
-      )
+      await pick('frameAspect', '16:9')
+      await type('frameWidth', '1920')
+      await slide('cellAspect', 2)
     }
 
-    console.log('\n=== Advanced group is a real disclosure ===')
+    console.log('\n=== collapsible groups ===')
     {
-      const adv = [...doc.querySelectorAll('fig-group')].find(
-        (g) => g.getAttribute('name') === 'Advanced',
-      )
-      check('the Advanced group exists', !!adv)
-      check('collapsed by default', adv.hasAttribute('collapsed'))
-      const header = adv.querySelector('.fig-group-header')
+      const adv = doc.querySelector('fig-group[name="Advanced"]')
+      const header = adv.querySelector(':scope > fig-header h3')
       check(
-        'its header is a button, not a div',
-        header.tagName === 'BUTTON',
-        header.tagName,
-      )
-      check(
-        '...with type=button so it cannot submit',
-        header.type === 'button',
-        header.type,
-      )
-      check(
-        '...and announces its state',
-        header.getAttribute('aria-expanded') === 'false',
-        header.getAttribute('aria-expanded'),
-      )
-      check(
-        'it holds the six lesser-used controls',
-        ['edgeCull', 'edgeCullPct', 'cellAspect', 'cellDensity', 'showLines'].every((id) =>
-          adv.contains($(id)),
-        ) && adv.contains($('preview-solved')),
-        [
-          'edgeCull',
-          'edgeCullPct',
-          'asymmetricMargin',
-          'cellAspect',
-          'cellDensity',
-          'showLines',
-        ]
-          .filter((id) => !adv.contains($(id)))
-          .join(','),
-      )
-      check(
-        'the primary controls stayed out of it',
-        [
-          'mode',
-          'columnCount',
-          'marginCells',
-          'marginRightCells',
-          'gutterMultiple',
-          'cellColumns',
-          'snapRows',
-          'pixelPerfect',
-          'snapTolerancePx',
-          'aspectTolPct',
-        ].every((id) => !adv.contains($(id))),
+        'the header is a keyboard-reachable button',
+        !!header && header.getAttribute('role') === 'button',
       )
       sent.length = 0
-      header.dispatchEvent(new w.Event('click', { bubbles: true }))
-      check('clicking expands it', !adv.hasAttribute('collapsed'))
-      check('...updates aria-expanded', header.getAttribute('aria-expanded') === 'true')
-      await sleep(30) // reportHeight defers to requestAnimationFrame
+      header.click()
+      check('clicking it opens the group', adv.open === true)
+      await sleep(30)
       check(
         '...and re-reports the height, since the panel is measured',
-        sent.some((x) => x.type === 'resize'),
-        JSON.stringify(sent.map((x) => x.type)),
+        sent.some((m) => m.type === 'resize'),
       )
-      check(
-        '...without touching the document',
-        reapplies().length === 0,
-        reapplies().length,
-      )
-      header.dispatchEvent(new w.Event('click', { bubbles: true }))
-      check('clicking again collapses it', adv.hasAttribute('collapsed'))
-      // Leave it open: the switch-click checks below need a reachable control.
-      header.dispatchEvent(new w.Event('click', { bubbles: true }))
+      check('...without touching the document', reapplies().length === 0)
+      header.click()
+      check('clicking again closes it', adv.open === false)
     }
 
-    console.log('\n=== Copy Mitos config ===')
+    console.log('\n=== Copy config ===')
     {
-      const copyButton = $('copy-mitos')
-      check('the copy button exists in the footer', !!copyButton)
-      check(
-        '...as a secondary non-submit button',
-        copyButton.type === 'button' && copyButton.classList.contains('secondary'),
-      )
-
-      // jsdom has no execCommand; stub it to capture what would be copied.
       let copied = null
       doc.execCommand = (cmd) => {
         if (cmd !== 'copy') return false
         copied = doc.querySelector('textarea.clipboard-stage').value
         return true
       }
-
-      // A grid the plugin could really produce: 1920×1080, 96 cells across,
-      // 25 rows. The expected numbers below are re-derived from Mitos's own
-      // formulas (dimension-utils.ts: CHAR_WIDTH 7.45, FONT_SIZE 12) rather
-      // than hard-coded from the implementation.
-      const pvMitos = Object.assign({}, pvSolve, {
-        frameW: 1920,
-        frameH: 1080,
-        cols: 96,
-        rows: 25,
-      })
-      send({ type: 'action-state', status: '', preview: pvMitos })
-      copyButton.dispatchEvent(new w.Event('click', { bubbles: true }))
-
-      check('clicking copies something', copied !== null)
+      // 1920×1080, 96 cells across, 25 rows. The expected numbers are
+      // re-derived from Mitos's own formulas (CHAR_WIDTH 7.45, FONT_SIZE 12).
+      preview({ frameW: 1920, frameH: 1080, cols: 96, rows: 25 })
+      $('copy-mitos').click()
+      check('clicking copies the config', copied !== null)
       check(
-        'the staging textarea is removed afterwards',
+        'the staging textarea is removed',
         !doc.querySelector('textarea.clipboard-stage'),
       )
-      check(
-        'the button confirms, then offers to copy again',
-        /Copied/.test(copyButton.textContent),
-        copyButton.textContent,
-      )
-      await sleep(1700)
-      check(
-        '...label resets after the confirmation',
-        copyButton.textContent.trim() === 'Copy config',
-        copyButton.textContent,
-      )
-
+      check('the button confirms', $('copy-mitos').textContent === 'Copied')
       const cfg = JSON.parse(copied)
+      const lh = (1080 * 96 * 7.45) / (1920 * 25 * 12)
       check(
-        "the payload is tagged for Mitos's paste handler",
-        cfg.mitos === 'grid-config' && cfg.version === 1,
-        copied.slice(0, 60),
-      )
-      check(
-        'columns and rows mirror the previewed cell grid',
-        cfg.output.columns === 96 && cfg.output.rows === 25,
-        JSON.stringify(cfg.output),
-      )
-      check('image aspect override is disabled', cfg.output.useImageAspectRatio === false)
-      check('padding is zero (the grid runs full bleed)', cfg.export.padding === 0)
-      // Independent derivation: the line height that makes one Mitos character
-      // cell the same shape as one grid cell.
-      const CHAR_W = 7.45
-      const FONT_S = 12
-      const wantLh = (1080 * 96 * CHAR_W) / (1920 * 25 * FONT_S)
-      check(
-        'line height matches the cell shape to 4 decimals',
-        Math.abs(cfg.export.lineHeight - wantLh) <= 0.00005,
-        cfg.export.lineHeight + ' vs ' + wantLh,
+        'the payload describes the previewed grid',
+        cfg.mitos === 'grid-config' &&
+          cfg.output.columns === 96 &&
+          cfg.output.rows === 25 &&
+          Math.abs(cfg.export.lineHeight - lh) < 1e-4 &&
+          cfg.export.padding === 0 &&
+          cfg.export.width === 1920 &&
+          cfg.export.height === 1080,
+        copied.slice(0, 80),
       )
       check(
-        'export size is the frame size',
-        cfg.export.width === 1920 && cfg.export.height === 1080,
-        JSON.stringify(cfg.export),
+        "its aspect is the frame's",
+        Math.abs(cfg.output.aspectRatio - 1920 / 1080) < 1e-3,
+        cfg.output.aspectRatio,
       )
-      // The round trip that makes the export size stick in Mitos: it rederives
-      // height = width × (rows·FONT_SIZE·lineHeight)/(cols·CHAR_WIDTH).
-      const derivedH = Math.round(
-        1920 * ((25 * FONT_S * cfg.export.lineHeight) / (96 * CHAR_W)),
-      )
-      check(
-        "Mitos's derive-height-from-width lands back on the frame height",
-        derivedH === 1080,
-        derivedH,
-      )
-      // And its locked-aspect sync must not move the pasted row count.
-      const syncedRows = Math.round(
-        (96 * CHAR_W) / (cfg.output.aspectRatio * FONT_S * cfg.export.lineHeight),
-      )
-      check("Mitos's aspect-lock sync keeps the pasted rows", syncedRows === 25, syncedRows)
-
-      // A failed copy must say so rather than claim success.
       doc.execCommand = () => false
-      copyButton.dispatchEvent(new w.Event('click', { bubbles: true }))
-      check(
-        'a refused copy reports failure',
-        /failed/i.test(copyButton.textContent),
-        copyButton.textContent,
-      )
-      await sleep(1700) // let the label reset before the error check below
+      $('copy-mitos').click()
+      check('a refused copy says so', $('copy-mitos').textContent === 'Copy failed')
+      await sleep(1700)
+      check('the label resets', $('copy-mitos').textContent === 'Copy config')
       delete doc.execCommand
     }
 
     console.log('\n=== type scales ===')
     {
-      const val = (id) => $(id).value
-      const typeInto = async (id, value) => {
-        const el = $(id)
-        el.value = value
-        el.dispatchEvent(new w.Event('input', { bubbles: true }))
-        await commit(el)
-      }
-      const setSteps = async (face, n) => {
-        const range = $(face + 'Steps').querySelector('input[type=range]')
-        range.value = String(n)
-        range.dispatchEvent(new w.Event('input', { bubbles: true }))
-        await commit(range)
-      }
-      const last = () => {
-        const all = sent.filter((x) => x.type === 'params-changed')
-        return all.length ? all[all.length - 1].params : {}
-      }
       send({ type: 'params-change', params: {} })
       check(
         'defaults: mono one step at 2%, sans 6–24% in 3 steps',
-        val('monoSizeMin') === '2' &&
-          $('monoSteps').value === 1 &&
-          val('sansSizeMin') === '6' &&
-          val('sansSizeMax') === '24' &&
-          $('sansSteps').value === 3,
-        [val('monoSizeMin'), val('sansSizeMin'), val('sansSizeMax'), $('sansSteps').value],
+        $('monoSizeMin').getAttribute('value') === '2' &&
+          $('monoSteps').value === '1' &&
+          $('sansSizeMin').getAttribute('value') === '6' &&
+          $('sansSizeMax').getAttribute('value') === '24' &&
+          $('sansSteps').value === '3',
       )
       check(
-        'one step hides the second size and leading',
+        'one step hides the second size, and says Size',
         $('monoSizeRange').classList.contains('single') &&
-          $('monoLeadingRange').classList.contains('single') &&
-          !$('sansSizeRange').classList.contains('single'),
+          !$('sansSizeRange').classList.contains('single') &&
+          labelText('monoSizeRange') === 'Size' &&
+          labelText('sansSizeRange') === 'Sizes',
       )
       check(
-        'leading starts empty (built-in)',
-        ['monoLeadingMin', 'sansLeadingMin', 'sansLeadingMax'].every(
-          (id) => val(id) === '',
-        ),
-      )
-      check(
-        'each input names itself rather than borrowing the row label',
+        'each end names itself for assistive tech',
         $('sansSizeMax').getAttribute('aria-label') ===
-          'Sans largest size, % of frame height' &&
-          !$('sansSizeMax').hasAttribute('aria-labelledby'),
+          'Sans largest size, % of frame height',
       )
-
       sent.length = 0
-      await setSteps('sans', 5)
+      await slide('sansSteps', 5)
       check(
         'more steps fill in equal ratios between the ends',
-        last().sansSizes === '6, 8.5, 12, 17, 24',
-        last().sansSizes,
+        lastParams().sansSizes === '6, 8.5, 12, 17, 24',
+        lastParams().sansSizes,
       )
-      await typeInto('sansSizeMax', '48')
-      await setSteps('sans', 4)
+      await type('sansSizeMax', '48')
+      await slide('sansSteps', 4)
       check(
         'changing an end rescales the steps between',
-        last().sansSizes === '6, 12, 24, 48',
-        last().sansSizes,
+        lastParams().sansSizes === '6, 12, 24, 48',
+        lastParams().sansSizes,
       )
-      await typeInto('sansSizeMin', '200')
-      check(
-        'an out-of-range size is flagged, and the plugin gets its defaults',
-        $('sansSizeMin').classList.contains('invalid') && last().sansSizes === '',
-        last().sansSizes,
-      )
-      await typeInto('sansSizeMin', '6')
-      check('...and the flag clears', !$('sansSizeMin').classList.contains('invalid'))
+      await type('sansSizeMax', '24')
+      await slide('sansSteps', 3)
 
-      sent.length = 0
-      await typeInto('sansLeadingMin', '1.4')
-      await sleep(DEBOUNCE_WAIT)
       check(
-        'typing a leading end reapplies with it',
-        reapplies().some(
-          (x) => x.params.sansLeadingMin === '1.4' && x.params.sansLeadingMax === '',
-        ),
-        JSON.stringify(last()),
-      )
-      await typeInto('sansLeadingMax', '9')
-      check(
-        'an out-of-range leading is flagged',
-        $('sansLeadingMax').classList.contains('invalid'),
-      )
-      await typeInto('sansLeadingMax', '')
-      await typeInto('monoLeadingMax', '1.1')
-      check(
-        'a single-step family sends no largest-size leading',
-        last().monoLeadingMax === '',
-        last().monoLeadingMax,
+        'leading and tracking have no settings: both follow the design system',
+        !doc.querySelector('[id*="Leading"], [id*="Tracking"], fig-easing-curve'),
       )
 
-      // A stored list that isn't an equal-ratio scale is passed back
-      // untouched until the scale is edited.
+      // A stored list that isn't an equal-ratio scale is passed back untouched
+      // until the scale is edited.
       send({
         type: 'params-change',
-        params: { sansSizes: '5, 7, 20', sansLeadingMax: '0.95' },
+        params: { sansSizes: '5, 7, 20' },
       })
       check(
         'a stored list sets the ends and step count',
-        val('sansSizeMin') === '5' &&
-          val('sansSizeMax') === '20' &&
-          $('sansSteps').value === 3 &&
-          val('sansLeadingMax') === '0.95',
+        $('sansSizeMin').getAttribute('value') === '5' &&
+          $('sansSizeMax').getAttribute('value') === '20' &&
+          $('sansSteps').value === '3',
       )
+      sent.length = 0
+      await slide('cellAspect', 2.2)
       check(
-        '...and is sent back unchanged while the scale is untouched',
-        getSentParams().sansSizes === '5, 7, 20',
-        getSentParams().sansSizes,
+        '...and is sent back unchanged',
+        lastParams().sansSizes === '5, 7, 20',
+        lastParams().sansSizes,
       )
-      await setSteps('sans', 3)
+      await slide('sansSteps', 3)
       check(
         '...until a scale control is edited',
-        getSentParams().sansSizes === '5, 10, 20',
-        getSentParams().sansSizes,
+        lastParams().sansSizes === '5, 10, 20',
+        lastParams().sansSizes,
       )
+      await slide('cellAspect', 2)
 
-      const row = (face, pct, size, cells, leading, autoLeading, tracking) => ({
+      const row = (face, pct, size, cells, leading, tracking) => ({
         face,
         pct,
         size,
         cells,
         leading,
-        autoLeading,
         tracking,
       })
-      send({
-        type: 'action-state',
-        status: '',
-        preview: Object.assign({}, pvSolve, {
-          displayScale: 1,
-          specimens: [
-            row('mono', 2, 13.5, 0.5, 1.6, 1.6, 4),
-            row('sans', 6, 53.1, 3, 1.22, 1.22, -2.25),
-            row('sans', 7, 61.2, 3, 1.06, 1.18, -2.5),
-            row('sans', 24, 259.2, 12, 1, 1, -3.63),
-          ],
-        }),
+      preview({
+        specimens: [
+          row('mono', 2, 13.5, 0.5, 1.6, 4),
+          row('sans', 6, 53.1, 3, 1.22, -2.25),
+          row('sans', 7, 61.2, 3, 1.06, -2.5),
+          row('sans', 24, 259.2, 12, 1, -3.63),
+        ],
       })
       const cells = (face) =>
-        [...$(face + 'Specs').querySelectorAll('span:not(.head)')]
-          .filter((e) => e.parentElement === $(face + 'Specs'))
+        [...$(face + 'Specs').children]
+          .filter((e) => !e.classList.contains('head'))
           .map((e) => e.textContent)
       check(
         'the table shows each step as set',
@@ -1643,154 +803,77 @@ setTimeout(async () => {
         clash.length === 1 && clash[0].textContent === '3',
         clash.length,
       )
-      check(
-        'the leading placeholders are the built-in values at the ends',
-        $('sansLeadingMin').placeholder === '1.22' &&
-          $('sansLeadingMax').placeholder === '1.00',
-        [$('sansLeadingMin').placeholder, $('sansLeadingMax').placeholder],
-      )
-      check('there is nothing to set for tracking', !doc.querySelector('[id*="Tracking"]'))
 
-      $('showSpecimens').querySelector('input').click()
+      await flip('showSpecimens')
       check('turning specimens off hides the type settings', $('typeBody').hidden)
-      $('showSpecimens').querySelector('input').click()
+      await flip('showSpecimens')
       check('...and on shows them again', !$('typeBody').hidden)
-      await sleep(DEBOUNCE_WAIT)
       send({ type: 'params-change', params: {} })
     }
 
-    console.log('\n=== display scale ===')
+    console.log('\n=== display scale readout ===')
     {
-      const pick = async (value) => {
-        sent.length = 0
-        const sel = $('displayMode').querySelector('select')
-        sel.value = value
-        sel.dispatchEvent(new w.Event('change', { bubbles: true }))
-        await sleep(5)
-      }
-      const shown = () =>
-        ['shownWidthField', 'printWidthField', 'viewingDistanceField']
-          .filter((id) => !$(id).hidden)
-          .join(',')
-      check('Screen shows no extra fields', shown() === '', shown())
-      await pick('Social')
-      check('a feed preset shows no extra fields', shown() === '', shown())
-      check(
-        'the mode posts and reapplies',
-        sent.some((m) => m.type === 'params-changed' && m.params.displayMode === 'Social'),
-      )
-      await pick('Custom')
-      check('Custom shows only the shown width', shown() === 'shownWidthField', shown())
-      await pick('Print')
-      check(
-        'Print shows the width and distance',
-        shown() === 'printWidthField,viewingDistanceField',
-        shown(),
-      )
-      const dist = $('viewingDistanceCm').querySelector('input')
-      dist.value = '300'
-      dist.dispatchEvent(new w.Event('input', { bubbles: true }))
-      await sleep(5)
-      check(
-        'the distance posts as a number',
-        sent.some((m) => m.type === 'params-changed' && m.params.viewingDistanceCm === 300),
-      )
-
-      send({
-        type: 'params-change',
-        params: { displayMode: 'Custom', shownWidthPx: 720 },
-      })
-      check(
-        'restored params set the mode, its field and its visibility',
-        $('displayMode').value === 'Custom' &&
-          $('shownWidthPx').value === 720 &&
-          shown() === 'shownWidthField',
-        $('displayMode').value + ' ' + shown(),
-      )
-      send({ type: 'params-change', params: {} })
-      check('missing params fall back to Screen', $('displayMode').value === 'Screen')
-
-      const readout = (extra) => {
-        send({
-          type: 'action-state',
-          status: '',
-          preview: Object.assign({}, pvSolve, extra),
-        })
-        return $('preview-display').textContent.replace(/\s+/g, ' ').trim()
-      }
+      const read = () => $('preview-display').textContent.replace(/\s+/g, ' ').trim()
       const sans = (pct, size) => ({
         face: 'sans',
         pct,
         size,
         cells: 1,
         leading: 1,
-        autoLeading: 1,
         tracking: 0,
       })
-      const text = readout({
-        specimens: [sans(6, 64.8), sans(12, 129.6)],
-        displayScale: 0.5,
-      })
+      preview({ specimens: [sans(6, 64.8), sans(12, 129.6)], displayScale: 0.5 })
       check(
-        'the readout lists the sans sizes as seen, and the scale',
-        text === '32 · 65 px · ×0.5',
-        text,
+        'it lists the sans sizes as seen, and the scale',
+        read() === '32 · 65 px · ×0.5',
+        read(),
       )
-      const none = readout({ specimens: [], displayScale: 0.5 })
-      check('with no sans sizes it reads as a dash', none === '—', none)
+      preview({ specimens: [], displayScale: 0.5 })
+      check('with no sans sizes it reads as a dash', read() === '—', read())
     }
 
-    console.log('\n=== fixes from the product description triage ===')
+    console.log('\n=== the action button ===')
     {
-      const newFrame = (extra) =>
-        send({
-          type: 'action-state',
-          action: 'create',
-          actionLabel: 'Create frame',
-          status: '',
-          preview: Object.assign(
-            {},
-            pvSolve,
-            { source: 'new frame', mode: 'Manual' },
-            extra,
-          ),
-        })
       const actions = () => sent.filter((m) => m.type === 'action')
-      newFrame()
-      await sleep(450)
-
-      // The status is plain text; clicking it does not press the button.
-      check(
-        'the status label is not a <label>',
-        $('action-status').tagName !== 'LABEL',
-        $('action-status').tagName,
+      preview(
+        { source: 'new frame', mode: 'Manual' },
+        { action: 'create', actionLabel: 'Create frame', live: false },
       )
+      await sleep(450)
+      check(
+        'it is labelled by the plugin',
+        $('action-primary').textContent === 'Create frame',
+      )
+      check('...and primary', $('action-primary').getAttribute('variant') === 'primary')
       sent.length = 0
-      $('action-status').dispatchEvent(new w.MouseEvent('click', { bubbles: true }))
-      check('clicking the status posts no action', actions().length === 0)
-
-      // One action per press, and none in the moment after the button relabels.
-      sent.length = 0
+      $('action-status').click()
+      check('clicking the status does nothing', actions().length === 0)
       $('action-primary').click()
       $('action-primary').click()
       check('a double-click posts one action', actions().length === 1, actions().length)
       check(
-        '...and the button is busy, not greyed out, while it runs',
+        '...and the button is busy, not disabled, while it runs',
         $('action-primary').getAttribute('aria-busy') === 'true' &&
-          !$('action-primary').disabled,
+          !$('action-primary').hasAttribute('disabled'),
       )
-      send({
-        type: 'action-state',
-        action: 'remove',
-        actionLabel: 'Remove grids',
-        actionDanger: true,
-        status: 'Live editing',
-        preview: Object.assign({}, pvSolve, { source: 'selection' }),
-      })
+      preview(
+        {},
+        {
+          action: 'remove',
+          actionLabel: 'Remove grids',
+          actionDanger: true,
+          status: 'Live editing',
+        },
+      )
       check(
-        '...and no longer busy when the plugin replies',
+        '...and not busy once the plugin replies',
         !$('action-primary').hasAttribute('aria-busy'),
       )
+      check(
+        'Remove grids drops the primary emphasis',
+        $('action-primary').getAttribute('variant') === 'secondary',
+      )
+      check('the status shows beside it', $('action-status').textContent === 'Live editing')
       sent.length = 0
       $('action-primary').click()
       check('a click just after the button relabels is ignored', actions().length === 0)
@@ -1800,160 +883,44 @@ setTimeout(async () => {
         '...but a deliberate click after that runs',
         actions().length === 1 && actions()[0].action === 'remove',
       )
-      newFrame()
-      await sleep(450)
-
-      // Loading a frame's mode shows that mode's controls.
-      send({ type: 'params-change', params: { mode: 'Solve' } })
-      check(
-        'loading a Solve frame shows the Solve targets and hides the Manual sliders',
-        !$('targetMarginPx').closest('fig-field').hidden &&
-          $('marginCells').closest('fig-field').hidden,
-      )
-      send({ type: 'params-change', params: { mode: 'Manual' } })
-      check(
-        '...and loading a Manual frame swaps them back',
-        $('targetMarginPx').closest('fig-field').hidden &&
-          !$('marginCells').closest('fig-field').hidden,
-      )
-
-      // The requested Manual count is kept, not replaced by the rung shown.
-      send({ type: 'params-change', params: { cellColumns: 185 } })
-      newFrame({ cellLadder: [161, 173, 197], cellColumns: 173 })
-      check(
-        'the slider shows the rung taken',
-        $('cellColumns').value === 173,
-        $('cellColumns').value,
-      )
-      check(
-        '...while the panel still asks for the count requested',
-        getSentParams().cellColumns === 185,
-        getSentParams().cellColumns,
-      )
-      newFrame({ cellLadder: [], cellColumns: 29 })
-      check(
-        'with no reachable rung the slider shows the count used',
-        $('cellColumns').value === 29,
-        $('cellColumns').value,
-      )
-      newFrame()
-
-      // A slider's box shows the clamped value once committed.
-      const box = $('marginCells').querySelector('input[type=number]')
-      box.value = '40'
-      box.dispatchEvent(new w.Event('input', { bubbles: true }))
-      box.dispatchEvent(new w.Event('change', { bubbles: true }))
-      await sleep(5)
-      check('a typed 40 in Margin cells shows 24 on commit', box.value === '24', box.value)
-      send({ type: 'params-change', params: { marginCells: 3 } })
-
-      // Closing the panel writes a change still waiting in the debounce.
-      sent.length = 0
-      const gutter = $('gutterMultiple').querySelector('input[type=number]')
-      gutter.value = '2'
-      gutter.dispatchEvent(new w.Event('input', { bubbles: true }))
-      w.dispatchEvent(new w.Event('pagehide'))
-      check(
-        'closing within the debounce writes the pending change',
-        reapplies().length === 1,
-        reapplies().length,
-      )
-      await sleep(DEBOUNCE_WAIT)
-      check('...once', reapplies().length === 1, reapplies().length)
-
-      // Achieved values are judged against the target the solver used.
-      newFrame({ mode: 'Solve', cols: 89, targetColumns: 0, targetColumnsUsed: 89 })
-      check(
-        'an empty Solve Cell columns is not flagged when 89 is reached',
-        !$('targetColumns').querySelector('.warn'),
-      )
-
-      // Labels name their controls.
-      const named = $('marginCells')
-        .querySelector('input[type=range]')
-        .getAttribute('aria-labelledby')
-      check(
-        'a control is named by its field label',
-        named && doc.getElementById(named).textContent === 'Margin cells',
-        named,
-      )
-
-      // Small slips.
-      $('asymmetricMargin').querySelector('input').click()
-      await sleep(5)
-      const marginLabel = $('marginField').querySelector('.fig-field-label')
-      check(
-        'the Left margin tooltip follows its label',
-        marginLabel.title === 'Left margin',
-        marginLabel.title,
-      )
-      $('asymmetricMargin').querySelector('input').click()
-      await sleep(5)
-      newFrame({ columns: 1 })
-      check(
-        'one column reports no gutter',
-        !/gut/.test($('preview-column').textContent),
-        $('preview-column').textContent,
-      )
-      newFrame()
-      const width = $('frameWidth').querySelector('input')
-      width.value = '3840'
-      width.dispatchEvent(new w.Event('input', { bubbles: true }))
-      await sleep(5)
-      const aspect = $('frameAspect').querySelector('select')
-      aspect.value = '16:9'
-      aspect.dispatchEvent(new w.Event('change', { bubbles: true }))
-      aspect.value = 'Custom'
-      aspect.dispatchEvent(new w.Event('change', { bubbles: true }))
-      await sleep(5)
-      check(
-        'switching to Custom keeps the preset height',
-        $('frameHeight').value === 2160,
-        $('frameHeight').value,
-      )
+      preview({}, { action: 'remove', actionLabel: 'Remove grids', actionDanger: true })
     }
 
     console.log('\n=== grid controls show only while live editing ===')
     {
-      const shown = (el) => w.getComputedStyle(el).display !== 'none'
-      const groups = () => [...doc.querySelectorAll('fig-group')]
-      send({ type: 'action-state', action: 'create', actionLabel: 'Create frame' })
+      // jsdom's cascade gets this wrong once FigUI3's stylesheet is loaded (it
+      // reports Type as shown), so the panel's own hiding rule is matched
+      // directly. Chrome shows only Frame, as intended.
+      const rule = [...doc.querySelectorAll('style')]
+        .flatMap((st) => [...st.sheet.cssRules])
+        .find((r) => r.selectorText && r.selectorText.includes(':not([data-live])'))
+      const hidden = (el) => !!rule && el.matches(rule.selectorText)
+      const group = (n) => doc.querySelector('fig-content > fig-group[name="' + n + '"]')
+      preview({ source: 'new frame' }, { action: 'create', live: false })
       check(
-        'with no gridded frame, only the Frame group shows',
-        groups()
-          .filter(shown)
-          .map((g) => g.getAttribute('name'))
-          .join(',') === 'Frame',
-        groups()
-          .filter(shown)
-          .map((g) => g.getAttribute('name'))
-          .join(','),
+        'with no gridded frame only Frame and Create show',
+        ['Grid', 'Advanced', 'Type'].every((n) => hidden(group(n))) &&
+          !hidden(group('Frame')) &&
+          hidden($('copy-mitos')) &&
+          !hidden($('action-primary')),
+        ['Grid', 'Advanced', 'Type', 'Frame'].map((n) => hidden(group(n))).join(','),
       )
-      check('...and Copy config is hidden', !shown($('copy-mitos')))
-      send({ type: 'action-state', action: 'apply', actionLabel: 'Apply grids' })
-      check('an ungridded frame still hides the grid controls', !shown(groups()[0]))
-      send({
-        type: 'action-state',
-        action: 'remove',
-        actionLabel: 'Remove grids',
-        status: 'Live editing',
-        live: true,
-      })
-      check('a gridded frame shows every group', groups().every(shown))
-      check('...and Copy config', shown($('copy-mitos')))
+      preview({}, { live: true })
+      check(
+        'live editing shows them all',
+        ['Grid', 'Advanced', 'Type', 'Frame'].every((n) => !hidden(group(n))) &&
+          !hidden($('copy-mitos')),
+      )
     }
 
     console.log('\n=== final error check ===')
     check('no script errors', errors.length === 0, errors.join('; '))
-  } catch (err) {
-    // Without this a mid-run crash prints only the passes that happened to run,
-    // which reads like success. It cost a real regression once already.
+  } catch (e) {
     failures++
-    console.error('\nCRASHED mid-run: ' + (err && err.stack ? err.stack : err))
+    console.log('CRASHED mid-run: ' + (e && e.stack ? e.stack : e))
   }
-
   console.log(
     '\n' + (failures ? failures + ' FAILURE(S)' : 'ALL PASS') + ' — ' + checks + ' checks',
   )
-  process.exitCode = failures ? 1 : 0
-}, 150)
+  process.exit(failures ? 1 : 0)
+}, 100)

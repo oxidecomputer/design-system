@@ -78,16 +78,16 @@ The full range extends down to `LADDER_MIN_CELL` (2px) and up to a 66px cell at 
 ladder offers at most `LADDER_MAX_CELL_COLUMNS` (600) cells across, so with few columns a
 column can be much wider than the solver's 48 cells: one column still reaches 89.
 
-**Cell columns** steps through these sizes, expressed as `N`, the number of cells across the
-frame. Every stop produces a valid grid. Requested counts snap to the nearest available
+**Cell columns** lists these sizes, expressed as `N`, the number of cells across the
+frame. Every option produces a valid grid. Requested counts snap to the nearest available
 value; ties go to the coarser grid.
 
 The control uses whole-number counts rather than fractional pixel sizes. With `m`, `g` and
 `c` fixed, choosing `N` also fixes `k`, so the same setting preserves the grid's proportions
 across frame sizes.
 
-Both this slider and **Columns** step through fixed lists and display their values as text.
-**Margin cells**, **Gutter cells**, and **Aspect ratio** accept any in-range value and have
+This and **Columns** are dropdowns, since each offers a fixed list. **Margin cells**,
+**Gutter cells**, and **Aspect ratio** accept any in-range value and are sliders with
 editable number fields.
 
 Aspect deviation is reported rather than used to reject cell sizes. It stays within about 2%
@@ -95,9 +95,9 @@ across the ladder at typical settings. **Aspect tol.** serves a different purpos
 aspect deviation to obtain an integer row height (see Modes).
 
 The ladder is rebuilt whenever `c`, `m`, `g`, Pixel snap or the snap tolerance changes. The
-current setting is matched by count, not slider position, so a setting of 89 columns stays
-near 89 after a margin change. The panel keeps the count the user asked for separately from
-the rung the slider shows, so a change and its reverse (12 → 1 → 12 columns, Pixel snap on
+current setting is matched by count, so a setting of 89 columns stays near 89 after a margin
+change. The panel keeps the count the user asked for separately from the one the dropdown
+shows, so a change and its reverse (12 → 1 → 12 columns, Pixel snap on
 and off) return to the same grid.
 
 Pixel snap is off by default because rounding can substantially change the margins. The
@@ -113,9 +113,8 @@ edge lands on a cell line. Independent pixel values would require margin steps o
 (144px at the defaults) to keep the grids aligned, making small edits ineffective. **Solve
 mode** accepts pixel targets and finds matching cell multiples.
 
-`c` (columnCount) is chosen from 1, 2, 3, 4, 6, 9, 12: the divisors of 12 plus 9. The slider
-steps through that list; input snaps to the nearest entry (exact ties keep the lower one, so
-5 → 4). At `c = 1` there are no gutters and `N = 2m + k`.
+`c` (columnCount) is chosen from 1, 2, 3, 4, 6, 9, 12: the divisors of 12 plus 9. At
+`c = 1` there are no gutters and `N = 2m + k`.
 
 ## Cell density (0.25× – 3×)
 
@@ -141,12 +140,12 @@ solver finds the closest whole-cell multiples, preserving grid alignment.
 | ------------ | --------------------------------------------------------------- |
 | Margin       | target margin in px (default 50)                                |
 | Gutter       | target gutter in px (default 20)                                |
-| Cell columns | target `N`, the same quantity Manual's slider sets (default 89) |
+| Cell columns | target `N`, the same quantity Manual's dropdown sets (default 89) |
 
 All three inputs are weighted targets, not hard constraints. Every combination produces a
-grid. Each field shows the achieved value in parentheses beside the target, such as
-`50 (70) px`, `20 (20) px`, or `197 (196) cols`, and turns red when the result misses. The
-editable value remains the target.
+grid. The achieved values appear under **Result**: a cell count more than 2% off the target,
+a margin more than a cell off, or a gutter more than half a cell off is shown in red. The
+fields keep the targets.
 
 ### Solver weights
 
@@ -232,32 +231,28 @@ If the achieved cell aspect deviates from the target by more than 1%, the panel 
 
 ## Panel
 
-The **Grid** group contains mode, columns, margin, gutter, cell size, Snap rows, Pixel snap
-and derived values. Pixel snap reveals Snap tol. and Aspect tol. The **Advanced** section is
-collapsed by default and contains Asym. margin, Edge cull, Cull tol., cell aspect, reference
-subdivision, layer toggles and the `m/k/g` equation row. Its header is a `<button>` with
-`aria-expanded` for keyboard access. Toggling it updates the reported panel height.
+The panel is built from [FigUI3](https://github.com/rogie/figui3) components. The **Grid**
+group contains mode (a Manual / Solve segmented control), columns, margin, gutter, cell
+columns, Snap rows and Pixel snap, with a **Result** sub-section of derived values. Pixel snap
+reveals Snap tol. and Aspect tol. **Advanced** and **Type** are collapsed by default.
+Advanced holds Asym. margin and the **Cells** and **Lines** sub-sections; Type holds the
+specimen settings. Toggling a group updates the reported panel height.
 
 ### Reapply is debounced
 
-Reapplying updates generated layers and creates a Figma undo step. `FigSlider` emits on the
-native `input` event, so writing on every event would create an undo step for each position
-during a drag.
+Reapplying updates generated layers and creates a Figma undo step, so writing on every
+movement of a slider would create one per position during a drag.
 
-Every interaction posts an immediate preview update (`reapply: false`) that only recomputes
-values. Document writes are debounced by 150ms and flushed when the interaction ends. A
-capture-phase `change` listener detects pointer release or a field committed on blur/Enter.
-Capture is required because `FigDropdown` stops the native change event's propagation in
-`emit()`, preventing a bubbling listener from receiving it.
-
-The listener defers the flush to a macrotask. Capture runs before the `<fig-*>` handler,
-which schedules a new debounce; flushing inline would write immediately and again 150ms
-later. Deferring allows the handler to run first and produces one write per commit. This
-behavior is tested.
+FigUI3 controls emit `input` while being used and `change` when the interaction is
+committed: a slider released, a field confirmed, an option picked. Every `input` posts a
+preview update (`reapply: false`) that only recomputes values, and schedules a document
+write 150ms later, so typing writes once it pauses. A `change` writes immediately and
+cancels the pending write, so each committed interaction writes once. This behaviour is
+tested.
 
 The panel is 280px wide. Its height is measured with a `ResizeObserver` on `#plugin-root`
-and reported back to the plugin, which clamps it to 120–900px. Controls are `<fig-*>` custom
-elements styled with Figma's `--figma-color-*` theme tokens.
+and reported back to the plugin, which clamps it to 120–900px. FigUI3 reads Figma's
+`--figma-color-*` theme variables, so the panel follows the Figma theme.
 
 ## Actions
 
@@ -364,62 +359,62 @@ layers before IDs have been stored. The test suite does not currently reproduce 
 ## Type specimens
 
 Each specimen's line height is a proportion of the frame height, rounded to a whole multiple
-of cell height so baselines align to cell lines. Font size is a share of the requested line
-height, before rounding. By default leading decreases from 1.6× for the mono caption and
-1.22× for small sans to 1.0× at display sizes. Because font size uses the requested height, fractional percentages such as `2.5`
-change the type even when they round to the same number of cells. Font size is capped at the
-snapped line height, so leading never drops below 1.0×.
+of cell height so baselines align to cell lines. The font size fills the requested line
+height, before rounding, at the design system's leading for that size (below). Because font
+size uses the requested height, fractional percentages such as `2.5` change the type even
+when they round to the same number of cells. Font size is capped at the snapped line height,
+so leading never drops below 1.0×: display sizes, where the design system asks for less,
+fill their line box.
 
 The **Type** group sets each family as a scale. **Sizes** gives the smallest and largest
 line height as a percentage of frame height, and **Steps** how many specimens run between
 them (defaults: mono `2` in one step, sans `6`–`24` in three). The steps go up by a constant
 ratio, so 6–24 in three steps is 6, 12, 24 and in five is 6, 8.5, 12, 17, 24. The ends stay as
-typed and the steps between round to 0.1%. With one step, the second size and leading are
-hidden. A stored size list that isn't an equal-ratio scale is kept as it is until a scale
-control is edited.
+typed and the steps between round to 0.1%. With one step, the second size is hidden. A
+stored size list that isn't an equal-ratio scale is kept as it is until a scale control is
+edited.
 
-**Leading** is set at the two ends, with the sizes between interpolated evenly in log(size),
-so each step moves by the same amount. An empty end uses the built-in value, shown as its
-placeholder. The built-in leading runs from 1.6 at 2% to 1.25 at 12% for mono, and from 1.22
-at 6% to 1.0 at 24% for sans. It is read at the scale's own ends and clamped beyond these
-points. Out-of-range entries are outlined in red and ignored (sizes 0.5–100%, leading 0.5–5).
+Leading and tracking have no settings. Both follow the design system's type scale
+(`styles/main.css`) at the size the type is seen:
 
-Tracking has no setting: mono is a flat 4%, and sans follows the optical curve below.
+- **Tracking**, sans: the design system's optical curve,
+  `letter-spacing (em) = 0.981 / size − 0.0401`. Small text opens up, display tightens.
+- **Leading**, sans: a fit to the design system's sans utilities,
+  `line height ÷ size = 1.9091 − 0.2118 · ln(size)`, clamped to their range, 0.9–1.375. It
+  is within 0.065 of every utility up to 52px; the 65px hero is set tighter (0.9) than the
+  fit (1.03). A fit in log(size) keeps tightening for display type, where `a / size + b`,
+  the tracking curve's shape, would level off near 1.05.
+- **Mono**: a flat 4% tracking and 140% leading, as the design system's mono utilities are.
+
+Leading depends on the font size, and the font size on the leading, so the plugin solves
+`fontSize × leading(fontSize × k) = line box`, which has one answer.
 
 Below the controls, a read-only table lists each step as it is actually set: size, font
 size, line height in cells, the resulting leading and the tracking. The leading is measured
-after the line height snaps to cells, so it can differ from the curve. A step that snaps to
+after the line height snaps to cells, so it can differ from the fit. A step that snaps to
 the same number of cells as the one before is flagged in red, since the two will look nearly
 the same size.
 
 ### Display scale
 
-The optical curve was tuned on a laptop screen, so it describes type by how large it looks
-there. **Seen on**, under **Optical tracking**, sets how large the frame is seen. The curve
-is then evaluated at the size the type appears at, `fontSize × k`, rather than its pixel
-size. Font sizes and line heights are unchanged; only sans tracking moves. Mono tracking
-ignores it.
+Both curves were tuned on a laptop screen, so they describe type by how large it looks
+there. **Seen on**, under **Viewing**, sets how large the frame is seen. The curves
+are then evaluated at the size the type appears at, `fontSize × k`, rather than its pixel
+size. Line heights are unchanged; leading and tracking move, and with leading, the font
+size within its line box. Mono ignores it.
 
 `k` is the width the frame appears as, in laptop px, divided by the frame width:
 
 | Seen on | Appears as                            | 1080px frame |
 | ------- | ------------------------------------- | ------------ |
 | Screen  | the frame width                       | ×1           |
-| Social  | 400px                                 | ×0.37        |
 | Custom  | **Shown width**                       | —            |
 | Print   | 2750 × **Print width** ÷ **Distance** | —            |
 
-Screen means the frame is seen at its own pixel size, as a web page is. A social post is
-not: a 1080px post is shown about 400px wide in a phone feed and about 550px wide in a
-desktop feed. The type has to work at the smallest of these, so **Social** uses the phone
-width; at 550px the small sizes are slightly looser than they need to be. Phones are held
-closer than laptops, and their CSS px are already sized for it, so no distance is needed.
-Print converts by visual angle: a laptop CSS px is about 1/125 in seen from about 22 in, or
-1/2750 of a radian. An A1 poster (594mm) read from 3m appears 544px wide; A4 (210mm) at 40cm
-appears 1444px wide. **Reads as** shows the sans sizes as the curve sees them, and `k`.
-
-So a 120px headline on a 1080 post in a phone feed is tracked as a 44px headline (−0.018em
-rather than −0.032em), and small text on it opens up to match.
+Screen means the frame is seen at its own pixel size, as a web page is. Print converts by
+visual angle: a laptop CSS px is about 1/125 in seen from about 22 in, or 1/2750 of a
+radian. An A1 poster (594mm) read from 3m appears 544px wide; A4 (210mm) at 40cm appears
+1444px wide. **Reads as** shows the sans sizes as the curve sees them, and `k`.
 
 **Whole px** rounds each font size to the nearest whole pixel (minimum 1px), rounding down
 where rounding up would pass the line height. Line heights are unaffected.

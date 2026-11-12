@@ -68,14 +68,14 @@ function flowOffsetY(f, child) {
 }
 const posX = (n) => (n.parent && inFlow(n.parent, n) ? n.parent.paddingLeft || 0 : n.x || 0)
 const posY = (n) => (n.parent && inFlow(n.parent, n) ? flowOffsetY(n.parent, n) : n.y || 0)
-function absX(n) {
+function absX(node) {
   let x = 0
-  for (; n && n !== page; n = n.parent) x += posX(n)
+  for (let n = node; n && n !== page; n = n.parent) x += posX(n)
   return x
 }
-function absY(n) {
+function absY(node) {
   let y = 0
-  for (; n && n !== page; n = n.parent) y += posY(n)
+  for (let n = node; n && n !== page; n = n.parent) y += posY(n)
   return y
 }
 function hugHeight(f) {
@@ -458,10 +458,6 @@ const P = {
   cellDensity: 1,
   showLines: true,
   showSpecimens: true,
-  monoLeadingMin: '',
-  monoLeadingMax: '',
-  sansLeadingMin: '',
-  sansLeadingMax: '',
   displayMode: 'Screen',
   shownWidthPx: 400,
   printWidthMm: 210,
@@ -519,7 +515,8 @@ const specimens = (container) => {
   return out
 }
 // The gridded frame a node is in: its ancestor on the page.
-const frameOf = (n) => {
+const frameOf = (node) => {
+  let n = node
   while (n.parent && n.parent !== page) n = n.parent
   return n
 }
@@ -1502,7 +1499,7 @@ console.log('\n=== TYPE SPECIMENS ===')
   )
   check(
     'mono font size is a proportion of the requested line height',
-    Math.abs(mono.fontSize - Math.min((1080 * 0.02) / 1.6, mono.lineHeight.value)) < 1e-9 &&
+    Math.abs(mono.fontSize - Math.min((1080 * 0.02) / 1.4, mono.lineHeight.value)) < 1e-9 &&
       mono.fontSize <= mono.lineHeight.value,
     mono.fontSize.toFixed(2),
   )
@@ -1665,7 +1662,7 @@ console.log('--- fractional sizes change the type within one cell count ---')
   )
 }
 
-console.log('--- leading and tracking curves ---')
+console.log('--- leading and tracking follow the design system at the size seen ---')
 {
   const specimensWith = async (over) => {
     const { fr } = await apply(1920, 1080, {
@@ -1678,114 +1675,89 @@ console.log('--- leading and tracking curves ---')
     return out
   }
   const optical = (size) => (0.981 / size - 0.0401) * 100
+  // The design system's sans leading, fitted in log(size) and clamped to its
+  // range. Checked against its utilities first, so the fit is held to the
+  // source rather than just to itself.
+  const fitted = (px) => Math.max(0.9, Math.min(1.375, 1.9091 - 0.2118 * Math.log(px)))
+  const DS_SANS = [
+    [11, 1.35],
+    [12, 1.333],
+    [14, 1.286],
+    [16, 1.375],
+    [18, 1.333],
+    [20, 1.3],
+    [22, 1.3],
+    [25, 1.28],
+    [28, 1.2],
+    [36, 1.167],
+    [50, 1.1],
+    [52, 1.115],
+  ]
+  check(
+    'the fit is within 0.065 of every design-system sans utility below the hero',
+    DS_SANS.every(([px, lh]) => Math.abs(fitted(px) - lh) <= 0.065),
+    DS_SANS.map(([px, lh]) => px + ':' + (fitted(px) - lh).toFixed(3)).join(' '),
+  )
   const near = (a, b) => Math.abs(a - b) < 1e-9
+  const close = (a, b) => Math.abs(a - b) < 1e-6
+  const sans = ['Sans 6%', 'Sans 12%', 'Sans 24%']
 
   const base = await specimensWith({})
   check(
-    'default: mono tracking is 4%, sans follows the optical curve',
+    'mono tracking is 4%, sans follows the optical curve',
     base['Mono 2%'].letterSpacing.value === 4 &&
-      ['Sans 6%', 'Sans 12%', 'Sans 24%'].every((k) =>
-        near(base[k].letterSpacing.value, optical(base[k].fontSize)),
-      ),
+      sans.every((k) => near(base[k].letterSpacing.value, optical(base[k].fontSize))),
   )
-
-  // The built-in leading at the ends, evenly between in log(size): 6..24%
-  // runs 1.22 → 1.0, so 12%, the ratio midpoint, sits halfway at 1.11.
+  // Shown 400px wide, a 1920px frame's sans sizes read as 13, 27 and 54px, all
+  // within the design system's own scale.
+  const k = 400 / 1920
+  const shown = await specimensWith({ displayMode: 'Custom', shownWidthPx: 400 })
   check(
-    'default leading runs from the built-in ends, halfway at the ratio midpoint',
-    near(base['Sans 6%'].fontSize, (1080 * 0.06) / 1.22) &&
-      near(base['Sans 12%'].fontSize, (1080 * 0.12) / 1.11) &&
-      near(base['Sans 24%'].fontSize, (1080 * 0.24) / 1),
-    ['Sans 6%', 'Sans 12%', 'Sans 24%'].map((k) => base[k].fontSize.toFixed(2)).join(','),
+    'sans fills its line box at the leading for the size it is seen',
+    sans.every((name) => {
+      const n = shown[name]
+      const box = (1080 * Number(name.match(/[\d.]+/)[0])) / 100
+      return (
+        close(n.fontSize * fitted(n.fontSize * k), box) && n.fontSize < n.lineHeight.value
+      )
+    }),
+    sans.map((name) => (shown[name].fontSize * k).toFixed(1) + 'px').join(', '),
   )
-
-  // Leading 2 at both ends: font size = requested line height / 2.
-  const flat = await specimensWith({
+  check(
+    '...so smaller-seen type gets looser leading and a smaller size',
+    sans.every((name) => shown[name].fontSize < base[name].fontSize),
+  )
+  check(
+    "mono is set at the design system's 140%",
+    near(
+      base['Mono 2%'].fontSize,
+      Math.min((1080 * 0.02) / 1.4, base['Mono 2%'].lineHeight.value),
+    ),
+    base['Mono 2%'].fontSize.toFixed(2),
+  )
+  // On the frame's own screen the sans sizes are 60–270px, where the fit is at
+  // or near its 0.9 floor. Leading under 1 would overlap the specimen above,
+  // so the type fills its line box instead.
+  check(
+    'display type never goes below leading 1.0',
+    sans.every((name) => base[name].fontSize <= base[name].lineHeight.value + 1e-9) &&
+      near(base['Sans 24%'].fontSize, base['Sans 24%'].lineHeight.value),
+  )
+  // Seen tiny, leading tops out at the design system's loosest, 137.5%.
+  const tiny = await specimensWith({ displayMode: 'Custom', shownWidthPx: 20 })
+  check(
+    "leading stays within the design system's range",
+    close(tiny['Sans 6%'].fontSize, (1080 * 0.06) / 1.375),
+    tiny['Sans 6%'].fontSize.toFixed(3),
+  )
+  const stale = await specimensWith({
     sansLeadingMin: '2',
     sansLeadingMax: '2',
-    monoLeadingMin: '2',
+    sansScaleCurve: '0.42, 0, 1, 1',
   })
   check(
-    'equal ends give the same leading at every size',
-    near(flat['Sans 6%'].fontSize, (1080 * 0.06) / 2) &&
-      near(flat['Sans 12%'].fontSize, (1080 * 0.12) / 2) &&
-      near(flat['Sans 24%'].fontSize, (1080 * 0.24) / 2) &&
-      near(flat['Mono 2%'].fontSize, (1080 * 0.02) / 2),
-    ['Sans 6%', 'Sans 24%', 'Mono 2%'].map((k) => flat[k].fontSize.toFixed(2)).join(','),
-  )
-  check(
-    'leading changes font size, not line height',
-    ['Sans 6%', 'Sans 12%', 'Sans 24%', 'Mono 2%'].every(
-      (k) => flat[k].lineHeight.value === base[k].lineHeight.value,
-    ),
-  )
-
-  // Setting one end leaves the other at its built-in value.
-  const lo = await specimensWith({ sansLeadingMin: '1.6' })
-  check(
-    'one end set: the other keeps its built-in value, and the middle moves between',
-    near(lo['Sans 6%'].fontSize, (1080 * 0.06) / 1.6) &&
-      near(lo['Sans 24%'].fontSize, base['Sans 24%'].fontSize) &&
-      near(lo['Sans 12%'].fontSize, (1080 * 0.12) / 1.3),
-    ['Sans 6%', 'Sans 12%', 'Sans 24%'].map((k) => lo[k].fontSize.toFixed(2)).join(','),
-  )
-
-  // The ends follow the family's range, wherever it is.
-  const moved = await specimensWith({
-    sansSizes: '10, 20',
-    sansLeadingMin: '1.4',
-    sansLeadingMax: '1.2',
-  })
-  check(
-    'the ends apply at the smallest and largest requested sizes',
-    near(moved['Sans 10%'].fontSize, (1080 * 0.1) / 1.4) &&
-      near(moved['Sans 20%'].fontSize, (1080 * 0.2) / 1.2),
-  )
-  const wide = await specimensWith({ sansSizes: '3, 12' })
-  check(
-    'with no ends set, the built-in curve is read at the range ends, clamped beyond it',
-    near(
-      wide['Sans 3%'].fontSize,
-      Math.min((1080 * 0.03) / 1.22, wide['Sans 3%'].lineHeight.value),
-    ) && near(wide['Sans 12%'].fontSize, (1080 * 0.12) / 1.11),
-    ['Sans 3%', 'Sans 12%'].map((k) => wide[k] && wide[k].fontSize.toFixed(2)).join(','),
-  )
-  const single = await specimensWith({
-    sansSizes: '12',
-    sansLeadingMin: '1.3',
-    sansLeadingMax: '3',
-  })
-  check(
-    'a single size takes the smallest-size leading',
-    near(single['Sans 12%'].fontSize, (1080 * 0.12) / 1.3),
-  )
-
-  check(
-    'tracking is automatic: mono a flat 4%, sans the optical curve',
-    lo['Mono 2%'].letterSpacing.value === 4 &&
-      ['Sans 6%', 'Sans 12%', 'Sans 24%'].every((k) =>
-        near(lo[k].letterSpacing.value, optical(lo[k].fontSize)),
-      ),
-  )
-
-  const junk = await specimensWith({
-    sansLeadingMin: 'abc',
-    sansLeadingMax: '9',
-    monoLeadingMin: '0',
-  })
-  check(
-    'unusable leading falls back to the built-in values',
-    ['Sans 6%', 'Sans 12%', 'Sans 24%', 'Mono 2%'].every((k) =>
-      near(junk[k].fontSize, base[k].fontSize),
-    ),
-  )
-
-  const capped = await specimensWith({ sansLeadingMin: '0.5', sansLeadingMax: '0.5' })
-  check(
-    'leading below 1 is capped: font size never exceeds the line height',
-    ['Sans 6%', 'Sans 12%', 'Sans 24%'].every(
-      (k) => capped[k].fontSize <= capped[k].lineHeight.value + 1e-9,
-    ),
+    'leading settings a frame stored earlier are ignored',
+    sans.every((name) => near(stale[name].fontSize, base[name].fontSize)),
   )
 }
 
@@ -1795,7 +1767,7 @@ console.log(
 {
   const optical = (size) => (0.981 / size - 0.0401) * 100
   const near = (a, b) => Math.abs(a - b) < 1e-9
-  // A 1080 square, the size of a feed post.
+  // A 1080 square.
   const post = async (over) => {
     const { fr, pv } = await apply(1080, 1080, { sansSizes: '6, 12, 24', ...over })
     const out = {}
@@ -1812,9 +1784,9 @@ console.log(
   check('Screen evaluates the curve at the font size', follows(screen.out, 1))
   check('Screen reports a scale of 1', screen.pv.displayScale === 1, screen.pv.displayScale)
 
-  const phone = await post({ displayMode: 'Social' })
+  const phone = await post({ displayMode: 'Custom', shownWidthPx: 400 })
   check(
-    'Social scales by 400 / frame width',
+    'Custom at 400px scales by 400 / frame width',
     follows(phone.out, 400 / 1080) && near(phone.pv.displayScale, 400 / 1080),
     phone.pv.displayScale,
   )
@@ -1825,11 +1797,9 @@ console.log(
     ),
   )
   check(
-    'the display scale leaves font sizes and line heights alone',
+    'the display scale leaves line heights alone',
     sans.every(
-      (name) =>
-        phone.out[name].fontSize === screen.out[name].fontSize &&
-        phone.out[name].lineHeight.value === screen.out[name].lineHeight.value,
+      (name) => phone.out[name].lineHeight.value === screen.out[name].lineHeight.value,
     ),
   )
 
@@ -1862,6 +1832,10 @@ console.log(
 
   const unknown = await post({ displayMode: 'Billboard' })
   check('an unknown display mode is treated as Screen', follows(unknown.out, 1))
+  check(
+    'Custom defaults to 400px',
+    follows((await post({ displayMode: 'Custom' })).out, 400 / 1080),
+  )
 
   check(
     'the preview reports each specimen as set',
@@ -1873,8 +1847,7 @@ console.log(
           near(x.size, n.fontSize) &&
           near(x.leading, n.lineHeight.value / n.fontSize) &&
           near(x.tracking, n.letterSpacing.value) &&
-          typeof x.cells === 'number' &&
-          typeof x.autoLeading === 'number'
+          typeof x.cells === 'number'
         )
       }),
     JSON.stringify(screen.pv.specimens),
@@ -1938,16 +1911,18 @@ console.log('--- Snap font rounds font sizes, not line heights ---')
   )
   check('same specimen layers reused', after.length === before.length)
 
-  // 2.5% of 1080 is 27px, which snaps to a half-cell line (22.5px). At leading
-  // 1 the font is capped at 22.5px; rounding that up to 23 would pass the line
-  // height, so it rounds down instead.
+  // 2.5% of 1080 is 27px, which snaps to a half-cell line (22.5px). Seen ten
+  // times larger, its leading is the design system's tightest, 0.9, so the font
+  // is capped at 22.5px; rounding that up to 23 would pass the line height, so
+  // it rounds down instead.
   const { fr: capFr } = await apply(1920, 1080, {
-    monoSizes: '2.5',
-    monoLeadingMin: '1',
+    sansSizes: '2.5',
+    displayMode: 'Custom',
+    shownWidthPx: 19200,
     snapFontPx: true,
   })
   const capped = specimens(layer(capFr, 'Type Specimens')).find(
-    (n) => n.name === 'Mono 2.5%',
+    (n) => n.name === 'Sans 2.5%',
   )
   check(
     'on: rounds down rather than past the line height',
@@ -3597,7 +3572,6 @@ console.log('--- type scales with the frame, not the cell grid ---')
 console.log('--- fixes from the product description triage ---')
 {
   const near = (a, b) => Math.abs(a - b) < 1e-9
-  const optical = (size) => (0.981 / size - 0.0401) * 100
   const fresh = async (w, h, over = {}) => {
     const fr = makeFrame(w, h)
     page.appendChild(fr)
@@ -3861,7 +3835,7 @@ console.log('--- fixes from the product description triage ---')
 
   // Opening the plugin with a gridded frame selected loads its settings.
   {
-    const fr = await fresh(1080, 1080, { columnCount: 4, displayMode: 'Social' })
+    const fr = await fresh(1080, 1080, { columnCount: 4, displayMode: 'Print' })
     page.selection = [fr]
     figma.ui._all.length = 0
     // Relaunch the plugin, as Figma does, with the frame already selected.
@@ -3869,8 +3843,33 @@ console.log('--- fixes from the product description triage ---')
     const loaded = figma.ui._all.find((m) => m.type === 'params-change')
     check(
       'launching with a gridded frame selected loads its settings',
-      loaded && loaded.params.columnCount === 4 && loaded.params.displayMode === 'Social',
+      loaded && loaded.params.columnCount === 4 && loaded.params.displayMode === 'Print',
       loaded && loaded.params.columnCount,
+    )
+  }
+
+  // A display mode the panel doesn't offer, such as a saved "Social", loads as
+  // Screen, which is how the plugin draws it, so its type is unchanged.
+  {
+    const fr = await fresh(1080, 1080)
+    const asScreen = specimensOf(fr).map((n) => n.letterSpacing.value)
+    const data = JSON.parse(fr.getPluginData('dualGrid'))
+    data.params.displayMode = 'Social'
+    fr.setPluginData('dualGrid', JSON.stringify(data))
+    page.selection = []
+    onSel()
+    page.selection = [fr]
+    onSel()
+    const loaded = figma.ui._all.filter((m) => m.type === 'params-change').pop()
+    check(
+      'an unknown saved display mode loads as Screen',
+      loaded.params.displayMode === 'Screen',
+      loaded.params.displayMode,
+    )
+    await reapply({ ...loaded.params })
+    check(
+      '...so reapplying leaves its type as it was',
+      specimensOf(fr).every((n, i) => Math.abs(n.letterSpacing.value - asScreen[i]) < 1e-9),
     )
   }
 }
