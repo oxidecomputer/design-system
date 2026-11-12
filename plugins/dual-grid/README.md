@@ -6,7 +6,7 @@ Figma plugin that overlays two aligned grids on a frame:
 - a cell grid where every cell is one base unit wide
 
 The column grid's gutter spans a whole number of cells, one by default. Each cell is `u`
-pixels wide. A monospaced layer of `x` characters shows the cell grid, the panel displays
+pixels wide. A monospaced layer of `.` characters shows the cell grid, the panel displays
 computed values, and type specimens align to the grid.
 
 ## The grid equation
@@ -27,27 +27,28 @@ gutterWidth = g × u
 | `c`    | Columns      | number of columns      | 12      |
 | `m`    | Margin cells | margin width in cells  | 3       |
 | `g`    | Gutter cells | cells per gutter       | 1       |
-| `N`    | Cell columns | cells across the frame | 197     |
+| `N`    | Cell columns | cells across the frame | 89      |
 | `k`    | _(derived)_  | cells per column       | —       |
 
 Margin and gutter are independent controls, both measured in whole cells.
 
 ### Asymmetric margin
 
-In Manual mode, **Asym. margin** (under **Advanced**) shows a **Right margin** slider
-beneath **Margin cells** in the Grid group, which becomes **Left margin**. The left and right margins (`m`, `mR`) are then set separately,
-for example 8 cells on the left and 4 on the right:
+In Manual mode, **Asym. margin** (under **Advanced**) shows a **Right** slider
+beneath **Margin cells** in the Grid group, which becomes **Left margin**. The left and
+right margins (`m`, `mR`) are then set separately, for example 8 cells on the left and 4 on
+the right:
 
 ```
 N = m + mR + c·k + (c−1)·g
 ```
 
 Both margins are still whole cells, so every edge stays on a cell line. The Pixel snap
-remainder is still split evenly between the two sides, so the cell grid remains centred.
-The column layout grid is anchored to the side with the wider effective margin, using
-`MIN` or `MAX` with that margin as its offset, because Figma rejects negative offsets.
-Type specimens align to the left margin. The panel shows both values, for example
-`m8/4 k6 g1`. Solve mode always uses symmetric margins.
+remainder is still split evenly between the two sides, so the cell grid remains centred. The
+column layout grid is anchored to the side with the wider effective margin, using `MIN` or
+`MAX` with that margin as its offset, because Figma rejects negative offsets. Type specimens
+align to the left margin. The panel shows both values, for example `m8/4 k6 g1`. Solve mode
+always uses symmetric margins.
 
 Column width is derived. With `m` and `g` fixed, the cells per column determine `N` and the
 cell size. The result is shown in the **Cells** row under **Advanced**
@@ -73,18 +74,20 @@ keep their exact fractions. Duplicate rounded sizes are merged. At the default t
 0.5px, all sizes snap, leaving 21 whole-pixel values. Lowering the tolerance preserves more
 fractional sizes.
 
-The full range extends down to `LADDER_MIN_CELL` (2px) and up to a 66px cell at `k = 1`.
+The full range extends down to `LADDER_MIN_CELL` (2px) and up to a 66px cell at `k = 1`. The
+ladder offers at most `LADDER_MAX_CELL_COLUMNS` (600) cells across, so with few columns a
+column can be much wider than the solver's 48 cells: one column still reaches 89.
 
-**Cell columns** steps through these sizes, expressed as `N`, the number of cells across the
-frame. Every stop produces a valid grid. Requested counts snap to the nearest available
+**Cell columns** lists these sizes, expressed as `N`, the number of cells across the
+frame. Every option produces a valid grid. Requested counts snap to the nearest available
 value; ties go to the coarser grid.
 
 The control uses whole-number counts rather than fractional pixel sizes. With `m`, `g` and
 `c` fixed, choosing `N` also fixes `k`, so the same setting preserves the grid's proportions
 across frame sizes.
 
-Both this slider and **Columns** step through fixed lists and display their values as text.
-**Margin cells**, **Gutter cells**, and **Aspect ratio** accept any in-range value and have
+This and **Columns** are dropdowns, since each offers a fixed list. **Margin cells**,
+**Gutter cells**, and **Aspect ratio** accept any in-range value and are sliders with
 editable number fields.
 
 Aspect deviation is reported rather than used to reject cell sizes. It stays within about 2%
@@ -92,8 +95,10 @@ across the ladder at typical settings. **Aspect tol.** serves a different purpos
 aspect deviation to obtain an integer row height (see Modes).
 
 The ladder is rebuilt whenever `c`, `m`, `g`, Pixel snap or the snap tolerance changes. The
-current setting is matched by count, not slider position, so a setting of 197 columns stays
-near 197 after a margin change.
+current setting is matched by count, so a setting of 89 columns stays near 89 after a margin
+change. The panel keeps the count the user asked for separately from the one the dropdown
+shows, so a change and its reverse (12 → 1 → 12 columns, Pixel snap on
+and off) return to the same grid.
 
 Pixel snap is off by default because rounding can substantially change the margins. The
 remainder, `W − N·u`, is split between them. Without snapping it is zero. At 1920px wide, a
@@ -108,9 +113,8 @@ edge lands on a cell line. Independent pixel values would require margin steps o
 (144px at the defaults) to keep the grids aligned, making small edits ineffective. **Solve
 mode** accepts pixel targets and finds matching cell multiples.
 
-`c` (columnCount) is chosen from 1, 2, 3, 4, 6, 9, 12: the divisors of 12 plus 9. The slider
-steps through that list; input snaps to the nearest entry (exact ties keep the lower one, so
-5 → 4). At `c = 1` there are no gutters and `N = 2m + k`.
+`c` (columnCount) is chosen from 1, 2, 3, 4, 6, 9, 12: the divisors of 12 plus 9. At
+`c = 1` there are no gutters and `N = 2m + k`.
 
 ## Cell density (0.25× – 3×)
 
@@ -132,16 +136,16 @@ derived.
 **Solve**: enter target margin and gutter widths in pixels and a cell column count. The
 solver finds the closest whole-cell multiples, preserving grid alignment.
 
-| Solve input  | Meaning                                                          |
-| ------------ | ---------------------------------------------------------------- |
-| Margin       | target margin in px (default 50)                                 |
-| Gutter       | target gutter in px (default 20)                                 |
-| Cell columns | target `N`, the same quantity Manual's slider sets (default 197) |
+| Solve input  | Meaning                                                         |
+| ------------ | --------------------------------------------------------------- |
+| Margin       | target margin in px (default 50)                                |
+| Gutter       | target gutter in px (default 20)                                |
+| Cell columns | target `N`, the same quantity Manual's dropdown sets (default 89) |
 
 All three inputs are weighted targets, not hard constraints. Every combination produces a
-grid. Each field shows the achieved value in parentheses beside the target, such as
-`50 (70) px`, `20 (20) px`, or `197 (196) cols`, and turns red when the result misses. The
-editable value remains the target.
+grid. The achieved values appear under **Result**: a cell count more than 2% off the target,
+a margin more than a cell off, or a gutter more than half a cell off is shown in red. The
+fields keep the targets.
 
 ### Solver weights
 
@@ -186,16 +190,20 @@ optional modes:
   within **Snap tol.**, measured in pixels per cell. For example, at 1920px wide with 12
   columns, 2 margin cells and 1 gutter cell, `u = 22.069px` snaps to 22px, producing 132px
   columns, 22px gutters and 47px effective margins. Values outside the tolerance remain
-  fractional. The default tolerance of 0.5 always snaps; 0 disables snapping. The remainder,
-  `W − N·u`, is split evenly between the margins, keeping both grids aligned using Figma's
-  `CENTER` alignment. Rounding up can make the grid wider than the frame, extending it
-  beyond both edges.
+  fractional. The default tolerance of 0.5 always snaps; 0 disables snapping, including the
+  row search below. The remainder, `W − N·u`, is split evenly between the margins, keeping
+  both grids aligned using Figma's `CENTER` alignment. Rounding up can make the grid wider
+  than the frame, extending it beyond both edges.
 
 **Aspect tol.** is shown while Pixel snap is on and is measured as a percentage of the
 target aspect ratio (default 5). With Snap rows on, it allows the row count to change within
-that tolerance to find a row height that snaps. At the defaults, this gives 24 rows of 45px
-instead of 25 rows of 43.2px, filling 1080px exactly. Among qualifying counts, the closest
-aspect ratio wins. A tolerance of 0 disables the search and keeps the original row count.
+that tolerance to find a whole-pixel row height that fills the frame. The count leaving the
+smallest gap or overhang wins, so a height that divides the frame exactly is always taken
+when one is in range; ties go to the closest aspect ratio, then to the natural count. At
+1920×1080 the natural 25 rows would round to 43px and leave 5px, so the search takes 24 rows
+of 45px, filling 1080px exactly. When no exact fit is in range, the closest one is kept and
+its small remainder is split top and bottom (at 1440×900 with 16px cells, 29 rows of 31px
+leave 1px). A tolerance of 0 disables the search and keeps the original row count.
 
 The layout grids, drawn lines and char grid share `u` and an origin, so characters remain
 aligned with the lines after snapping. They extend past the frame and clip where needed.
@@ -215,52 +223,54 @@ same amount, preserving the line positions. It also clamps small negative floati
 remainders from `H − rows·(H/rows)` when Snap rows is on.
 
 With **Snap rows** off, the exact cell aspect is preserved and the rows overhang the frame,
-split evenly between the top and bottom edges, where they clip. With it on, rows fit exactly with an approximate aspect ratio.
-Both modes fill the frame without changing column or margin calculations.
+split evenly between the top and bottom edges, where they clip. With it on, rows fit exactly
+with an approximate aspect ratio. Both modes fill the frame without changing column or
+margin calculations.
 
 If the achieved cell aspect deviates from the target by more than 1%, the panel flags it.
 
 ## Panel
 
-The **Grid** group contains mode, columns, margin, gutter, cell size, Snap rows, Pixel snap
-and derived values. Pixel snap reveals Snap tol. and Aspect tol. The **Advanced** section is
-collapsed by default and contains Asym. margin, Edge cull, Cull tol., cell aspect, reference subdivision,
-layer toggles and the `m/k/g` equation row. Its header is a `<button>` with `aria-expanded`
-for keyboard access. Toggling it updates the reported panel height.
+The panel is built from [FigUI3](https://github.com/rogie/figui3) components. The **Grid**
+group contains mode (a Manual / Solve segmented control), columns, margin, gutter, cell
+columns, Snap rows and Pixel snap, with a **Result** sub-section of derived values. Pixel snap
+reveals Snap tol. and Aspect tol. **Advanced** and **Type** are collapsed by default.
+Advanced holds Asym. margin and the **Cells** and **Lines** sub-sections; Type holds the
+specimen settings. Toggling a group updates the reported panel height.
 
 ### Reapply is debounced
 
-Reapplying updates generated layers and creates a Figma undo step. `FigSlider` emits on the
-native `input` event, so writing on every event would create an undo step for each position
-during a drag.
+Reapplying updates generated layers and creates a Figma undo step, so writing on every
+movement of a slider would create one per position during a drag.
 
-Every interaction posts an immediate preview update (`reapply: false`) that only recomputes
-values. Document writes are debounced by 150ms and flushed when the interaction ends. A
-capture-phase `change` listener detects pointer release or a field committed on blur/Enter.
-Capture is required because `FigDropdown` stops the native change event's propagation in
-`emit()`, preventing a bubbling listener from receiving it.
-
-The listener defers the flush to a macrotask. Capture runs before the `<fig-*>` handler,
-which schedules a new debounce; flushing inline would write immediately and again 150ms
-later. Deferring allows the handler to run first and produces one write per commit. This
-behavior is tested.
+FigUI3 controls emit `input` while being used and `change` when the interaction is
+committed: a slider released, a field confirmed, an option picked. Every `input` posts a
+preview update (`reapply: false`) that only recomputes values, and schedules a document
+write 150ms later, so typing writes once it pauses. A `change` writes immediately and
+cancels the pending write, so each committed interaction writes once. This behaviour is
+tested.
 
 The panel is 280px wide. Its height is measured with a `ResizeObserver` on `#plugin-root`
-and reported back to the plugin, which clamps it to 120–900px. Controls are `<fig-*>` custom
-elements styled with Figma's `--figma-color-*` theme tokens.
+and reported back to the plugin, which clamps it to 120–900px. FigUI3 reads Figma's
+`--figma-color-*` theme variables, so the panel follows the Figma theme.
 
 ## Actions
 
-Two footer buttons, each enabled by the current selection:
+One action button, whose label and action follow the selection, and **Copy config**:
 
-| Button           | Enabled when                  | Behavior                                                                               |
-| ---------------- | ----------------------------- | -------------------------------------------------------------------------------------- |
-| **Create frame** | nothing is selected           | Creates a frame at the viewport center from the "New frame" params, then applies grids |
-| **Apply grids**  | exactly one frame is selected | Applies 3 layout grids + char grid, lines and specimens                                |
-| **Remove grids** | that frame already has grids  | Clears the layout grids and deletes the generated layers                               |
+| Label            | Offered when                                         | Behavior                                                                               |
+| ---------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| **Create frame** | nothing, or anything but a single frame, is selected | Creates a frame at the viewport center from the "New frame" params, then applies grids |
+| **Apply grids**  | one ungridded frame is selected                      | Applies 3 layout grids + char grid, lines and specimens                                |
+| **Remove grids** | that frame already has grids                         | Removes the plugin's layout grids and generated layers                                 |
 
-The second button toggles its own label between _Apply grids_ and _Remove grids_, and its
-status label reads `Select a frame` when disabled or `Live editing` when bound.
+The status text above the button reads `Live editing` while a gridded frame is targeted and
+is hidden otherwise. It is a plain `span`: a `<label for>` would forward clicks on it to the
+button. The button is disabled from a click until the plugin replies, and ignores clicks for
+400ms after it changes action, so a double-click cannot run an action twice or run the next
+one. The plugin also ignores an action that arrives while another is running, and checks a
+frame really has grids before removing them. If a fallback face was used, the action's
+notice says so (`Grids applied · using Inter instead of Suisse Int'l`).
 
 The panel uses the nearest frame at or above the selection that has grid data. Selecting a
 layer inside a gridded frame keeps live editing active. Ancestors without grid data are
@@ -272,6 +282,12 @@ This also prevents **Apply grids** from treating the generated `Grid Lines` and
 
 While a gridded frame is selected, editing a **Grid** parameter reapplies it automatically.
 **New frame** parameters (width and aspect) only affect **Create frame**.
+
+A created frame is named in the manner of Heroku's placeholder app names, but Oxide's: a
+metalworking finish and a metal that forms an oxide, such as `anodized-cobalt`. The name
+also heads the frame's text-style folder, so it is drawn from the 225 names not already used
+by a frame on the page; only when all are taken does it get a number, as Figma numbers
+copies.
 
 ### Copy Mitos config
 
@@ -305,7 +321,7 @@ Generated layers are unlocked children of the target frame:
   path, rather than one node per line. The **Grid lines** switch sets the container's
   `visible` property without rebuilding it. Columns are represented only by a Figma layout
   grid.
-- **Char grid**: `x` characters filling every cell, with font size calculated so each
+- **Char grid**: `.` characters filling every cell, with font size calculated so each
   character measures `u` and auto width produces the correct box.
 - **Type specimens**: a `Type Specimens` frame with grid-aligned text down the left of the
   content area, toggled with the **Specimens** switch. See below.
@@ -319,46 +335,148 @@ regardless of the target frame's clip setting.
 
 ### Layer reuse
 
+Every layer the plugin creates carries a `dualGridRole` plugin-data mark, and the plugin
+only ever reuses or deletes marked layers. A user's layer that shares a generated name, or a
+layer the user adds inside `Grid Lines` or `Type Specimens`, is left alone.
+
 A stored layer ID is used only if it resolves to a node inside the target frame. Otherwise,
-the first child with the expected name and type is reused, and other children with that name
-are deleted. This handles duplicated frames, whose copied `pluginData` still points to the
-original layers, and older data without `linesId` or `specimensId`. `removeGrids` also
-checks frame ownership and removes matching layers by name.
+the first child marked with the expected role is reused, and other marked duplicates are
+deleted. Figma copies plugin data with a duplicated frame, so a copy finds its own layers by
+mark even though its stored IDs point to the original. Frames gridded by an older version
+have unmarked layers; on a gridded frame with no layer marked for a role, the first child
+with that role's name and type is adopted and marked. `removeGrids` checks frame ownership,
+removes the marked layers (or, on such an older frame, the named ones), and removes only the
+plugin's own layout grids, recognised by their overlay colours. Any layout grids the user
+made are kept by both Apply and Remove.
 
 Layers and their contents are updated in place:
 
 - The char grid's `characters` is rewritten only when the grid shape changes. This avoids an
   expensive assignment and preserves per-character styling during live edits.
-- Specimens are matched by layer name. Reapplying changes size, leading, tracking and
-  position, but preserves edited text. Specimens that no longer fit are removed.
+- Specimens are matched by position in their family's size list (a `dualGridSlot` mark), so
+  text typed into the third sans specimen stays with it whatever its size becomes, and its
+  layer is renamed to match. Reapplying changes size, leading, tracking and position, but
+  preserves edited text. Specimens that no longer fit or are no longer requested are
+  removed.
+- A new sans specimen's placeholder uses the Oxide words that name new frames, sized to
+  its block: a metal for display sizes ("Zinc"), a finish and a metal for middle sizes
+  ("Brushed copper"), and a short run for small ones ("Galvanized magnesium, anodized
+  iron and tempered tin"). Mono shows its font name and digits.
 
 Applies run through a single queue to prevent overlapping updates from creating duplicate
 layers before IDs have been stored. The test suite does not currently reproduce this race.
 
 ## Type specimens
 
-Each specimen's line height is a proportion of the frame height, rounded to a whole multiple
-of cell height so baselines align to cell lines. Font size is a share of the line box, with
-leading decreasing from about 1.35× at small sizes to 1.0× at display sizes. Custom sizes
-interpolate between reference points.
+Each specimen's line height is a proportion of the frame height, rounded to cell steps so
+baselines align to cell lines. The font size fills the rounded line height at the design
+system's leading for that size (below), so every specimen is set at exactly that leading,
+and sizes move in the rounding's steps: two sizes that round to the same line height give
+the same type. Display sizes are set tighter than 1.0, down to the design system's 0.9, as
+its hero is; each specimen is a single line, so there is no second line to collide with.
 
-Under **Advanced**, **Mono sizes** and **Sans sizes** accept comma-separated percentages of
-frame height, one specimen per entry (defaults `2` and `6, 12, 24`). Values are sorted
-ascending, duplicates removed, and invalid entries ignored. Empty or invalid lists fall back
-to the built-in scale.
+The **Type** group sets each family as a scale. **Sizes** gives the smallest and largest
+line height as a percentage of frame height, and **Steps** how many specimens run between
+them (defaults: mono `2` in one step, sans `6`–`24` in three). The steps go up by a constant
+ratio, so 6–24 in three steps is 6, 12, 24 and in five is 6, 8.5, 12, 17, 24. The ends stay as
+typed and the steps between round to 0.1%. With one step, the second size is hidden. A
+stored size list that isn't an equal-ratio scale is kept as it is until a scale control is
+edited.
+
+Leading and tracking have no settings. Both follow the design system's type scale
+(`styles/main.css`) at the size the type is seen:
+
+- **Tracking**, sans: the design system's optical curve,
+  `letter-spacing (em) = 0.981 / size − 0.0401`. Small text opens up, display tightens.
+- **Leading**, sans: a fit to the design system's sans utilities,
+  `line height ÷ size = 1.9091 − 0.2118 · ln(size)`, clamped to their range, 0.9–1.375. It
+  is within 0.065 of every utility up to 52px; the 65px hero is set tighter (0.9) than the
+  fit (1.03). A fit in log(size) keeps tightening for display type, where `a / size + b`,
+  the tracking curve's shape, would level off near 1.05.
+- **Mono**: a flat 4% tracking and 140% leading, as the design system's mono utilities are.
+
+Leading depends on the font size, and the font size on the leading, so the plugin solves
+`fontSize × leading(fontSize × k) = line box`, which has one answer.
+
+Below the controls, a read-only table lists each step as it is actually set: size, font
+size, line height in cells, the resulting leading and the tracking. The leading is measured
+after the line height snaps to cells, so it can differ from the fit. A step that snaps to
+the same number of cells as the one before is flagged in red, since the two will look nearly
+the same size.
+
+### Text styles
+
+**Text styles** (under Specimens, off by default) saves each specimen as a local text style
+and links the specimen to it. The style holds the font, size, line height, letter spacing,
+case and cap-height leading trim; fills aren't part of a text style, so the specimen keeps
+its colour. Styles are named `<frame name>/<family>/<size>`, such as
+`anodized-cobalt/sans/lg`, so each frame's styles sit in their own folder. Sizes are
+t-shirt labels for the step's place in its family, centred on `md` and running out as far
+as the steps need: one step is `md`, three are `sm md lg`, and eight run from `2xs` to `3xl`
+(an even count leans to the large side). Changing a size keeps its name; adding or removing
+a step re-centres the labels.
+
+Every reapply updates the styles in place, so text elsewhere in the file that uses them
+follows the frame. Renaming the frame renames its styles on the next reapply. A specimen
+that goes away, with fewer steps or no room, takes its style with it; text that used it
+keeps its values. Each style records the frame it belongs to, so a duplicated frame makes
+its own styles rather than rewriting the original's. Turning the switch off unlinks the
+specimens and leaves the styles, and **Remove grids** leaves them too.
+
+### Display scale
+
+Both curves were tuned on a laptop screen, so they describe type by how large it looks
+there. **Seen on**, under **Viewing**, sets how large the frame is seen. The curves
+are then evaluated at the size the type appears at, `fontSize × k`, rather than its pixel
+size. Line heights are unchanged; leading and tracking move, and with leading, the font
+size within its line box. Mono ignores it.
+
+`k` is the width the frame appears as, in laptop px, divided by the frame width:
+
+| Seen on | Appears as                            | 1080px frame |
+| ------- | ------------------------------------- | ------------ |
+| Screen  | the frame width                       | ×1           |
+| Custom  | **Width**                             | —            |
+| Print   | 2750 × **Print width** ÷ **Distance** | —            |
+
+Screen means the frame is seen at its own pixel size, as a web page is. Print converts by
+visual angle: a laptop CSS px is about 1/125 in seen from about 22 in, or 1/2750 of a
+radian. An A1 poster (594mm) read from 3m appears 544px wide; A4 (210mm) at 40cm appears
+1444px wide. **Reads as** shows the sans sizes as the curve sees them, and `k`.
+
+**Whole px** rounds each font size to the nearest whole pixel (minimum 1px). Line heights
+are unaffected.
+
+Line heights under four cells snap to thirds of a cell, the shortest a third, and from four
+cells up to whole cells: ⅓, ⅔, 1, 1⅓, 1⅔, 2 … 3⅔, 4, 5 and so on. Three lines of any third
+add up to whole cells, so text set in these styles comes back onto a cell line every three
+lines; from four cells up, a whole cell is a small enough share of the line to read as
+even. Each specimen still occupies whole cells in the stack, so its baseline lands on a cell
+line.
 
 Sizing relative to the frame keeps the type scale largely independent of cell size. Doubling
 frame height roughly doubles the type; changing cell size affects only the rounding, which
-stays within half a cell of the requested line height.
+stays within half a step of the requested line height.
 
-Mono specimens align to the top and sans specimens to the bottom. Both use whole-cell
-offsets from a cell line, preserving baseline alignment. The sans block starts at the last
-cell line with enough room for it.
+`Type Specimens` is a vertical auto layout frame the size of the target frame, holding a
+`Mono` stack and a `Sans` stack with space between them, so mono sits at the top and sans
+at the bottom. Each specimen is a text layer in its own block, an auto layout frame that
+hugs its height and fills the width between the grid's margins, as do the stacks and the
+text. The text is clamped to one line (Figma's line clamp: `maxLines` 1, truncated with an
+ellipsis), so text longer than the content width, or typed onto a second line, is cut off
+at the content edge rather than wrapping. It uses Figma's cap-height leading trim, so its
+box runs from cap top to baseline. Each block's top padding is its cells less the measured
+cap height, so every block is a whole number of cells tall and the specimen's baseline is
+the block's bottom edge. Because everything stacks in whole cells, every baseline lands on
+a cell line.
 
-The bottom offset includes the largest sans specimen's measured descender, rounded up to
-whole cells, plus a one-cell inset matching the mono block's top inset. This keeps
-descenders inside the frame with consistent clearance. If the stack is too tall to anchor at
-the bottom, it starts at the top and clips.
+The column's top padding is the row offset plus one cell. Its bottom padding puts the
+bottom of the sans stack on a cell line, above the largest sans specimen's measured
+descender (rounded up to whole cells) plus a one-cell inset matching the top. This keeps
+descenders inside the frame with consistent clearance. Layers you add to `Type Specimens`
+are set to absolute position, so they keep their place instead of joining the column.
+Specimens from the previous layout, placed directly in the container, are moved into
+blocks with their text kept.
 
 If the stack does not fit the available rows, the largest specimens are removed first.
 
@@ -387,33 +505,45 @@ each family, since regular styles have different names (GT America Mono uses `Re
 
 The defaults are GT America Mono / Regular OCC and Suisse Int'l Regular. Font measurements
 are cached per frame and font family. Changing a family triggers new measurements;
-reapplying with the same family creates no temporary probe nodes. If a face is unavailable,
-the plugin tries another style in the family, then a family matching `/mono/i`, then any
-available regular font. It measures the resolved font to keep character cells `u` wide.
+reapplying with the same family creates no temporary probe nodes. The cache is discarded if
+a cached face can no longer be loaded (the frame was last written on a machine with fonts
+this one lacks) or if a fallback was cached and the requested family is now installed. If a
+mono face is unavailable, the plugin tries another style in the family, then a family
+matching `/mono/i`, then any available regular font. For sans it tries the family's Regular,
+then another regular-weight style of the family (Book, Roman, Normal, Text), then any style
+of the family, then Suisse Int'l and Inter, then any regular. It measures the character the
+char grid draws in the resolved font, to keep character cells `u` wide.
 
 ## Colours
 
-Colours are defined as hex values at the top of `main.ts`:
+Colours are bound to design-system swatches from the team library, as `COLOR` variables.
+Each has a hex fallback, used when the library isn't enabled in the file or the swatch can't
+be found. Both are defined at the top of `main.ts`:
 
-| Constant      | Applies to                        | Value     |
-| ------------- | --------------------------------- | --------- |
-| `COLOR_BG`    | the frame fill, on _Create frame_ | `#000000` |
-| `COLOR_TEXT`  | the specimens                     | `#FFFFFF` |
-| `COLOR_CHAR`  | the char grid                     | `#666666` |
-| `COLOR_LINES` | the drawn cell-grid strokes       | `#333333` |
+| Applies to                        | Swatch             | Fallback  |
+| --------------------------------- | ------------------ | --------- |
+| the frame fill, on _Create frame_ | `base/neutral/100` | `#000000` |
+| the specimens                     | `base/green/1200`  | `#FFFFFF` |
+| the char grid                     | `base/neutral/500` | `#333333` |
+| the drawn cell-grid strokes       | `base/neutral/400` | `#666666` |
+
+The manifest requests the `teamlibrary` permission, which works for development and private
+plugins. The library must be enabled in the file (Assets → Libraries); Figma only lists
+variables from enabled libraries. A swatch matches either a variable with the full name or
+one named `neutral/400` in a `base` collection. The library is read once per plugin session,
+so enabling it while the plugin is open needs a relaunch.
 
 Figma's own layout-grid overlay colours (the purple column grid and the cyan cell grid) are
-separate, and set in `buildLayoutGrids`.
+separate, set in `buildLayoutGrids`, and stay literal: `VariableBindableLayoutGridField` is
+only `sectionSize | count | offset | gutterSize`, which excludes overlay colours.
 
-These colours are not bound to design-system `COLOR` variables because bindings have been
-unreliable. Relevant API limitations:
+Text fills are set with `setRangeFills` over the whole node. Figma stores them per
+character, and assigning the node-wide `fills` drops the variable binding on text.
 
-- Layout-grid colours cannot be bound. `VariableBindableLayoutGridField` is only
-  `sectionSize | count | offset | gutterSize`, which excludes overlay colours.
-- Text fills must be set by range. Figma stores them per character, and the API documents
-  `setRangeFills`, not the node-wide `fills` setter, as the route that "can be bound to
-  color variables by using `setBoundVariableForPaint`". Assigning only `fills` drops the
-  binding on text.
+Each bound paint's literal colour is the variable's value, resolved for the node it's
+applied to (`resolveForConsumer`), not the hex fallback. When a text range is re-set to a
+binding it already has, as on every live reapply, Figma keeps the binding but renders the
+paint's literal colour.
 
 ## State
 

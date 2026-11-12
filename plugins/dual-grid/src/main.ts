@@ -23,6 +23,7 @@ import {
 } from '../../../components/src/grid'
 
 type GridMode = 'Manual' | 'Solve'
+type DisplayMode = 'Screen' | 'Print' | 'Custom'
 
 interface Params {
   mode: GridMode
@@ -67,6 +68,20 @@ interface Params {
   // See parseSizesPct for validation and fallbacks.
   monoSizes: string
   sansSizes: string
+  // Round specimen font sizes to whole pixels. Line heights stay on cell steps,
+  // which may be fractional, so baselines remain on the grid.
+  snapFontPx: boolean
+  // Save each specimen as a local text style and keep it in step with the frame
+  // (see syncTextStyles).
+  textStyles: boolean
+  // Leading and tracking have no settings: both follow the design system's type
+  // scale at the size the type is seen (see opticalLeading, opticalTrackingPct).
+  // How large the frame appears to its reader; see displayScaleOf. Shown width
+  // is read only in Custom, print width and distance only in Print.
+  displayMode: DisplayMode
+  shownWidthPx: number
+  printWidthMm: number
+  viewingDistanceCm: number
   // All three are used only by the "create frame" action. When a frame is
   // selected the panel mirrors its real size into these fields instead, read
   // only, so they always describe the frame in front of you.
@@ -130,44 +145,95 @@ function opticalTrackingPct(fontSize: number): number {
   return (0.981 / fontSize - 0.0401) * 100
 }
 
-// Mono is set uppercase at a flat 4% per the design system's mono scale.
-const MONO_TRACKING_PCT = 4
+// Leading fitted to the design system's sans scale in styles/main.css, from
+// 135% at 11px to 110% at 50px and 90% at the 65px hero:
+//
+//   line height ÷ font size = 1.9091 − 0.2118 · ln(fontSize)
+//
+// a least-squares fit in log(size), within 0.065 of every utility below 65px.
+// The alternative, a / size + b like the tracking curve, levels off near 1.05
+// for display type; the scale keeps tightening, and so does this. Clamped to
+// the scale's own range, 90%–137.5%, since specimens are often seen far larger
+// than its largest size.
+const LEADING_MIN = 0.9
+const LEADING_MAX = 1.375
+function opticalLeading(fontSize: number): number {
+  const leading = 1.9091 - 0.2118 * Math.log(fontSize)
+  return Math.max(LEADING_MIN, Math.min(LEADING_MAX, leading))
+}
+
+// The design system's mono utilities sit near 140% at every size (11–14px), as
+// their tracking sits at a flat 4%.
+const MONO_LEADING = 1.4
+
+// Both optical curves were tuned on a laptop screen, so they describe type by
+// how large it looks there. A frame seen at a different size passes the curves
+// the laptop px its type appears as: fontSize × displayScaleOf(p, frameWidth).
+//
+// A laptop CSS px is about 1/125 in, seen from about 22 in, so it subtends
+// 1/2750 of a radian. Physical type converts through that angle.
+const LAPTOP_PX_PER_RADIAN = 2750
+// Custom's starting shown width, in laptop px: a phone-sized view.
+const DEFAULT_SHOWN_WIDTH_PX = 400
+
+function positiveOr(value: number | undefined, fallback: number): number {
+  return typeof value === 'number' && value > 0 ? value : fallback
+}
+
+// The width the frame appears as, in laptop px.
+function apparentWidthOf(p: Params, frameWidth: number): number {
+  switch (p.displayMode) {
+    case 'Custom':
+      return positiveOr(p.shownWidthPx, DEFAULT_PARAMS.shownWidthPx)
+    case 'Print': {
+      const widthMm = positiveOr(p.printWidthMm, DEFAULT_PARAMS.printWidthMm)
+      const distanceMm =
+        positiveOr(p.viewingDistanceCm, DEFAULT_PARAMS.viewingDistanceCm) * 10
+      return (LAPTOP_PX_PER_RADIAN * widthMm) / distanceMm
+    }
+    default:
+      return frameWidth
+  }
+}
+
+function displayScaleOf(p: Params, frameWidth: number): number {
+  return frameWidth > 0 ? apparentWidthOf(p, frameWidth) / frameWidth : 1
+}
 
 // Size specimens relative to frame height, then round line heights to whole
 // cells. This keeps the type scale largely independent of cell density.
 interface SpecimenSpec {
   name: string
   face: 'mono' | 'sans'
+  pct: number // requested size, % of the frame height
   heightRatio: number // share of the frame height, before snapping
-  scale: number // fontSize as a share of the snapped line height
   text: string
+  // Position in its family's size list, e.g. "sans:2". Specimens are matched by
+  // slot, so text typed into the third sans specimen stays with the third one
+  // whatever its size becomes.
+  slot: string
+  // Its size label within the family, such as "md" (see sizeLabel); names its
+  // text style.
+  label: string
 }
 
-// Font size as a share of the line box, increasing with specimen size to reduce
-// leading. Custom sizes interpolate between reference points and clamp at the ends.
-const SANS_SCALE_CURVE: Array<[number, number]> = [
-  [0.06, 0.82],
-  [0.12, 0.92],
-  [0.24, 1.0],
-]
-// Mono starts at a 2% caption with font size 0.62 of line height.
-// Larger mono sizes use tighter leading, closer to the sans scale.
-const MONO_SCALE_CURVE: Array<[number, number]> = [
-  [0.02, 0.62],
-  [0.12, 0.8],
-]
-
-function scaleAt(curve: Array<[number, number]>, ratio: number): number {
-  if (ratio <= curve[0][0]) return curve[0][1]
-  for (let i = 1; i < curve.length; i++) {
-    if (ratio <= curve[i][0]) {
-      const [x0, y0] = curve[i - 1]
-      const [x1, y1] = curve[i]
-      return y0 + ((ratio - x0) / (x1 - x0)) * (y1 - y0)
-    }
-  }
-  return curve[curve.length - 1][1]
+// T-shirt size labels for a family's steps, smallest first, centred on "md" and
+// running out both ways as far as the steps need: … 3xs, 2xs, xs, sm, md, lg,
+// xl, 2xl, 3xl … One step is "md", three are "sm md lg", eight "2xs" to "3xl".
+// The label follows the step's place in the scale, not its size, so changing
+// a size keeps its name; adding or removing a step re-centres them.
+function sizeLabel(index: number, count: number): string {
+  const offset = index - Math.floor((count - 1) / 2)
+  if (offset === 0) return 'md'
+  if (offset === -1) return 'sm'
+  if (offset === 1) return 'lg'
+  const reach = Math.abs(offset) - 1 // 1 → xs / xl, 2 → 2xs / 2xl, …
+  return (reach > 1 ? reach : '') + (offset < 0 ? 'xs' : 'xl')
 }
+
+// Mono is set uppercase at a flat 4%, per the design system's mono scale. Sans
+// follows the optical curve (see opticalTrackingPct).
+const MONO_TRACKING_PCT = 4
 
 // Ignore invalid entries and use the fallback if none remain. Sort ascending
 // for placement, and deduplicate to avoid reusing one layer for multiple entries.
@@ -185,35 +251,145 @@ function parseSizesPct(raw: string | undefined, fallback: string): number[] {
     .slice(0, MAX_SPECIMENS)
 }
 
-// Placeholder text sized to the block it fills — display sizes get a word,
-// small sizes a sentence. Only written on creation, so anything typed over it
-// survives reapplies.
+// Oxide's words for placeholders: metalworking finishes and metals that form
+// an oxide. They name new frames (see newFrameName) and fill the sans
+// specimens.
+const OXIDE_FINISHES = [
+  'anodized',
+  'annealed',
+  'brushed',
+  'burnished',
+  'cast',
+  'etched',
+  'forged',
+  'galvanized',
+  'machined',
+  'milled',
+  'oxidized',
+  'polished',
+  'sintered',
+  'tempered',
+  'quenched',
+]
+const OXIDE_METALS = [
+  'aluminium',
+  'chromium',
+  'cobalt',
+  'copper',
+  'hafnium',
+  'iron',
+  'magnesium',
+  'manganese',
+  'nickel',
+  'niobium',
+  'tantalum',
+  'tin',
+  'titanium',
+  'zinc',
+  'zirconium',
+]
+
+const pickWord = (list: string[]) => list[Math.floor(Math.random() * list.length)]
+const capitalized = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
+
+// Placeholder text sized to the block it fills: display sizes get a metal,
+// middle sizes a finish and a metal, small sizes a short run of them, such as
+// "Tempered cobalt, milled tin and etched nickel". Only written on creation, so
+// anything typed over it survives reapplies.
 function sansSpecimenText(pct: number): string {
-  if (pct >= 16) return 'Display'
-  if (pct >= 8) return `${pct} percent`
-  return `${pct} percent of the height`
+  const pair = () => `${pickWord(OXIDE_FINISHES)} ${pickWord(OXIDE_METALS)}`
+  if (pct >= 16) return capitalized(pickWord(OXIDE_METALS))
+  if (pct >= 8) return capitalized(pair())
+  return capitalized(`${pair()}, ${pair()} and ${pair()}`)
 }
 
 function specimensOf(p: Params): SpecimenSpec[] {
-  const mono = parseSizesPct(p.monoSizes, DEFAULT_PARAMS.monoSizes).map(
-    (pct): SpecimenSpec => ({
-      name: `Mono ${pct}%`,
-      face: 'mono',
+  const family = (face: 'mono' | 'sans', sizes: number[]): SpecimenSpec[] =>
+    sizes.map((pct, i) => ({
+      slot: `${face}:${i}`,
+      label: sizeLabel(i, sizes.length),
+      name: `${face === 'mono' ? 'Mono' : 'Sans'} ${pct}%`,
+      face,
+      pct,
       heightRatio: pct / 100,
-      scale: scaleAt(MONO_SCALE_CURVE, pct / 100),
-      text: 'GT America Mono · 0123456789',
-    }),
+      text: face === 'mono' ? 'GT America Mono · 0123456789' : sansSpecimenText(pct),
+    }))
+  return family('mono', parseSizesPct(p.monoSizes, DEFAULT_PARAMS.monoSizes)).concat(
+    family('sans', parseSizesPct(p.sansSizes, DEFAULT_PARAMS.sansSizes)),
   )
-  const sans = parseSizesPct(p.sansSizes, DEFAULT_PARAMS.sansSizes).map(
-    (pct): SpecimenSpec => ({
-      name: `Sans ${pct}%`,
-      face: 'sans',
-      heightRatio: pct / 100,
-      scale: scaleAt(SANS_SCALE_CURVE, pct / 100),
-      text: sansSpecimenText(pct),
-    }),
-  )
-  return mono.concat(sans)
+}
+
+// The font size that fills a line box at the design system's leading for the
+// size it is seen at. Leading depends on the font size, so this solves
+// fontSize × leading(fontSize × displayScale) = lineBox. The left side rises with
+// font size (the fitted leading falls more slowly than size grows, and is flat
+// where clamped), so there is one answer, found by bisection.
+function fontSizeForLineBox(
+  face: 'mono' | 'sans',
+  lineBox: number,
+  displayScale: number,
+): number {
+  if (face === 'mono') return lineBox / MONO_LEADING
+  let lo = lineBox / LEADING_MAX
+  let hi = lineBox / LEADING_MIN
+  for (let i = 0; i < 50; i++) {
+    const mid = (lo + hi) / 2
+    if (mid * opticalLeading(mid * displayScale) < lineBox) lo = mid
+    else hi = mid
+  }
+  return (lo + hi) / 2
+}
+
+// The letter spacing a specimen gets, in % of its font size.
+function trackingOf(face: 'mono' | 'sans', fontSize: number, displayScale: number): number {
+  return face === 'mono' ? MONO_TRACKING_PCT : opticalTrackingPct(fontSize * displayScale)
+}
+
+interface SizedSpecimen {
+  spec: SpecimenSpec
+  cells: number // line height in cells; see snapSpecimenLineHeight for the steps
+  rows: number // whole cells the specimen occupies in the stack
+  fontSize: number
+}
+
+// Line heights under four cells snap to thirds of a cell, the shortest a
+// third, and from four up to whole cells: ⅓, ⅔, 1, 1⅓, 1⅔, 2 … 3⅔, 4, 5 …
+// Three lines of any third add up to whole cells, so text set in these styles
+// comes back onto a cell line every three lines. The font size follows the
+// snapped line height, so the step sets how far apart neighbouring sizes land;
+// a whole cell is a large share of a short line (1 → 2 cells doubles the type),
+// but from four cells up whole cells read as even. The stack still advances in
+// whole cells (see `rows`), so every baseline stays on a cell line.
+const THIRD_CELL_BELOW = 4
+
+function snapSpecimenLineHeight(g: GridResult, target: number): number {
+  const exact = target / g.cellH
+  if (exact < THIRD_CELL_BELOW) return Math.max(1 / 3, Math.round(exact * 3) / 3)
+  return snapLineHeight(g, target).cells
+}
+
+// Size each specimen from the frame height. The line height snaps to cells
+// (see snapSpecimenLineHeight), and the font fills the snapped line height at
+// the design system's leading, so every specimen is set at exactly that leading;
+// sizes move in the snap's steps. Display sizes go below 1.0, to the design
+// system's 0.9, as its hero does: specimens are a single line (see place), so
+// there is no second line for a tight line height to overlap.
+function sizeSpecimens(
+  p: Params,
+  g: GridResult,
+  frameHeight: number,
+  displayScale: number,
+): SizedSpecimen[] {
+  const snapFont = flag(p.snapFontPx, DEFAULT_PARAMS.snapFontPx)
+  return specimensOf(p).map((spec) => {
+    const target = frameHeight * spec.heightRatio
+    const cells = snapSpecimenLineHeight(g, target)
+    const lineHeight = cells * g.cellH
+    const raw = fontSizeForLineBox(spec.face, lineHeight, displayScale)
+    // At least 1px, so a tiny specimen never rounds to an invalid size of 0.
+    const fontSize = snapFont ? Math.max(1, Math.round(raw)) : raw
+    return { spec, cells, rows: Math.ceil(cells), fontSize }
+  })
 }
 
 // Cell row the specimen stack starts on.
@@ -252,6 +428,13 @@ const DEFAULT_PARAMS: Params = {
   // The reference specimen scale: a 2% mono caption, then sans at 6/12/24%.
   monoSizes: '2',
   sansSizes: '6, 12, 24',
+  snapFontPx: false,
+  textStyles: false,
+  displayMode: 'Screen',
+  shownWidthPx: DEFAULT_SHOWN_WIDTH_PX,
+  // A4 read in the hand.
+  printWidthMm: 210,
+  viewingDistanceCm: 40,
   frameWidth: 1920,
   frameAspect: '16:9',
   frameHeight: 1080, // 1920 at 16:9, so switching to Custom changes nothing
@@ -265,6 +448,8 @@ let lastParams: Params = { ...DEFAULT_PARAMS }
 figma.showUI(__html__, { width: PANEL_WIDTH, height: 320, themeColors: true })
 
 figma.on('selectionchange', () => onSelectionChange())
+
+let actionBusy = false
 
 figma.ui.onmessage = async (msg) => {
   if (!msg || typeof msg !== 'object') return
@@ -283,12 +468,23 @@ figma.ui.onmessage = async (msg) => {
       if (msg.reapply) await maybeLiveReapply(lastParams)
       sendActionState()
     } else if (msg.type === 'action') {
-      lastParams = msg.params
-      await handleAction(msg.action, lastParams)
+      // One action at a time: a second press while one is running (a
+      // double-click) is ignored rather than queued.
+      if (actionBusy) return
+      actionBusy = true
+      try {
+        lastParams = msg.params
+        await handleAction(msg.action, lastParams)
+      } finally {
+        actionBusy = false
+      }
       sendActionState()
     }
   } catch (err) {
     figma.notify('⚠ ' + (err as Error).message, { error: true })
+    // A failed write can leave the frame in a different state from the one the
+    // footer describes, so refresh it.
+    sendActionState()
   }
 }
 
@@ -358,8 +554,9 @@ function gridSpecOf(p: Params, W: number, H: number): GridSpec {
 }
 
 // ----- palette -------------------------------------------------------------
-// Plain literal colours. Binding these to design-system COLOR variables does
-// not work reliably in practice — see the README before attempting it.
+// Colours come from design-system swatches in the team library, bound as
+// COLOR variables. The hex values are fallbacks for files where the library
+// isn't enabled, so the plugin still draws something sensible.
 function hex(value: string): RGB {
   const n = parseInt(value.replace('#', ''), 16)
   return {
@@ -373,6 +570,126 @@ const COLOR_BG = hex('#000000') // the frame fill, on Create frame
 const COLOR_TEXT = hex('#FFFFFF') // specimen text
 const COLOR_CHAR = hex('#333333') // the ASCII char grid
 const COLOR_LINES = hex('#666666') // the drawn cell-grid strokes
+
+const SWATCH_BG = 'base/neutral/100'
+const SWATCH_TEXT = 'base/green/1200'
+const SWATCH_CHAR = 'base/neutral/500'
+const SWATCH_LINES = 'base/neutral/400'
+
+// Swatch names are the full path, e.g. `base/neutral/400`. Depending on how the
+// tokens were synced, the library may store that as a variable named
+// `base/neutral/400` or as `neutral/400` inside a `base` collection, so the
+// index holds both spellings.
+//
+// Built once per plugin session: listing library variables is a network round
+// trip, and live reapplies run on every slider change.
+let libraryIndex: Promise<Map<string, string>> | null = null
+const swatchCache = new Map<string, Promise<Variable | null>>()
+
+async function buildLibraryIndex(): Promise<Map<string, string>> {
+  const keys = new Map<string, string>()
+  try {
+    // Only libraries enabled in the current file are listed.
+    const collections =
+      await figma.teamLibrary.getAvailableLibraryVariableCollectionsAsync()
+    for (const collection of collections) {
+      const vars = await figma.teamLibrary.getVariablesInLibraryCollectionAsync(
+        collection.key,
+      )
+      for (const v of vars) {
+        if (v.resolvedType !== 'COLOR') continue
+        const full = `${collection.name}/${v.name}`
+        if (!keys.has(full)) keys.set(full, v.key)
+        if (!keys.has(v.name)) keys.set(v.name, v.key)
+      }
+    }
+  } catch (err) {
+    console.warn(`Library swatches unavailable: ${(err as Error).message}`)
+  }
+  return keys
+}
+
+function findSwatch(swatch: string): Promise<Variable | null> {
+  let found = swatchCache.get(swatch)
+  if (!found) {
+    found = importSwatch(swatch)
+    swatchCache.set(swatch, found)
+  }
+  return found
+}
+
+async function importSwatch(swatch: string): Promise<Variable | null> {
+  if (!libraryIndex) libraryIndex = buildLibraryIndex()
+  const key = (await libraryIndex).get(swatch)
+  if (!key) return null
+  try {
+    return await figma.variables.importVariableByKeyAsync(key)
+  } catch (err) {
+    console.warn(`Swatch ${swatch} unavailable: ${(err as Error).message}`)
+    return null
+  }
+}
+
+// Figma stores text fills per character, and only setRangeFills keeps a
+// variable binding on text; assigning `fills` drops it. An empty node has no
+// range to set, so it takes the node-wide fill.
+function fillText(node: TextNode, paint: SolidPaint): void {
+  const length = node.characters.length
+  if (length > 0) node.setRangeFills(0, length, [paint])
+  else node.fills = [paint]
+}
+
+// A solid paint bound to the swatch, or the literal fallback when the swatch
+// can't be found. The paint's literal colour is the variable's value as
+// `consumer` resolves it (its mode comes from the node's ancestors). Re-setting
+// a text range to a binding it already has keeps the binding but renders the
+// paint's literal colour, so a fallback colour there shows on the canvas.
+async function swatchPaint(
+  swatch: string,
+  fallback: RGB,
+  consumer: SceneNode,
+): Promise<SolidPaint> {
+  const variable = await findSwatch(swatch)
+  if (!variable) return { type: 'SOLID', color: fallback }
+  let color = fallback
+  let opacity = 1
+  try {
+    const { value } = variable.resolveForConsumer(consumer)
+    const c = value as RGBA
+    color = { r: c.r, g: c.g, b: c.b }
+    if (typeof c.a === 'number') opacity = c.a
+  } catch (err) {
+    console.warn(`Swatch ${swatch} unresolved: ${(err as Error).message}`)
+  }
+  return figma.variables.setBoundVariableForPaint(
+    { type: 'SOLID', color, opacity },
+    'color',
+    variable,
+  )
+}
+
+// The overlay colors of the plugin's three layout grids. They also identify the
+// plugin's grids on a frame, so applying and removing leave any layout grids the
+// user made alone.
+const GRID_COLOR_COLUMNS = { r: 0.53, g: 0.2, b: 0.92, a: 0.3 }
+const GRID_COLOR_CELLS = { r: 0, g: 0.85, b: 0.9, a: 0.3 }
+
+function isOwnLayoutGrid(grid: LayoutGrid): boolean {
+  if (grid.pattern === 'GRID') return false
+  const c = grid.color
+  if (!c) return false
+  const same = (o: RGBA) =>
+    Math.abs(c.r - o.r) < 0.005 &&
+    Math.abs(c.g - o.g) < 0.005 &&
+    Math.abs(c.b - o.b) < 0.005 &&
+    Math.abs(c.a - o.a) < 0.005
+  return same(GRID_COLOR_COLUMNS) || same(GRID_COLOR_CELLS)
+}
+
+// The frame's layout grids with the plugin's own replaced by `ours`.
+function withOwnLayoutGrids(frame: FrameNode, ours: LayoutGrid[]): LayoutGrid[] {
+  return frame.layoutGrids.filter((grid) => !isOwnLayoutGrid(grid)).concat(ours)
+}
 
 function buildLayoutGrids(g: GridResult, columns: number, density: number): LayoutGrid[] {
   const d = clampDensity(density)
@@ -410,7 +727,7 @@ function buildLayoutGrids(g: GridResult, columns: number, density: number): Layo
         count: cellCount,
         sectionSize: cellStep,
         gutterSize: 0,
-        color: { r: 0, g: 0.85, b: 0.9, a: 0.3 },
+        color: GRID_COLOR_CELLS,
         visible: true,
       }
     : {
@@ -420,7 +737,7 @@ function buildLayoutGrids(g: GridResult, columns: number, density: number): Layo
         sectionSize: cellStep,
         gutterSize: 0,
         offset: (((g.hRemainder / 2) % cellStep) + cellStep) % cellStep,
-        color: { r: 0, g: 0.85, b: 0.9, a: 0.3 },
+        color: GRID_COLOR_CELLS,
         visible: true,
       }
 
@@ -428,7 +745,7 @@ function buildLayoutGrids(g: GridResult, columns: number, density: number): Layo
   // margin instead; Figma rejects negative offsets, so the side with the wider
   // effective margin is used (a pixel snap that rounds u up can push a narrow
   // margin below zero).
-  const colColor = { r: 0.53, g: 0.2, b: 0.92, a: 0.3 }
+  const colColor = GRID_COLOR_COLUMNS
   const columnGrid =
     g.solvedM === g.solvedMR
       ? {
@@ -461,7 +778,7 @@ function buildLayoutGrids(g: GridResult, columns: number, density: number): Layo
       sectionSize: stepY,
       gutterSize: 0,
       offset: rowOffset,
-      color: { r: 0, g: 0.85, b: 0.9, a: 0.3 },
+      color: GRID_COLOR_CELLS,
       visible: true,
     },
   ] as LayoutGrid[]
@@ -510,7 +827,7 @@ function clampDensity(d: number): number {
 // else derived from the ratio.
 function frameHeightOf(p: Params, W: number): number {
   if (p.frameAspect === 'Custom') {
-    return Math.max(1, Math.round(p.frameHeight || DEFAULT_PARAMS.frameHeight))
+    return Math.round(positiveOr(p.frameHeight, DEFAULT_PARAMS.frameHeight))
   }
   return Math.max(1, Math.round(W / parseAspect(p.frameAspect)))
 }
@@ -546,9 +863,11 @@ async function probeFont(family: string): Promise<FontProbe> {
   const probe = figma.createText()
   probe.fontName = fontName
   probe.fontSize = 100
-  probe.characters = 'X'
+  // Measure the character the char grid draws, so a proportional face still
+  // advances exactly one cell per character.
+  probe.characters = CHAR_GRID_GLYPH
   const w1 = probe.width
-  probe.characters = 'XX'
+  probe.characters = CHAR_GRID_GLYPH + CHAR_GRID_GLYPH
   const w2 = probe.width
   probe.remove()
 
@@ -592,6 +911,51 @@ async function resolveFont(preferred: FontName[]): Promise<FontName> {
   return (regular || available[0]).fontName
 }
 
+// Any installed style of the requested family before the fixed preference list,
+// preferring a regular-weight name, so a family whose regular is "Book" or
+// "Roman" is still used.
+async function resolveSansFont(family: string): Promise<FontName> {
+  const available = await figma.listAvailableFontsAsync()
+  const inFamily = available.filter((f) => f.fontName.family === family)
+  const regularish = (style: string) => /^(regular|book|roman|normal|text)$/i.test(style)
+  const own =
+    inFamily.find((f) => f.fontName.style === 'Regular') ||
+    inFamily.find((f) => regularish(f.fontName.style)) ||
+    inFamily[0]
+  if (own) return own.fontName
+  return resolveFont([
+    SANS_FONT,
+    { family: 'Suisse Intl', style: 'Regular' },
+    { family: 'Inter', style: 'Regular' },
+  ])
+}
+
+// Cached measurements are keyed by the family names typed, but describe the
+// faces actually found. They are stale if either face can no longer be loaded
+// (the frame was last written on a machine with fonts this one lacks), or if a
+// fallback was cached and the requested family is now installed.
+async function cacheUsable(
+  state: StoredData['state'],
+  monoWanted: string,
+  sansWanted: string,
+): Promise<boolean> {
+  const mono = state.fontProbe
+  const sans = state.sansProbe
+  if (!mono || !state.monoProbe || !sans) return false
+  try {
+    await figma.loadFontAsync({ family: mono.family, style: mono.style })
+    await figma.loadFontAsync({ family: sans.family, style: sans.style })
+  } catch {
+    return false
+  }
+  if (mono.family === monoWanted && sans.family === sansWanted) return true
+  const available = await figma.listAvailableFontsAsync()
+  const installed = (family: string) => available.some((f) => f.fontName.family === family)
+  if (mono.family !== monoWanted && installed(monoWanted)) return false
+  if (sans.family !== sansWanted && installed(sansWanted)) return false
+  return true
+}
+
 // Measure the baseline from the bottom of a flat-footed capital's ink bounds.
 // Return null when bounds are unavailable so the caller can use the estimate below.
 // Cached by font and size so reapplying with unchanged sizes creates no temp nodes.
@@ -620,6 +984,31 @@ async function measureBaselineOffset(
   return offset
 }
 
+// The height of one line of text trimmed to cap height, which runs from the cap
+// top to the baseline. Measured, since Figma's cap-height metric is not exposed;
+// cached like the baseline offset.
+const capHeightCache = new Map<string, number>()
+async function measureCapHeight(
+  font: FontName,
+  fontSize: number,
+  lineHeight: number,
+): Promise<number> {
+  const key = `${font.family}|${font.style}|${fontSize}|${lineHeight}`
+  const cached = capHeightCache.get(key)
+  if (cached !== undefined) return cached
+  const probe = figma.createText()
+  probe.fontName = font
+  probe.fontSize = fontSize
+  probe.lineHeight = { value: lineHeight, unit: 'PIXELS' }
+  probe.leadingTrim = 'CAP_HEIGHT'
+  probe.textAutoResize = 'WIDTH_AND_HEIGHT'
+  probe.characters = 'H'
+  const height = probe.height
+  probe.remove()
+  capHeightCache.set(key, height)
+  return height
+}
+
 // Fallback estimate for the first baseline, used only when the measurement above
 // is unavailable.
 //
@@ -643,10 +1032,16 @@ function firstBaselineOffset(
 // Layer creation / update
 // ---------------------------------------------------------------------------
 
+// The character drawn in every cell of the char grid.
+const CHAR_GRID_GLYPH = '.'
 const CHAR_GRID_NAME = 'Char Grid'
 const GRID_LINES_NAME = 'Grid Lines'
 const SPECIMENS_NAME = 'Type Specimens'
-const GENERATED_NAMES = [CHAR_GRID_NAME, GRID_LINES_NAME, SPECIMENS_NAME]
+const GENERATED_TYPES: Record<string, string> = {
+  [CHAR_GRID_NAME]: 'TEXT',
+  [GRID_LINES_NAME]: 'FRAME',
+  [SPECIMENS_NAME]: 'FRAME',
+}
 
 function isInside(node: BaseNode, frame: FrameNode): boolean {
   let current: BaseNode | null = node
@@ -657,17 +1052,51 @@ function isInside(node: BaseNode, frame: FrameNode): boolean {
   return false
 }
 
-// Reuse the stored layer only if it belongs to this frame. Duplicated frames
-// retain IDs pointing to the original, and older data may have no layer IDs.
-// Fall back to the first child with the expected name and type; remove duplicates.
+// Every layer the plugin creates is marked with its role, so the plugin only
+// ever reuses or deletes its own layers, never a user's layer that happens to
+// share a name. Figma copies plugin data when a frame is duplicated, so a copy's
+// layers keep their marks.
+const ROLE_KEY = 'dualGridRole'
+const SLOT_KEY = 'dualGridSlot'
+// The names an older version gave its specimens, e.g. "Sans 12%".
+const LEGACY_SPECIMEN_NAME = /^(Mono|Sans) \d+(\.\d+)?%$/
+type Role =
+  | 'charGrid'
+  | 'gridLines'
+  | 'specimens'
+  | 'lines'
+  | 'specimen'
+  | 'specimenStack'
+  | 'specimenBlock'
+
+function roleOf(node: BaseNode): string {
+  return 'getPluginData' in node ? node.getPluginData(ROLE_KEY) : ''
+}
+
+function mark(node: SceneNode, role: Role): void {
+  node.setPluginData(ROLE_KEY, role)
+}
+
+// The frame's generated layers carry marks unless an older version made them.
+function hasMarkedLayers(frame: FrameNode): boolean {
+  return frame.children.some((child) => roleOf(child) !== '')
+}
+
+// Reuse the stored layer only if it belongs to this frame: duplicated frames
+// retain IDs pointing to the original. Otherwise take the first child marked with
+// this role, and delete any other marked duplicates. Layers from an older version
+// carry no mark; they are adopted by name and type, but only on a gridded frame
+// with no layer marked for this role, so a user's same-named layer is never taken
+// over once the frame has been written by this version.
 async function claimLayer(
   frame: FrameNode,
   name: string,
   type: 'TEXT' | 'FRAME',
   storedId: string | null | undefined,
+  role: Role,
 ): Promise<SceneNode | null> {
-  const sameName = frame.children.filter(
-    (child) => child.name === name && child.type === type,
+  const marked = frame.children.filter(
+    (child) => child.type === type && roleOf(child) === role,
   )
 
   let chosen: SceneNode | null = null
@@ -683,11 +1112,20 @@ async function claimLayer(
       chosen = node as SceneNode
     }
   }
-  if (!chosen) chosen = sameName[0] || null
+  if (!chosen) chosen = marked[0] || null
+  // No layer has this role's mark yet, so on a gridded frame any match by name
+  // is an older version's layer.
+  if (!chosen && getStoredData(frame)) {
+    chosen =
+      frame.children.find(
+        (child) => child.name === name && child.type === type && roleOf(child) === '',
+      ) || null
+  }
 
-  for (const other of sameName) {
+  for (const other of marked) {
     if (other !== chosen) other.remove()
   }
+  if (chosen) mark(chosen, role)
   return chosen
 }
 
@@ -703,11 +1141,13 @@ async function ensureCharGrid(
     CHAR_GRID_NAME,
     'TEXT',
     existingId,
+    'charGrid',
   )) as TextNode | null
   if (!node) {
     node = figma.createText()
     node.name = CHAR_GRID_NAME
     frame.appendChild(node)
+    mark(node, 'charGrid')
   }
 
   const fontName: FontName = { family: probe.family, style: probe.style }
@@ -738,7 +1178,7 @@ async function ensureCharGrid(
   // cell, so letting the node size to its content gives the right box — and
   // avoids a fixed frame that would wrap or clip the rows.
   node.textAutoResize = 'WIDTH_AND_HEIGHT'
-  const rowLine = '.'.repeat(cols)
+  const rowLine = CHAR_GRID_GLYPH.repeat(cols)
   // Avoid rewriting unchanged text: assigning thousands of characters is
   // expensive and resets per-character styling, including bound fills.
   const wanted = new Array(rows).fill(rowLine).join('\n')
@@ -747,7 +1187,7 @@ async function ensureCharGrid(
   node.x = ext.startX
   node.y = ext.startY
 
-  node.fills = [{ type: 'SOLID', color: COLOR_CHAR }]
+  fillText(node, await swatchPaint(SWATCH_CHAR, COLOR_CHAR, node))
 
   return node.id
 }
@@ -762,7 +1202,7 @@ function drawLines(
   parent: FrameNode,
   name: string,
   segs: Segment[],
-  color: RGB,
+  paint: SolidPaint,
   weight: number,
 ): VectorNode | null {
   if (segs.length === 0) return null
@@ -787,7 +1227,7 @@ function drawLines(
   node.x = minX
   node.y = minY
   node.fills = []
-  node.strokes = [{ type: 'SOLID', color }]
+  node.strokes = [paint]
   node.strokeWeight = weight
   node.strokeAlign = 'CENTER'
   return node
@@ -804,11 +1244,13 @@ async function ensureGridLines(
     GRID_LINES_NAME,
     'FRAME',
     existingId,
+    'gridLines',
   )) as FrameNode | null
   if (!container) {
     container = figma.createFrame()
     container.name = GRID_LINES_NAME
     frame.appendChild(container)
+    mark(container, 'gridLines')
   }
 
   container.fills = []
@@ -821,8 +1263,13 @@ async function ensureGridLines(
   container.visible = flag(p.showLines, DEFAULT_PARAMS.showLines)
 
   // Rebuilt from scratch each time — cheap at two nodes, and avoids having to
-  // diff line counts when the density or params change.
-  for (const child of container.children.slice()) child.remove()
+  // diff line counts when the density or params change. Only the plugin's own
+  // vectors are removed (unmarked ones are from an older version, which put
+  // nothing else here); anything the user adds is kept.
+  for (const child of container.children.slice()) {
+    const role = roleOf(child)
+    if (role === 'lines' || (role === '' && child.type === 'VECTOR')) child.remove()
+  }
 
   // The segments share the char grid's full-bleed extent and cell density, so
   // the drawn lines and the characters line up exactly.
@@ -833,7 +1280,9 @@ async function ensureGridLines(
     edgeCullPct: edgeCullPctOf(p),
   })
   // Only the cell grid is drawn — the columns stay a Figma layout grid.
-  drawLines(container, `Cell Grid ${d}x`, cells, COLOR_LINES, 1.0)
+  const paint = await swatchPaint(SWATCH_LINES, COLOR_LINES, container)
+  const lines = drawLines(container, `Cell Grid ${d}x`, cells, paint, 1.0)
+  if (lines) mark(lines, 'lines')
 
   return container.id
 }
@@ -841,6 +1290,61 @@ async function ensureGridLines(
 // ---------------------------------------------------------------------------
 // Type specimens
 // ---------------------------------------------------------------------------
+
+// ----- text styles ---------------------------------------------------------
+// With Text styles on, each specimen is linked to a local text style that the
+// plugin keeps matching it. A style belongs to one frame and one slot, recorded
+// on the style, so a duplicated frame (whose layers keep the original's plugin
+// data) makes its own styles instead of rewriting the original's. Styles are
+// named "<frame name>/<family>/<size label>", such as "anodized-cobalt/sans/lg",
+// so each frame's sit in their own folder.
+const STYLE_FRAME_KEY = 'dualGridFrame'
+
+// This frame's styles, by specimen slot, and the ids of every style the plugin
+// made for any frame. A duplicated frame's specimens start out linked to the
+// original's styles, which they must not keep (see ensureSpecimens).
+interface FrameStyles {
+  own: Map<string, TextStyle>
+  pluginIds: Set<string>
+}
+async function frameTextStyles(frame: FrameNode): Promise<FrameStyles> {
+  const own = new Map<string, TextStyle>()
+  const pluginIds = new Set<string>()
+  for (const style of await figma.getLocalTextStylesAsync()) {
+    const owner = style.getPluginData(STYLE_FRAME_KEY)
+    if (!owner) continue
+    pluginIds.add(style.id)
+    if (owner === frame.id) own.set(style.getPluginData(SLOT_KEY), style)
+  }
+  return { own, pluginIds }
+}
+
+// Writes a specimen's type into its style, making the style if it has none,
+// and links the specimen to it. Fills aren't part of a text style, so the
+// specimen keeps its colour binding.
+async function syncTextStyle(
+  styles: Map<string, TextStyle>,
+  frame: FrameNode,
+  node: TextNode,
+  spec: SpecimenSpec,
+): Promise<void> {
+  const slot = spec.slot
+  let style = styles.get(slot)
+  if (!style) {
+    style = figma.createTextStyle()
+    style.setPluginData(STYLE_FRAME_KEY, frame.id)
+    style.setPluginData(SLOT_KEY, slot)
+    styles.set(slot, style)
+  }
+  style.name = `${frame.name}/${spec.face}/${spec.label}`
+  style.fontName = node.fontName as FontName
+  style.fontSize = node.fontSize as number
+  style.lineHeight = node.lineHeight as LineHeight
+  style.letterSpacing = node.letterSpacing as LetterSpacing
+  style.textCase = node.textCase as TextCase
+  style.leadingTrim = node.leadingTrim as LeadingTrim
+  if (node.textStyleId !== style.id) await node.setTextStyleIdAsync(style.id)
+}
 
 // A stack of text set to the grid: line height is a whole multiple of the cell
 // height and every baseline lands on a cell line. Mono is uppercase at a flat 4%;
@@ -858,15 +1362,27 @@ async function ensureSpecimens(
     SPECIMENS_NAME,
     'FRAME',
     existingId,
+    'specimens',
   )) as FrameNode | null
   if (!container) {
     container = figma.createFrame()
     container.name = SPECIMENS_NAME
     frame.appendChild(container)
+    mark(container, 'specimens')
   }
 
+  // An auto layout column the size of the frame: the mono stack at the top, the
+  // sans stack at the bottom, and the space between them taking up the rest.
+  // Every height in it is a whole number of cells, so each baseline lands on a
+  // cell line (see `block` below).
   container.fills = []
   container.clipsContent = false
+  container.layoutMode = 'VERTICAL'
+  container.primaryAxisSizingMode = 'FIXED'
+  container.counterAxisSizingMode = 'FIXED'
+  container.primaryAxisAlignItems = 'SPACE_BETWEEN'
+  container.counterAxisAlignItems = 'MIN'
+  container.itemSpacing = 0
   container.resize(frame.width, frame.height)
   container.x = 0
   container.y = 0
@@ -883,40 +1399,38 @@ async function ensureSpecimens(
   await figma.loadFontAsync(monoFont)
   await figma.loadFontAsync(sansFont)
 
-  // Size each specimen from the frame height, then snap to whole cells so the
-  // line height still lands on the grid.
-  const sized = specimensOf(p).map((spec) => ({
-    spec,
-    cells: snapLineHeight(g, frame.height * spec.heightRatio).cells,
-  }))
+  const textPaint = await swatchPaint(SWATCH_TEXT, COLOR_TEXT, container)
+  const keepStyles = flag(p.textStyles, DEFAULT_PARAMS.textStyles)
+  const { own: styles, pluginIds: pluginStyleIds } = await frameTextStyles(frame)
+  const usedStyleSlots = new Set<string>()
+  const displayScale = displayScaleOf(p, frame.width)
+  const sized = sizeSpecimens(p, g, frame.height, displayScale)
 
-  // Each specimen's baseline sits on the cell line at the bottom of its own
-  // block, so the stack never overlaps and every baseline is on the grid. Only
-  // include what fits — dropping the largest keeps everything on canvas instead
-  // of hanging the display sizes off the bottom.
+  // Each specimen takes a block of whole cells with its baseline on the block's
+  // bottom line, so the stack never overlaps. Only include what fits — dropping
+  // the largest keeps everything on canvas instead of hanging the display sizes
+  // off the bottom.
   const budget = g.rows - SPECIMEN_START_CELL
-  const fitting: typeof sized = []
+  const fitting: SizedSpecimen[] = []
   let used = 0
   for (const item of sized) {
-    if (used + item.cells > budget) continue
-    used += item.cells
+    if (used + item.rows > budget) continue
+    used += item.rows
     fitting.push(item)
   }
 
-  // Anchor mono at the top and sans at the bottom. Both stacks use whole-cell
-  // offsets to keep their baselines on the grid.
   const monoItems = fitting.filter((i) => i.spec.face === 'mono')
   const sansItems = fitting.filter((i) => i.spec.face !== 'mono')
-  const monoEnd = SPECIMEN_START_CELL + monoItems.reduce((sum, i) => sum + i.cells, 0)
+  const monoEnd = SPECIMEN_START_CELL + monoItems.reduce((sum, i) => sum + i.rows, 0)
 
   // A baseline is not the bottom of the text — the descender hangs below it. So
-  // the last baseline cannot sit on the final cell line, or the node's box spills
+  // the last baseline cannot sit on the final cell line, or the descender spills
   // out of the frame. Reserve the measured descender, rounded up to whole cells,
-  // which keeps every baseline on a cell line while the box stays inside.
-  async function tailCellsOf(tail: (typeof sized)[number] | undefined): Promise<number> {
+  // which keeps every baseline on a cell line while the text stays inside.
+  async function tailCellsOf(tail: SizedSpecimen | undefined): Promise<number> {
     if (!tail) return 0
     const lineHeight = tail.cells * g.cellH
-    const fontSize = lineHeight * tail.spec.scale
+    const fontSize = tail.fontSize
     const offset = await measureBaselineOffset(sansFont, fontSize, lineHeight)
     const descender =
       lineHeight -
@@ -928,57 +1442,165 @@ async function ensureSpecimens(
 
   // The fit budget cannot include the tail, which depends on which sans size ends
   // up last, so drop the largest sans size until the two stacks no longer overlap.
-  let sansCells = 0
   let tailCells = 0
   for (;;) {
-    sansCells = sansItems.reduce((sum, i) => sum + i.cells, 0)
+    const sansCells = sansItems.reduce((sum, i) => sum + i.rows, 0)
     tailCells = await tailCellsOf(sansItems[sansItems.length - 1])
     if (!sansItems.length || g.rows - sansCells - tailCells >= monoEnd) break
     let largest = 0
     sansItems.forEach((item, i) => {
-      if (item.cells > sansItems[largest].cells) largest = i
+      // >= so a tie goes to the later, larger size: the list is sorted ascending.
+      if (item.rows >= sansItems[largest].rows) largest = i
     })
     sansItems.splice(largest, 1)
   }
 
-  // Clamped so a stack too tall for the frame still starts on the grid rather
-  // than above it, in which case it clips as it did before.
-  const sansStart = Math.max(SPECIMEN_START_CELL, g.rows - sansCells - tailCells)
+  // The column's padding puts the mono stack's top and the sans stack's bottom
+  // on cell lines. The row offset centres the cells in the frame, so it is part
+  // of both; the frame's leftover below the last row is part of the bottom.
+  // The side padding is the grid's margins, so specimens, which fill the
+  // column's width, end at the content edge.
+  container.paddingLeft = g.effectiveMargin
+  container.paddingRight = Math.max(0, g.effectiveMarginRight)
+  container.paddingTop = g.rowOffset + SPECIMEN_START_CELL * g.cellH
+  container.paddingBottom = Math.max(
+    0,
+    frame.height - (g.rowOffset + (g.rows - tailCells) * g.cellH),
+  )
 
-  // Match specimens by layer name and update them in place to preserve edited
-  // text and avoid resetting per-character styling during live updates.
-  const reusable = new Map<string, TextNode>()
+  // Layers in the container that aren't the plugin's are the user's. They keep
+  // their place rather than joining the column.
   for (const child of container.children) {
-    if (child.type === 'TEXT') reusable.set(child.name, child as TextNode)
+    const role = roleOf(child)
+    const own = role === 'specimenStack' || role === 'specimen' || role === 'specimenBlock'
+    const legacy =
+      role === '' && child.type === 'TEXT' && LEGACY_SPECIMEN_NAME.test(child.name)
+    if (
+      !own &&
+      !legacy &&
+      'layoutPositioning' in child &&
+      child.layoutPositioning !== 'ABSOLUTE'
+    ) {
+      child.layoutPositioning = 'ABSOLUTE'
+    }
   }
 
-  // Reuse the node of that name if there is one, else make it. `characters` is
-  // written only on creation, so edited specimen text survives a reapply.
+  // Specimens are matched by slot and updated in place to preserve edited text and
+  // avoid resetting per-character styling during live updates. They may sit in a
+  // block (this version), or directly in the container (an older one, which also
+  // left some unmarked, matched by name).
+  const bySlot = new Map<string, TextNode>()
+  const byLegacyName = new Map<string, TextNode>()
+  const collect = (parent: ChildrenMixin) => {
+    for (const child of parent.children) {
+      const role = roleOf(child)
+      if (child.type === 'TEXT' && role === 'specimen') {
+        bySlot.set(child.getPluginData(SLOT_KEY), child as TextNode)
+      } else if (
+        child.type === 'TEXT' &&
+        role === '' &&
+        parent === container &&
+        LEGACY_SPECIMEN_NAME.test(child.name)
+      ) {
+        byLegacyName.set(child.name, child as TextNode)
+      } else if (
+        child.type === 'FRAME' &&
+        (role === 'specimenStack' || role === 'specimenBlock')
+      ) {
+        collect(child as FrameNode)
+      }
+    }
+  }
+  collect(container)
+
+  // A hugging auto layout frame with no fill or clipping, for the stacks and
+  // blocks. Hug is set after layoutMode, since turning auto layout on resets it.
+  const plainColumn = (node: FrameNode) => {
+    node.fills = []
+    node.clipsContent = false
+    node.layoutMode = 'VERTICAL'
+    node.primaryAxisSizingMode = 'AUTO'
+    node.counterAxisSizingMode = 'AUTO'
+    node.primaryAxisAlignItems = 'MIN'
+    node.counterAxisAlignItems = 'MIN'
+    node.itemSpacing = 0
+    node.paddingLeft = 0
+    node.paddingRight = 0
+    node.paddingBottom = 0
+  }
+
+  // One stack per family, in the container's order: mono, then sans.
+  const stacks = new Map<string, FrameNode>()
+  for (const child of container.children) {
+    if (child.type === 'FRAME' && roleOf(child) === 'specimenStack') {
+      const face = child.getPluginData(SLOT_KEY)
+      if (stacks.has(face)) child.remove()
+      else stacks.set(face, child as FrameNode)
+    }
+  }
+  const stackFor = (face: 'mono' | 'sans', index: number): FrameNode => {
+    let stack = stacks.get(face)
+    if (!stack) {
+      stack = figma.createFrame()
+      mark(stack, 'specimenStack')
+      stack.setPluginData(SLOT_KEY, face)
+      stacks.set(face, stack)
+    }
+    stack.name = face === 'mono' ? 'Mono' : 'Sans'
+    plainColumn(stack)
+    stack.paddingTop = 0
+    container.insertChild(index, stack)
+    // Filling, not hugging, so the specimens inside can fill it. Set once
+    // the stack is in the column: only an auto layout child can fill.
+    stack.layoutSizingHorizontal = 'FILL'
+    return stack
+  }
+  const monoStack = stackFor('mono', 0)
+  const sansStack = stackFor('sans', 1)
+
+  // A block is the specimen's whole cells: its top on a cell line, and the text
+  // trimmed to cap height at its bottom, so the text's bottom edge, its
+  // baseline, is the block's bottom line. The text is held to one line,
+  // truncated at the content edge, so a block is always `rows` cells tall.
   const place = async (
-    spec: SpecimenSpec,
-    mult: number,
-    baselineCell: number,
+    { spec, cells: mult, rows, fontSize }: SizedSpecimen,
+    stack: FrameNode,
+    index: number,
   ): Promise<void> => {
     const isMono = spec.face === 'mono'
     const font = isMono ? monoFont : sansFont
-    const probe = isMono ? monoProbe : sansProbe
     const lineHeight = mult * g.cellH
-    const fontSize = lineHeight * spec.scale
 
-    let node = reusable.get(spec.name) || null
+    let node = bySlot.get(spec.slot) || byLegacyName.get(spec.name) || null
     if (node) {
-      reusable.delete(spec.name)
+      bySlot.delete(spec.slot)
+      byLegacyName.delete(spec.name)
+      node.name = spec.name
     } else {
       node = figma.createText()
       node.name = spec.name
-      container.appendChild(node)
       node.fontName = font
       node.textAlignHorizontal = 'LEFT'
       node.textAlignVertical = 'TOP'
-      node.textAutoResize = 'WIDTH_AND_HEIGHT'
-      node.characters = spec.text
+      // The mono placeholder names the face actually drawn, which may be a fallback.
+      node.characters = isMono ? `${font.family} · 0123456789` : spec.text
     }
-    if (node.parent !== container) container.appendChild(node)
+    mark(node, 'specimen')
+    node.setPluginData(SLOT_KEY, spec.slot)
+
+    let block =
+      node.parent && node.parent.type === 'FRAME' && roleOf(node.parent) === 'specimenBlock'
+        ? (node.parent as FrameNode)
+        : null
+    if (!block) {
+      block = figma.createFrame()
+      mark(block, 'specimenBlock')
+    }
+    block.name = spec.name
+    plainColumn(block)
+    stack.insertChild(index, block)
+    block.layoutSizingHorizontal = 'FILL'
+    if (node.parent !== block) block.appendChild(node)
 
     // Only reassigned when it differs: setting fontName re-shapes the text.
     const current = node.fontName
@@ -988,37 +1610,64 @@ async function ensureSpecimens(
       (current as FontName).style === font.style
     if (!sameFont) node.fontName = font
 
+    // The text fills its block's width and is clamped to one line, ending in an
+    // ellipsis where it runs past the content edge. One line keeps every block
+    // its whole cells, and lets display leading go tighter than 1.0.
+    node.layoutPositioning = 'AUTO'
+    node.textAutoResize = 'HEIGHT'
+    node.layoutSizingHorizontal = 'FILL'
+    node.textTruncation = 'ENDING'
+    node.maxLines = 1
     node.fontSize = fontSize
     node.lineHeight = { value: lineHeight, unit: 'PIXELS' }
+    node.leadingTrim = 'CAP_HEIGHT'
     node.letterSpacing = {
-      value: isMono ? MONO_TRACKING_PCT : opticalTrackingPct(fontSize),
+      value: trackingOf(spec.face, fontSize, displayScale),
       unit: 'PERCENT',
     }
     node.textCase = isMono ? 'UPPER' : 'ORIGINAL'
-    node.fills = [{ type: 'SOLID', color: COLOR_TEXT }]
+    fillText(node, textPaint)
 
-    const targetBaseline = g.rowOffset + baselineCell * g.cellH
-    const measured = await measureBaselineOffset(font, fontSize, lineHeight)
-    node.x = g.effectiveMargin
-    node.y =
-      targetBaseline -
-      (measured !== null ? measured : firstBaselineOffset(lineHeight, fontSize, probe))
+    // With styles on, the specimen is linked to this frame's style for its slot.
+    // With them off, it is unlinked from any style the plugin made, this
+    // frame's or, on a duplicated frame, the original's; it keeps the values
+    // just set. A style the user applied themselves is left alone.
+    if (keepStyles) {
+      await syncTextStyle(styles, frame, node, spec)
+      usedStyleSlots.add(spec.slot)
+    } else if (
+      typeof node.textStyleId === 'string' &&
+      pluginStyleIds.has(node.textStyleId)
+    ) {
+      await node.setTextStyleIdAsync('')
+    }
+
+    const capHeight = await measureCapHeight(font, fontSize, lineHeight)
+    block.paddingTop = Math.max(0, rows * g.cellH - capHeight)
   }
 
-  let cell = SPECIMEN_START_CELL
-  for (const { spec, cells: mult } of monoItems) {
-    cell += mult
-    await place(spec, mult, cell)
-  }
+  for (let i = 0; i < monoItems.length; i++) await place(monoItems[i], monoStack, i)
+  for (let i = 0; i < sansItems.length; i++) await place(sansItems[i], sansStack, i)
 
-  cell = sansStart
-  for (const { spec, cells: mult } of sansItems) {
-    cell += mult
-    await place(spec, mult, cell)
+  // Remove the plugin's specimens that are no longer used, with their blocks,
+  // and any block left without its text. While styles are kept, a specimen's
+  // style goes with it; text elsewhere that used it keeps its values. With
+  // styles off they are left for the user to keep or delete.
+  bySlot.forEach((node) => node.remove())
+  byLegacyName.forEach((node) => node.remove())
+  if (keepStyles) {
+    styles.forEach((style, slot) => {
+      if (!usedStyleSlots.has(slot)) style.remove()
+    })
   }
-
-  // Remove specimens that are no longer used.
-  reusable.forEach((node) => node.remove())
+  for (const stack of [monoStack, sansStack]) {
+    for (const child of stack.children.slice()) {
+      if (roleOf(child) !== 'specimenBlock') continue
+      const block = child as FrameNode
+      const hasText = block.children.some((c) => roleOf(c) === 'specimen')
+      if (!hasText) block.remove()
+    }
+  }
 
   return container.id
 }
@@ -1027,11 +1676,16 @@ async function ensureSpecimens(
 // Apply / remove / create
 // ---------------------------------------------------------------------------
 
-async function applyGrids(frame: FrameNode, p: Params): Promise<void> {
+// Returns a note for each family that was replaced by a fallback face, for the
+// actions to report. Live reapplies do not report them, to avoid a notice per edit.
+async function applyGrids(frame: FrameNode, p: Params): Promise<string[]> {
   const stored = getStoredData(frame)
   const g = computeGrid(gridSpecOf(p, frame.width, frame.height))
 
-  frame.layoutGrids = buildLayoutGrids(g, columnCountOf(p), p.cellDensity)
+  frame.layoutGrids = withOwnLayoutGrids(
+    frame,
+    buildLayoutGrids(g, columnCountOf(p), p.cellDensity),
+  )
 
   const monoWanted = p.monoFamily || DEFAULT_PARAMS.monoFamily
   const sansWanted = p.sansFamily || DEFAULT_PARAMS.sansFamily
@@ -1041,7 +1695,8 @@ async function applyGrids(frame: FrameNode, p: Params): Promise<void> {
   const cache =
     stored &&
     (stored.state.probedMono || DEFAULT_PARAMS.monoFamily) === monoWanted &&
-    (stored.state.probedSans || DEFAULT_PARAMS.sansFamily) === sansWanted
+    (stored.state.probedSans || DEFAULT_PARAMS.sansFamily) === sansWanted &&
+    (await cacheUsable(stored.state, monoWanted, sansWanted))
       ? stored.state
       : null
 
@@ -1051,15 +1706,7 @@ async function applyGrids(frame: FrameNode, p: Params): Promise<void> {
     (cache && cache.monoProbe) ||
     (await probeMetrics({ family: fontProbe.family, style: fontProbe.style }))
   const sansProbe =
-    (cache && cache.sansProbe) ||
-    (await probeMetrics(
-      await resolveFont([
-        { family: sansWanted, style: 'Regular' },
-        SANS_FONT,
-        { family: 'Suisse Intl', style: 'Regular' },
-        { family: 'Inter', style: 'Regular' },
-      ]),
-    ))
+    (cache && cache.sansProbe) || (await probeMetrics(await resolveSansFont(sansWanted)))
   const charGridId = await ensureCharGrid(
     frame,
     g,
@@ -1098,10 +1745,20 @@ async function applyGrids(frame: FrameNode, p: Params): Promise<void> {
       sansProbe,
     },
   })
+
+  const notes: string[] = []
+  if (fontProbe.family !== monoWanted)
+    notes.push(`${fontProbe.family} instead of ${monoWanted}`)
+  if (sansProbe.family !== sansWanted)
+    notes.push(`${sansProbe.family} instead of ${sansWanted}`)
+  return notes
 }
 
 async function removeGrids(frame: FrameNode): Promise<void> {
-  frame.layoutGrids = []
+  frame.layoutGrids = withOwnLayoutGrids(frame, [])
+  // Decided before anything is removed: a frame written by an older version has
+  // no marked layers, and its generated layers are found by name and type.
+  const legacy = !hasMarkedLayers(frame)
 
   const stored = getStoredData(frame)
   if (stored) {
@@ -1121,23 +1778,55 @@ async function removeGrids(frame: FrameNode): Promise<void> {
     }
   }
 
-  // Then anything of ours still in the frame — layers an older version never
-  // stored an id for, and duplicates left by a previous apply.
+  // Then anything of ours still in the frame: marked duplicates left by a
+  // previous apply, and on a legacy frame, layers an older version never stored
+  // an id for. A user's layer that merely shares a name is kept.
   for (const child of frame.children.slice()) {
-    if (GENERATED_NAMES.indexOf(child.name) !== -1) child.remove()
+    const role = roleOf(child)
+    const own = role === 'charGrid' || role === 'gridLines' || role === 'specimens'
+    const legacyOwn = legacy && role === '' && GENERATED_TYPES[child.name] === child.type
+    if (own || legacyOwn) child.remove()
   }
 
   clearStoredData(frame)
 }
 
-function createFrame(p: Params): FrameNode {
-  const W = Math.max(1, Math.round(p.frameWidth))
+// The width a new frame would get. Empty, zero and negative entries use the
+// default rather than producing a 1px frame.
+function frameWidthOf(p: Params): number {
+  return Math.max(1, Math.round(positiveOr(p.frameWidth, DEFAULT_PARAMS.frameWidth)))
+}
+
+// A new frame's name, in the manner of Heroku's placeholder app names but
+// Oxide's: a finish and a metal from the Oxide words, such as
+// "anodized-cobalt". The name also heads the frame's text-style folder (see
+// syncTextStyle), so frames need telling apart: the name is drawn from the 225
+// not already used by a frame on the page.
+function newFrameName(): string {
+  const taken = new Set(figma.currentPage.children.map((n) => n.name))
+  const free: string[] = []
+  for (const finish of OXIDE_FINISHES) {
+    for (const metal of OXIDE_METALS) {
+      if (!taken.has(`${finish}-${metal}`)) free.push(`${finish}-${metal}`)
+    }
+  }
+  if (free.length) return free[Math.floor(Math.random() * free.length)]
+  // Every name is in use on this page: number a random one, as Figma numbers
+  // copies.
+  const base = `${pickWord(OXIDE_FINISHES)}-${pickWord(OXIDE_METALS)}`
+  let n = 2
+  while (taken.has(`${base} ${n}`)) n++
+  return `${base} ${n}`
+}
+
+async function createFrame(p: Params): Promise<FrameNode> {
+  const W = frameWidthOf(p)
   const H = frameHeightOf(p, W)
 
   const frame = figma.createFrame()
-  frame.name = 'Dual Grid Frame'
+  frame.name = newFrameName()
   frame.resize(W, H)
-  frame.fills = [{ type: 'SOLID', color: COLOR_BG }]
+  frame.fills = [await swatchPaint(SWATCH_BG, COLOR_BG, frame)]
 
   const center = figma.viewport.center
   frame.x = Math.round(center.x - W / 2)
@@ -1152,11 +1841,19 @@ async function handleAction(
   p: Params,
 ): Promise<void> {
   if (action === 'create') {
-    const frame = createFrame(p)
-    await serialiseApply(() => applyGrids(frame, p))
+    const frame = await createFrame(p)
+    let notes: string[]
+    try {
+      notes = await serialiseApply(() => applyGrids(frame, p))
+    } catch (err) {
+      // Leave nothing behind: a frame with layout grids but no layers or stored
+      // settings is neither gridded nor clean.
+      if (!frame.removed) frame.remove()
+      throw err
+    }
     figma.currentPage.selection = [frame]
     figma.viewport.scrollAndZoomIntoView([frame])
-    figma.notify('Frame created')
+    figma.notify(withNotes('Frame created', notes))
     return
   }
 
@@ -1167,12 +1864,22 @@ async function handleAction(
   }
 
   if (action === 'apply') {
-    await serialiseApply(() => applyGrids(frame, p))
-    figma.notify('Grids applied')
+    const notes = await serialiseApply(() => applyGrids(frame, p))
+    figma.notify(withNotes('Grids applied', notes))
   } else {
+    // The panel's button can be stale (after an undo, or a collaborator removing
+    // the grid), so check the frame really carries grids before touching it.
+    if (!getStoredData(frame)) {
+      figma.notify('This frame has no grids to remove')
+      return
+    }
     await serialiseApply(() => removeGrids(frame))
     figma.notify('Grids removed')
   }
+}
+
+function withNotes(message: string, notes: string[]): string {
+  return notes.length ? `${message} · using ${notes.join(', ')}` : message
 }
 
 // Queue applies so asynchronous font loading and measurement cannot interleave
@@ -1250,6 +1957,17 @@ function selectedFrame(): FrameNode | null {
   return agreed
 }
 
+// Stored params over the defaults: a frame gridded before a setting existed was
+// made with that setting's default. A display mode the panel doesn't offer is
+// Screen, which is what the plugin draws it as (see apparentWidthOf), so the
+// panel shows the setting in use.
+const DISPLAY_MODES: DisplayMode[] = ['Screen', 'Print', 'Custom']
+function paramsOfStored(stored: Partial<Params>): Params {
+  const p: Params = { ...DEFAULT_PARAMS, ...stored }
+  if (DISPLAY_MODES.indexOf(p.displayMode) < 0) p.displayMode = 'Screen'
+  return p
+}
+
 // Selecting a frame that already carries grid state restores its stored params
 // into the panel, so the controls always describe the bound frame.
 function onSelectionChange(): void {
@@ -1257,7 +1975,7 @@ function onSelectionChange(): void {
   if (frame) {
     const stored = getStoredData(frame)
     if (stored) {
-      lastParams = { ...lastParams, ...stored.params }
+      lastParams = paramsOfStored(stored.params)
       figma.ui.postMessage({ type: 'params-change', params: lastParams })
     }
   }
@@ -1270,9 +1988,23 @@ function sendActionState(): void {
 
   // Live preview of the resulting grid. Measured against the selected frame if
   // there is one, otherwise against the "New frame" params.
-  const W = frame ? frame.width : Math.max(1, Math.round(lastParams.frameWidth))
+  const W = frame ? frame.width : frameWidthOf(lastParams)
   const H = frame ? frame.height : frameHeightOf(lastParams, W)
   const g = computeGrid(gridSpecOf(lastParams, W, H))
+  const displayScale = displayScaleOf(lastParams, W)
+  const specimenSizes = sizeSpecimens(lastParams, g, H, displayScale).map((i) => {
+    const lineHeight = i.cells * g.cellH
+    return {
+      face: i.spec.face,
+      pct: i.spec.pct,
+      size: i.fontSize,
+      cells: i.cells,
+      // What the type is actually set at, after the line height snaps to
+      // cells and the font size is capped by it.
+      leading: lineHeight / i.fontSize,
+      tracking: trackingOf(i.spec.face, i.fontSize, displayScale),
+    }
+  })
 
   // Offer removal for a gridded frame, apply for an ungridded frame, and creation
   // when the selection does not resolve to a frame.
@@ -1290,6 +2022,8 @@ function sendActionState(): void {
     actionLabel: label,
     actionDanger: action === 'remove',
     status: bound ? 'Live editing' : '',
+    // The grid controls only show on a gridded frame, so every edit is live.
+    live: bound,
     preview: {
       source: frame ? 'selection' : 'new frame',
       frameW: W,
@@ -1321,6 +2055,14 @@ function sendActionState(): void {
       gutterPx: g.gutterWidth,
       marginPx: g.margin,
       effectiveMargin: g.effectiveMargin,
+      effectiveMarginRight: g.effectiveMarginRight,
+      // The targets the solver actually used, for flagging achieved values.
+      targetMarginUsed: Math.max(0, lastParams.targetMarginPx || 0),
+      targetGutterUsed: Math.max(1, lastParams.targetGutterPx || 0),
+      targetColumnsUsed: Math.max(
+        1,
+        Math.round(lastParams.targetColumns || DEFAULT_PARAMS.targetColumns),
+      ),
       marginRightPx: g.marginRight,
       solvedMR: g.solvedMR,
       hRemainder: g.hRemainder,
@@ -1328,6 +2070,10 @@ function sendActionState(): void {
       vRemainder: g.vRemainder,
       offsetX: g.offsetX,
       columnWidth: g.columnWidth,
+      // Each specimen as set: size in % and px, line height in cells, the
+      // leading and tracking it ends up with, and the built-in leading.
+      specimens: specimenSizes,
+      displayScale,
       columnCells: g.columnCells,
       marginCells: g.solvedM,
       contentWidth: g.contentWidth,
@@ -1344,5 +2090,6 @@ function sendActionState(): void {
 // ---------------------------------------------------------------------------
 
 // Run after the constants used by computeGrid are initialised to avoid a
-// temporal-dead-zone error.
-sendActionState()
+// temporal-dead-zone error. Resolves the selection the plugin opened with, so a
+// gridded frame selected at launch loads its stored settings.
+onSelectionChange()

@@ -157,6 +157,8 @@ export const COLUMNS_WEIGHT = 16
 // Cell sizes below this are not a usable design grid, and enumerating them only
 // crowds the options.
 export const LADDER_MIN_CELL = 2
+// The most cells across the frame the Manual ladder offers.
+export const LADDER_MAX_CELL_COLUMNS = 600
 
 // Lines on or beyond the frame boundary (to within this epsilon) are always
 // culled as doubled frame edges, whatever the edge-cull options say.
@@ -255,7 +257,12 @@ export function cellLadder(
   mRight: number = m,
 ): CellOption[] {
   const byCell = new Map<number, CellOption>()
-  for (let k = 1; k <= SOLVE_MAX_COLUMN; k++) {
+  // Bounded by the cell count rather than by cells per column, so a frame with
+  // few columns can reach as many cells as one with twelve. At 12 columns this
+  // is the same 48 cells per column the solver uses.
+  const fixed = m + mRight + (c - 1) * g
+  const maxK = Math.max(SOLVE_MAX_COLUMN, Math.floor((LADDER_MAX_CELL_COLUMNS - fixed) / c))
+  for (let k = 1; k <= maxK; k++) {
     const N = m + mRight + c * k + (c - 1) * g
     const u = snapUnit(W / N, pixelSnap, snapTolPx)
     if (u < LADDER_MIN_CELL) continue
@@ -374,24 +381,31 @@ export function computeGrid(spec: GridSpec): GridResult {
     // pixel cannot flip the row count the fractional grid chose (at the borderline
     // it otherwise does: u 22.07 → 24 rows, u 22 → 25).
     rows = Math.max(1, Math.round(H / (a * uExact)))
-    // Search row counts within the aspect tolerance for a height that snaps.
-    // Prefer the closest aspect ratio; a divisor of H gives an exact vertical fit.
-    const band = pixelSnap ? Math.min(50, aspectTolPct) / 100 : 0
+    // Search row counts within the aspect tolerance for a whole-pixel height
+    // that fills H. Rows filling the frame is the point of snapping them, so the
+    // smallest gap or overhang wins (a divisor of H fits exactly); ties go to the
+    // closest aspect, then to the natural row count.
+    // A snap tolerance of 0 turns snapping off, row search included.
+    const band = pixelSnap && snapTol > 0 ? Math.min(50, aspectTolPct) / 100 : 0
     if (band > 0) {
       const lo = Math.max(1, Math.ceil(H / (a * u * (1 + band))))
       const hi = Math.max(lo, Math.floor(H / (a * u * (1 - band))))
       let bestR = 0
+      let bestFit = Infinity
       let bestErr = Infinity
       for (let r = lo; r <= hi; r++) {
         const snapped = Math.max(1, Math.round(H / r))
         if (Math.abs(H / r - snapped) > snapTol + 1e-9) continue
         const err = Math.abs(snapped / u / a - 1)
         if (err > band + 1e-9) continue
-        // Closest to the aspect ask wins; ties go to the natural row count.
-        if (
-          err < bestErr - 1e-12 ||
-          (err < bestErr + 1e-12 && Math.abs(r - rows) < Math.abs(bestR - rows))
-        ) {
+        const fit = Math.abs(H - r * snapped)
+        const better =
+          fit < bestFit - 1e-9 ||
+          (fit < bestFit + 1e-9 &&
+            (err < bestErr - 1e-12 ||
+              (err < bestErr + 1e-12 && Math.abs(r - rows) < Math.abs(bestR - rows))))
+        if (better) {
+          bestFit = fit
           bestErr = err
           bestR = r
         }

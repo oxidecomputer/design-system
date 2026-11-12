@@ -38,6 +38,128 @@ function killNode(n) {
   }
 }
 
+// Enough auto layout to place children the way Figma does: a vertical column
+// with padding, item spacing, MIN / MAX / CENTER / SPACE_BETWEEN alignment, and
+// fixed or hugging size. Absolutely positioned children keep their x and y.
+const inFlow = (f, c) =>
+  f.layoutMode === 'VERTICAL' && c.layoutPositioning !== 'ABSOLUTE' && c.visible !== false
+function flowOffsetY(f, child) {
+  const kids = f.children.filter((c) => inFlow(f, c))
+  const heights = kids.map((c) => c.height)
+  const sum = heights.reduce((a, b) => a + b, 0)
+  const top = f.paddingTop || 0
+  const bottom = f.paddingBottom || 0
+  let gap = f.itemSpacing || 0
+  let y = top
+  const free = f.height - top - bottom - sum - gap * Math.max(0, kids.length - 1)
+  if (f.primaryAxisAlignItems === 'SPACE_BETWEEN') {
+    gap =
+      kids.length > 1 ? Math.max(0, (f.height - top - bottom - sum) / (kids.length - 1)) : 0
+  } else if (f.primaryAxisAlignItems === 'MAX') {
+    y += free
+  } else if (f.primaryAxisAlignItems === 'CENTER') {
+    y += free / 2
+  }
+  for (let i = 0; i < kids.length; i++) {
+    if (kids[i] === child) return y
+    y += heights[i] + gap
+  }
+  throw new Error('not in flow')
+}
+const posX = (n) => (n.parent && inFlow(n.parent, n) ? n.parent.paddingLeft || 0 : n.x || 0)
+const posY = (n) => (n.parent && inFlow(n.parent, n) ? flowOffsetY(n.parent, n) : n.y || 0)
+function absX(node) {
+  let x = 0
+  for (let n = node; n && n !== page; n = n.parent) x += posX(n)
+  return x
+}
+function absY(node) {
+  let y = 0
+  for (let n = node; n && n !== page; n = n.parent) y += posY(n)
+  return y
+}
+// The width a filling child gets: its auto layout parent's, inside the padding.
+const fillsParent = (n) =>
+  n.layoutSizingHorizontal === 'FILL' &&
+  n.parent &&
+  n.parent.layoutMode === 'VERTICAL' &&
+  n.layoutPositioning !== 'ABSOLUTE'
+const fillWidth = (n) =>
+  n.parent.width - (n.parent.paddingLeft || 0) - (n.parent.paddingRight || 0)
+
+// The lines a paragraph wraps to at a width, breaking between words as Figma
+// does, with the mock's advance of 0.6em per character. A word wider than the
+// line still takes a line of its own.
+function wrappedLines(text, fontSize, width) {
+  const advance = 0.6 * fontSize
+  let lines = 0
+  for (const paragraph of text.split('\n')) {
+    let used = 0
+    lines++
+    for (const word of paragraph.split(' ')) {
+      const w = word.length * advance
+      if (used > 0 && used + advance + w > width) {
+        lines++
+        used = w
+      } else {
+        used += (used > 0 ? advance : 0) + w
+      }
+    }
+  }
+  return lines
+}
+
+function hugHeight(f) {
+  const kids = f.children.filter((c) => inFlow(f, c))
+  const sum = kids.reduce((a, c) => a + c.height, 0)
+  return (
+    (f.paddingTop || 0) +
+    sum +
+    (f.itemSpacing || 0) * Math.max(0, kids.length - 1) +
+    (f.paddingBottom || 0)
+  )
+}
+function hugWidth(f) {
+  const kids = f.children.filter((c) => inFlow(f, c))
+  return (
+    (f.paddingLeft || 0) + Math.max(0, ...kids.map((c) => c.width)) + (f.paddingRight || 0)
+  )
+}
+
+// Local text styles, as figma.createTextStyle makes them.
+const textStyles = []
+function makeTextStyle() {
+  const t = {
+    id: 'S:' + ++idc,
+    type: 'TEXT',
+    name: '',
+    removed: false,
+    fontName: null,
+    fontSize: 12,
+    lineHeight: { unit: 'AUTO' },
+    letterSpacing: { value: 0, unit: 'PERCENT' },
+    textCase: 'ORIGINAL',
+    leadingTrim: 'NONE',
+    _data: {},
+    getPluginData(k) {
+      return this._data[k] || ''
+    },
+    setPluginData(k, v) {
+      if (v === '') delete this._data[k]
+      else this._data[k] = v
+    },
+    // As in Figma, removing a style leaves text that used it with its values but
+    // no link.
+    remove() {
+      this.removed = true
+      textStyles.splice(textStyles.indexOf(this), 1)
+      for (const n of nodes) if (n._textStyleId === this.id) n._textStyleId = ''
+    },
+  }
+  textStyles.push(t)
+  return t
+}
+
 let uiHandler = null
 const notices = []
 const nodes = []
@@ -59,37 +181,77 @@ function makeText() {
     textAlignVertical: null,
     textAutoResize: 'NONE',
     textCase: 'ORIGINAL',
+    // A linked text style. Under dynamic-page access the id is read-only and is
+    // set through setTextStyleIdAsync, as here.
+    _textStyleId: '',
+    get textStyleId() {
+      return this._textStyleId
+    },
+    set textStyleId(v) {
+      throw new Error('textStyleId is read-only with dynamic-page access')
+    },
+    async setTextStyleIdAsync(id) {
+      if (id && !textStyles.some((t) => t.id === id)) throw new Error('no such style ' + id)
+      this._textStyleId = id
+    },
     fills: [],
+    // Whole-node ranges only: the plugin never styles part of a text node.
+    setRangeFills(start, end, fills) {
+      if (start !== 0 || end !== this.characters.length) throw new Error('partial range')
+      this.fills = fills
+    },
     locked: false,
     x: 0,
     y: 0,
     _resized: null,
+    _data: {},
+    getPluginData(k) {
+      return this._data[k] || ''
+    },
+    setPluginData(k, v) {
+      if (v === '') delete this._data[k]
+      else this._data[k] = v
+    },
+    layoutSizingHorizontal: 'HUG',
+    // Filling wraps the text to the width it gets (see the height getter).
+    get _wraps() {
+      return this.textAutoResize === 'HEIGHT' && fillsParent(this)
+    },
     get width() {
       // Mock metrics: advance 60/100 units, bearings 8/100 (a plausible mono).
+      if (this._wraps) return fillWidth(this)
       if (this.textAutoResize === 'NONE' && this._resized) return this._resized[0]
       const longest = Math.max(...this.characters.split('\n').map((l) => l.length), 0)
       return (longest * 60 + 8) * (this.fontSize / 100)
     },
+    leadingTrim: 'NONE',
+    layoutPositioning: 'AUTO',
+    textTruncation: 'DISABLED',
+    maxLines: null,
     get height() {
-      const lines = this.characters.split('\n').length
+      const all = this._wraps
+        ? wrappedLines(this.characters, this.fontSize, this.width)
+        : this.characters.split('\n').length
+      // Clamped: past maxLines the text is cut off with an ellipsis.
+      const lines =
+        this.textTruncation === 'ENDING' && this.maxLines
+          ? Math.min(all, this.maxLines)
+          : all
       // AUTO -> the font's own (ascent+descent); Inter = 1.21em.
       const lh =
         this.lineHeight && this.lineHeight.value
           ? this.lineHeight.value
           : this.fontSize * 1.21
+      // Trimmed to cap height: the box runs from the first cap top to the
+      // last baseline.
+      if (this.leadingTrim === 'CAP_HEIGHT') return 0.72 * this.fontSize + (lines - 1) * lh
       return lines * lh
     },
     resize(w, h) {
       this._resized = [w, h]
     },
     get _absY() {
-      let y = this.y,
-        n = this.parent
-      while (n) {
-        y += n.y || 0
-        n = n.parent
-      }
-      return y
+      return absY(this)
     },
     // Mock font: asc+desc = 1.21em, ascent share 0.8, cap height 0.72em.
     get absoluteBoundingBox() {
@@ -101,8 +263,8 @@ function makeText() {
           ? this.lineHeight.value
           : this.fontSize * 1.21
       const emBox = 1.21 * this.fontSize
-      const base = (L - emBox) / 2 + emBox * 0.8
       const cap = 0.72 * this.fontSize
+      const base = this.leadingTrim === 'CAP_HEIGHT' ? cap : (L - emBox) / 2 + emBox * 0.8
       return {
         x: 0,
         y: this._absY + base - cap,
@@ -125,8 +287,31 @@ function makeFrame(w, h) {
     name: '',
     removed: false,
     parent: null,
-    width: w,
-    height: h,
+    _w: w,
+    _h: h,
+    layoutSizingHorizontal: 'FIXED',
+    get width() {
+      if (fillsParent(this)) return fillWidth(this)
+      return this.layoutMode === 'VERTICAL' && this.counterAxisSizingMode === 'AUTO'
+        ? hugWidth(this)
+        : this._w
+    },
+    get height() {
+      return this.layoutMode === 'VERTICAL' && this.primaryAxisSizingMode === 'AUTO'
+        ? hugHeight(this)
+        : this._h
+    },
+    layoutMode: 'NONE',
+    layoutPositioning: 'AUTO',
+    primaryAxisSizingMode: 'FIXED',
+    counterAxisSizingMode: 'FIXED',
+    primaryAxisAlignItems: 'MIN',
+    counterAxisAlignItems: 'MIN',
+    itemSpacing: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: 0,
+    paddingRight: 0,
     x: 100,
     y: 200,
     children: [],
@@ -170,9 +355,14 @@ function makeFrame(w, h) {
       })
       this._grids = v
     },
+    // As in Figma, resizing a hugging auto layout frame fixes its size.
     resize(nw, nh) {
-      this.width = nw
-      this.height = nh
+      this._w = nw
+      this._h = nh
+      if (this.layoutMode !== 'NONE') {
+        this.primaryAxisSizingMode = 'FIXED'
+        this.counterAxisSizingMode = 'FIXED'
+      }
     },
     clipsContent: true,
     visible: true,
@@ -183,6 +373,11 @@ function makeFrame(w, h) {
       if (c.parent) c.parent.children = c.parent.children.filter((x) => x !== c)
       c.parent = this
       this.children.push(c)
+    },
+    insertChild(i, c) {
+      if (c.parent) c.parent.children = c.parent.children.filter((x) => x !== c)
+      c.parent = this
+      this.children.splice(i, 0, c)
     },
     getPluginData(k) {
       return this._data[k] || ''
@@ -245,6 +440,8 @@ const figma = {
     notices.push({ msg, opts })
   },
   createText: makeText,
+  createTextStyle: makeTextStyle,
+  getLocalTextStylesAsync: async () => textStyles.slice(),
   createFrame: () => makeFrame(100, 100),
   createVector: () => {
     const v = {
@@ -260,6 +457,14 @@ const figma = {
       strokes: [],
       strokeWeight: 1,
       strokeAlign: 'CENTER',
+      _data: {},
+      getPluginData(k) {
+        return this._data[k] || ''
+      },
+      setPluginData(k, v) {
+        if (v === '') delete this._data[k]
+        else this._data[k] = v
+      },
       remove() {
         killNode(this)
       },
@@ -284,21 +489,24 @@ const figma = {
   mixed: Symbol('mixed'),
 }
 
-const ctx = vm.createContext({
-  figma,
-  console,
-  Math,
-  JSON,
-  Array,
-  Number,
-  String,
-  Object,
-  Symbol,
-  Promise,
-  Error,
-  __html__: '<html></html>',
-})
-vm.runInContext(code, ctx)
+// A fresh context per launch: running the bundle twice in one context would
+// redeclare its globals.
+const newContext = () =>
+  vm.createContext({
+    figma,
+    console,
+    Math,
+    JSON,
+    Array,
+    Number,
+    String,
+    Object,
+    Symbol,
+    Promise,
+    Error,
+    __html__: '<html></html>',
+  })
+vm.runInContext(code, newContext())
 
 // Mirrors SPECIMENS in main.ts, in order. Keep in step when one is added or
 // removed — several checks below are indexed off it.
@@ -308,6 +516,21 @@ const SPECIMEN_RATIOS = {
   'Sans 6%': 0.06,
   'Sans 12%': 0.12,
   'Sans 24%': 0.24,
+}
+
+// Specimen line heights, written independently of main.ts: thirds of a cell
+// under four cells (the shortest a third), whole cells from four up.
+const stepFor = (cells) => (cells < 4 ? 1 / 3 : 1)
+const specimenCells = (askedPx, cellH) => {
+  const exact = askedPx / cellH
+  const step = stepFor(exact)
+  return Math.max(1 / 3, Math.round(exact / step) * step)
+}
+// On the step for its length: no ½, ¼ or 4⅓ cells.
+const onCellStep = (lineHeight, cellH) => {
+  const cells = lineHeight / cellH
+  const step = stepFor(cells)
+  return Math.abs(cells / step - Math.round(cells / step)) < 1e-6
 }
 
 const P = {
@@ -331,11 +554,19 @@ const P = {
   cellDensity: 1,
   showLines: true,
   showSpecimens: true,
+  displayMode: 'Screen',
+  shownWidthPx: 400,
+  printWidthMm: 210,
+  viewingDistanceCm: 40,
+  snapFontPx: false,
   frameWidth: 1920,
   frameAspect: '16:9',
 }
 let fails = 0
 let checks = 0
+// Font sizes of one family's specimens, from the preview.
+const sizesOf = (pv, face) => pv.specimens.filter((x) => x.face === face).map((x) => x.size)
+
 const check = (name, cond, extra) => {
   checks++
   if (!cond) fails++
@@ -367,6 +598,37 @@ const apply = async (w, h, over = {}) => {
 }
 const layer = (fr, name) => fr.children.find((c) => c.name === name)
 
+// The specimen text nodes in a Type Specimens container, top to bottom: each
+// sits in a block inside the Mono or Sans stack.
+const specimens = (container) => {
+  const out = []
+  const walk = (n) =>
+    (n.children || []).forEach((c) => {
+      if (c.type === 'TEXT' && c.getPluginData('dualGridRole') === 'specimen') out.push(c)
+      else if (c.type === 'FRAME') walk(c)
+    })
+  walk(container)
+  return out
+}
+// The gridded frame a node is in: its ancestor on the page.
+const frameOf = (node) => {
+  let n = node
+  while (n.parent && n.parent !== page) n = n.parent
+  return n
+}
+// Where a specimen's baseline is, relative to its frame, from its ink bounds.
+const baselineOf = (n) => {
+  const ink = n.absoluteRenderBounds
+  return ink.y + ink.height - absY(frameOf(n))
+}
+// The top of a specimen's line box relative to its frame, as if its leading
+// were not trimmed: the baseline less the mock font's untrimmed offset.
+const lineTop = (n) => {
+  const emBox = 1.21 * n.fontSize
+  return baselineOf(n) - ((n.lineHeight.value - emBox) / 2 + emBox * 0.8)
+}
+const relX = (n) => absX(n) - absX(frameOf(n))
+
 console.log('=== create + basic wiring ===')
 page.selection = []
 await uiHandler({ type: 'action', action: 'create', params: P })
@@ -376,6 +638,26 @@ check(
   frame0.width === 1920 && frame0.height === 1080,
   frame0.width + 'x' + frame0.height,
 )
+check(
+  'the new frame gets an Oxide-style name: finish-metal',
+  /^[a-z]+-[a-z]+$/.test(frame0.name) && frame0.name !== 'Dual Grid Frame',
+  frame0.name,
+)
+{
+  // Drawn from the names not in use, so frames made in a row never repeat one.
+  const made = []
+  for (let i = 0; i < 30; i++) {
+    page.selection = []
+    await uiHandler({ type: 'action', action: 'create', params: P })
+    made.push(page.children[page.children.length - 1].name)
+  }
+  check(
+    '...and frames made in a row never share a name',
+    new Set(made).size === 30 && made.every((n) => /^[a-z]+-[a-z]+$/.test(n)),
+    made.slice(0, 6).join(', '),
+  )
+  made.forEach(() => page.children.pop().remove())
+}
 check('3 layout grids', frame0.layoutGrids.length === 3)
 check(
   'every grid has gutterSize',
@@ -1094,8 +1376,8 @@ for (const [ml, mr, pp, tol] of [
   const specs = layer(fr, 'Type Specimens')
   check(
     `  specimens sit on the left margin`,
-    specs.children.every((n) => Math.abs(n.x - pv.effectiveMargin) < 1e-6),
-    specs.children.map((n) => n.x).join(','),
+    specimens(specs).every((n) => Math.abs(relX(n) - pv.effectiveMargin) < 1e-6),
+    specimens(specs).map(relX).join(','),
   )
 }
 {
@@ -1301,10 +1583,12 @@ console.log('\n=== TYPE SPECIMENS ===')
   check('a "Type Specimens" container is created', !!spec && spec.parent === fr)
   check(
     'specimens are generated',
-    spec.children.length >= 2,
-    spec.children.map((c) => c.name).join(','),
+    specimens(spec).length >= 2,
+    specimens(spec)
+      .map((c) => c.name)
+      .join(','),
   )
-  const [mono, ...sans] = spec.children
+  const [mono, ...sans] = specimens(spec)
 
   console.log('--- mono ---')
   check(
@@ -1319,24 +1603,29 @@ console.log('\n=== TYPE SPECIMENS ===')
     JSON.stringify(mono.letterSpacing),
   )
   check(
-    'mono line height snaps to whole cells',
-    Math.abs(
-      mono.lineHeight.value / pv.cellH - Math.round(mono.lineHeight.value / pv.cellH),
-    ) < 1e-9,
+    'mono line height snaps to quarter cells (it is under one cell)',
+    onCellStep(mono.lineHeight.value, pv.cellH),
     (mono.lineHeight.value / pv.cellH).toFixed(4) + ' cells',
   )
   check(
     'mono line height ≈ 2% of the frame height (snapped)',
-    Math.abs(
-      mono.lineHeight.value - Math.max(1, Math.round((1080 * 0.02) / pv.cellH)) * pv.cellH,
-    ) < 1e-9,
+    Math.abs(mono.lineHeight.value - specimenCells(1080 * 0.02, pv.cellH) * pv.cellH) <
+      1e-9,
     mono.lineHeight.value.toFixed(2) + ' (2% of 1080 = 21.6)',
   )
   check(
-    'mono font size is a proportion of the line height',
-    Math.abs(mono.fontSize - mono.lineHeight.value * 0.62) < 1e-9 &&
-      mono.fontSize < mono.lineHeight.value,
+    'mono font size fills its snapped line height at 140%',
+    Math.abs(mono.fontSize - mono.lineHeight.value / 1.4) < 1e-9 &&
+      mono.fontSize <= mono.lineHeight.value,
     mono.fontSize.toFixed(2),
+  )
+
+  check(
+    'preview reports the font size of every generated specimen',
+    sizesOf(pv, 'mono').length === 1 &&
+      Math.abs(sizesOf(pv, 'mono')[0] - mono.fontSize) < 1e-9 &&
+      sans.every((n) => sizesOf(pv, 'sans').some((s) => Math.abs(s - n.fontSize) < 1e-9)),
+    JSON.stringify({ mono: sizesOf(pv, 'mono'), sans: sizesOf(pv, 'sans') }),
   )
 
   console.log('--- sans: 1x, 2x, 4x, 8x cell height ---')
@@ -1344,17 +1633,15 @@ console.log('\n=== TYPE SPECIMENS ===')
     .map((n) => [n, SPECIMEN_RATIOS[n.name]])
     .filter(([n, r]) => !!n && !!r)
     .forEach(([n, ratio]) => {
-      const want = Math.max(1, Math.round((1080 * ratio) / pv.cellH))
+      const want = specimenCells(1080 * ratio, pv.cellH)
       check(
         `sans ${ratio * 100}% -> ${want} cells of line height`,
         Math.abs(n.lineHeight.value - want * pv.cellH) < 1e-9,
         n.lineHeight.value.toFixed(2) + ' vs ' + (want * pv.cellH).toFixed(2),
       )
       check(
-        `sans ${ratio * 100}% line height is a whole number of cells`,
-        Math.abs(
-          n.lineHeight.value / pv.cellH - Math.round(n.lineHeight.value / pv.cellH),
-        ) < 1e-9,
+        `sans ${ratio * 100}% line height is on a cell step`,
+        onCellStep(n.lineHeight.value, pv.cellH),
       )
       check(
         `sans ${ratio * 100}% uses Suisse Int'l (or fallback)`,
@@ -1364,7 +1651,7 @@ console.log('\n=== TYPE SPECIMENS ===')
       check(`sans ${ratio * 100}% is not uppercased`, n.textCase === 'ORIGINAL')
       check(
         `sans ${ratio * 100}% font size is a proportion of its line box`,
-        n.fontSize < n.lineHeight.value * 1.01 && n.fontSize > 0,
+        n.fontSize <= n.lineHeight.value / 0.9 + 1e-9 && n.fontSize > 0,
         n.fontSize.toFixed(2) + ' of ' + n.lineHeight.value.toFixed(2),
       )
     })
@@ -1393,10 +1680,10 @@ console.log('\n=== TYPE SPECIMENS ===')
   )
 
   console.log('--- every specimen baseline lands on a cell line ---')
-  spec.children.forEach((n) => {
+  specimens(spec).forEach((n) => {
     const probeRatio = 1.21 // mock metrics
     const emBox = probeRatio * n.fontSize
-    const base = n.y + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
+    const base = lineTop(n) + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
     const steps = base / pv.cellH
     check(
       `${n.name} baseline on a cell line`,
@@ -1405,23 +1692,57 @@ console.log('\n=== TYPE SPECIMENS ===')
     )
     check(
       `${n.name} starts at the content edge (effective margin)`,
-      Math.abs(n.x - pv.effectiveMargin) < 1e-9,
-      n.x + ' vs ' + pv.effectiveMargin,
+      Math.abs(relX(n) - pv.effectiveMargin) < 1e-9,
+      relX(n) + ' vs ' + pv.effectiveMargin,
     )
     check(
       `${n.name} sits inside the frame vertically`,
-      n.y >= -1 && n.y + n.lineHeight.value <= 1080 + 1,
-      'y=' + n.y.toFixed(1) + ' bottom=' + (n.y + n.lineHeight.value).toFixed(1),
+      lineTop(n) >= -1 && lineTop(n) + n.lineHeight.value <= 1080 + 1,
+      'y=' +
+        lineTop(n).toFixed(1) +
+        ' bottom=' +
+        (lineTop(n) + n.lineHeight.value).toFixed(1),
     )
   })
   check(
     'specimens do not overlap (stacked by their own multiples)',
     (() => {
-      const ys = spec.children.map((n) => n.y)
+      const ys = specimens(spec).map((n) => lineTop(n))
       for (let i = 1; i < ys.length; i++) if (ys[i] <= ys[i - 1]) return false
       return true
     })(),
-    spec.children.map((n) => n.y.toFixed(0)).join(' < '),
+    specimens(spec)
+      .map((n) => lineTop(n).toFixed(0))
+      .join(' < '),
+  )
+}
+
+console.log('--- sans placeholders use the Oxide words ---')
+{
+  const { fr } = await apply(1920, 1080)
+  const text = (name) =>
+    specimens(layer(fr, 'Type Specimens')).find((n) => n.name === name).characters
+  const word = '[a-z]+'
+  check(
+    'a display size gets a metal',
+    new RegExp(`^[A-Z]${word}$`).test(text('Sans 24%')),
+    text('Sans 24%'),
+  )
+  check(
+    'a middle size gets a finish and a metal',
+    new RegExp(`^[A-Z]${word} ${word}$`).test(text('Sans 12%')),
+    text('Sans 12%'),
+  )
+  check(
+    'a small size gets a short run of them',
+    new RegExp(`^[A-Z]${word} ${word}, ${word} ${word} and ${word} ${word}$`).test(
+      text('Sans 6%'),
+    ),
+    text('Sans 6%'),
+  )
+  check(
+    'none mention percentages',
+    specimens(layer(fr, 'Type Specimens')).every((n) => !/percent|%/.test(n.characters)),
   )
 }
 
@@ -1444,8 +1765,7 @@ console.log('--- specimens toggle ---')
   check('showSpecimens:true shows them again', layer(fr, 'Type Specimens').visible === true)
   check(
     'specimen count stable after reapply',
-    layer(fr, 'Type Specimens').children.length ===
-      layer(fr, 'Type Specimens').children.length,
+    specimens(layer(fr, 'Type Specimens')).length === SPECIMEN_NAMES.length,
   )
   check(
     'still one container',
@@ -1453,12 +1773,357 @@ console.log('--- specimens toggle ---')
   )
 }
 
+console.log('--- line heights: thirds under four cells, then whole ---')
+{
+  // 45px cells: 1% to 30% of 1080 asks for 0.24 to 7.2 cells.
+  const seen = []
+  const lists = [
+    '1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5',
+    '5, 5.5, 6, 6.5, 7, 7.5, 8, 9',
+    '10, 11, 12, 13, 14, 15',
+    // Alone, so they fit the frame.
+    '20',
+    '30',
+  ]
+  for (const sansSizes of lists) {
+    const { fr, pv } = await apply(1920, 1080, { sansSizes })
+    for (const n of specimens(layer(fr, 'Type Specimens'))) {
+      if (/^Sans/.test(n.name)) seen.push(n.lineHeight.value / pv.cellH)
+    }
+  }
+  const bad = seen.filter((c) => !onCellStep(c, 1))
+  check(
+    'every line height is on the step for its length',
+    seen.length > 15 && bad.length === 0,
+    'bad: ' +
+      bad.map((c) => c.toFixed(2)).join(',') +
+      ' of ' +
+      [...new Set(seen.map((c) => c.toFixed(2)))].join(','),
+  )
+  check(
+    '...thirds below four cells, past one cell too, and whole cells from four',
+    seen.some((c) => c > 1 && c < 4 && Math.abs(c - Math.round(c)) > 1e-6) &&
+      seen.some((c) => c >= 4) &&
+      seen.every((c) => Math.abs(c * 3 - Math.round(c * 3)) < 1e-6),
+  )
+}
+
+console.log('--- sizes that snap to one line height share their type ---')
+{
+  // All round to two thirds of a cell (30px) on this 45px-cell grid: 0.6–0.72
+  // cells round to the nearest third, ⅔.
+  const sizes = ['2.5', '2.8', '3']
+  const runs = []
+  for (const m of sizes) {
+    const { fr, pv } = await apply(1920, 1080, { monoSizes: m, sansSizes: m })
+    const [mono, sans] = specimens(layer(fr, 'Type Specimens'))
+    runs.push({ m, cellH: pv.cellH, mono, sans })
+  }
+  const lh = (n) => n.lineHeight.value
+  check(
+    'these sizes share one line height',
+    runs.every((r) => lh(r.mono) === lh(runs[0].mono) && lh(r.sans) === lh(runs[0].sans)),
+    runs.map((r) => lh(r.mono) + '/' + lh(r.sans)).join(','),
+  )
+  check(
+    '...and so one font size, set at the leading for it',
+    runs.every(
+      (r) =>
+        r.mono.fontSize === runs[0].mono.fontSize &&
+        r.sans.fontSize === runs[0].sans.fontSize,
+    ),
+    runs
+      .map((r) => r.mono.fontSize.toFixed(2) + '/' + r.sans.fontSize.toFixed(2))
+      .join(','),
+  )
+  const { fr: up } = await apply(1920, 1080, { monoSizes: '4', sansSizes: '4' })
+  const [mono4] = specimens(layer(up, 'Type Specimens'))
+  check(
+    'a size a step up, from two thirds of a cell to one, is larger',
+    Math.abs(lh(mono4) - runs[0].cellH) < 1e-9 &&
+      Math.abs(lh(runs[0].mono) - (runs[0].cellH * 2) / 3) < 1e-9 &&
+      mono4.fontSize > runs[0].mono.fontSize,
+    lh(mono4) + ' / ' + mono4.fontSize.toFixed(2),
+  )
+}
+
+console.log('--- leading and tracking follow the design system at the size seen ---')
+{
+  const specimensWith = async (over) => {
+    const { fr } = await apply(1920, 1080, {
+      monoSizes: '2',
+      sansSizes: '6, 12, 24',
+      ...over,
+    })
+    const out = {}
+    for (const n of specimens(layer(fr, 'Type Specimens'))) out[n.name] = n
+    return out
+  }
+  const optical = (size) => (0.981 / size - 0.0401) * 100
+  // The design system's sans leading, fitted in log(size) and clamped to its
+  // range. Checked against its utilities first, so the fit is held to the
+  // source rather than just to itself.
+  const fitted = (px) => Math.max(0.9, Math.min(1.375, 1.9091 - 0.2118 * Math.log(px)))
+  const DS_SANS = [
+    [11, 1.35],
+    [12, 1.333],
+    [14, 1.286],
+    [16, 1.375],
+    [18, 1.333],
+    [20, 1.3],
+    [22, 1.3],
+    [25, 1.28],
+    [28, 1.2],
+    [36, 1.167],
+    [50, 1.1],
+    [52, 1.115],
+  ]
+  check(
+    'the fit is within 0.065 of every design-system sans utility below the hero',
+    DS_SANS.every(([px, lh]) => Math.abs(fitted(px) - lh) <= 0.065),
+    DS_SANS.map(([px, lh]) => px + ':' + (fitted(px) - lh).toFixed(3)).join(' '),
+  )
+  const near = (a, b) => Math.abs(a - b) < 1e-9
+  const close = (a, b) => Math.abs(a - b) < 1e-6
+  const sans = ['Sans 6%', 'Sans 12%', 'Sans 24%']
+
+  const base = await specimensWith({})
+  check(
+    'mono tracking is 4%, sans follows the optical curve',
+    base['Mono 2%'].letterSpacing.value === 4 &&
+      sans.every((k) => near(base[k].letterSpacing.value, optical(base[k].fontSize))),
+  )
+  // Shown 400px wide, a 1920px frame's sans sizes read as 13, 27 and 54px, all
+  // within the design system's own scale.
+  const k = 400 / 1920
+  const shown = await specimensWith({ displayMode: 'Custom', shownWidthPx: 400 })
+  check(
+    'sans fills its line box at the leading for the size it is seen',
+    sans.every((name) => {
+      const n = shown[name]
+      return (
+        close(n.fontSize * fitted(n.fontSize * k), n.lineHeight.value) &&
+        n.fontSize < n.lineHeight.value
+      )
+    }),
+    sans.map((name) => (shown[name].fontSize * k).toFixed(1) + 'px').join(', '),
+  )
+  check(
+    '...so smaller-seen type gets looser leading and a smaller size',
+    sans.every((name) => shown[name].fontSize < base[name].fontSize),
+  )
+  check(
+    "mono is set at the design system's 140%",
+    near(base['Mono 2%'].fontSize, base['Mono 2%'].lineHeight.value / 1.4),
+    base['Mono 2%'].fontSize.toFixed(2),
+  )
+  // On the frame's own screen the sans sizes are 60–300px, where the fit falls
+  // to its 0.9 floor: display type is set tighter than 1.0, as the design
+  // system's hero is, and each larger step is no looser than the one before.
+  const leadingOf = (n) => n.lineHeight.value / n.fontSize
+  check(
+    "display type tightens to the design system's 0.9",
+    close(leadingOf(base['Sans 24%']), 0.9) &&
+      sans.every(
+        (name, i) =>
+          i === 0 || leadingOf(base[name]) <= leadingOf(base[sans[i - 1]]) + 1e-9,
+      ) &&
+      leadingOf(base['Sans 6%']) > leadingOf(base['Sans 24%']),
+    sans.map((name) => leadingOf(base[name]).toFixed(3)).join(' > '),
+  )
+  // Seen tiny, leading tops out at the design system's loosest, 137.5%.
+  const tiny = await specimensWith({ displayMode: 'Custom', shownWidthPx: 20 })
+  check(
+    "leading stays within the design system's range",
+    close(tiny['Sans 6%'].fontSize, tiny['Sans 6%'].lineHeight.value / 1.375),
+    tiny['Sans 6%'].fontSize.toFixed(3),
+  )
+  const stale = await specimensWith({
+    sansLeadingMin: '2',
+    sansLeadingMax: '2',
+    sansScaleCurve: '0.42, 0, 1, 1',
+  })
+  check(
+    'leading settings a frame stored earlier are ignored',
+    sans.every((name) => near(stale[name].fontSize, base[name].fontSize)),
+  )
+}
+
+console.log(
+  '--- Display scale evaluates the optical curve at the size the type is seen ---',
+)
+{
+  const optical = (size) => (0.981 / size - 0.0401) * 100
+  const near = (a, b) => Math.abs(a - b) < 1e-9
+  // A 1080 square.
+  const post = async (over) => {
+    const { fr, pv } = await apply(1080, 1080, { sansSizes: '6, 12, 24', ...over })
+    const out = {}
+    for (const n of specimens(layer(fr, 'Type Specimens'))) out[n.name] = n
+    return { out, pv }
+  }
+  const sans = ['Sans 6%', 'Sans 12%', 'Sans 24%']
+  const follows = (out, k) =>
+    sans.every((name) =>
+      near(out[name].letterSpacing.value, optical(out[name].fontSize * k)),
+    )
+
+  const screen = await post({})
+  check('Screen evaluates the curve at the font size', follows(screen.out, 1))
+  check('Screen reports a scale of 1', screen.pv.displayScale === 1, screen.pv.displayScale)
+
+  const phone = await post({ displayMode: 'Custom', shownWidthPx: 400 })
+  check(
+    'Custom at 400px scales by 400 / frame width',
+    follows(phone.out, 400 / 1080) && near(phone.pv.displayScale, 400 / 1080),
+    phone.pv.displayScale,
+  )
+  check(
+    '...which opens up tracking, since the type is seen smaller',
+    sans.every(
+      (name) => phone.out[name].letterSpacing.value > screen.out[name].letterSpacing.value,
+    ),
+  )
+  check(
+    'the display scale leaves line heights alone',
+    sans.every(
+      (name) => phone.out[name].lineHeight.value === screen.out[name].lineHeight.value,
+    ),
+  )
+
+  const custom = await post({ displayMode: 'Custom', shownWidthPx: 720 })
+  check('Custom scales by shown width / frame width', follows(custom.out, 720 / 1080))
+  const badCustom = await post({ displayMode: 'Custom', shownWidthPx: 0 })
+  check('an unusable shown width falls back to 400px', follows(badCustom.out, 400 / 1080))
+
+  // 2750 laptop px per radian: 594mm seen from 3m appears 544.5px wide.
+  const poster = await post({
+    displayMode: 'Print',
+    printWidthMm: 594,
+    viewingDistanceCm: 300,
+  })
+  check(
+    'Print scales by 2750 × width / distance / frame width',
+    follows(poster.out, (2750 * 594) / 3000 / 1080) &&
+      near(poster.pv.displayScale, (2750 * 594) / 3000 / 1080),
+    poster.pv.displayScale,
+  )
+  const badPrint = await post({
+    displayMode: 'Print',
+    printWidthMm: -1,
+    viewingDistanceCm: 0,
+  })
+  check(
+    'unusable print values fall back to A4 at 40cm',
+    follows(badPrint.out, (2750 * 210) / 400 / 1080),
+  )
+
+  const unknown = await post({ displayMode: 'Billboard' })
+  check('an unknown display mode is treated as Screen', follows(unknown.out, 1))
+  check(
+    'Custom defaults to 400px',
+    follows((await post({ displayMode: 'Custom' })).out, 400 / 1080),
+  )
+
+  check(
+    'the preview reports each specimen as set',
+    screen.pv.specimens.length === 4 &&
+      screen.pv.specimens.every((x) => {
+        const n = screen.out[(x.face === 'mono' ? 'Mono ' : 'Sans ') + x.pct + '%']
+        return (
+          !!n &&
+          near(x.size, n.fontSize) &&
+          near(x.leading, n.lineHeight.value / n.fontSize) &&
+          near(x.tracking, n.letterSpacing.value) &&
+          typeof x.cells === 'number'
+        )
+      }),
+    JSON.stringify(screen.pv.specimens),
+  )
+  check(
+    '...including the tracking the display scale gives',
+    phone.pv.specimens
+      .filter((x) => x.face === 'sans')
+      .every((x) => near(x.tracking, optical(x.size * (400 / 1080)))),
+  )
+  check(
+    'mono tracking ignores the display scale',
+    phone.out['Mono 2%'].letterSpacing.value === 4,
+  )
+}
+
+console.log('--- Snap font rounds font sizes, not line heights ---')
+{
+  const { fr } = await apply(1920, 1080)
+  page.selection = [fr]
+  const before = specimens(layer(fr, 'Type Specimens')).map((n) => ({
+    name: n.name,
+    fontSize: n.fontSize,
+    lineHeight: n.lineHeight.value,
+  }))
+  check(
+    'off: some font sizes are fractional',
+    before.some((n) => !Number.isInteger(n.fontSize)),
+    before.map((n) => n.fontSize).join(','),
+  )
+  await uiHandler({
+    type: 'params-changed',
+    params: { ...P, snapFontPx: true },
+    reapply: true,
+  })
+  const after = specimens(layer(fr, 'Type Specimens'))
+  check(
+    'on: every font size is the nearest whole pixel',
+    after.every((n) => {
+      const b = before.find((x) => x.name === n.name)
+      const want = Math.round(b.fontSize)
+      return b && Number.isInteger(n.fontSize) && n.fontSize === want
+    }),
+    after.map((n) => n.fontSize).join(','),
+  )
+  check(
+    'on: line heights are unchanged',
+    after.every((n) => {
+      const b = before.find((x) => x.name === n.name)
+      return b && n.lineHeight.value === b.lineHeight
+    }),
+  )
+  const pv = figma.ui._last.preview
+  check(
+    'on: preview reports the rounded sizes',
+    sizesOf(pv, 'mono').concat(sizesOf(pv, 'sans')).every(Number.isInteger) &&
+      after.every((n) =>
+        sizesOf(pv, 'mono').concat(sizesOf(pv, 'sans')).includes(n.fontSize),
+      ),
+    JSON.stringify({ mono: sizesOf(pv, 'mono'), sans: sizesOf(pv, 'sans') }),
+  )
+  check('same specimen layers reused', after.length === before.length)
+
+  // 2.5% of 1080 is 27px, 0.6 cells, which snaps to two thirds of a cell
+  // (30px). Seen ten times larger, its leading is the design system's
+  // tightest, 0.9: 33px type in a 30px line, which a single line allows.
+  const { fr: tightFr } = await apply(1920, 1080, {
+    sansSizes: '2.5',
+    displayMode: 'Custom',
+    shownWidthPx: 19200,
+    snapFontPx: true,
+  })
+  const tight = specimens(layer(tightFr, 'Type Specimens')).find(
+    (n) => n.name === 'Sans 2.5%',
+  )
+  check(
+    'on: type tighter than its line still rounds to the nearest pixel',
+    !!tight && tight.fontSize === 33 && Math.abs(tight.lineHeight.value - 30) < 1e-9,
+    tight && tight.fontSize + ' in ' + tight.lineHeight.value,
+  )
+}
+
 console.log('--- specimens scale with the cell size ---')
 {
   const a = await apply(1920, 1080, { gutterPx: 24, cellDensity: 1 })
   const b = await apply(1920, 1080, { gutterPx: 24, cellDensity: 2 })
-  const sa = layer(a.fr, 'Type Specimens').children[1].fontSize
-  const sb = layer(b.fr, 'Type Specimens').children[1].fontSize
+  const sa = specimens(layer(a.fr, 'Type Specimens'))[1].fontSize
+  const sb = specimens(layer(b.fr, 'Type Specimens'))[1].fontSize
   // Sized from the frame now, so a finer cell no longer shrinks the type — it just
   // snaps to a different number of (smaller) cells.
   check(
@@ -1472,17 +2137,21 @@ console.log('\n=== specimens stay inside the frame ===')
 {
   const { fr } = await apply(1920, 1080)
   const spec = layer(fr, 'Type Specimens')
-  const last = spec.children[spec.children.length - 1]
+  const last = specimens(spec)[specimens(spec).length - 1]
   check(
     'the largest included specimen fits inside the frame',
-    last.y + last.lineHeight.value <= 1080 + 1,
-    'bottom=' + (last.y + last.lineHeight.value).toFixed(1) + ' of 1080',
+    lineTop(last) + last.lineHeight.value <= 1080 + 1,
+    'bottom=' + (lineTop(last) + last.lineHeight.value).toFixed(1) + ' of 1080',
   )
   check(
     'whole stack fits',
-    spec.children.every((n) => n.y >= -1 && n.y + n.lineHeight.value <= 1081),
-    spec.children
-      .map((n) => Math.round(n.y) + '-' + Math.round(n.y + n.lineHeight.value))
+    specimens(spec).every(
+      (n) => lineTop(n) >= -1 && lineTop(n) + n.lineHeight.value <= 1081,
+    ),
+    specimens(spec)
+      .map(
+        (n) => Math.round(lineTop(n)) + '-' + Math.round(lineTop(n) + n.lineHeight.value),
+      )
       .join(' '),
   )
 }
@@ -1547,15 +2216,350 @@ console.log('\n=== DRAWN LINES scale with cell density too ===')
   )
 }
 
+console.log('\n=== specimens are laid out with auto layout ===')
+{
+  const { fr, pv } = await apply(1920, 1080)
+  const spec = layer(fr, 'Type Specimens')
+  const role = (n) => n.getPluginData('dualGridRole')
+  check(
+    'the container is a fixed vertical column, stacks pushed to the ends',
+    spec.layoutMode === 'VERTICAL' &&
+      spec.primaryAxisSizingMode === 'FIXED' &&
+      spec.primaryAxisAlignItems === 'SPACE_BETWEEN' &&
+      spec.width === 1920 &&
+      spec.height === 1080,
+    [spec.layoutMode, spec.primaryAxisSizingMode, spec.primaryAxisAlignItems].join(','),
+  )
+  const [monoStack, sansStack] = spec.children
+  check(
+    'it holds a Mono and a Sans stack, in that order',
+    spec.children.length === 2 &&
+      monoStack.name === 'Mono' &&
+      sansStack.name === 'Sans' &&
+      [monoStack, sansStack].every(
+        (st) => role(st) === 'specimenStack' && st.primaryAxisSizingMode === 'AUTO',
+      ),
+    spec.children.map((c) => c.name).join(','),
+  )
+  const blocks = [...monoStack.children, ...sansStack.children]
+  check(
+    'each specimen is in its own hugging block',
+    blocks.length === 4 &&
+      blocks.every(
+        (b) =>
+          role(b) === 'specimenBlock' &&
+          b.layoutMode === 'VERTICAL' &&
+          b.primaryAxisSizingMode === 'AUTO' &&
+          b.children.length === 1 &&
+          b.children[0].leadingTrim === 'CAP_HEIGHT',
+      ),
+    blocks.map((b) => b.name).join(','),
+  )
+  const whole = (px) => Math.abs(px / pv.cellH - Math.round(px / pv.cellH)) < 1e-6
+  check(
+    'every block is a whole number of cells tall',
+    blocks.every((b) => whole(b.height)),
+    blocks.map((b) => (b.height / pv.cellH).toFixed(3)).join(','),
+  )
+  check(
+    "...and each specimen's first baseline is whole cells below its block's top",
+    blocks.every((b) => {
+      const n = b.children[0]
+      return whole(baselineOf(n) + absY(frameOf(n)) - absY(b))
+    }),
+  )
+  check(
+    'the stacks start and end on cell lines',
+    whole(absY(monoStack) - absY(fr) - pv.rowOffset) &&
+      whole(absY(sansStack) + sansStack.height - absY(fr) - pv.rowOffset),
+  )
+
+  // A second line typed into a specimen grows its block by a line height,
+  // which is a cell step, so the baselines around it stay on cell lines.
+  page.selection = [fr]
+  const twelve = specimens(spec).find((n) => n.name === 'Sans 12%')
+  twelve.characters = 'Two\nlines'
+  await uiHandler({ type: 'params-changed', reapply: true, params: P })
+  const onLine = (n) => {
+    const c = (baselineOf(n) - pv.rowOffset) / pv.cellH
+    return Math.abs(c - Math.round(c)) < 1e-6
+  }
+  check(
+    'a two-line specimen keeps every baseline on a cell line',
+    specimens(spec).every(onLine),
+    specimens(spec)
+      .map((n) => ((baselineOf(n) - pv.rowOffset) / pv.cellH).toFixed(3))
+      .join(','),
+  )
+  check(
+    '...and its text survives',
+    twelve.characters === 'Two\nlines' && specimens(spec).includes(twelve),
+  )
+
+  // Specimens fill the content width between the grid's margins and wrap there.
+  const contentLeft = pv.effectiveMargin
+  const contentRight = 1920 - pv.effectiveMarginRight
+  check(
+    'specimens fill the width between the margins',
+    specimens(spec).every(
+      (n) =>
+        Math.abs(relX(n) - contentLeft) < 1e-6 &&
+        Math.abs(relX(n) + n.width - contentRight) < 1e-6,
+    ),
+    specimens(spec)
+      .map((n) => relX(n).toFixed(0) + '–' + (relX(n) + n.width).toFixed(0))
+      .join(', ') +
+      ' vs ' +
+      contentLeft.toFixed(0) +
+      '–' +
+      contentRight.toFixed(0),
+  )
+  const wide = specimens(spec).find((n) => n.name === 'Sans 24%')
+  wide.characters = 'Anodized cobalt, brushed titanium and tempered zirconium'
+  await uiHandler({ type: 'params-changed', reapply: true, params: P })
+  const wideLines =
+    Math.round((wide.height - 0.72 * wide.fontSize) / wide.lineHeight.value) + 1
+  check(
+    'text too long for the width is held to one line, ending in an ellipsis',
+    wideLines === 1 &&
+      wide.textTruncation === 'ENDING' &&
+      wide.maxLines === 1 &&
+      relX(wide) + wide.width <= contentRight + 1e-6,
+    wideLines + ' lines',
+  )
+  wide.characters = 'Typed\nover two lines'
+  await uiHandler({ type: 'params-changed', reapply: true, params: P })
+  check(
+    '...as is text typed onto a second line',
+    Math.abs(wide.height - 0.72 * wide.fontSize) < 1e-6,
+  )
+  check(
+    'its block stays whole cells',
+    whole(wide.parent.height),
+    (wide.parent.height / pv.cellH).toFixed(3) + ' cells',
+  )
+  check(
+    '...so every baseline stays on a cell line',
+    specimens(spec).every(onLine),
+    specimens(spec)
+      .map((n) => ((baselineOf(n) - pv.rowOffset) / pv.cellH).toFixed(3))
+      .join(','),
+  )
+
+  // Anything the user adds keeps its position instead of joining the column.
+  const note = makeText()
+  note.name = 'My note'
+  note.y = 300
+  spec.appendChild(note)
+  await uiHandler({ type: 'params-changed', reapply: true, params: P })
+  check(
+    "a user's layer in the container is positioned absolutely",
+    note.layoutPositioning === 'ABSOLUTE' && !note.removed && absY(note) - absY(fr) === 300,
+  )
+}
+
+console.log('--- a frame from the previous layout is converted in place ---')
+{
+  const { fr } = await apply(1920, 1080)
+  const spec = layer(fr, 'Type Specimens')
+  // The previous version put the texts straight into a plain container.
+  const texts = specimens(spec)
+  texts.forEach((t) => spec.appendChild(t))
+  spec.children.slice().forEach((c) => {
+    if (c.type === 'FRAME') c.remove()
+  })
+  spec.layoutMode = 'NONE'
+  texts[1].characters = 'Kept'
+  page.selection = [fr]
+  await uiHandler({ type: 'params-changed', reapply: true, params: P })
+  const after = specimens(spec)
+  check(
+    'the old text nodes move into blocks rather than being replaced',
+    after.length === texts.length && after.every((n, i) => n === texts[i]),
+    after.map((n) => n.id).join(',') + ' vs ' + texts.map((n) => n.id).join(','),
+  )
+  check(
+    '...keeping their text',
+    after[1].characters === 'Kept' &&
+      spec.children.every((c) => c.getPluginData('dualGridRole') === 'specimenStack'),
+  )
+}
+
+console.log('\n=== text styles ===')
+{
+  const reapplyTo = async (fr, over) => {
+    page.selection = [fr]
+    await uiHandler({ type: 'params-changed', reapply: true, params: { ...P, ...over } })
+  }
+  const ownStyles = (fr) =>
+    textStyles.filter((t) => t.getPluginData('dualGridFrame') === fr.id)
+  const styleOf = (n) => textStyles.find((t) => t.id === n.textStyleId)
+
+  const before = textStyles.length
+  const { fr } = await apply(1920, 1080)
+  fr.name = 'Poster'
+  check('off by default: no styles are made', textStyles.length === before)
+
+  await reapplyTo(fr, { textStyles: true })
+  const texts = () => specimens(layer(fr, 'Type Specimens'))
+  check(
+    'turning it on makes one style per specimen, and links each',
+    ownStyles(fr).length === texts().length &&
+      texts().every((n) => styleOf(n) && ownStyles(fr).includes(styleOf(n))),
+    ownStyles(fr).length + ' styles for ' + texts().length + ' specimens',
+  )
+  check(
+    'each is named after the frame, family and size: md in the middle',
+    texts()
+      .map((n) => styleOf(n).name)
+      .join() === 'Poster/mono/md,Poster/sans/sm,Poster/sans/md,Poster/sans/lg',
+    ownStyles(fr)
+      .map((t) => t.name)
+      .join(', '),
+  )
+  const same = (n) => {
+    const t = styleOf(n)
+    return (
+      t.fontName.family === n.fontName.family &&
+      t.fontName.style === n.fontName.style &&
+      t.fontSize === n.fontSize &&
+      t.lineHeight.value === n.lineHeight.value &&
+      t.letterSpacing.value === n.letterSpacing.value &&
+      t.textCase === n.textCase &&
+      t.leadingTrim === 'CAP_HEIGHT'
+    )
+  }
+  check("...holding the specimen's type", texts().every(same))
+
+  // Labels run out from md as far as the steps need.
+  const labelsFor = async (sansSizes) => {
+    await reapplyTo(fr, { textStyles: true, sansSizes })
+    return texts()
+      .filter((n) => /^Sans/.test(n.name))
+      .map((n) => styleOf(n).name.split('/').pop())
+      .join(' ')
+  }
+  const eight = await labelsFor('2, 3, 4, 6, 8, 11, 16, 22')
+  check('eight steps run from 2xs to 3xl', eight === '2xs xs sm md lg xl 2xl 3xl', eight)
+  const two = await labelsFor('6, 24')
+  check('two steps are md and lg', two === 'md lg', two)
+  const one = await labelsFor('12')
+  check('one step is md', one === 'md', one)
+  const sizesMoved = await labelsFor('7, 14, 28')
+  check('moving the sizes keeps the names', sizesMoved === 'sm md lg', sizesMoved)
+  await reapplyTo(fr, { textStyles: true, sansSizes: '6, 12, 24' })
+
+  const ids = ownStyles(fr).map((t) => t.id)
+  fr.resize(1920, 1440)
+  fr.name = 'Poster large'
+  await reapplyTo(fr, { textStyles: true, frameAspect: 'Custom' })
+  check(
+    'reapplying updates the same styles in place',
+    ownStyles(fr)
+      .map((t) => t.id)
+      .join() === ids.join() && texts().every(same),
+  )
+  check(
+    '...and renames them when the frame is renamed',
+    ownStyles(fr).every((t) => t.name.startsWith('Poster large/')),
+  )
+
+  await reapplyTo(fr, { textStyles: true, sansSizes: '6, 12' })
+  check(
+    'a specimen that goes away takes its style with it',
+    ownStyles(fr).length === texts().length && texts().every(same),
+    ownStyles(fr).length + ' styles for ' + texts().length + ' specimens',
+  )
+
+  // Copy the frame the way Figma does: same plugin data, fresh layers.
+  const copy = makeFrame(1920, 1440)
+  copy.name = 'Copy'
+  page.appendChild(copy)
+  copy.setPluginData('dualGrid', fr.getPluginData('dualGrid'))
+  const origStyles = ownStyles(fr).map((t) => [t.id, t.fontSize, t.name].join())
+  page.selection = [copy]
+  await uiHandler({ type: 'action', action: 'apply', params: { ...P, textStyles: true } })
+  check(
+    "a copied frame makes its own styles, leaving the original's alone",
+    ownStyles(copy).length === specimens(layer(copy, 'Type Specimens')).length &&
+      ownStyles(copy).every((t) => t.name.startsWith('Copy/')) &&
+      ownStyles(fr)
+        .map((t) => [t.id, t.fontSize, t.name].join())
+        .join() === origStyles.join(),
+  )
+
+  // Figma's duplicate keeps the copy's text linked to the original's styles.
+  // Linking the copy's specimens back to them stands in for that.
+  const linkToOriginal = async () => {
+    const theirs = specimens(layer(fr, 'Type Specimens'))
+    const mine = specimens(layer(copy, 'Type Specimens'))
+    for (let i = 0; i < mine.length; i++) {
+      await mine[i].setTextStyleIdAsync(theirs[i % theirs.length].textStyleId)
+    }
+  }
+  const originalNow = () =>
+    ownStyles(fr)
+      .map((t) => [t.id, t.fontSize, t.name].join())
+      .join()
+  await linkToOriginal()
+  const origBefore = originalNow()
+  page.selection = [copy]
+  await uiHandler({
+    type: 'params-changed',
+    reapply: true,
+    params: { ...P, textStyles: true, sansSizes: '8, 16' },
+  })
+  check(
+    "editing a duplicate relinks its specimens to its own styles, the original's untouched",
+    specimens(layer(copy, 'Type Specimens')).every((n) =>
+      ownStyles(copy).some((t) => t.id === n.textStyleId),
+    ) && originalNow() === origBefore,
+  )
+  await linkToOriginal()
+  await uiHandler({
+    type: 'params-changed',
+    reapply: true,
+    params: { ...P, textStyles: false, sansSizes: '8, 16' },
+  })
+  check(
+    "...and with styles off, unlinks them from the original's",
+    specimens(layer(copy, 'Type Specimens')).every((n) => n.textStyleId === '') &&
+      originalNow() === origBefore,
+    specimens(layer(copy, 'Type Specimens'))
+      .map((n) => n.textStyleId || '-')
+      .join(','),
+  )
+  // A style the user applied themselves is theirs to keep.
+  const theirs = makeTextStyle()
+  const firstCopy = specimens(layer(copy, 'Type Specimens'))[0]
+  await firstCopy.setTextStyleIdAsync(theirs.id)
+  await uiHandler({
+    type: 'params-changed',
+    reapply: true,
+    params: { ...P, textStyles: false, sansSizes: '8, 16' },
+  })
+  check(
+    "a user's own style on a specimen is left linked",
+    firstCopy.textStyleId === theirs.id,
+  )
+
+  const kept = ownStyles(fr).length
+  await reapplyTo(fr, { textStyles: false, sansSizes: '6, 12' })
+  check(
+    'turning it off unlinks the specimens and keeps the styles',
+    texts().every((n) => n.textStyleId === '') && ownStyles(fr).length === kept,
+  )
+}
+
 console.log('\n=== SPECIMEN baselines measured exactly (not estimated) ===')
 {
   const { fr, pv } = await apply(1920, 1080)
   const spec = layer(fr, 'Type Specimens')
-  spec.children.forEach((n) => {
+  specimens(spec).forEach((n) => {
     // Recover the baseline the same way Figma would report it.
     const L = n.lineHeight.value,
       emBox = 1.21 * n.fontSize
-    const base = n.y + (L - emBox) / 2 + emBox * 0.8
+    const base = lineTop(n) + (L - emBox) / 2 + emBox * 0.8
     const steps = (base - pv.rowOffset) / pv.cellH
     check(
       `${n.name} baseline sits exactly on a grid row line`,
@@ -1569,10 +2573,10 @@ console.log('--- baseline alignment holds at every cell density ---')
 for (const d of [1, 2, 3]) {
   const { fr, pv } = await apply(1920, 1080, { cellDensity: d })
   const spec = layer(fr, 'Type Specimens')
-  const ok = spec.children.every((n) => {
+  const ok = specimens(spec).every((n) => {
     const L = n.lineHeight.value,
       emBox = 1.21 * n.fontSize
-    const base = n.y + (L - emBox) / 2 + emBox * 0.8
+    const base = lineTop(n) + (L - emBox) / 2 + emBox * 0.8
     const steps = (base - pv.rowOffset) / (pv.cellH / d) // finer grid lines
     return Math.abs(steps - Math.round(steps)) < 1e-6
   })
@@ -1985,7 +2989,7 @@ console.log('\n=== new defaults ===')
   )
 }
 
-console.log('\n=== the palette is literal, and survives live reapplies ===')
+console.log('\n=== without the library, the palette falls back to hex ===')
 {
   const fr = makeFrame(1920, 1080)
   page.appendChild(fr)
@@ -2022,11 +3026,11 @@ console.log('\n=== the palette is literal, and survives live reapplies ===')
   check('the char grid is grey', rgb(chars()) === '#333333', rgb(chars()))
   check(
     'the specimens are white',
-    layer(fr, 'Type Specimens').children.every((n) => rgb(n) === '#ffffff'),
-    layer(fr, 'Type Specimens').children.map(rgb).join(','),
+    specimens(layer(fr, 'Type Specimens')).every((n) => rgb(n) === '#ffffff'),
+    specimens(layer(fr, 'Type Specimens')).map(rgb).join(','),
   )
   check('the cell lines are grey', stroke() === '#666666', stroke())
-  check('nothing carries a variable binding any more', !chars().fills[0].boundVariables)
+  check('nothing is bound without the library', !chars().fills[0].boundVariables)
 
   for (let i = 0; i < 5; i++) {
     await uiHandler({
@@ -2045,6 +3049,106 @@ console.log('\n=== the palette is literal, and survives live reapplies ===')
   await uiHandler({ type: 'action', action: 'create', params: P })
   const made = page.children[page.children.length - 1]
   check('a created frame is black', rgb(made) === '#000000', rgb(made))
+}
+
+console.log('\n=== with the library, the palette binds to swatches ===')
+{
+  // One library collection named `base`, holding the swatches by their short
+  // names, plus a same-named FLOAT to check only COLOR variables match.
+  const libVars = ['neutral/100', 'neutral/400', 'neutral/500', 'green/1200'].map(
+    (name) => ({ name, key: 'key:' + name, resolvedType: 'COLOR' }),
+  )
+  libVars.unshift({ name: 'neutral/400', key: 'key:float', resolvedType: 'FLOAT' })
+  // Distinct from every hex fallback, so a paint carrying the fallback shows up.
+  const swatchValue = { r: 0.25, g: 0.5, b: 0.75, a: 1 }
+  let listings = 0
+  figma.teamLibrary = {
+    async getAvailableLibraryVariableCollectionsAsync() {
+      listings++
+      return [{ key: 'col:base', name: 'base' }]
+    },
+    async getVariablesInLibraryCollectionAsync(key) {
+      return key === 'col:base' ? libVars : []
+    },
+  }
+  figma.variables = {
+    async importVariableByKeyAsync(key) {
+      return {
+        id: 'var:' + key,
+        key,
+        resolveForConsumer: () => ({ value: swatchValue, resolvedType: 'COLOR' }),
+      }
+    },
+    setBoundVariableForPaint(paint, field, variable) {
+      return {
+        ...paint,
+        boundVariables: { [field]: { type: 'VARIABLE_ALIAS', id: variable.id } },
+      }
+    },
+  }
+  // Relaunch so the session's swatch cache starts empty.
+  vm.runInContext(code, newContext())
+
+  const fr = makeFrame(1920, 1080)
+  page.appendChild(fr)
+  page.selection = [fr]
+  await uiHandler({ type: 'action', action: 'apply', params: P })
+  const bound = (paint) => paint && paint.boundVariables && paint.boundVariables.color.id
+  const chars = () => fr.children.find((c) => c.name === 'Char Grid')
+  const stroke = () => layer(fr, 'Grid Lines').children[0].strokes[0]
+
+  check(
+    'the cell lines are neutral/400',
+    bound(stroke()) === 'var:key:neutral/400',
+    bound(stroke()),
+  )
+  check(
+    'the char grid is neutral/500',
+    bound(chars().fills[0]) === 'var:key:neutral/500',
+    bound(chars().fills[0]),
+  )
+  const texts = specimens(layer(fr, 'Type Specimens'))
+  check(
+    'the specimens are green/1200',
+    texts.length > 0 && texts.every((n) => bound(n.fills[0]) === 'var:key:green/1200'),
+    texts.map((n) => bound(n.fills[0])).join(','),
+  )
+
+  for (let i = 0; i < 5; i++) {
+    await uiHandler({
+      type: 'params-changed',
+      reapply: true,
+      params: { ...P, marginCells: 2 + i },
+    })
+  }
+  check(
+    'still bound after five live reapplies',
+    bound(chars().fills[0]) === 'var:key:neutral/500' &&
+      bound(stroke()) === 'var:key:neutral/400',
+  )
+  check('the library is listed once per session', listings === 1, listings)
+  // Figma renders a text range's literal colour when it's re-set to a binding
+  // it already has, so the literal must be the variable's value, not a fallback.
+  const literal = (paint) => paint.color.r === 0.25 && paint.color.b === 0.75
+  check(
+    "after reapplies, every paint's literal colour is the swatch's value",
+    literal(chars().fills[0]) &&
+      literal(stroke()) &&
+      specimens(layer(fr, 'Type Specimens')).every((n) => literal(n.fills[0])),
+  )
+
+  page.selection = []
+  await uiHandler({ type: 'action', action: 'create', params: P })
+  const made = page.children[page.children.length - 1]
+  check(
+    'a created frame is neutral/100',
+    bound(made.fills[0]) === 'var:key:neutral/100',
+    bound(made.fills[0]),
+  )
+
+  delete figma.teamLibrary
+  delete figma.variables
+  vm.runInContext(code, newContext())
 }
 
 console.log('\n=== a custom frame aspect ===')
@@ -2129,7 +3233,8 @@ console.log('\n=== duplicated layers are reconciled, not multiplied ===')
     )
   }
 
-  // 2. Stray duplicates left in the frame by whatever means.
+  // 2. The user's own layers that happen to share a generated name. The plugin
+  //    marks its layers, so these are neither reused nor deleted.
   {
     const fr = makeFrame(1920, 1080)
     page.appendChild(fr)
@@ -2142,14 +3247,25 @@ console.log('\n=== duplicated layers are reconciled, not multiplied ===')
     strayFrame.name = 'Type Specimens'
     fr.appendChild(strayFrame)
     await uiHandler({ type: 'action', action: 'apply', params: P })
+    const own = (n) =>
+      fr.children.filter((c) => c.name === n && c.getPluginData('dualGridRole') !== '')
     check(
-      'strays of the same name are cleared on the next apply',
-      allSingle(fr),
-      names.map((n) => n + ':' + countOf(fr, n)).join(' '),
+      "a user's same-named layers survive the next apply",
+      !stray.removed && !strayFrame.removed,
     )
     check(
-      '...and the surviving char grid is the real one',
-      fr.children.find((c) => c.name === 'Char Grid').characters.length > 100,
+      '...and the plugin still has exactly one of each of its own',
+      names.every((n) => own(n).length === 1),
+      names.map((n) => n + ':' + own(n).length).join(' '),
+    )
+    check(
+      '...and the char grid it updates is its own, not the stray',
+      own('Char Grid')[0].characters.length > 100 && stray.characters === '',
+    )
+    await uiHandler({ type: 'action', action: 'remove', params: P })
+    check(
+      'Remove grids keeps them too',
+      !stray.removed && !strayFrame.removed && names.every((n) => own(n).length === 0),
     )
   }
 
@@ -2242,7 +3358,7 @@ console.log('\n=== selecting a child keeps the panel bound to its frame ===')
 
   for (const [label, node] of [
     ['the char grid', chars],
-    ['a specimen', spec.children[0]],
+    ['a specimen', specimens(spec)[0]],
     ['your own layer', art],
   ]) {
     page.selection = [node]
@@ -2328,10 +3444,10 @@ console.log('\n=== a live reapply updates in place, it does not recreate ===')
   const spec = () => layer(fr, 'Type Specimens')
   const chars = () => fr.children.find((c) => c.name === 'Char Grid')
 
-  const idsBefore = spec().children.map((n) => n.id)
+  const idsBefore = specimens(spec()).map((n) => n.id)
   const charIdBefore = chars().id
   // Type over a specimen and the char grid, as you would to try the real copy.
-  spec().children[0].characters = 'HAND EDITED'
+  specimens(spec())[0].characters = 'HAND EDITED'
   const gridTextBefore = chars().characters
 
   // A reapply that changes the metrics but not the grid's shape.
@@ -2343,30 +3459,29 @@ console.log('\n=== a live reapply updates in place, it does not recreate ===')
 
   check(
     'specimen nodes are reused, not replaced',
-    spec()
-      .children.map((n) => n.id)
+    specimens(spec())
+      .map((n) => n.id)
       .join(',') === idsBefore.join(','),
     idsBefore.join(',') +
       ' -> ' +
-      spec()
-        .children.map((n) => n.id)
+      specimens(spec())
+        .map((n) => n.id)
         .join(','),
   )
   check('the char grid node is reused too', chars().id === charIdBefore)
   check(
     'edited specimen text survives the reapply',
-    spec().children[0].characters === 'HAND EDITED',
-    spec().children[0].characters,
+    specimens(spec())[0].characters === 'HAND EDITED',
+    specimens(spec())[0].characters,
   )
   check(
-    'but the metrics did update — line height is a whole number of cells',
+    'but the metrics did update — line height is on a cell step',
     (() => {
       const pv = figma.ui._last.preview
-      const n = spec().children[0]
-      const mult = n.lineHeight.value / pv.cellH
-      return Math.abs(mult - Math.round(mult)) < 1e-6 && n.fontSize > 0
+      const n = specimens(spec())[0]
+      return onCellStep(n.lineHeight.value, pv.cellH) && n.fontSize > 0
     })(),
-    spec().children[0].lineHeight.value.toFixed(2),
+    specimens(spec())[0].lineHeight.value.toFixed(2),
   )
 
   // Changing the aspect changes cellH, so the row count changes and the char grid
@@ -2392,7 +3507,7 @@ console.log('\n=== a live reapply updates in place, it does not recreate ===')
   )
 
   // A specimen that stops fitting is removed rather than left orphaned.
-  const before = spec().children.length
+  const before = specimens(spec()).length
   await uiHandler({
     type: 'params-changed',
     reapply: true,
@@ -2400,15 +3515,15 @@ console.log('\n=== a live reapply updates in place, it does not recreate ===')
   })
   check(
     'no specimen is duplicated across reapplies',
-    spec().children.length === new Set(spec().children.map((n) => n.name)).size,
-    spec()
-      .children.map((n) => n.name)
+    specimens(spec()).length === new Set(specimens(spec()).map((n) => n.name)).size,
+    specimens(spec())
+      .map((n) => n.name)
       .join(','),
   )
   check(
     'and the count is stable',
-    spec().children.length === before,
-    before + ' -> ' + spec().children.length,
+    specimens(spec()).length === before,
+    before + ' -> ' + specimens(spec()).length,
   )
 }
 
@@ -2419,17 +3534,17 @@ for (const [w, h] of [
   [1200, 600],
 ]) {
   const { fr, pv } = await apply(w, h)
-  const kids = layer(fr, 'Type Specimens').children
+  const kids = specimens(layer(fr, 'Type Specimens'))
   const mono = kids.filter((n) => /Mono/.test(n.name))
   const sans = kids.filter((n) => !/Mono/.test(n.name))
   if (!mono.length || !sans.length) continue
 
   check(
     `${w}x${h}: mono stays at the top`,
-    mono[0].y < h * 0.2,
-    'y=' + mono[0].y.toFixed(1) + ' of ' + h,
+    lineTop(mono[0]) < h * 0.2,
+    'y=' + lineTop(mono[0]).toFixed(1) + ' of ' + h,
   )
-  const lastBottom = sans[sans.length - 1].y + sans[sans.length - 1].lineHeight.value
+  const lastBottom = lineTop(sans[sans.length - 1]) + sans[sans.length - 1].lineHeight.value
   check(
     `  the sans stack is anchored to the bottom`,
     lastBottom > h - pv.cellH * (sans[sans.length - 1].lineHeight.value / pv.cellH + 1) &&
@@ -2446,24 +3561,25 @@ for (const [w, h] of [
   )
   check(
     `  the two blocks do not overlap`,
-    mono[mono.length - 1].y + mono[mono.length - 1].lineHeight.value <= sans[0].y + 1,
+    lineTop(mono[mono.length - 1]) + mono[mono.length - 1].lineHeight.value <=
+      lineTop(sans[0]) + 1,
     'mono ends ' +
-      (mono[mono.length - 1].y + mono[mono.length - 1].lineHeight.value).toFixed(1) +
+      (lineTop(mono[mono.length - 1]) + mono[mono.length - 1].lineHeight.value).toFixed(1) +
       ', sans starts ' +
-      sans[0].y.toFixed(1),
+      lineTop(sans[0]).toFixed(1),
   )
   check(
     `  every baseline is still on a cell line`,
     kids.every((n) => {
       const emBox = 1.21 * n.fontSize
-      const base = n.y + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
+      const base = lineTop(n) + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
       const cells = (base - pv.rowOffset) / pv.cellH
       return Math.abs(cells - Math.round(cells)) < 0.02
     }),
     kids
       .map((n) =>
         (
-          (n.y +
+          (lineTop(n) +
             (n.lineHeight.value - 1.21 * n.fontSize) / 2 +
             1.21 * n.fontSize * 0.8 -
             pv.rowOffset) /
@@ -2658,13 +3774,18 @@ for (const [w, h, label] of [
 ]) {
   const { fr, pv } = await apply(w, h)
   const spec = layer(fr, 'Type Specimens')
-  const kids = spec.children
+  const kids = specimens(spec)
   check(
     `${label} ${w}x${h}: every specimen is inside the frame`,
-    kids.every((n) => n.y >= -1 && n.y + n.lineHeight.value <= h + 1),
+    kids.every((n) => lineTop(n) >= -1 && lineTop(n) + n.lineHeight.value <= h + 1),
     kids
       .map(
-        (n) => n.name + ':' + Math.round(n.y) + '-' + Math.round(n.y + n.lineHeight.value),
+        (n) =>
+          n.name +
+          ':' +
+          Math.round(lineTop(n)) +
+          '-' +
+          Math.round(lineTop(n) + n.lineHeight.value),
       )
       .join(' '),
   )
@@ -2682,7 +3803,7 @@ for (const [w, h, label] of [
     `  baselines still land on cell lines`,
     kids.every((n) => {
       const emBox = 1.21 * n.fontSize
-      const base = n.y + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
+      const base = lineTop(n) + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
       const steps = (base - pv.rowOffset) / pv.cellH
       return Math.abs(steps - Math.round(steps)) < 1e-6
     }),
@@ -2697,27 +3818,24 @@ for (const [w, h] of [
   [1920, 4000],
 ]) {
   const { fr, pv } = await apply(w, h)
-  const kids = layer(fr, 'Type Specimens').children
+  const kids = specimens(layer(fr, 'Type Specimens'))
   const ratios = SPECIMEN_RATIOS
   kids.forEach((n) => {
-    const want = Math.max(1, Math.round((h * ratios[n.name]) / pv.cellH))
+    const want = specimenCells(h * ratios[n.name], pv.cellH)
     check(
       `${w}x${h} ${n.name}: ${want} cells (${(want * pv.cellH).toFixed(0)}px ≈ ${(h * ratios[n.name]).toFixed(0)}px asked)`,
       Math.abs(n.lineHeight.value - want * pv.cellH) < 1e-9,
       n.lineHeight.value.toFixed(2),
     )
-    check(
-      `  snapped to a whole number of cells`,
-      Math.abs(n.lineHeight.value / pv.cellH - Math.round(n.lineHeight.value / pv.cellH)) <
-        1e-9,
-    )
-    // Within half a cell, except where the ask is under half a cell and the
-    // one-cell floor takes over — a specimen cannot be shorter than a row.
+    check(`  snapped to a cell step`, onCellStep(n.lineHeight.value, pv.cellH))
+    // Within half a step of the ask: a sixth of a cell under four cells, half a
+    // cell above. Below a third of a cell the third-cell floor takes over.
     const asked = h * ratios[n.name]
+    const tol = (stepFor(asked / pv.cellH) / 2) * pv.cellH
     check(
-      `  within half a cell of the requested proportion (or clamped to one)`,
-      Math.abs(n.lineHeight.value - asked) <= pv.cellH / 2 + 1e-6 ||
-        (asked < pv.cellH && Math.abs(n.lineHeight.value - pv.cellH) < 1e-9),
+      `  within half a step of the requested proportion (or clamped to a third of a cell)`,
+      Math.abs(n.lineHeight.value - asked) <= tol + 1e-6 ||
+        (asked < pv.cellH / 3 && Math.abs(n.lineHeight.value - pv.cellH / 3) < 1e-9),
       'off by ' +
         Math.abs(n.lineHeight.value - asked).toFixed(2) +
         'px, cellH=' +
@@ -2730,14 +3848,14 @@ for (const [w, h] of [
     `${w}x${h}: all baselines still on cell lines`,
     kids.every((n) => {
       const emBox = 1.21 * n.fontSize
-      const base = n.y + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
+      const base = lineTop(n) + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
       const steps = (base - pv.rowOffset) / pv.cellH
       return Math.abs(steps - Math.round(steps)) < 1e-6
     }),
   )
   check(
     `${w}x${h}: all inside the frame`,
-    kids.every((n) => n.y >= -1 && n.y + n.lineHeight.value <= h + 1),
+    kids.every((n) => lineTop(n) >= -1 && lineTop(n) + n.lineHeight.value <= h + 1),
   )
 }
 
@@ -2747,7 +3865,7 @@ console.log('\n=== custom specimen sizes ===')
     monoSizes: '3',
     sansSizes: '8, 16',
   })
-  const kids = layer(fr, 'Type Specimens').children
+  const kids = specimens(layer(fr, 'Type Specimens'))
   check(
     'one specimen per asked size, named by it',
     kids.map((n) => n.name).join(',') === 'Mono 3%,Sans 8%,Sans 16%',
@@ -2759,7 +3877,7 @@ console.log('\n=== custom specimen sizes ===')
     ['Sans 16%', 16],
   ]) {
     const n = kids.find((k) => k.name === name)
-    const want = Math.max(1, Math.round((1080 * pct) / 100 / pv.cellH)) * pv.cellH
+    const want = specimenCells((1080 * pct) / 100, pv.cellH) * pv.cellH
     check(
       `${name} line height ≈ ${pct}% of the frame, snapped to cells`,
       !!n && Math.abs(n.lineHeight.value - want) < 1e-9,
@@ -2770,7 +3888,7 @@ console.log('\n=== custom specimen sizes ===')
     'custom baselines still land on cell lines',
     kids.every((n) => {
       const emBox = 1.21 * n.fontSize
-      const base = n.y + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
+      const base = lineTop(n) + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
       const steps = (base - pv.rowOffset) / pv.cellH
       return Math.abs(steps - Math.round(steps)) < 1e-6
     }),
@@ -2782,11 +3900,11 @@ console.log('\n=== custom specimen sizes ===')
   })
   check(
     'sizes are sorted, deduped, junk dropped',
-    layer(messy.fr, 'Type Specimens')
-      .children.map((n) => n.name)
+    specimens(layer(messy.fr, 'Type Specimens'))
+      .map((n) => n.name)
       .join(',') === SPECIMEN_NAMES.join(','),
-    layer(messy.fr, 'Type Specimens')
-      .children.map((n) => n.name)
+    specimens(layer(messy.fr, 'Type Specimens'))
+      .map((n) => n.name)
       .join(','),
   )
 
@@ -2794,11 +3912,11 @@ console.log('\n=== custom specimen sizes ===')
   const blank = await apply(1920, 1080, { monoSizes: '', sansSizes: 'nope' })
   check(
     'empty/unusable lists fall back to the defaults',
-    layer(blank.fr, 'Type Specimens')
-      .children.map((n) => n.name)
+    specimens(layer(blank.fr, 'Type Specimens'))
+      .map((n) => n.name)
       .join(',') === SPECIMEN_NAMES.join(','),
-    layer(blank.fr, 'Type Specimens')
-      .children.map((n) => n.name)
+    specimens(layer(blank.fr, 'Type Specimens'))
+      .map((n) => n.name)
       .join(','),
   )
 
@@ -2812,11 +3930,11 @@ console.log('\n=== custom specimen sizes ===')
   })
   check(
     'reapplying a new list replaces the old sizes',
-    layer(fr, 'Type Specimens')
-      .children.map((n) => n.name)
+    specimens(layer(fr, 'Type Specimens'))
+      .map((n) => n.name)
       .join(',') === 'Mono 3%,Sans 10%',
-    layer(fr, 'Type Specimens')
-      .children.map((n) => n.name)
+    specimens(layer(fr, 'Type Specimens'))
+      .map((n) => n.name)
       .join(','),
   )
 }
@@ -2827,7 +3945,7 @@ console.log('--- type scales with the frame, not the cell grid ---')
   const a = await apply(1920, 1080)
   const b = await apply(1920, 2160)
   const big = (r) => {
-    const n = layer(r.fr, 'Type Specimens').children.find((x) => x.name === 'Sans 12%')
+    const n = specimens(layer(r.fr, 'Type Specimens')).find((x) => x.name === 'Sans 12%')
     return n && n.fontSize
   }
   check(
@@ -2854,6 +3972,311 @@ console.log('--- type scales with the frame, not the cell grid ---')
       c.toFixed(1),
   )
 }
+console.log('--- fixes from the product description triage ---')
+{
+  const near = (a, b) => Math.abs(a - b) < 1e-9
+  const fresh = async (w, h, over = {}) => {
+    const fr = makeFrame(w, h)
+    page.appendChild(fr)
+    page.selection = [fr]
+    await uiHandler({ type: 'action', action: 'apply', params: { ...P, ...over } })
+    return fr
+  }
+  const reapply = (over) =>
+    uiHandler({ type: 'params-changed', reapply: true, params: { ...P, ...over } })
+  const specimensOf = (fr) => specimens(layer(fr, 'Type Specimens'))
+
+  // Settings a frame never stored take their default, not the panel's value.
+  {
+    const fr = await fresh(1080, 1080)
+    const data = JSON.parse(fr.getPluginData('dualGrid'))
+    delete data.params.displayMode
+    fr.setPluginData('dualGrid', JSON.stringify(data))
+    await uiHandler({
+      type: 'params-changed',
+      reapply: false,
+      params: { ...P, displayMode: 'Print' },
+    })
+    page.selection = []
+    onSel()
+    page.selection = [fr]
+    onSel()
+    const loaded = figma.ui._all.filter((m) => m.type === 'params-change').pop()
+    check(
+      'a setting the frame never stored loads as its default',
+      loaded.params.displayMode === 'Screen',
+      loaded.params.displayMode,
+    )
+  }
+
+  // The user's own layers inside the generated frames survive writes.
+  {
+    const fr = await fresh(1920, 1080)
+    const note = makeText()
+    note.name = 'My note'
+    if (specimensOf(fr).length) {
+      layer(fr, 'Type Specimens').appendChild(note)
+    }
+    const inLines = makeText()
+    layer(fr, 'Grid Lines').appendChild(inLines)
+    await reapply({ gutterMultiple: 2 })
+    check("a user's text inside Type Specimens survives a write", !note.removed)
+    check("a user's layer inside Grid Lines survives a write", !inLines.removed)
+    check(
+      '...and the lines are still redrawn once',
+      layer(fr, 'Grid Lines').children.filter((c) => c.type === 'VECTOR').length === 1,
+    )
+  }
+
+  // Specimens are matched by position, so typed text follows the slot.
+  {
+    const fr = await fresh(1920, 1080)
+    const third = specimensOf(fr).find((n) => n.name === 'Sans 24%')
+    third.characters = 'My headline'
+    await reapply({ sansSizes: '6, 12, 2' })
+    await reapply({ sansSizes: '6, 12, 20' })
+    const now = specimensOf(fr).find((n) => n.name === 'Sans 20%')
+    check(
+      'typed text follows its specimen through intermediate sizes',
+      now && now.characters === 'My headline' && now === third,
+      now && now.characters,
+    )
+  }
+
+  // Layout grids the user made are kept by Apply and by Remove.
+  {
+    const fr = makeFrame(1920, 1080)
+    page.appendChild(fr)
+    const mine = {
+      pattern: 'ROWS',
+      alignment: 'MIN',
+      count: 4,
+      sectionSize: 10,
+      gutterSize: 0,
+      offset: 0,
+      color: { r: 1, g: 0, b: 0, a: 0.1 },
+      visible: true,
+    }
+    fr.layoutGrids = [mine]
+    page.selection = [fr]
+    await uiHandler({ type: 'action', action: 'apply', params: P })
+    check(
+      "Apply keeps the user's layout grid alongside the plugin's three",
+      fr.layoutGrids.length === 4 && fr.layoutGrids[0].count === 4,
+      fr.layoutGrids.length,
+    )
+    await reapply({ columnCount: 6 })
+    check(
+      "...and a reapply does not duplicate the plugin's",
+      fr.layoutGrids.length === 4,
+      fr.layoutGrids.length,
+    )
+    await uiHandler({ type: 'action', action: 'remove', params: P })
+    check(
+      "Remove keeps the user's layout grid",
+      fr.layoutGrids.length === 1 && fr.layoutGrids[0].count === 4,
+      fr.layoutGrids.length,
+    )
+  }
+
+  // A second action while one is running is ignored.
+  {
+    page.selection = []
+    const before = page.children.length
+    await Promise.all([
+      uiHandler({ type: 'action', action: 'create', params: P }),
+      uiHandler({ type: 'action', action: 'create', params: P }),
+    ])
+    check(
+      'a double-click on Create frame makes one frame',
+      page.children.length === before + 1,
+      page.children.length - before,
+    )
+  }
+
+  // Remove on a frame that is not gridded changes nothing.
+  {
+    const fr = makeFrame(800, 600)
+    page.appendChild(fr)
+    const mine = {
+      pattern: 'ROWS',
+      alignment: 'MIN',
+      count: 4,
+      sectionSize: 10,
+      gutterSize: 0,
+      offset: 0,
+      color: { r: 1, g: 0, b: 0, a: 0.1 },
+      visible: true,
+    }
+    fr.layoutGrids = [mine]
+    page.selection = [fr]
+    notices.length = 0
+    await uiHandler({ type: 'action', action: 'remove', params: P })
+    check(
+      'Remove grids on an ungridded frame leaves its layout grids',
+      fr.layoutGrids.length === 1,
+    )
+    check(
+      '...and says there was nothing to remove',
+      /no grids/.test(notices.map((n) => n.msg).join(' ')),
+    )
+  }
+
+  // A cached face this machine cannot load is re-measured, not fatal.
+  {
+    const fr = await fresh(1920, 1080)
+    const data = JSON.parse(fr.getPluginData('dualGrid'))
+    data.state.fontProbe.family = 'Missing Mono'
+    fr.setPluginData('dualGrid', JSON.stringify(data))
+    notices.length = 0
+    await reapply({ gutterMultiple: 2 })
+    check(
+      'a stale font cache does not fail the write',
+      !notices.some((n) => n.opts && n.opts.error),
+      notices.map((n) => n.msg).join(' | '),
+    )
+    const after = JSON.parse(fr.getPluginData('dualGrid'))
+    check(
+      '...and the face is measured again',
+      after.state.fontProbe.family !== 'Missing Mono',
+      after.state.fontProbe.family,
+    )
+  }
+
+  // The sans fallback tries the family's other styles before the list.
+  {
+    AVAILABLE.push({ fontName: { family: 'Book Sans', style: 'Book' } })
+    const fr = await fresh(1920, 1080, { sansFamily: 'Book Sans' })
+    const sans = specimensOf(fr).find((n) => n.name === 'Sans 6%')
+    check(
+      'a sans family without a Regular uses its own style',
+      sans.fontName.family === 'Book Sans' && sans.fontName.style === 'Book',
+      JSON.stringify(sans.fontName),
+    )
+    AVAILABLE.pop()
+  }
+
+  // Ties drop the largest specimen first.
+  {
+    const fr = await fresh(1920, 200)
+    const names = specimensOf(fr).map((n) => n.name)
+    check(
+      'on a short frame the smaller sans sizes are kept, the larger dropped',
+      names.includes('Sans 6%') && !names.includes('Sans 24%'),
+      names.join(','),
+    )
+  }
+
+  // An unusable Width falls back to the default.
+  {
+    page.selection = []
+    await uiHandler({ type: 'action', action: 'create', params: { ...P, frameWidth: 0 } })
+    const made = page.selection[0]
+    check(
+      'an empty Width creates a 1920 × 1080 frame',
+      made.width === 1920 && made.height === 1080,
+      made.width + 'x' + made.height,
+    )
+  }
+
+  // A failed Create frame leaves nothing behind.
+  {
+    page.selection = []
+    const before = page.children.filter((c) => !c.removed).length
+    const load = figma.loadFontAsync
+    figma.loadFontAsync = async () => {
+      throw new Error('no fonts')
+    }
+    notices.length = 0
+    await uiHandler({ type: 'action', action: 'create', params: P })
+    figma.loadFontAsync = load
+    check(
+      'a failed Create frame removes the frame it made',
+      page.children.filter((c) => !c.removed).length === before,
+    )
+    check(
+      '...and refreshes the footer',
+      figma.ui._last.type === 'action-state' && figma.ui._last.action === 'create',
+    )
+  }
+
+  // Snap tol. 0 turns snapping off, row search included.
+  {
+    await fresh(1920, 1080)
+    await uiHandler({
+      type: 'params-changed',
+      reapply: false,
+      params: { ...P, pixelPerfect: true, snapTolerancePx: 0 },
+    })
+    const off0 = figma.ui._last.preview
+    await uiHandler({
+      type: 'params-changed',
+      reapply: false,
+      params: { ...P, pixelPerfect: false },
+    })
+    const off = figma.ui._last.preview
+    check(
+      'Pixel snap at tolerance 0 gives the same rows as Pixel snap off',
+      off0.rows === off.rows && near(off0.cellH, off.cellH),
+      off0.rows + 'x' + off0.cellH + ' vs ' + off.rows + 'x' + off.cellH,
+    )
+  }
+
+  // One column can reach the default cell count.
+  {
+    await uiHandler({
+      type: 'params-changed',
+      reapply: false,
+      params: { ...P, columnCount: 1, cellColumns: 89, frameWidth: 1920 },
+    })
+    check(
+      'one column reaches 89 cell columns',
+      figma.ui._last.preview.cols === 89,
+      figma.ui._last.preview.cols,
+    )
+  }
+
+  // Opening the plugin with a gridded frame selected loads its settings.
+  {
+    const fr = await fresh(1080, 1080, { columnCount: 4, displayMode: 'Print' })
+    page.selection = [fr]
+    figma.ui._all.length = 0
+    // Relaunch the plugin, as Figma does, with the frame already selected.
+    vm.runInContext(code, newContext())
+    const loaded = figma.ui._all.find((m) => m.type === 'params-change')
+    check(
+      'launching with a gridded frame selected loads its settings',
+      loaded && loaded.params.columnCount === 4 && loaded.params.displayMode === 'Print',
+      loaded && loaded.params.columnCount,
+    )
+  }
+
+  // A display mode the panel doesn't offer, such as a saved "Social", loads as
+  // Screen, which is how the plugin draws it, so its type is unchanged.
+  {
+    const fr = await fresh(1080, 1080)
+    const asScreen = specimensOf(fr).map((n) => n.letterSpacing.value)
+    const data = JSON.parse(fr.getPluginData('dualGrid'))
+    data.params.displayMode = 'Social'
+    fr.setPluginData('dualGrid', JSON.stringify(data))
+    page.selection = []
+    onSel()
+    page.selection = [fr]
+    onSel()
+    const loaded = figma.ui._all.filter((m) => m.type === 'params-change').pop()
+    check(
+      'an unknown saved display mode loads as Screen',
+      loaded.params.displayMode === 'Screen',
+      loaded.params.displayMode,
+    )
+    await reapply({ ...loaded.params })
+    check(
+      '...so reapplying leaves its type as it was',
+      specimensOf(fr).every((n, i) => Math.abs(n.letterSpacing.value - asScreen[i]) < 1e-9),
+    )
+  }
+}
+
 console.log(
   '\n' + (fails ? fails + ' FAILURE(S)' : 'ALL PASS') + ' — ' + checks + ' checks',
 )
