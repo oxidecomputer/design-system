@@ -71,12 +71,13 @@ interface Params {
   // Round specimen font sizes to whole pixels. Line heights stay on cell steps,
   // which may be fractional, so baselines remain on the grid.
   snapFontPx: boolean
-  // Leading (line height ÷ font size) and tracking (% of font size) curves.
-  // See parseCurve for the format. Empty sans tracking uses the optical curve.
-  monoLeading: string
-  sansLeading: string
-  monoTracking: string
-  sansTracking: string
+  // Leading (line height ÷ font size) at each family's smallest and largest
+  // size; sizes between follow from them (see leadingOf). Empty means the
+  // built-in value. Tracking has no setting: mono is a flat 4%, sans optical.
+  monoLeadingMin: string
+  monoLeadingMax: string
+  sansLeadingMin: string
+  sansLeadingMax: string
   // How large the frame appears to its reader; see displayScaleOf. Shown width
   // is read only in Custom, print width and distance only in Print.
   displayMode: DisplayMode
@@ -191,9 +192,13 @@ function displayScaleOf(p: Params, frameWidth: number): number {
 interface SpecimenSpec {
   name: string
   face: 'mono' | 'sans'
+  pct: number // requested size, % of the frame height
   heightRatio: number // share of the frame height, before snapping
   scale: number // fontSize as a share of the requested line height
+  leading: number // requested line height ÷ font size, before snapping
   trackingPct: number | null // letter spacing in % of the font size; null = optical
+  // The built-in leading at this size, which the panel shows as a placeholder.
+  autoLeading: number
   text: string
   // Position in its family's size list, e.g. "sans:2". Specimens are matched by
   // slot, so text typed into the third sans specimen stays with the third one
@@ -201,49 +206,30 @@ interface SpecimenSpec {
   slot: string
 }
 
-// A curve keyed by specimen size (% of frame height), written as
-// "size: value" pairs separated by commas, e.g. "6: 1.22, 12: 1.09, 24: 1".
-// A single bare number is a constant. Values between points interpolate
-// linearly and clamp beyond the ends. Entries outside [min, max] are ignored;
-// if none remain the curve is null and the caller falls back.
+// Built-in leading at two reference sizes (% of frame height). Leading opens
+// up at small sizes and closes to 1.0 for display sans.
 type Curve = Array<[number, number]>
-function parseCurve(raw: string | undefined, min: number, max: number): Curve | null {
-  const text = typeof raw === 'string' ? raw.trim() : ''
-  if (!text) return null
-  const inRange = (n: number) => Number.isFinite(n) && n >= min && n <= max
-  const bare = Number(text.replace('%', ''))
-  if (inRange(bare)) return [[0, bare]]
-  const points: Curve = []
-  for (const entry of text.split(',')) {
-    const parts = entry.split(':')
-    if (parts.length !== 2) continue
-    const xText = parts[0].trim().replace('%', '')
-    const yText = parts[1].trim().replace('%', '')
-    // Number('') is 0, so an unfinished pair such as "6:" would otherwise read as
-    // a real value of 0 mid-typing.
-    if (!xText || !yText) continue
-    const x = Number(xText)
-    const y = Number(yText)
-    if (Number.isFinite(x) && x > 0 && inRange(y)) points.push([x, y])
-  }
-  if (!points.length) return null
-  points.sort((a, b) => a[0] - b[0])
-  // Keep the first value for a repeated size, so the curve stays a function.
-  return points.filter((pt, i) => i === 0 || pt[0] !== points[i - 1][0])
-}
+const MONO_LEADING_CURVE: Curve = [
+  [2, 1.6],
+  [12, 1.25],
+]
+const SANS_LEADING_CURVE: Curve = [
+  [6, 1.22],
+  [24, 1],
+]
+// Mono is set uppercase at a flat 4%, per the design system's mono scale. Sans
+// follows the optical curve (see opticalTrackingPct).
+const MONO_TRACKING_PCT = 4
 
-// `inverse` interpolates linearly in 1/x rather than x, so each segment
-// follows y = a / x + b — the shape of the optical tracking curve. Two points
-// then pin down exactly one such curve: the design system's curve, moved to
-// pass through them. Sizes are all positive (see parseCurve), so 1/x is safe.
-function curveAt(curve: Curve, x: number, inverse = false): number {
+// Interpolates linearly in log(size) and clamps beyond the ends. A type scale
+// steps by a constant ratio, so this spaces leading evenly across its steps.
+function curveAt(curve: Curve, x: number): number {
   if (x <= curve[0][0]) return curve[0][1]
-  const t = (v: number) => (inverse ? 1 / v : v)
   for (let i = 1; i < curve.length; i++) {
     if (x <= curve[i][0]) {
       const [x0, y0] = curve[i - 1]
       const [x1, y1] = curve[i]
-      return y0 + ((t(x) - t(x0)) / (t(x1) - t(x0))) * (y1 - y0)
+      return y0 + (Math.log(x / x0) / Math.log(x1 / x0)) * (y1 - y0)
     }
   }
   return curve[curve.length - 1][1]
@@ -253,25 +239,32 @@ function curveAt(curve: Curve, x: number, inverse = false): number {
 // capped at the snapped line height; the upper bound only rejects typos.
 const LEADING_MIN = 0.5
 const LEADING_MAX = 5
-// Tracking in % of the font size, Figma's PERCENT unit. Wide enough for
-// letterspaced caps; beyond it is almost certainly a typo.
-const TRACKING_MIN = -50
-const TRACKING_MAX = 100
 
-function leadingCurveOf(raw: string | undefined, fallback: string): Curve {
-  return (
-    parseCurve(raw, LEADING_MIN, LEADING_MAX) ||
-    (parseCurve(fallback, LEADING_MIN, LEADING_MAX) as Curve)
-  )
+function leadingParam(raw: string | undefined): number | null {
+  const text = typeof raw === 'string' ? raw.trim() : ''
+  const n = Number(text)
+  return text && Number.isFinite(n) && n >= LEADING_MIN && n <= LEADING_MAX ? n : null
 }
 
-// Empty or unusable sans tracking means the optical curve, so null is a valid
-// result here rather than a reason to fall back.
-function trackingCurveOf(raw: string | undefined, fallback: string): Curve | null {
-  return (
-    parseCurve(raw, TRACKING_MIN, TRACKING_MAX) ||
-    parseCurve(fallback, TRACKING_MIN, TRACKING_MAX)
-  )
+// The leading curve for one family: the set (or built-in) leading at its
+// smallest and largest size, with the sizes between interpolated. A single
+// size takes the smallest-size value.
+function leadingOf(
+  sizes: number[],
+  builtIn: Curve,
+  minRaw?: string,
+  maxRaw?: string,
+): Curve {
+  const lo = sizes[0]
+  const hi = sizes[sizes.length - 1]
+  const atLo = leadingParam(minRaw)
+  const atHi = leadingParam(maxRaw)
+  const loValue = atLo !== null ? atLo : curveAt(builtIn, lo)
+  if (hi === lo) return [[lo, loValue]]
+  return [
+    [lo, loValue],
+    [hi, atHi !== null ? atHi : curveAt(builtIn, hi)],
+  ]
 }
 
 // Ignore invalid entries and use the fallback if none remain. Sort ascending
@@ -300,33 +293,45 @@ function sansSpecimenText(pct: number): string {
 }
 
 function specimensOf(p: Params): SpecimenSpec[] {
-  const monoLeading = leadingCurveOf(p.monoLeading, DEFAULT_PARAMS.monoLeading)
-  const sansLeading = leadingCurveOf(p.sansLeading, DEFAULT_PARAMS.sansLeading)
-  const monoTracking = trackingCurveOf(p.monoTracking, DEFAULT_PARAMS.monoTracking)
-  const sansTracking = trackingCurveOf(p.sansTracking, DEFAULT_PARAMS.sansTracking)
-  const mono = parseSizesPct(p.monoSizes, DEFAULT_PARAMS.monoSizes).map(
-    (pct, i): SpecimenSpec => ({
-      slot: `mono:${i}`,
-      name: `Mono ${pct}%`,
-      face: 'mono',
-      heightRatio: pct / 100,
-      scale: 1 / curveAt(monoLeading, pct),
-      trackingPct: monoTracking ? curveAt(monoTracking, pct, true) : null,
-      text: 'GT America Mono · 0123456789',
-    }),
+  const family = (
+    face: 'mono' | 'sans',
+    sizes: number[],
+    builtIn: Curve,
+    minRaw?: string,
+    maxRaw?: string,
+  ): SpecimenSpec[] => {
+    const curve = leadingOf(sizes, builtIn, minRaw, maxRaw)
+    return sizes.map((pct, i) => {
+      const leading = curveAt(curve, pct)
+      return {
+        slot: `${face}:${i}`,
+        name: `${face === 'mono' ? 'Mono' : 'Sans'} ${pct}%`,
+        face,
+        pct,
+        heightRatio: pct / 100,
+        leading,
+        scale: 1 / leading,
+        trackingPct: face === 'mono' ? MONO_TRACKING_PCT : null,
+        autoLeading: curveAt(builtIn, pct),
+        text: face === 'mono' ? 'GT America Mono · 0123456789' : sansSpecimenText(pct),
+      }
+    })
+  }
+  return family(
+    'mono',
+    parseSizesPct(p.monoSizes, DEFAULT_PARAMS.monoSizes),
+    MONO_LEADING_CURVE,
+    p.monoLeadingMin,
+    p.monoLeadingMax,
+  ).concat(
+    family(
+      'sans',
+      parseSizesPct(p.sansSizes, DEFAULT_PARAMS.sansSizes),
+      SANS_LEADING_CURVE,
+      p.sansLeadingMin,
+      p.sansLeadingMax,
+    ),
   )
-  const sans = parseSizesPct(p.sansSizes, DEFAULT_PARAMS.sansSizes).map(
-    (pct, i): SpecimenSpec => ({
-      slot: `sans:${i}`,
-      name: `Sans ${pct}%`,
-      face: 'sans',
-      heightRatio: pct / 100,
-      scale: 1 / curveAt(sansLeading, pct),
-      trackingPct: sansTracking ? curveAt(sansTracking, pct, true) : null,
-      text: sansSpecimenText(pct),
-    }),
-  )
-  return mono.concat(sans)
 }
 
 interface SizedSpecimen {
@@ -408,12 +413,11 @@ const DEFAULT_PARAMS: Params = {
   monoSizes: '2',
   sansSizes: '6, 12, 24',
   snapFontPx: false,
-  // Leading opens up at small sizes and closes to 1.0 for display sans. Mono is
-  // set uppercase at a flat 4% per the design system's mono scale.
-  monoLeading: '2: 1.6, 12: 1.25',
-  sansLeading: '6: 1.22, 12: 1.09, 24: 1',
-  monoTracking: '4',
-  sansTracking: '',
+  // Empty: the built-in leading curves apply.
+  monoLeadingMin: '',
+  monoLeadingMax: '',
+  sansLeadingMin: '',
+  sansLeadingMax: '',
   displayMode: 'Screen',
   shownWidthPx: SOCIAL_FEED_PX,
   // A4 read in the hand.
@@ -968,6 +972,31 @@ async function measureBaselineOffset(
   return offset
 }
 
+// The height of one line of text trimmed to cap height, which runs from the cap
+// top to the baseline. Measured, since Figma's cap-height metric is not exposed;
+// cached like the baseline offset.
+const capHeightCache = new Map<string, number>()
+async function measureCapHeight(
+  font: FontName,
+  fontSize: number,
+  lineHeight: number,
+): Promise<number> {
+  const key = `${font.family}|${font.style}|${fontSize}|${lineHeight}`
+  const cached = capHeightCache.get(key)
+  if (cached !== undefined) return cached
+  const probe = figma.createText()
+  probe.fontName = font
+  probe.fontSize = fontSize
+  probe.lineHeight = { value: lineHeight, unit: 'PIXELS' }
+  probe.leadingTrim = 'CAP_HEIGHT'
+  probe.textAutoResize = 'WIDTH_AND_HEIGHT'
+  probe.characters = 'H'
+  const height = probe.height
+  probe.remove()
+  capHeightCache.set(key, height)
+  return height
+}
+
 // Fallback estimate for the first baseline, used only when the measurement above
 // is unavailable.
 //
@@ -1019,7 +1048,14 @@ const ROLE_KEY = 'dualGridRole'
 const SLOT_KEY = 'dualGridSlot'
 // The names an older version gave its specimens, e.g. "Sans 12%".
 const LEGACY_SPECIMEN_NAME = /^(Mono|Sans) \d+(\.\d+)?%$/
-type Role = 'charGrid' | 'gridLines' | 'specimens' | 'lines' | 'specimen'
+type Role =
+  | 'charGrid'
+  | 'gridLines'
+  | 'specimens'
+  | 'lines'
+  | 'specimen'
+  | 'specimenStack'
+  | 'specimenBlock'
 
 function roleOf(node: BaseNode): string {
   return 'getPluginData' in node ? node.getPluginData(ROLE_KEY) : ''
@@ -1268,8 +1304,18 @@ async function ensureSpecimens(
     mark(container, 'specimens')
   }
 
+  // An auto layout column the size of the frame: the mono stack at the top, the
+  // sans stack at the bottom, and the space between them taking up the rest.
+  // Every height in it is a whole number of cells, so each baseline lands on a
+  // cell line (see `block` below).
   container.fills = []
   container.clipsContent = false
+  container.layoutMode = 'VERTICAL'
+  container.primaryAxisSizingMode = 'FIXED'
+  container.counterAxisSizingMode = 'FIXED'
+  container.primaryAxisAlignItems = 'SPACE_BETWEEN'
+  container.counterAxisAlignItems = 'MIN'
+  container.itemSpacing = 0
   container.resize(frame.width, frame.height)
   container.x = 0
   container.y = 0
@@ -1290,10 +1336,10 @@ async function ensureSpecimens(
   const sized = sizeSpecimens(p, g, frame.height)
   const displayScale = displayScaleOf(p, frame.width)
 
-  // Each specimen's baseline sits on the cell line at the bottom of its own
-  // block, so the stack never overlaps and every baseline is on the grid. Only
-  // include what fits — dropping the largest keeps everything on canvas instead
-  // of hanging the display sizes off the bottom.
+  // Each specimen takes a block of whole cells with its baseline on the block's
+  // bottom line, so the stack never overlaps. Only include what fits — dropping
+  // the largest keeps everything on canvas instead of hanging the display sizes
+  // off the bottom.
   const budget = g.rows - SPECIMEN_START_CELL
   const fitting: SizedSpecimen[] = []
   let used = 0
@@ -1303,16 +1349,14 @@ async function ensureSpecimens(
     fitting.push(item)
   }
 
-  // Anchor mono at the top and sans at the bottom. Both stacks use whole-cell
-  // offsets to keep their baselines on the grid.
   const monoItems = fitting.filter((i) => i.spec.face === 'mono')
   const sansItems = fitting.filter((i) => i.spec.face !== 'mono')
   const monoEnd = SPECIMEN_START_CELL + monoItems.reduce((sum, i) => sum + i.rows, 0)
 
   // A baseline is not the bottom of the text — the descender hangs below it. So
-  // the last baseline cannot sit on the final cell line, or the node's box spills
+  // the last baseline cannot sit on the final cell line, or the descender spills
   // out of the frame. Reserve the measured descender, rounded up to whole cells,
-  // which keeps every baseline on a cell line while the box stays inside.
+  // which keeps every baseline on a cell line while the text stays inside.
   async function tailCellsOf(tail: SizedSpecimen | undefined): Promise<number> {
     if (!tail) return 0
     const lineHeight = tail.cells * g.cellH
@@ -1328,10 +1372,9 @@ async function ensureSpecimens(
 
   // The fit budget cannot include the tail, which depends on which sans size ends
   // up last, so drop the largest sans size until the two stacks no longer overlap.
-  let sansCells = 0
   let tailCells = 0
   for (;;) {
-    sansCells = sansItems.reduce((sum, i) => sum + i.rows, 0)
+    const sansCells = sansItems.reduce((sum, i) => sum + i.rows, 0)
     tailCells = await tailCellsOf(sansItems[sansItems.length - 1])
     if (!sansItems.length || g.rows - sansCells - tailCells >= monoEnd) break
     let largest = 0
@@ -1342,34 +1385,115 @@ async function ensureSpecimens(
     sansItems.splice(largest, 1)
   }
 
-  // Clamped so a stack too tall for the frame still starts on the grid rather
-  // than above it, in which case it clips as it did before.
-  const sansStart = Math.max(SPECIMEN_START_CELL, g.rows - sansCells - tailCells)
+  // The column's padding puts the mono stack's top and the sans stack's bottom
+  // on cell lines. The row offset centres the cells in the frame, so it is part
+  // of both; the frame's leftover below the last row is part of the bottom.
+  container.paddingLeft = g.effectiveMargin
+  container.paddingRight = 0
+  container.paddingTop = g.rowOffset + SPECIMEN_START_CELL * g.cellH
+  container.paddingBottom = Math.max(
+    0,
+    frame.height - (g.rowOffset + (g.rows - tailCells) * g.cellH),
+  )
 
-  // Match specimens by slot and update them in place to preserve edited text and
-  // avoid resetting per-character styling during live updates. Specimens from an
-  // older version carry no mark and are matched by name instead. Other layers in
-  // the container are the user's and are left alone.
-  const bySlot = new Map<string, TextNode>()
-  const byLegacyName = new Map<string, TextNode>()
+  // Layers in the container that aren't the plugin's are the user's. They keep
+  // their place rather than joining the column.
   for (const child of container.children) {
-    if (child.type !== 'TEXT') continue
-    if (roleOf(child) === 'specimen') {
-      bySlot.set(child.getPluginData(SLOT_KEY), child as TextNode)
-    } else if (roleOf(child) === '' && LEGACY_SPECIMEN_NAME.test(child.name)) {
-      byLegacyName.set(child.name, child as TextNode)
+    const role = roleOf(child)
+    const own = role === 'specimenStack' || role === 'specimen' || role === 'specimenBlock'
+    const legacy =
+      role === '' && child.type === 'TEXT' && LEGACY_SPECIMEN_NAME.test(child.name)
+    if (
+      !own &&
+      !legacy &&
+      'layoutPositioning' in child &&
+      child.layoutPositioning !== 'ABSOLUTE'
+    ) {
+      child.layoutPositioning = 'ABSOLUTE'
     }
   }
 
-  // Reuse the node of that name if there is one, else make it. `characters` is
-  // written only on creation, so edited specimen text survives a reapply.
+  // Specimens are matched by slot and updated in place to preserve edited text and
+  // avoid resetting per-character styling during live updates. They may sit in a
+  // block (this version), or directly in the container (an older one, which also
+  // left some unmarked, matched by name).
+  const bySlot = new Map<string, TextNode>()
+  const byLegacyName = new Map<string, TextNode>()
+  const collect = (parent: ChildrenMixin) => {
+    for (const child of parent.children) {
+      const role = roleOf(child)
+      if (child.type === 'TEXT' && role === 'specimen') {
+        bySlot.set(child.getPluginData(SLOT_KEY), child as TextNode)
+      } else if (
+        child.type === 'TEXT' &&
+        role === '' &&
+        parent === container &&
+        LEGACY_SPECIMEN_NAME.test(child.name)
+      ) {
+        byLegacyName.set(child.name, child as TextNode)
+      } else if (
+        child.type === 'FRAME' &&
+        (role === 'specimenStack' || role === 'specimenBlock')
+      ) {
+        collect(child as FrameNode)
+      }
+    }
+  }
+  collect(container)
+
+  // A hugging auto layout frame with no fill or clipping, for the stacks and
+  // blocks. Hug is set after layoutMode, since turning auto layout on resets it.
+  const plainColumn = (node: FrameNode) => {
+    node.fills = []
+    node.clipsContent = false
+    node.layoutMode = 'VERTICAL'
+    node.primaryAxisSizingMode = 'AUTO'
+    node.counterAxisSizingMode = 'AUTO'
+    node.primaryAxisAlignItems = 'MIN'
+    node.counterAxisAlignItems = 'MIN'
+    node.itemSpacing = 0
+    node.paddingLeft = 0
+    node.paddingRight = 0
+    node.paddingBottom = 0
+  }
+
+  // One stack per family, in the container's order: mono, then sans.
+  const stacks = new Map<string, FrameNode>()
+  for (const child of container.children) {
+    if (child.type === 'FRAME' && roleOf(child) === 'specimenStack') {
+      const face = child.getPluginData(SLOT_KEY)
+      if (stacks.has(face)) child.remove()
+      else stacks.set(face, child as FrameNode)
+    }
+  }
+  const stackFor = (face: 'mono' | 'sans', index: number): FrameNode => {
+    let stack = stacks.get(face)
+    if (!stack) {
+      stack = figma.createFrame()
+      mark(stack, 'specimenStack')
+      stack.setPluginData(SLOT_KEY, face)
+      stacks.set(face, stack)
+    }
+    stack.name = face === 'mono' ? 'Mono' : 'Sans'
+    plainColumn(stack)
+    stack.paddingTop = 0
+    container.insertChild(index, stack)
+    return stack
+  }
+  const monoStack = stackFor('mono', 0)
+  const sansStack = stackFor('sans', 1)
+
+  // A block is the specimen's whole cells: its top on a cell line, and the text
+  // trimmed to cap height at its bottom, so the text's bottom edge — the first
+  // baseline — is the block's bottom line. Extra lines typed into a specimen
+  // grow the block by whole line heights, which are cell steps too.
   const place = async (
-    { spec, cells: mult, fontSize }: SizedSpecimen,
-    baselineCell: number,
+    { spec, cells: mult, rows, fontSize }: SizedSpecimen,
+    stack: FrameNode,
+    index: number,
   ): Promise<void> => {
     const isMono = spec.face === 'mono'
     const font = isMono ? monoFont : sansFont
-    const probe = isMono ? monoProbe : sansProbe
     const lineHeight = mult * g.cellH
 
     let node = bySlot.get(spec.slot) || byLegacyName.get(spec.name) || null
@@ -1380,17 +1504,27 @@ async function ensureSpecimens(
     } else {
       node = figma.createText()
       node.name = spec.name
-      container.appendChild(node)
       node.fontName = font
       node.textAlignHorizontal = 'LEFT'
       node.textAlignVertical = 'TOP'
-      node.textAutoResize = 'WIDTH_AND_HEIGHT'
       // The mono placeholder names the face actually drawn, which may be a fallback.
       node.characters = isMono ? `${font.family} · 0123456789` : spec.text
     }
     mark(node, 'specimen')
     node.setPluginData(SLOT_KEY, spec.slot)
-    if (node.parent !== container) container.appendChild(node)
+
+    let block =
+      node.parent && node.parent.type === 'FRAME' && roleOf(node.parent) === 'specimenBlock'
+        ? (node.parent as FrameNode)
+        : null
+    if (!block) {
+      block = figma.createFrame()
+      mark(block, 'specimenBlock')
+    }
+    block.name = spec.name
+    plainColumn(block)
+    stack.insertChild(index, block)
+    if (node.parent !== block) block.appendChild(node)
 
     // Only reassigned when it differs: setting fontName re-shapes the text.
     const current = node.fontName
@@ -1400,8 +1534,11 @@ async function ensureSpecimens(
       (current as FontName).style === font.style
     if (!sameFont) node.fontName = font
 
+    node.textAutoResize = 'WIDTH_AND_HEIGHT'
+    node.layoutPositioning = 'AUTO'
     node.fontSize = fontSize
     node.lineHeight = { value: lineHeight, unit: 'PIXELS' }
+    node.leadingTrim = 'CAP_HEIGHT'
     node.letterSpacing = {
       value:
         spec.trackingPct !== null
@@ -1412,29 +1549,25 @@ async function ensureSpecimens(
     node.textCase = isMono ? 'UPPER' : 'ORIGINAL'
     fillText(node, textPaint)
 
-    const targetBaseline = g.rowOffset + baselineCell * g.cellH
-    const measured = await measureBaselineOffset(font, fontSize, lineHeight)
-    node.x = g.effectiveMargin
-    node.y =
-      targetBaseline -
-      (measured !== null ? measured : firstBaselineOffset(lineHeight, fontSize, probe))
+    const capHeight = await measureCapHeight(font, fontSize, lineHeight)
+    block.paddingTop = Math.max(0, rows * g.cellH - capHeight)
   }
 
-  let cell = SPECIMEN_START_CELL
-  for (const item of monoItems) {
-    cell += item.rows
-    await place(item, cell)
-  }
+  for (let i = 0; i < monoItems.length; i++) await place(monoItems[i], monoStack, i)
+  for (let i = 0; i < sansItems.length; i++) await place(sansItems[i], sansStack, i)
 
-  cell = sansStart
-  for (const item of sansItems) {
-    cell += item.rows
-    await place(item, cell)
-  }
-
-  // Remove the plugin's specimens that are no longer used.
+  // Remove the plugin's specimens that are no longer used, with their blocks,
+  // and any block left without its text.
   bySlot.forEach((node) => node.remove())
   byLegacyName.forEach((node) => node.remove())
+  for (const stack of [monoStack, sansStack]) {
+    for (const child of stack.children.slice()) {
+      if (roleOf(child) !== 'specimenBlock') continue
+      const block = child as FrameNode
+      const hasText = block.children.some((c) => roleOf(c) === 'specimen')
+      if (!hasText) block.remove()
+    }
+  }
 
   return container.id
 }
@@ -1727,10 +1860,24 @@ function sendActionState(): void {
   const W = frame ? frame.width : frameWidthOf(lastParams)
   const H = frame ? frame.height : frameHeightOf(lastParams, W)
   const g = computeGrid(gridSpecOf(lastParams, W, H))
-  const specimenSizes = sizeSpecimens(lastParams, g, H).map((i) => ({
-    face: i.spec.face,
-    size: i.fontSize,
-  }))
+  const displayScale = displayScaleOf(lastParams, W)
+  const specimenSizes = sizeSpecimens(lastParams, g, H).map((i) => {
+    const lineHeight = i.cells * g.cellH
+    return {
+      face: i.spec.face,
+      pct: i.spec.pct,
+      size: i.fontSize,
+      cells: i.cells,
+      // What the type is actually set at, after the line height snaps to
+      // cells and the font size is capped by it.
+      leading: lineHeight / i.fontSize,
+      autoLeading: i.spec.autoLeading,
+      tracking:
+        i.spec.trackingPct !== null
+          ? i.spec.trackingPct
+          : opticalTrackingPct(i.fontSize * displayScale),
+    }
+  })
 
   // Offer removal for a gridded frame, apply for an ungridded frame, and creation
   // when the selection does not resolve to a frame.
@@ -1796,17 +1943,10 @@ function sendActionState(): void {
       vRemainder: g.vRemainder,
       offsetX: g.offsetX,
       columnWidth: g.columnWidth,
-      // Font size of each requested specimen, smallest first. Sizes that do
-      // not fit the frame are still listed; the stack drops them on apply.
-      monoFontSizes: specimenSizes.filter((s) => s.face === 'mono').map((s) => s.size),
-      sansFontSizes: specimenSizes.filter((s) => s.face === 'sans').map((s) => s.size),
-      displayScale: displayScaleOf(lastParams, W),
-      // A custom sans tracking curve replaces the optical one, so the display
-      // scale then has nothing to act on.
-      opticalTracking: !trackingCurveOf(
-        lastParams.sansTracking,
-        DEFAULT_PARAMS.sansTracking,
-      ),
+      // Each specimen as set: size in % and px, line height in cells, the
+      // leading and tracking it ends up with, and the built-in leading.
+      specimens: specimenSizes,
+      displayScale,
       columnCells: g.columnCells,
       marginCells: g.solvedM,
       contentWidth: g.contentWidth,

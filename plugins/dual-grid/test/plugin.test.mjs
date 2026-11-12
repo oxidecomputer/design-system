@@ -38,6 +38,63 @@ function killNode(n) {
   }
 }
 
+// Enough auto layout to place children the way Figma does: a vertical column
+// with padding, item spacing, MIN / MAX / CENTER / SPACE_BETWEEN alignment, and
+// fixed or hugging size. Absolutely positioned children keep their x and y.
+const inFlow = (f, c) =>
+  f.layoutMode === 'VERTICAL' && c.layoutPositioning !== 'ABSOLUTE' && c.visible !== false
+function flowOffsetY(f, child) {
+  const kids = f.children.filter((c) => inFlow(f, c))
+  const heights = kids.map((c) => c.height)
+  const sum = heights.reduce((a, b) => a + b, 0)
+  const top = f.paddingTop || 0
+  const bottom = f.paddingBottom || 0
+  let gap = f.itemSpacing || 0
+  let y = top
+  const free = f.height - top - bottom - sum - gap * Math.max(0, kids.length - 1)
+  if (f.primaryAxisAlignItems === 'SPACE_BETWEEN') {
+    gap =
+      kids.length > 1 ? Math.max(0, (f.height - top - bottom - sum) / (kids.length - 1)) : 0
+  } else if (f.primaryAxisAlignItems === 'MAX') {
+    y += free
+  } else if (f.primaryAxisAlignItems === 'CENTER') {
+    y += free / 2
+  }
+  for (let i = 0; i < kids.length; i++) {
+    if (kids[i] === child) return y
+    y += heights[i] + gap
+  }
+  throw new Error('not in flow')
+}
+const posX = (n) => (n.parent && inFlow(n.parent, n) ? n.parent.paddingLeft || 0 : n.x || 0)
+const posY = (n) => (n.parent && inFlow(n.parent, n) ? flowOffsetY(n.parent, n) : n.y || 0)
+function absX(n) {
+  let x = 0
+  for (; n && n !== page; n = n.parent) x += posX(n)
+  return x
+}
+function absY(n) {
+  let y = 0
+  for (; n && n !== page; n = n.parent) y += posY(n)
+  return y
+}
+function hugHeight(f) {
+  const kids = f.children.filter((c) => inFlow(f, c))
+  const sum = kids.reduce((a, c) => a + c.height, 0)
+  return (
+    (f.paddingTop || 0) +
+    sum +
+    (f.itemSpacing || 0) * Math.max(0, kids.length - 1) +
+    (f.paddingBottom || 0)
+  )
+}
+function hugWidth(f) {
+  const kids = f.children.filter((c) => inFlow(f, c))
+  return (
+    (f.paddingLeft || 0) + Math.max(0, ...kids.map((c) => c.width)) + (f.paddingRight || 0)
+  )
+}
+
 let uiHandler = null
 const notices = []
 const nodes = []
@@ -83,6 +140,8 @@ function makeText() {
       const longest = Math.max(...this.characters.split('\n').map((l) => l.length), 0)
       return (longest * 60 + 8) * (this.fontSize / 100)
     },
+    leadingTrim: 'NONE',
+    layoutPositioning: 'AUTO',
     get height() {
       const lines = this.characters.split('\n').length
       // AUTO -> the font's own (ascent+descent); Inter = 1.21em.
@@ -90,19 +149,16 @@ function makeText() {
         this.lineHeight && this.lineHeight.value
           ? this.lineHeight.value
           : this.fontSize * 1.21
+      // Trimmed to cap height: the box runs from the first cap top to the
+      // last baseline.
+      if (this.leadingTrim === 'CAP_HEIGHT') return 0.72 * this.fontSize + (lines - 1) * lh
       return lines * lh
     },
     resize(w, h) {
       this._resized = [w, h]
     },
     get _absY() {
-      let y = this.y,
-        n = this.parent
-      while (n) {
-        y += n.y || 0
-        n = n.parent
-      }
-      return y
+      return absY(this)
     },
     // Mock font: asc+desc = 1.21em, ascent share 0.8, cap height 0.72em.
     get absoluteBoundingBox() {
@@ -114,8 +170,8 @@ function makeText() {
           ? this.lineHeight.value
           : this.fontSize * 1.21
       const emBox = 1.21 * this.fontSize
-      const base = (L - emBox) / 2 + emBox * 0.8
       const cap = 0.72 * this.fontSize
+      const base = this.leadingTrim === 'CAP_HEIGHT' ? cap : (L - emBox) / 2 + emBox * 0.8
       return {
         x: 0,
         y: this._absY + base - cap,
@@ -138,8 +194,29 @@ function makeFrame(w, h) {
     name: '',
     removed: false,
     parent: null,
-    width: w,
-    height: h,
+    _w: w,
+    _h: h,
+    get width() {
+      return this.layoutMode === 'VERTICAL' && this.counterAxisSizingMode === 'AUTO'
+        ? hugWidth(this)
+        : this._w
+    },
+    get height() {
+      return this.layoutMode === 'VERTICAL' && this.primaryAxisSizingMode === 'AUTO'
+        ? hugHeight(this)
+        : this._h
+    },
+    layoutMode: 'NONE',
+    layoutPositioning: 'AUTO',
+    primaryAxisSizingMode: 'FIXED',
+    counterAxisSizingMode: 'FIXED',
+    primaryAxisAlignItems: 'MIN',
+    counterAxisAlignItems: 'MIN',
+    itemSpacing: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
+    paddingLeft: 0,
+    paddingRight: 0,
     x: 100,
     y: 200,
     children: [],
@@ -183,9 +260,14 @@ function makeFrame(w, h) {
       })
       this._grids = v
     },
+    // As in Figma, resizing a hugging auto layout frame fixes its size.
     resize(nw, nh) {
-      this.width = nw
-      this.height = nh
+      this._w = nw
+      this._h = nh
+      if (this.layoutMode !== 'NONE') {
+        this.primaryAxisSizingMode = 'FIXED'
+        this.counterAxisSizingMode = 'FIXED'
+      }
     },
     clipsContent: true,
     visible: true,
@@ -196,6 +278,11 @@ function makeFrame(w, h) {
       if (c.parent) c.parent.children = c.parent.children.filter((x) => x !== c)
       c.parent = this
       this.children.push(c)
+    },
+    insertChild(i, c) {
+      if (c.parent) c.parent.children = c.parent.children.filter((x) => x !== c)
+      c.parent = this
+      this.children.splice(i, 0, c)
     },
     getPluginData(k) {
       return this._data[k] || ''
@@ -371,10 +458,10 @@ const P = {
   cellDensity: 1,
   showLines: true,
   showSpecimens: true,
-  monoLeading: '2: 1.6, 12: 1.25',
-  sansLeading: '6: 1.22, 12: 1.09, 24: 1',
-  monoTracking: '4',
-  sansTracking: '',
+  monoLeadingMin: '',
+  monoLeadingMax: '',
+  sansLeadingMin: '',
+  sansLeadingMax: '',
   displayMode: 'Screen',
   shownWidthPx: 400,
   printWidthMm: 210,
@@ -385,6 +472,9 @@ const P = {
 }
 let fails = 0
 let checks = 0
+// Font sizes of one family's specimens, from the preview.
+const sizesOf = (pv, face) => pv.specimens.filter((x) => x.face === face).map((x) => x.size)
+
 const check = (name, cond, extra) => {
   checks++
   if (!cond) fails++
@@ -415,6 +505,36 @@ const apply = async (w, h, over = {}) => {
   return { fr, pv: figma.ui._last.preview }
 }
 const layer = (fr, name) => fr.children.find((c) => c.name === name)
+
+// The specimen text nodes in a Type Specimens container, top to bottom: each
+// sits in a block inside the Mono or Sans stack.
+const specimens = (container) => {
+  const out = []
+  const walk = (n) =>
+    (n.children || []).forEach((c) => {
+      if (c.type === 'TEXT' && c.getPluginData('dualGridRole') === 'specimen') out.push(c)
+      else if (c.type === 'FRAME') walk(c)
+    })
+  walk(container)
+  return out
+}
+// The gridded frame a node is in: its ancestor on the page.
+const frameOf = (n) => {
+  while (n.parent && n.parent !== page) n = n.parent
+  return n
+}
+// Where a specimen's baseline is, relative to its frame, from its ink bounds.
+const baselineOf = (n) => {
+  const ink = n.absoluteRenderBounds
+  return ink.y + ink.height - absY(frameOf(n))
+}
+// The top of a specimen's line box relative to its frame, as if its leading
+// were not trimmed: the baseline less the mock font's untrimmed offset.
+const lineTop = (n) => {
+  const emBox = 1.21 * n.fontSize
+  return baselineOf(n) - ((n.lineHeight.value - emBox) / 2 + emBox * 0.8)
+}
+const relX = (n) => absX(n) - absX(frameOf(n))
 
 console.log('=== create + basic wiring ===')
 page.selection = []
@@ -1143,8 +1263,8 @@ for (const [ml, mr, pp, tol] of [
   const specs = layer(fr, 'Type Specimens')
   check(
     `  specimens sit on the left margin`,
-    specs.children.every((n) => Math.abs(n.x - pv.effectiveMargin) < 1e-6),
-    specs.children.map((n) => n.x).join(','),
+    specimens(specs).every((n) => Math.abs(relX(n) - pv.effectiveMargin) < 1e-6),
+    specimens(specs).map(relX).join(','),
   )
 }
 {
@@ -1350,10 +1470,12 @@ console.log('\n=== TYPE SPECIMENS ===')
   check('a "Type Specimens" container is created', !!spec && spec.parent === fr)
   check(
     'specimens are generated',
-    spec.children.length >= 2,
-    spec.children.map((c) => c.name).join(','),
+    specimens(spec).length >= 2,
+    specimens(spec)
+      .map((c) => c.name)
+      .join(','),
   )
-  const [mono, ...sans] = spec.children
+  const [mono, ...sans] = specimens(spec)
 
   console.log('--- mono ---')
   check(
@@ -1387,10 +1509,10 @@ console.log('\n=== TYPE SPECIMENS ===')
 
   check(
     'preview reports the font size of every generated specimen',
-    pv.monoFontSizes.length === 1 &&
-      Math.abs(pv.monoFontSizes[0] - mono.fontSize) < 1e-9 &&
-      sans.every((n) => pv.sansFontSizes.some((s) => Math.abs(s - n.fontSize) < 1e-9)),
-    JSON.stringify({ mono: pv.monoFontSizes, sans: pv.sansFontSizes }),
+    sizesOf(pv, 'mono').length === 1 &&
+      Math.abs(sizesOf(pv, 'mono')[0] - mono.fontSize) < 1e-9 &&
+      sans.every((n) => sizesOf(pv, 'sans').some((s) => Math.abs(s - n.fontSize) < 1e-9)),
+    JSON.stringify({ mono: sizesOf(pv, 'mono'), sans: sizesOf(pv, 'sans') }),
   )
 
   console.log('--- sans: 1x, 2x, 4x, 8x cell height ---')
@@ -1445,10 +1567,10 @@ console.log('\n=== TYPE SPECIMENS ===')
   )
 
   console.log('--- every specimen baseline lands on a cell line ---')
-  spec.children.forEach((n) => {
+  specimens(spec).forEach((n) => {
     const probeRatio = 1.21 // mock metrics
     const emBox = probeRatio * n.fontSize
-    const base = n.y + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
+    const base = lineTop(n) + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
     const steps = base / pv.cellH
     check(
       `${n.name} baseline on a cell line`,
@@ -1457,23 +1579,28 @@ console.log('\n=== TYPE SPECIMENS ===')
     )
     check(
       `${n.name} starts at the content edge (effective margin)`,
-      Math.abs(n.x - pv.effectiveMargin) < 1e-9,
-      n.x + ' vs ' + pv.effectiveMargin,
+      Math.abs(relX(n) - pv.effectiveMargin) < 1e-9,
+      relX(n) + ' vs ' + pv.effectiveMargin,
     )
     check(
       `${n.name} sits inside the frame vertically`,
-      n.y >= -1 && n.y + n.lineHeight.value <= 1080 + 1,
-      'y=' + n.y.toFixed(1) + ' bottom=' + (n.y + n.lineHeight.value).toFixed(1),
+      lineTop(n) >= -1 && lineTop(n) + n.lineHeight.value <= 1080 + 1,
+      'y=' +
+        lineTop(n).toFixed(1) +
+        ' bottom=' +
+        (lineTop(n) + n.lineHeight.value).toFixed(1),
     )
   })
   check(
     'specimens do not overlap (stacked by their own multiples)',
     (() => {
-      const ys = spec.children.map((n) => n.y)
+      const ys = specimens(spec).map((n) => lineTop(n))
       for (let i = 1; i < ys.length; i++) if (ys[i] <= ys[i - 1]) return false
       return true
     })(),
-    spec.children.map((n) => n.y.toFixed(0)).join(' < '),
+    specimens(spec)
+      .map((n) => lineTop(n).toFixed(0))
+      .join(' < '),
   )
 }
 
@@ -1496,8 +1623,7 @@ console.log('--- specimens toggle ---')
   check('showSpecimens:true shows them again', layer(fr, 'Type Specimens').visible === true)
   check(
     'specimen count stable after reapply',
-    layer(fr, 'Type Specimens').children.length ===
-      layer(fr, 'Type Specimens').children.length,
+    specimens(layer(fr, 'Type Specimens')).length === SPECIMEN_NAMES.length,
   )
   check(
     'still one container',
@@ -1512,7 +1638,7 @@ console.log('--- fractional sizes change the type within one cell count ---')
   const runs = []
   for (const m of sizes) {
     const { fr, pv } = await apply(1920, 1080, { monoSizes: m, sansSizes: m })
-    const [mono, sans] = layer(fr, 'Type Specimens').children
+    const [mono, sans] = specimens(layer(fr, 'Type Specimens'))
     runs.push({ m, cellH: pv.cellH, mono, sans })
   }
   const lh = (n) => n.lineHeight.value
@@ -1541,20 +1667,20 @@ console.log('--- fractional sizes change the type within one cell count ---')
 
 console.log('--- leading and tracking curves ---')
 {
-  const specimens = async (over) => {
+  const specimensWith = async (over) => {
     const { fr } = await apply(1920, 1080, {
       monoSizes: '2',
       sansSizes: '6, 12, 24',
       ...over,
     })
     const out = {}
-    for (const n of layer(fr, 'Type Specimens').children) out[n.name] = n
+    for (const n of specimens(layer(fr, 'Type Specimens'))) out[n.name] = n
     return out
   }
   const optical = (size) => (0.981 / size - 0.0401) * 100
   const near = (a, b) => Math.abs(a - b) < 1e-9
 
-  const base = await specimens({})
+  const base = await specimensWith({})
   check(
     'default: mono tracking is 4%, sans follows the optical curve',
     base['Mono 2%'].letterSpacing.value === 4 &&
@@ -1563,11 +1689,26 @@ console.log('--- leading and tracking curves ---')
       ),
   )
 
-  // Leading 2 everywhere: font size = requested line height / 2.
-  const flat = await specimens({ sansLeading: '2', monoLeading: '2' })
+  // The built-in leading at the ends, evenly between in log(size): 6..24%
+  // runs 1.22 → 1.0, so 12%, the ratio midpoint, sits halfway at 1.11.
   check(
-    'a bare leading number applies at every size',
+    'default leading runs from the built-in ends, halfway at the ratio midpoint',
+    near(base['Sans 6%'].fontSize, (1080 * 0.06) / 1.22) &&
+      near(base['Sans 12%'].fontSize, (1080 * 0.12) / 1.11) &&
+      near(base['Sans 24%'].fontSize, (1080 * 0.24) / 1),
+    ['Sans 6%', 'Sans 12%', 'Sans 24%'].map((k) => base[k].fontSize.toFixed(2)).join(','),
+  )
+
+  // Leading 2 at both ends: font size = requested line height / 2.
+  const flat = await specimensWith({
+    sansLeadingMin: '2',
+    sansLeadingMax: '2',
+    monoLeadingMin: '2',
+  })
+  check(
+    'equal ends give the same leading at every size',
     near(flat['Sans 6%'].fontSize, (1080 * 0.06) / 2) &&
+      near(flat['Sans 12%'].fontSize, (1080 * 0.12) / 2) &&
       near(flat['Sans 24%'].fontSize, (1080 * 0.24) / 2) &&
       near(flat['Mono 2%'].fontSize, (1080 * 0.02) / 2),
     ['Sans 6%', 'Sans 24%', 'Mono 2%'].map((k) => flat[k].fontSize.toFixed(2)).join(','),
@@ -1579,58 +1720,67 @@ console.log('--- leading and tracking curves ---')
     ),
   )
 
-  // Points interpolate linearly between sizes and clamp beyond the ends.
-  const pts = await specimens({ sansLeading: '6: 2, 24: 1.25' })
+  // Setting one end leaves the other at its built-in value.
+  const lo = await specimensWith({ sansLeadingMin: '1.6' })
   check(
-    'leading points interpolate between sizes and clamp at the ends',
-    near(pts['Sans 6%'].fontSize, (1080 * 0.06) / 2) &&
-      near(pts['Sans 12%'].fontSize, (1080 * 0.12) / (2 - (0.75 * 6) / 18)) &&
-      near(pts['Sans 24%'].fontSize, (1080 * 0.24) / 1.25),
-    ['Sans 6%', 'Sans 12%', 'Sans 24%'].map((k) => pts[k].fontSize.toFixed(2)).join(','),
+    'one end set: the other keeps its built-in value, and the middle moves between',
+    near(lo['Sans 6%'].fontSize, (1080 * 0.06) / 1.6) &&
+      near(lo['Sans 24%'].fontSize, base['Sans 24%'].fontSize) &&
+      near(lo['Sans 12%'].fontSize, (1080 * 0.12) / 1.3),
+    ['Sans 6%', 'Sans 12%', 'Sans 24%'].map((k) => lo[k].fontSize.toFixed(2)).join(','),
   )
 
-  const tr = await specimens({ sansTracking: '6: 2, 24: -2', monoTracking: '10%' })
-  check(
-    'tracking points and a bare % apply',
-    near(tr['Sans 6%'].letterSpacing.value, 2) &&
-      near(tr['Sans 24%'].letterSpacing.value, -2) &&
-      tr['Mono 2%'].letterSpacing.value === 10,
-  )
-  // Through (6, 2) and (24, -2), a / x + b gives a = 32, b = -10/3, so 12% sits
-  // at 32/12 - 10/3 = -2/3: below the straight-line value of 2/3, as the
-  // optical curve falls fastest at small sizes.
-  check(
-    'tracking between points follows the optical curve shape, a / size + b',
-    near(tr['Sans 12%'].letterSpacing.value, -2 / 3),
-    tr['Sans 12%'].letterSpacing.value.toFixed(4),
-  )
-  // One size per run, so neither is dropped for lack of room.
-  const below = await specimens({ sansSizes: '3', sansTracking: '6: 2, 24: -2' })
-  const above = await specimens({ sansSizes: '30', sansTracking: '6: 2, 24: -2' })
-  check(
-    'tracking holds its end values beyond the first and last points',
-    !!below['Sans 3%'] &&
-      !!above['Sans 30%'] &&
-      near(below['Sans 3%'].letterSpacing.value, 2) &&
-      near(above['Sans 30%'].letterSpacing.value, -2),
-  )
-
-  const junk = await specimens({
-    sansLeading: 'abc',
-    monoLeading: '0',
-    sansTracking: 'nope',
-    monoTracking: '',
+  // The ends follow the family's range, wherever it is.
+  const moved = await specimensWith({
+    sansSizes: '10, 20',
+    sansLeadingMin: '1.4',
+    sansLeadingMax: '1.2',
   })
   check(
-    'unusable curves fall back to the defaults',
-    ['Sans 6%', 'Sans 12%', 'Sans 24%', 'Mono 2%'].every(
-      (k) =>
-        near(junk[k].fontSize, base[k].fontSize) &&
-        near(junk[k].letterSpacing.value, base[k].letterSpacing.value),
+    'the ends apply at the smallest and largest requested sizes',
+    near(moved['Sans 10%'].fontSize, (1080 * 0.1) / 1.4) &&
+      near(moved['Sans 20%'].fontSize, (1080 * 0.2) / 1.2),
+  )
+  const wide = await specimensWith({ sansSizes: '3, 12' })
+  check(
+    'with no ends set, the built-in curve is read at the range ends, clamped beyond it',
+    near(
+      wide['Sans 3%'].fontSize,
+      Math.min((1080 * 0.03) / 1.22, wide['Sans 3%'].lineHeight.value),
+    ) && near(wide['Sans 12%'].fontSize, (1080 * 0.12) / 1.11),
+    ['Sans 3%', 'Sans 12%'].map((k) => wide[k] && wide[k].fontSize.toFixed(2)).join(','),
+  )
+  const single = await specimensWith({
+    sansSizes: '12',
+    sansLeadingMin: '1.3',
+    sansLeadingMax: '3',
+  })
+  check(
+    'a single size takes the smallest-size leading',
+    near(single['Sans 12%'].fontSize, (1080 * 0.12) / 1.3),
+  )
+
+  check(
+    'tracking is automatic: mono a flat 4%, sans the optical curve',
+    lo['Mono 2%'].letterSpacing.value === 4 &&
+      ['Sans 6%', 'Sans 12%', 'Sans 24%'].every((k) =>
+        near(lo[k].letterSpacing.value, optical(lo[k].fontSize)),
+      ),
+  )
+
+  const junk = await specimensWith({
+    sansLeadingMin: 'abc',
+    sansLeadingMax: '9',
+    monoLeadingMin: '0',
+  })
+  check(
+    'unusable leading falls back to the built-in values',
+    ['Sans 6%', 'Sans 12%', 'Sans 24%', 'Mono 2%'].every((k) =>
+      near(junk[k].fontSize, base[k].fontSize),
     ),
   )
 
-  const capped = await specimens({ sansLeading: '0.5' })
+  const capped = await specimensWith({ sansLeadingMin: '0.5', sansLeadingMax: '0.5' })
   check(
     'leading below 1 is capped: font size never exceeds the line height',
     ['Sans 6%', 'Sans 12%', 'Sans 24%'].every(
@@ -1649,7 +1799,7 @@ console.log(
   const post = async (over) => {
     const { fr, pv } = await apply(1080, 1080, { sansSizes: '6, 12, 24', ...over })
     const out = {}
-    for (const n of layer(fr, 'Type Specimens').children) out[n.name] = n
+    for (const n of specimens(layer(fr, 'Type Specimens'))) out[n.name] = n
     return { out, pv }
   }
   const sans = ['Sans 6%', 'Sans 12%', 'Sans 24%']
@@ -1713,16 +1863,27 @@ console.log(
   const unknown = await post({ displayMode: 'Billboard' })
   check('an unknown display mode is treated as Screen', follows(unknown.out, 1))
 
-  const curve = await post({ displayMode: 'Social', sansTracking: '6: 2, 24: -2' })
   check(
-    'a custom sans tracking curve ignores the display scale',
-    near(curve.out['Sans 6%'].letterSpacing.value, 2) &&
-      near(curve.out['Sans 24%'].letterSpacing.value, -2) &&
-      curve.pv.opticalTracking === false,
+    'the preview reports each specimen as set',
+    screen.pv.specimens.length === 4 &&
+      screen.pv.specimens.every((x) => {
+        const n = screen.out[(x.face === 'mono' ? 'Mono ' : 'Sans ') + x.pct + '%']
+        return (
+          !!n &&
+          near(x.size, n.fontSize) &&
+          near(x.leading, n.lineHeight.value / n.fontSize) &&
+          near(x.tracking, n.letterSpacing.value) &&
+          typeof x.cells === 'number' &&
+          typeof x.autoLeading === 'number'
+        )
+      }),
+    JSON.stringify(screen.pv.specimens),
   )
   check(
-    'the optical curve is reported as active by default',
-    screen.pv.opticalTracking === true,
+    '...including the tracking the display scale gives',
+    phone.pv.specimens
+      .filter((x) => x.face === 'sans')
+      .every((x) => near(x.tracking, optical(x.size * (400 / 1080)))),
   )
   check(
     'mono tracking ignores the display scale',
@@ -1734,7 +1895,7 @@ console.log('--- Snap font rounds font sizes, not line heights ---')
 {
   const { fr } = await apply(1920, 1080)
   page.selection = [fr]
-  const before = layer(fr, 'Type Specimens').children.map((n) => ({
+  const before = specimens(layer(fr, 'Type Specimens')).map((n) => ({
     name: n.name,
     fontSize: n.fontSize,
     lineHeight: n.lineHeight.value,
@@ -1749,7 +1910,7 @@ console.log('--- Snap font rounds font sizes, not line heights ---')
     params: { ...P, snapFontPx: true },
     reapply: true,
   })
-  const after = layer(fr, 'Type Specimens').children
+  const after = specimens(layer(fr, 'Type Specimens'))
   check(
     'on: every font size is a whole pixel, nearest without passing the line height',
     after.every((n) => {
@@ -1769,9 +1930,11 @@ console.log('--- Snap font rounds font sizes, not line heights ---')
   const pv = figma.ui._last.preview
   check(
     'on: preview reports the rounded sizes',
-    pv.monoFontSizes.concat(pv.sansFontSizes).every(Number.isInteger) &&
-      after.every((n) => pv.monoFontSizes.concat(pv.sansFontSizes).includes(n.fontSize)),
-    JSON.stringify({ mono: pv.monoFontSizes, sans: pv.sansFontSizes }),
+    sizesOf(pv, 'mono').concat(sizesOf(pv, 'sans')).every(Number.isInteger) &&
+      after.every((n) =>
+        sizesOf(pv, 'mono').concat(sizesOf(pv, 'sans')).includes(n.fontSize),
+      ),
+    JSON.stringify({ mono: sizesOf(pv, 'mono'), sans: sizesOf(pv, 'sans') }),
   )
   check('same specimen layers reused', after.length === before.length)
 
@@ -1780,10 +1943,12 @@ console.log('--- Snap font rounds font sizes, not line heights ---')
   // height, so it rounds down instead.
   const { fr: capFr } = await apply(1920, 1080, {
     monoSizes: '2.5',
-    monoLeading: '1',
+    monoLeadingMin: '1',
     snapFontPx: true,
   })
-  const capped = layer(capFr, 'Type Specimens').children.find((n) => n.name === 'Mono 2.5%')
+  const capped = specimens(layer(capFr, 'Type Specimens')).find(
+    (n) => n.name === 'Mono 2.5%',
+  )
   check(
     'on: rounds down rather than past the line height',
     !!capped && capped.fontSize === 22 && capped.lineHeight.value === 22.5,
@@ -1795,8 +1960,8 @@ console.log('--- specimens scale with the cell size ---')
 {
   const a = await apply(1920, 1080, { gutterPx: 24, cellDensity: 1 })
   const b = await apply(1920, 1080, { gutterPx: 24, cellDensity: 2 })
-  const sa = layer(a.fr, 'Type Specimens').children[1].fontSize
-  const sb = layer(b.fr, 'Type Specimens').children[1].fontSize
+  const sa = specimens(layer(a.fr, 'Type Specimens'))[1].fontSize
+  const sb = specimens(layer(b.fr, 'Type Specimens'))[1].fontSize
   // Sized from the frame now, so a finer cell no longer shrinks the type — it just
   // snaps to a different number of (smaller) cells.
   check(
@@ -1810,17 +1975,21 @@ console.log('\n=== specimens stay inside the frame ===')
 {
   const { fr } = await apply(1920, 1080)
   const spec = layer(fr, 'Type Specimens')
-  const last = spec.children[spec.children.length - 1]
+  const last = specimens(spec)[specimens(spec).length - 1]
   check(
     'the largest included specimen fits inside the frame',
-    last.y + last.lineHeight.value <= 1080 + 1,
-    'bottom=' + (last.y + last.lineHeight.value).toFixed(1) + ' of 1080',
+    lineTop(last) + last.lineHeight.value <= 1080 + 1,
+    'bottom=' + (lineTop(last) + last.lineHeight.value).toFixed(1) + ' of 1080',
   )
   check(
     'whole stack fits',
-    spec.children.every((n) => n.y >= -1 && n.y + n.lineHeight.value <= 1081),
-    spec.children
-      .map((n) => Math.round(n.y) + '-' + Math.round(n.y + n.lineHeight.value))
+    specimens(spec).every(
+      (n) => lineTop(n) >= -1 && lineTop(n) + n.lineHeight.value <= 1081,
+    ),
+    specimens(spec)
+      .map(
+        (n) => Math.round(lineTop(n)) + '-' + Math.round(lineTop(n) + n.lineHeight.value),
+      )
       .join(' '),
   )
 }
@@ -1885,15 +2054,134 @@ console.log('\n=== DRAWN LINES scale with cell density too ===')
   )
 }
 
+console.log('\n=== specimens are laid out with auto layout ===')
+{
+  const { fr, pv } = await apply(1920, 1080)
+  const spec = layer(fr, 'Type Specimens')
+  const role = (n) => n.getPluginData('dualGridRole')
+  check(
+    'the container is a fixed vertical column, stacks pushed to the ends',
+    spec.layoutMode === 'VERTICAL' &&
+      spec.primaryAxisSizingMode === 'FIXED' &&
+      spec.primaryAxisAlignItems === 'SPACE_BETWEEN' &&
+      spec.width === 1920 &&
+      spec.height === 1080,
+    [spec.layoutMode, spec.primaryAxisSizingMode, spec.primaryAxisAlignItems].join(','),
+  )
+  const [monoStack, sansStack] = spec.children
+  check(
+    'it holds a Mono and a Sans stack, in that order',
+    spec.children.length === 2 &&
+      monoStack.name === 'Mono' &&
+      sansStack.name === 'Sans' &&
+      [monoStack, sansStack].every(
+        (st) => role(st) === 'specimenStack' && st.primaryAxisSizingMode === 'AUTO',
+      ),
+    spec.children.map((c) => c.name).join(','),
+  )
+  const blocks = [...monoStack.children, ...sansStack.children]
+  check(
+    'each specimen is in its own hugging block',
+    blocks.length === 4 &&
+      blocks.every(
+        (b) =>
+          role(b) === 'specimenBlock' &&
+          b.layoutMode === 'VERTICAL' &&
+          b.primaryAxisSizingMode === 'AUTO' &&
+          b.children.length === 1 &&
+          b.children[0].leadingTrim === 'CAP_HEIGHT',
+      ),
+    blocks.map((b) => b.name).join(','),
+  )
+  const whole = (px) => Math.abs(px / pv.cellH - Math.round(px / pv.cellH)) < 1e-6
+  check(
+    'every block is a whole number of cells tall',
+    blocks.every((b) => whole(b.height)),
+    blocks.map((b) => (b.height / pv.cellH).toFixed(3)).join(','),
+  )
+  check(
+    "...so each specimen's baseline is its block's bottom line",
+    blocks.every((b) => {
+      const n = b.children[0]
+      return Math.abs(absY(n) + n.height - (absY(b) + b.height)) < 1e-6
+    }),
+  )
+  check(
+    'the stacks start and end on cell lines',
+    whole(absY(monoStack) - absY(fr) - pv.rowOffset) &&
+      whole(absY(sansStack) + sansStack.height - absY(fr) - pv.rowOffset),
+  )
+
+  // A second line typed into a specimen grows its block by a line height,
+  // which is a cell step, so the baselines around it stay on cell lines.
+  page.selection = [fr]
+  const twelve = specimens(spec).find((n) => n.name === 'Sans 12%')
+  twelve.characters = 'Two\nlines'
+  await uiHandler({ type: 'params-changed', reapply: true, params: P })
+  const onLine = (n) => {
+    const c = (baselineOf(n) - pv.rowOffset) / pv.cellH
+    return Math.abs(c - Math.round(c)) < 1e-6
+  }
+  check(
+    'a two-line specimen keeps every baseline on a cell line',
+    specimens(spec).every(onLine),
+    specimens(spec)
+      .map((n) => ((baselineOf(n) - pv.rowOffset) / pv.cellH).toFixed(3))
+      .join(','),
+  )
+  check(
+    '...and its text survives',
+    twelve.characters === 'Two\nlines' && specimens(spec).includes(twelve),
+  )
+
+  // Anything the user adds keeps its position instead of joining the column.
+  const note = makeText()
+  note.name = 'My note'
+  note.y = 300
+  spec.appendChild(note)
+  await uiHandler({ type: 'params-changed', reapply: true, params: P })
+  check(
+    "a user's layer in the container is positioned absolutely",
+    note.layoutPositioning === 'ABSOLUTE' && !note.removed && absY(note) - absY(fr) === 300,
+  )
+}
+
+console.log('--- a frame from the previous layout is converted in place ---')
+{
+  const { fr } = await apply(1920, 1080)
+  const spec = layer(fr, 'Type Specimens')
+  // The previous version put the texts straight into a plain container.
+  const texts = specimens(spec)
+  texts.forEach((t) => spec.appendChild(t))
+  spec.children.slice().forEach((c) => {
+    if (c.type === 'FRAME') c.remove()
+  })
+  spec.layoutMode = 'NONE'
+  texts[1].characters = 'Kept'
+  page.selection = [fr]
+  await uiHandler({ type: 'params-changed', reapply: true, params: P })
+  const after = specimens(spec)
+  check(
+    'the old text nodes move into blocks rather than being replaced',
+    after.length === texts.length && after.every((n, i) => n === texts[i]),
+    after.map((n) => n.id).join(',') + ' vs ' + texts.map((n) => n.id).join(','),
+  )
+  check(
+    '...keeping their text',
+    after[1].characters === 'Kept' &&
+      spec.children.every((c) => c.getPluginData('dualGridRole') === 'specimenStack'),
+  )
+}
+
 console.log('\n=== SPECIMEN baselines measured exactly (not estimated) ===')
 {
   const { fr, pv } = await apply(1920, 1080)
   const spec = layer(fr, 'Type Specimens')
-  spec.children.forEach((n) => {
+  specimens(spec).forEach((n) => {
     // Recover the baseline the same way Figma would report it.
     const L = n.lineHeight.value,
       emBox = 1.21 * n.fontSize
-    const base = n.y + (L - emBox) / 2 + emBox * 0.8
+    const base = lineTop(n) + (L - emBox) / 2 + emBox * 0.8
     const steps = (base - pv.rowOffset) / pv.cellH
     check(
       `${n.name} baseline sits exactly on a grid row line`,
@@ -1907,10 +2195,10 @@ console.log('--- baseline alignment holds at every cell density ---')
 for (const d of [1, 2, 3]) {
   const { fr, pv } = await apply(1920, 1080, { cellDensity: d })
   const spec = layer(fr, 'Type Specimens')
-  const ok = spec.children.every((n) => {
+  const ok = specimens(spec).every((n) => {
     const L = n.lineHeight.value,
       emBox = 1.21 * n.fontSize
-    const base = n.y + (L - emBox) / 2 + emBox * 0.8
+    const base = lineTop(n) + (L - emBox) / 2 + emBox * 0.8
     const steps = (base - pv.rowOffset) / (pv.cellH / d) // finer grid lines
     return Math.abs(steps - Math.round(steps)) < 1e-6
   })
@@ -2360,8 +2648,8 @@ console.log('\n=== without the library, the palette falls back to hex ===')
   check('the char grid is grey', rgb(chars()) === '#333333', rgb(chars()))
   check(
     'the specimens are white',
-    layer(fr, 'Type Specimens').children.every((n) => rgb(n) === '#ffffff'),
-    layer(fr, 'Type Specimens').children.map(rgb).join(','),
+    specimens(layer(fr, 'Type Specimens')).every((n) => rgb(n) === '#ffffff'),
+    specimens(layer(fr, 'Type Specimens')).map(rgb).join(','),
   )
   check('the cell lines are grey', stroke() === '#666666', stroke())
   check('nothing is bound without the library', !chars().fills[0].boundVariables)
@@ -2441,12 +2729,11 @@ console.log('\n=== with the library, the palette binds to swatches ===')
     bound(chars().fills[0]) === 'var:key:neutral/500',
     bound(chars().fills[0]),
   )
-  const specimens = layer(fr, 'Type Specimens').children
+  const texts = specimens(layer(fr, 'Type Specimens'))
   check(
     'the specimens are green/1200',
-    specimens.length > 0 &&
-      specimens.every((n) => bound(n.fills[0]) === 'var:key:green/1200'),
-    specimens.map((n) => bound(n.fills[0])).join(','),
+    texts.length > 0 && texts.every((n) => bound(n.fills[0]) === 'var:key:green/1200'),
+    texts.map((n) => bound(n.fills[0])).join(','),
   )
 
   for (let i = 0; i < 5; i++) {
@@ -2469,7 +2756,7 @@ console.log('\n=== with the library, the palette binds to swatches ===')
     "after reapplies, every paint's literal colour is the swatch's value",
     literal(chars().fills[0]) &&
       literal(stroke()) &&
-      layer(fr, 'Type Specimens').children.every((n) => literal(n.fills[0])),
+      specimens(layer(fr, 'Type Specimens')).every((n) => literal(n.fills[0])),
   )
 
   page.selection = []
@@ -2693,7 +2980,7 @@ console.log('\n=== selecting a child keeps the panel bound to its frame ===')
 
   for (const [label, node] of [
     ['the char grid', chars],
-    ['a specimen', spec.children[0]],
+    ['a specimen', specimens(spec)[0]],
     ['your own layer', art],
   ]) {
     page.selection = [node]
@@ -2779,10 +3066,10 @@ console.log('\n=== a live reapply updates in place, it does not recreate ===')
   const spec = () => layer(fr, 'Type Specimens')
   const chars = () => fr.children.find((c) => c.name === 'Char Grid')
 
-  const idsBefore = spec().children.map((n) => n.id)
+  const idsBefore = specimens(spec()).map((n) => n.id)
   const charIdBefore = chars().id
   // Type over a specimen and the char grid, as you would to try the real copy.
-  spec().children[0].characters = 'HAND EDITED'
+  specimens(spec())[0].characters = 'HAND EDITED'
   const gridTextBefore = chars().characters
 
   // A reapply that changes the metrics but not the grid's shape.
@@ -2794,29 +3081,29 @@ console.log('\n=== a live reapply updates in place, it does not recreate ===')
 
   check(
     'specimen nodes are reused, not replaced',
-    spec()
-      .children.map((n) => n.id)
+    specimens(spec())
+      .map((n) => n.id)
       .join(',') === idsBefore.join(','),
     idsBefore.join(',') +
       ' -> ' +
-      spec()
-        .children.map((n) => n.id)
+      specimens(spec())
+        .map((n) => n.id)
         .join(','),
   )
   check('the char grid node is reused too', chars().id === charIdBefore)
   check(
     'edited specimen text survives the reapply',
-    spec().children[0].characters === 'HAND EDITED',
-    spec().children[0].characters,
+    specimens(spec())[0].characters === 'HAND EDITED',
+    specimens(spec())[0].characters,
   )
   check(
     'but the metrics did update — line height is on a cell step',
     (() => {
       const pv = figma.ui._last.preview
-      const n = spec().children[0]
+      const n = specimens(spec())[0]
       return onCellStep(n.lineHeight.value, pv.cellH) && n.fontSize > 0
     })(),
-    spec().children[0].lineHeight.value.toFixed(2),
+    specimens(spec())[0].lineHeight.value.toFixed(2),
   )
 
   // Changing the aspect changes cellH, so the row count changes and the char grid
@@ -2842,7 +3129,7 @@ console.log('\n=== a live reapply updates in place, it does not recreate ===')
   )
 
   // A specimen that stops fitting is removed rather than left orphaned.
-  const before = spec().children.length
+  const before = specimens(spec()).length
   await uiHandler({
     type: 'params-changed',
     reapply: true,
@@ -2850,15 +3137,15 @@ console.log('\n=== a live reapply updates in place, it does not recreate ===')
   })
   check(
     'no specimen is duplicated across reapplies',
-    spec().children.length === new Set(spec().children.map((n) => n.name)).size,
-    spec()
-      .children.map((n) => n.name)
+    specimens(spec()).length === new Set(specimens(spec()).map((n) => n.name)).size,
+    specimens(spec())
+      .map((n) => n.name)
       .join(','),
   )
   check(
     'and the count is stable',
-    spec().children.length === before,
-    before + ' -> ' + spec().children.length,
+    specimens(spec()).length === before,
+    before + ' -> ' + specimens(spec()).length,
   )
 }
 
@@ -2869,17 +3156,17 @@ for (const [w, h] of [
   [1200, 600],
 ]) {
   const { fr, pv } = await apply(w, h)
-  const kids = layer(fr, 'Type Specimens').children
+  const kids = specimens(layer(fr, 'Type Specimens'))
   const mono = kids.filter((n) => /Mono/.test(n.name))
   const sans = kids.filter((n) => !/Mono/.test(n.name))
   if (!mono.length || !sans.length) continue
 
   check(
     `${w}x${h}: mono stays at the top`,
-    mono[0].y < h * 0.2,
-    'y=' + mono[0].y.toFixed(1) + ' of ' + h,
+    lineTop(mono[0]) < h * 0.2,
+    'y=' + lineTop(mono[0]).toFixed(1) + ' of ' + h,
   )
-  const lastBottom = sans[sans.length - 1].y + sans[sans.length - 1].lineHeight.value
+  const lastBottom = lineTop(sans[sans.length - 1]) + sans[sans.length - 1].lineHeight.value
   check(
     `  the sans stack is anchored to the bottom`,
     lastBottom > h - pv.cellH * (sans[sans.length - 1].lineHeight.value / pv.cellH + 1) &&
@@ -2896,24 +3183,25 @@ for (const [w, h] of [
   )
   check(
     `  the two blocks do not overlap`,
-    mono[mono.length - 1].y + mono[mono.length - 1].lineHeight.value <= sans[0].y + 1,
+    lineTop(mono[mono.length - 1]) + mono[mono.length - 1].lineHeight.value <=
+      lineTop(sans[0]) + 1,
     'mono ends ' +
-      (mono[mono.length - 1].y + mono[mono.length - 1].lineHeight.value).toFixed(1) +
+      (lineTop(mono[mono.length - 1]) + mono[mono.length - 1].lineHeight.value).toFixed(1) +
       ', sans starts ' +
-      sans[0].y.toFixed(1),
+      lineTop(sans[0]).toFixed(1),
   )
   check(
     `  every baseline is still on a cell line`,
     kids.every((n) => {
       const emBox = 1.21 * n.fontSize
-      const base = n.y + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
+      const base = lineTop(n) + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
       const cells = (base - pv.rowOffset) / pv.cellH
       return Math.abs(cells - Math.round(cells)) < 0.02
     }),
     kids
       .map((n) =>
         (
-          (n.y +
+          (lineTop(n) +
             (n.lineHeight.value - 1.21 * n.fontSize) / 2 +
             1.21 * n.fontSize * 0.8 -
             pv.rowOffset) /
@@ -3108,13 +3396,18 @@ for (const [w, h, label] of [
 ]) {
   const { fr, pv } = await apply(w, h)
   const spec = layer(fr, 'Type Specimens')
-  const kids = spec.children
+  const kids = specimens(spec)
   check(
     `${label} ${w}x${h}: every specimen is inside the frame`,
-    kids.every((n) => n.y >= -1 && n.y + n.lineHeight.value <= h + 1),
+    kids.every((n) => lineTop(n) >= -1 && lineTop(n) + n.lineHeight.value <= h + 1),
     kids
       .map(
-        (n) => n.name + ':' + Math.round(n.y) + '-' + Math.round(n.y + n.lineHeight.value),
+        (n) =>
+          n.name +
+          ':' +
+          Math.round(lineTop(n)) +
+          '-' +
+          Math.round(lineTop(n) + n.lineHeight.value),
       )
       .join(' '),
   )
@@ -3132,7 +3425,7 @@ for (const [w, h, label] of [
     `  baselines still land on cell lines`,
     kids.every((n) => {
       const emBox = 1.21 * n.fontSize
-      const base = n.y + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
+      const base = lineTop(n) + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
       const steps = (base - pv.rowOffset) / pv.cellH
       return Math.abs(steps - Math.round(steps)) < 1e-6
     }),
@@ -3147,7 +3440,7 @@ for (const [w, h] of [
   [1920, 4000],
 ]) {
   const { fr, pv } = await apply(w, h)
-  const kids = layer(fr, 'Type Specimens').children
+  const kids = specimens(layer(fr, 'Type Specimens'))
   const ratios = SPECIMEN_RATIOS
   kids.forEach((n) => {
     const want = specimenCells(h * ratios[n.name], pv.cellH)
@@ -3177,14 +3470,14 @@ for (const [w, h] of [
     `${w}x${h}: all baselines still on cell lines`,
     kids.every((n) => {
       const emBox = 1.21 * n.fontSize
-      const base = n.y + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
+      const base = lineTop(n) + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
       const steps = (base - pv.rowOffset) / pv.cellH
       return Math.abs(steps - Math.round(steps)) < 1e-6
     }),
   )
   check(
     `${w}x${h}: all inside the frame`,
-    kids.every((n) => n.y >= -1 && n.y + n.lineHeight.value <= h + 1),
+    kids.every((n) => lineTop(n) >= -1 && lineTop(n) + n.lineHeight.value <= h + 1),
   )
 }
 
@@ -3194,7 +3487,7 @@ console.log('\n=== custom specimen sizes ===')
     monoSizes: '3',
     sansSizes: '8, 16',
   })
-  const kids = layer(fr, 'Type Specimens').children
+  const kids = specimens(layer(fr, 'Type Specimens'))
   check(
     'one specimen per asked size, named by it',
     kids.map((n) => n.name).join(',') === 'Mono 3%,Sans 8%,Sans 16%',
@@ -3217,7 +3510,7 @@ console.log('\n=== custom specimen sizes ===')
     'custom baselines still land on cell lines',
     kids.every((n) => {
       const emBox = 1.21 * n.fontSize
-      const base = n.y + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
+      const base = lineTop(n) + (n.lineHeight.value - emBox) / 2 + emBox * 0.8
       const steps = (base - pv.rowOffset) / pv.cellH
       return Math.abs(steps - Math.round(steps)) < 1e-6
     }),
@@ -3229,11 +3522,11 @@ console.log('\n=== custom specimen sizes ===')
   })
   check(
     'sizes are sorted, deduped, junk dropped',
-    layer(messy.fr, 'Type Specimens')
-      .children.map((n) => n.name)
+    specimens(layer(messy.fr, 'Type Specimens'))
+      .map((n) => n.name)
       .join(',') === SPECIMEN_NAMES.join(','),
-    layer(messy.fr, 'Type Specimens')
-      .children.map((n) => n.name)
+    specimens(layer(messy.fr, 'Type Specimens'))
+      .map((n) => n.name)
       .join(','),
   )
 
@@ -3241,11 +3534,11 @@ console.log('\n=== custom specimen sizes ===')
   const blank = await apply(1920, 1080, { monoSizes: '', sansSizes: 'nope' })
   check(
     'empty/unusable lists fall back to the defaults',
-    layer(blank.fr, 'Type Specimens')
-      .children.map((n) => n.name)
+    specimens(layer(blank.fr, 'Type Specimens'))
+      .map((n) => n.name)
       .join(',') === SPECIMEN_NAMES.join(','),
-    layer(blank.fr, 'Type Specimens')
-      .children.map((n) => n.name)
+    specimens(layer(blank.fr, 'Type Specimens'))
+      .map((n) => n.name)
       .join(','),
   )
 
@@ -3259,11 +3552,11 @@ console.log('\n=== custom specimen sizes ===')
   })
   check(
     'reapplying a new list replaces the old sizes',
-    layer(fr, 'Type Specimens')
-      .children.map((n) => n.name)
+    specimens(layer(fr, 'Type Specimens'))
+      .map((n) => n.name)
       .join(',') === 'Mono 3%,Sans 10%',
-    layer(fr, 'Type Specimens')
-      .children.map((n) => n.name)
+    specimens(layer(fr, 'Type Specimens'))
+      .map((n) => n.name)
       .join(','),
   )
 }
@@ -3274,7 +3567,7 @@ console.log('--- type scales with the frame, not the cell grid ---')
   const a = await apply(1920, 1080)
   const b = await apply(1920, 2160)
   const big = (r) => {
-    const n = layer(r.fr, 'Type Specimens').children.find((x) => x.name === 'Sans 12%')
+    const n = specimens(layer(r.fr, 'Type Specimens')).find((x) => x.name === 'Sans 12%')
     return n && n.fontSize
   }
   check(
@@ -3314,7 +3607,7 @@ console.log('--- fixes from the product description triage ---')
   }
   const reapply = (over) =>
     uiHandler({ type: 'params-changed', reapply: true, params: { ...P, ...over } })
-  const specimensOf = (fr) => layer(fr, 'Type Specimens').children
+  const specimensOf = (fr) => specimens(layer(fr, 'Type Specimens'))
 
   // Settings a frame never stored take their default, not the panel's value.
   {
@@ -3563,17 +3856,6 @@ console.log('--- fixes from the product description triage ---')
       'one column reaches 89 cell columns',
       figma.ui._last.preview.cols === 89,
       figma.ui._last.preview.cols,
-    )
-  }
-
-  // An unfinished curve pair is ignored rather than read as 0.
-  {
-    const fr = await fresh(1920, 1080, { sansTracking: '6:' })
-    const sans = specimensOf(fr).find((n) => n.name === 'Sans 6%')
-    check(
-      '"6:" in Sans track leaves optical tracking',
-      near(sans.letterSpacing.value, optical(sans.fontSize)),
-      sans.letterSpacing.value,
     )
   }
 

@@ -34,7 +34,7 @@ Margin and gutter are independent controls, both measured in whole cells.
 
 ### Asymmetric margin
 
-In Manual mode, **Asym. margin** (under **Advanced**) shows a **Right margin** slider
+In Manual mode, **Asym. margin** (under **Advanced**) shows a **Right** slider
 beneath **Margin cells** in the Grid group, which becomes **Left margin**. The left and
 right margins (`m`, `mR`) are then set separately, for example 8 cells on the left and 4 on
 the right:
@@ -366,40 +366,43 @@ layers before IDs have been stored. The test suite does not currently reproduce 
 Each specimen's line height is a proportion of the frame height, rounded to a whole multiple
 of cell height so baselines align to cell lines. Font size is a share of the requested line
 height, before rounding. By default leading decreases from 1.6× for the mono caption and
-1.22× for small sans to 1.0× at display sizes. Custom sizes interpolate between reference
-points. Because font size uses the requested height, fractional percentages such as `2.5`
+1.22× for small sans to 1.0× at display sizes. Because font size uses the requested height, fractional percentages such as `2.5`
 change the type even when they round to the same number of cells. Font size is capped at the
 snapped line height, so leading never drops below 1.0×.
 
-Under **Advanced**, **Mono sizes** and **Sans sizes** accept comma-separated percentages of
-frame height, one specimen per entry (defaults `2` and `6, 12, 24`). Values are sorted
-ascending, duplicates removed, and invalid entries ignored. Empty or invalid lists fall back
-to the built-in scale. The resulting font sizes are shown under each field.
+The **Type** group sets each family as a scale. **Sizes** gives the smallest and largest
+line height as a percentage of frame height, and **Steps** how many specimens run between
+them (defaults: mono `2` in one step, sans `6`–`24` in three). The steps go up by a constant
+ratio, so 6–24 in three steps is 6, 12, 24 and in five is 6, 8.5, 12, 17, 24. The ends stay as
+typed and the steps between round to 0.1%. With one step, the second size and leading are
+hidden. A stored size list that isn't an equal-ratio scale is kept as it is until a scale
+control is edited.
 
-**Mono leading**, **Sans leading**, **Mono track** and **Sans track** set the curves. Each
-takes one number for every size, or `size: value` pairs keyed by the same percentages as the
-size fields, for example `6: 1.22, 12: 1.09, 24: 1`. Values hold beyond the first and last
-points. Leading is line height ÷ font size, applied to the requested line height: the size
-field sets the line box, and leading sets how much of it the type fills. Leading
-interpolates linearly between points.
+**Leading** is set at the two ends, with the sizes between interpolated evenly in log(size),
+so each step moves by the same amount. An empty end uses the built-in value, shown as its
+placeholder. The built-in leading runs from 1.6 at 2% to 1.25 at 12% for mono, and from 1.22
+at 6% to 1.0 at 24% for sans. It is read at the scale's own ends and clamped beyond these
+points. Out-of-range entries are outlined in red and ignored (sizes 0.5–100%, leading 0.5–5).
 
-Tracking is a percentage of the font size. Between points it follows the shape of the
-optical curve, `a / size + b`, so two points such as `6: 2, 24: -2` give the design system's
-curve moved to start and end at those values: it falls quickly through the small sizes and
-levels off toward display. Empty or invalid entries fall back to the defaults; for sans
-tracking that is the optical curve below, keyed by font size in pixels.
+Tracking has no setting: mono is a flat 4%, and sans follows the optical curve below.
+
+Below the controls, a read-only table lists each step as it is actually set: size, font
+size, line height in cells, the resulting leading and the tracking. The leading is measured
+after the line height snaps to cells, so it can differ from the curve. A step that snaps to
+the same number of cells as the one before is flagged in red, since the two will look nearly
+the same size.
 
 ### Display scale
 
 The optical curve was tuned on a laptop screen, so it describes type by how large it looks
-there. **Display** sets how large the frame is seen. The curve is then evaluated at the size
-the type appears at, `fontSize × k`, rather than its pixel size. Font sizes and line heights
-are unchanged; only the optical sans tracking moves. A custom **Sans track** curve, and mono
-tracking, are keyed by frame height and ignore it.
+there. **Seen on**, under **Optical tracking**, sets how large the frame is seen. The curve
+is then evaluated at the size the type appears at, `fontSize × k`, rather than its pixel
+size. Font sizes and line heights are unchanged; only sans tracking moves. Mono tracking
+ignores it.
 
 `k` is the width the frame appears as, in laptop px, divided by the frame width:
 
-| Display | Appears as                            | 1080px frame |
+| Seen on | Appears as                            | 1080px frame |
 | ------- | ------------------------------------- | ------------ |
 | Screen  | the frame width                       | ×1           |
 | Social  | 400px                                 | ×0.37        |
@@ -418,7 +421,7 @@ appears 1444px wide. **Reads as** shows the sans sizes as the curve sees them, a
 So a 120px headline on a 1080 post in a phone feed is tracked as a 44px headline (−0.018em
 rather than −0.032em), and small text on it opens up to match.
 
-**Snap font** rounds each font size to the nearest whole pixel (minimum 1px), rounding down
+**Whole px** rounds each font size to the nearest whole pixel (minimum 1px), rounding down
 where rounding up would pass the line height. Line heights are unaffected.
 
 Line heights under four cells snap to half cells, so a short line can be 1.5 or 2.5 cells
@@ -430,14 +433,23 @@ Sizing relative to the frame keeps the type scale largely independent of cell si
 frame height roughly doubles the type; changing cell size affects only the rounding, which
 stays within half a cell of the requested line height.
 
-Mono specimens align to the top and sans specimens to the bottom. Both use whole-cell
-offsets from a cell line, preserving baseline alignment. The sans block starts at the last
-cell line with enough room for it.
+`Type Specimens` is a vertical auto layout frame the size of the target frame, holding a
+`Mono` stack and a `Sans` stack with space between them, so mono sits at the top and sans
+at the bottom. Each specimen is a text layer in its own block, a hugging auto layout frame.
+The text uses Figma's cap-height leading trim, so its box runs from cap top to baseline.
+Each block's top padding is its cells less the measured cap height, so every block is a
+whole number of cells tall and the specimen's baseline is the block's bottom edge. Because
+everything stacks in whole cells, every baseline lands on a cell line. A second line typed
+into a specimen grows its block by one line height, which is also a cell step, and the
+stack moves to fit.
 
-The bottom offset includes the largest sans specimen's measured descender, rounded up to
-whole cells, plus a one-cell inset matching the mono block's top inset. This keeps
-descenders inside the frame with consistent clearance. If the stack is too tall to anchor at
-the bottom, it starts at the top and clips.
+The column's top padding is the row offset plus one cell. Its bottom padding puts the
+bottom of the sans stack on a cell line, above the largest sans specimen's measured
+descender (rounded up to whole cells) plus a one-cell inset matching the top. This keeps
+descenders inside the frame with consistent clearance. Layers you add to `Type Specimens`
+are set to absolute position, so they keep their place instead of joining the column.
+Specimens from the previous layout, placed directly in the container, are moved into
+blocks with their text kept.
 
 If the stack does not fit the available rows, the largest specimens are removed first.
 

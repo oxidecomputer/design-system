@@ -408,6 +408,111 @@
         margin-top: -6px;
       }
 
+      /* ----- sub-sections and dependent fields --------------------------- */
+      /* A titled run of related fields inside a group, set off by a hairline. */
+      .fig-sub,
+      .type-body {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .fig-sub {
+        margin-top: 6px;
+        padding-top: 12px;
+        box-shadow: inset 0 1px 0 0 var(--border);
+      }
+      /* Lighter than the group header, so it reads as a part of the group. */
+      .fig-sub-title {
+        font-weight: 500;
+        color: var(--fg-secondary);
+        margin-bottom: 2px;
+      }
+      .fig-sub[hidden],
+      .type-body[hidden] {
+        display: none;
+      }
+      /* A field that only applies while the one above it is on or set: its
+         label is indented behind a small elbow, so it reads as part of that
+         field rather than a setting of its own. The control column doesn't
+         move, so values still line up. */
+      fig-field[nested] {
+        position: relative;
+      }
+      fig-field[nested] > .fig-field-label {
+        padding-left: 12px;
+      }
+      fig-field[nested]::before {
+        content: '';
+        position: absolute;
+        left: 3px;
+        top: -4px;
+        width: 5px;
+        height: calc(50% + 4px);
+        border-left: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        border-bottom-left-radius: 3px;
+      }
+
+      /* ----- type specimens ---------------------------------------------- */
+      /* Two numbers for a family's ends: smallest – largest. A single step
+         has only one end, so the second number and the dash go. */
+      .range-pair {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        width: 100%;
+      }
+      .range-pair > .fig-input {
+        flex: 1;
+        width: 0;
+        font-variant-numeric: tabular-nums;
+      }
+      .range-pair > .fig-input::placeholder {
+        color: var(--fg-secondary);
+      }
+      .range-pair > .fig-input.invalid {
+        border-color: var(--danger);
+      }
+      .range-pair > .range-sep,
+      .range-pair > .range-unit {
+        flex: none;
+        color: var(--fg-secondary);
+      }
+      .range-pair.single > .range-end {
+        display: none;
+      }
+      /* The specimens as set: size, font px, line height in cells, leading,
+         tracking. Read only. */
+      .spec-table {
+        display: grid;
+        grid-template-columns: 40px 1fr 34px 40px 40px;
+        column-gap: 6px;
+        row-gap: 2px;
+        font-variant-numeric: tabular-nums;
+      }
+      .spec-table:empty {
+        display: none;
+      }
+      .spec-table > span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .spec-table > span:nth-child(5n + 3),
+      .spec-table > span:nth-child(5n + 4),
+      .spec-table > span:nth-child(5n + 5) {
+        text-align: right;
+      }
+      .spec-table > .head {
+        color: var(--fg-secondary);
+      }
+      .spec-table .dim {
+        color: var(--fg-secondary);
+      }
+      .spec-table .warn {
+        color: var(--danger);
+      }
+
       /* ----- fig-footer -------------------------------------------------- */
       fig-footer {
         display: flex;
@@ -522,7 +627,7 @@
           </fig-field>
           <!-- Shown only in Manual with Asym. margin (under Advanced) on;
                Margin cells then sets the left side. -->
-          <fig-field label="Right margin" id="marginRightField" hidden>
+          <fig-field label="Right" id="marginRightField" nested hidden>
             <fig-slider
               id="marginRightCells"
               min="0"
@@ -564,7 +669,7 @@
           </fig-field>
           <!-- Pixel-rounding tolerance per cell, shown only with Pixel snap on.
                0 disables snapping; 0.5 always snaps. -->
-          <fig-field label="Snap tol." id="snapTolField" hidden>
+          <fig-field label="Snap tol." id="snapTolField" nested hidden>
             <fig-input-number
               id="snapTolerancePx"
               value="0.5"
@@ -576,19 +681,23 @@
                          height (24 × 45 instead of 25 × 43.2 at 1920×1080 with
                          Snap tol. 0.1).
                          0 keeps the natural row count. -->
-          <fig-field label="Aspect tol." id="aspectTolField" hidden>
+          <fig-field label="Aspect tol." id="aspectTolField" nested hidden>
             <fig-input-number id="aspectTolPct" value="5" units="%"></fig-input-number>
           </fig-field>
-          <fig-field label="Grid size">
-            <span class="fig-preview" id="preview-size">—</span>
-          </fig-field>
-          <!-- Labelled w×h to leave "Cell size" to the control above. -->
-          <fig-field label="Cell w×h">
-            <span class="fig-preview" id="preview-cell">—</span>
-          </fig-field>
-          <fig-field label="Column">
-            <span class="fig-preview" id="preview-column">—</span>
-          </fig-field>
+          <!-- What the settings above produce. -->
+          <div class="fig-sub">
+            <div class="fig-sub-title">Result</div>
+            <fig-field label="Grid size">
+              <span class="fig-preview" id="preview-size">—</span>
+            </fig-field>
+            <!-- Labelled w×h to leave "Cell size" to the control above. -->
+            <fig-field label="Cell w×h">
+              <span class="fig-preview" id="preview-cell">—</span>
+            </fig-field>
+            <fig-field label="Column">
+              <span class="fig-preview" id="preview-column">—</span>
+            </fig-field>
+          </div>
         </fig-group>
 
         <!-- Less frequently used controls and derived cell values. -->
@@ -596,140 +705,212 @@
           <fig-field label="Asym. margin" data-mode="Manual">
             <fig-switch id="asymmetricMargin"></fig-switch>
           </fig-field>
-          <!-- Cull interior lines near the frame edge. Lines on or beyond
-               the boundary are always culled. -->
-          <fig-field label="Edge cull">
-            <fig-switch id="edgeCull" checked></fig-switch>
-          </fig-field>
-          <!-- Culling distance from the boundary, as a percentage of line spacing. -->
-          <fig-field label="Cull tol." id="edgeCullPctField">
-            <fig-input-number id="edgeCullPct" value="20" units="%"></fig-input-number>
-          </fig-field>
-          <fig-field label="Aspect ratio">
-            <fig-slider
-              id="cellAspect"
-              min="1"
-              max="4"
-              step="0.1"
-              value="2"
-              text
-            ></fig-slider>
-          </fig-field>
-          <fig-field label="Cell density">
-            <fig-dropdown id="cellDensity" value="1x" full>
-              <option>0.25x</option>
-              <option>0.5x</option>
-              <option selected>1x</option>
-              <option>2x</option>
-              <option>3x</option>
-            </fig-dropdown>
-          </fig-field>
-          <fig-field label="Grid lines">
-            <fig-switch id="showLines" checked></fig-switch>
-          </fig-field>
+          <div class="fig-sub">
+            <div class="fig-sub-title">Cells</div>
+            <fig-field label="Aspect ratio">
+              <fig-slider
+                id="cellAspect"
+                min="1"
+                max="4"
+                step="0.1"
+                value="2"
+                text
+              ></fig-slider>
+            </fig-field>
+            <fig-field label="Cell density">
+              <fig-dropdown id="cellDensity" value="1x" full>
+                <option>0.25x</option>
+                <option>0.5x</option>
+                <option selected>1x</option>
+                <option>2x</option>
+                <option>3x</option>
+              </fig-dropdown>
+            </fig-field>
+            <fig-field label="Cells">
+              <span class="fig-preview" id="preview-solved">—</span>
+            </fig-field>
+          </div>
+          <div class="fig-sub">
+            <div class="fig-sub-title">Lines</div>
+            <fig-field label="Grid lines">
+              <fig-switch id="showLines" checked></fig-switch>
+            </fig-field>
+            <!-- Cull interior lines near the frame edge. Lines on or beyond
+                 the boundary are always culled. -->
+            <fig-field label="Edge cull">
+              <fig-switch id="edgeCull" checked></fig-switch>
+            </fig-field>
+            <!-- Culling distance from the boundary, as a percentage of line spacing. -->
+            <fig-field label="Cull tol." id="edgeCullPctField" nested>
+              <fig-input-number id="edgeCullPct" value="20" units="%"></fig-input-number>
+            </fig-field>
+          </div>
+        </fig-group>
+
+        <!-- Each family is a scale from its smallest to its largest size in
+             equal ratio steps, sized as % of the frame height. Leading is set
+             at the two ends and runs evenly between; empty uses the built-in
+             value shown as the placeholder. Tracking is automatic. The table
+             shows what each step is actually set at. -->
+        <fig-group name="Type" collapsible collapsed>
           <fig-field label="Specimens">
             <fig-switch id="showSpecimens" checked></fig-switch>
           </fig-field>
-          <fig-field label="Cells">
-            <span class="fig-preview" id="preview-solved">—</span>
-          </fig-field>
-          <!-- Family only; the style is resolved per family, since a
-                         family's regular is not reliably named "Regular". Both
-                         fall back to any installed mono / any regular. -->
-          <fig-field label="Mono font">
-            <fig-input-text
-              id="monoFamily"
-              value="GT America Mono"
-              placeholder="GT America Mono"
-            ></fig-input-text>
-          </fig-field>
-          <fig-field label="Sans font">
-            <fig-input-text
-              id="sansFamily"
-              value="Suisse Int'l"
-              placeholder="Suisse Int'l"
-            ></fig-input-text>
-          </fig-field>
-          <!-- Comma-separated % of the frame height, one specimen per
-                         entry. Junk entries are dropped; an empty or unusable
-                         list falls back to the built-in scale. -->
-          <fig-field label="Mono sizes">
-            <fig-input-text id="monoSizes" value="2" placeholder="2"></fig-input-text>
-          </fig-field>
-          <fig-field label="" class="fig-subpreview">
-            <span class="fig-preview" id="preview-monoSizes">—</span>
-          </fig-field>
-          <!-- Leading and tracking take one number, or "size: value" pairs
-               keyed by the same percentages as the sizes above. Leading
-               interpolates linearly; tracking follows the optical curve's
-               a / size + b shape between points. Empty falls back to the
-               built-in curve; for sans tracking that is the optical curve. -->
-          <fig-field label="Mono leading">
-            <fig-input-text
-              id="monoLeading"
-              value="2: 1.6, 12: 1.25"
-              placeholder="2: 1.6, 12: 1.25"
-            ></fig-input-text>
-          </fig-field>
-          <fig-field label="Mono track">
-            <fig-input-text id="monoTracking" value="4" placeholder="4"></fig-input-text>
-          </fig-field>
-          <fig-field label="Sans sizes">
-            <fig-input-text
-              id="sansSizes"
-              value="6, 12, 24"
-              placeholder="6, 12, 24"
-            ></fig-input-text>
-          </fig-field>
-          <fig-field label="" class="fig-subpreview">
-            <span class="fig-preview" id="preview-sansSizes">—</span>
-          </fig-field>
-          <fig-field label="Sans leading">
-            <fig-input-text
-              id="sansLeading"
-              value="6: 1.22, 12: 1.09, 24: 1"
-              placeholder="6: 1.22, 12: 1.09, 24: 1"
-            ></fig-input-text>
-          </fig-field>
-          <fig-field label="Sans track">
-            <fig-input-text
-              id="sansTracking"
-              value=""
-              placeholder="Optical, or 6: 2, 24: -2"
-            ></fig-input-text>
-          </fig-field>
-          <!-- How large the frame appears to its reader. The optical
-               tracking curve is evaluated at the size the type looks on a
-               laptop: a feed's shown width, or for print the physical width
-               and viewing distance. -->
-          <fig-field label="Display">
-            <fig-dropdown id="displayMode" value="Screen" full>
-              <option selected>Screen</option>
-              <option>Social</option>
-              <option>Print</option>
-              <option>Custom</option>
-            </fig-dropdown>
-          </fig-field>
-          <fig-field label="Shown width" id="shownWidthField" hidden>
-            <fig-input-number id="shownWidthPx" value="400" units="px"></fig-input-number>
-          </fig-field>
-          <fig-field label="Print width" id="printWidthField" hidden>
-            <fig-input-number id="printWidthMm" value="210" units="mm"></fig-input-number>
-          </fig-field>
-          <fig-field label="Distance" id="viewingDistanceField" hidden>
-            <fig-input-number
-              id="viewingDistanceCm"
-              value="40"
-              units="cm"
-            ></fig-input-number>
-          </fig-field>
-          <fig-field label="Reads as">
-            <span class="fig-preview" id="preview-display">—</span>
-          </fig-field>
-          <!-- Rounds font sizes only; line heights stay on cell steps. -->
-          <fig-field label="Snap font">
-            <fig-switch id="snapFontPx"></fig-switch>
-          </fig-field>
+          <div id="typeBody" class="type-body">
+            <!-- Rounds font sizes only; line heights stay on cell steps. -->
+            <fig-field label="Whole px" nested>
+              <fig-switch id="snapFontPx"></fig-switch>
+            </fig-field>
+            <!-- Family only; the style is resolved per family, since a
+                 family's regular is not reliably named "Regular". Both fall
+                 back to any installed mono / any regular. -->
+            <div class="fig-sub">
+              <div class="fig-sub-title">Mono</div>
+              <fig-field label="Font">
+                <fig-input-text
+                  id="monoFamily"
+                  value="GT America Mono"
+                  placeholder="GT America Mono"
+                ></fig-input-text>
+              </fig-field>
+              <fig-field label="Sizes">
+                <div class="range-pair" id="monoSizeRange">
+                  <input
+                    class="fig-input"
+                    id="monoSizeMin"
+                    value="2"
+                    aria-label="Mono smallest size, % of frame height"
+                  />
+                  <span class="range-sep range-end">–</span>
+                  <input
+                    class="fig-input range-end"
+                    id="monoSizeMax"
+                    value="12"
+                    aria-label="Mono largest size, % of frame height"
+                  />
+                  <span class="range-unit">%</span>
+                </div>
+              </fig-field>
+              <fig-field label="Steps">
+                <fig-slider
+                  id="monoSteps"
+                  min="1"
+                  max="8"
+                  step="1"
+                  value="1"
+                  text
+                ></fig-slider>
+              </fig-field>
+              <fig-field label="Leading">
+                <div class="range-pair" id="monoLeadingRange">
+                  <input
+                    class="fig-input"
+                    id="monoLeadingMin"
+                    aria-label="Mono leading at the smallest size"
+                  />
+                  <span class="range-sep range-end">–</span>
+                  <input
+                    class="fig-input range-end"
+                    id="monoLeadingMax"
+                    aria-label="Mono leading at the largest size"
+                  />
+                </div>
+              </fig-field>
+              <div class="spec-table" id="monoSpecs"></div>
+            </div>
+            <div class="fig-sub">
+              <div class="fig-sub-title">Sans</div>
+              <fig-field label="Font">
+                <fig-input-text
+                  id="sansFamily"
+                  value="Suisse Int'l"
+                  placeholder="Suisse Int'l"
+                ></fig-input-text>
+              </fig-field>
+              <fig-field label="Sizes">
+                <div class="range-pair" id="sansSizeRange">
+                  <input
+                    class="fig-input"
+                    id="sansSizeMin"
+                    value="6"
+                    aria-label="Sans smallest size, % of frame height"
+                  />
+                  <span class="range-sep range-end">–</span>
+                  <input
+                    class="fig-input range-end"
+                    id="sansSizeMax"
+                    value="24"
+                    aria-label="Sans largest size, % of frame height"
+                  />
+                  <span class="range-unit">%</span>
+                </div>
+              </fig-field>
+              <fig-field label="Steps">
+                <fig-slider
+                  id="sansSteps"
+                  min="1"
+                  max="8"
+                  step="1"
+                  value="3"
+                  text
+                ></fig-slider>
+              </fig-field>
+              <fig-field label="Leading">
+                <div class="range-pair" id="sansLeadingRange">
+                  <input
+                    class="fig-input"
+                    id="sansLeadingMin"
+                    aria-label="Sans leading at the smallest size"
+                  />
+                  <span class="range-sep range-end">–</span>
+                  <input
+                    class="fig-input range-end"
+                    id="sansLeadingMax"
+                    aria-label="Sans leading at the largest size"
+                  />
+                </div>
+              </fig-field>
+              <div class="spec-table" id="sansSpecs"></div>
+            </div>
+            <!-- Sans tracking follows the optical curve, evaluated at the
+                 size the type looks on a laptop: from a feed's shown width
+                 or, for print, the physical width and viewing distance. -->
+            <div id="opticalSection" class="fig-sub">
+              <div class="fig-sub-title">Optical tracking</div>
+              <fig-field label="Seen on">
+                <fig-dropdown id="displayMode" value="Screen" full>
+                  <option selected>Screen</option>
+                  <option>Social</option>
+                  <option>Print</option>
+                  <option>Custom</option>
+                </fig-dropdown>
+              </fig-field>
+              <fig-field label="Shown width" id="shownWidthField" nested hidden>
+                <fig-input-number
+                  id="shownWidthPx"
+                  value="400"
+                  units="px"
+                ></fig-input-number>
+              </fig-field>
+              <fig-field label="Print width" id="printWidthField" nested hidden>
+                <fig-input-number
+                  id="printWidthMm"
+                  value="210"
+                  units="mm"
+                ></fig-input-number>
+              </fig-field>
+              <fig-field label="Distance" id="viewingDistanceField" nested hidden>
+                <fig-input-number
+                  id="viewingDistanceCm"
+                  value="40"
+                  units="cm"
+                ></fig-input-number>
+              </fig-field>
+              <fig-field label="Reads as">
+                <span class="fig-preview" id="preview-display">—</span>
+              </fig-field>
+            </div>
+          </div>
         </fig-group>
 
         <!-- Describes the frame that "Create frame" would make — or, when
@@ -854,7 +1035,8 @@
           if (label.textContent) {
             setTimeout(() => {
               control.querySelectorAll('input, select').forEach((el) => {
-                el.setAttribute('aria-labelledby', label.id)
+                if (!el.hasAttribute('aria-label'))
+                  el.setAttribute('aria-labelledby', label.id)
               })
             }, 0)
           }
@@ -1211,6 +1393,169 @@
         reportHeight()
       }
 
+      // ----- type scales -------------------------------------------------
+      // Each family is set by its smallest and largest size and a step count;
+      // the sizes between go up by a constant ratio. The plugin takes the
+      // result as a size list. A list loaded from a frame is passed back
+      // unchanged until one of these controls is edited, so selecting a frame
+      // never rewrites its sizes.
+      const FACES = ['mono', 'sans']
+      const SIZE_LIMITS = [0.5, 100]
+      const LEADING_LIMITS = [0.5, 5]
+      const loadedSizes = { mono: null, sans: null }
+      let lastSpecimens = []
+
+      const round = (n, places) => Math.round(n * 10 ** places) / 10 ** places
+
+      function numberIn(text, limits) {
+        const t = String(text).trim()
+        const n = Number(t)
+        return t !== '' && Number.isFinite(n) && n >= limits[0] && n <= limits[1] ? n : null
+      }
+
+      // The equal-ratio scale between the two ends. The ends stay exactly as
+      // typed; the steps between round to 0.1%.
+      function scaleSizes(face) {
+        const a = numberIn($(face + 'SizeMin').value, SIZE_LIMITS)
+        const b = numberIn($(face + 'SizeMax').value, SIZE_LIMITS)
+        const steps = $(face + 'Steps').value
+        if (a === null) return []
+        if (steps === 1 || b === null || a === b) return [a]
+        const lo = Math.min(a, b)
+        const hi = Math.max(a, b)
+        const out = []
+        for (let i = 0; i < steps; i++) {
+          const pct =
+            i === 0
+              ? lo
+              : i === steps - 1
+                ? hi
+                : round(lo * (hi / lo) ** (i / (steps - 1)), 1)
+          if (out.indexOf(pct) < 0) out.push(pct)
+        }
+        return out
+      }
+
+      function sizesParam(face) {
+        return loadedSizes[face] !== null ? loadedSizes[face] : scaleSizes(face).join(', ')
+      }
+
+      // Parses a stored size list the way the plugin does, so the controls
+      // describe what is drawn.
+      function parseSizes(raw) {
+        const seen = []
+        String(raw || '')
+          .split(/[,\s]+/)
+          .map((t) => numberIn(t.replace('%', ''), SIZE_LIMITS))
+          .forEach((n) => {
+            if (n !== null && seen.indexOf(n) < 0) seen.push(n)
+          })
+        return seen.sort((x, y) => x - y).slice(0, 8)
+      }
+
+      function loadScale(face, raw, fallback, leadMin, leadMax) {
+        let sizes = parseSizes(raw)
+        loadedSizes[face] = sizes.length ? String(raw) : null
+        if (!sizes.length) sizes = parseSizes(fallback)
+        $(face + 'SizeMin').value = String(sizes[0])
+        $(face + 'SizeMax').value = String(sizes[sizes.length - 1])
+        $(face + 'Steps').value = sizes.length
+        // Remember nothing if the list is just the scale the controls make.
+        if (scaleSizes(face).join(', ') === sizes.join(', ')) loadedSizes[face] = null
+        $(face + 'LeadingMin').value = leadMin || ''
+        $(face + 'LeadingMax').value = leadMax || ''
+        applyScaleShape(face)
+      }
+
+      // One step has one size and one leading, so the second of each goes.
+      function applyScaleShape(face) {
+        const single = $(face + 'Steps').value === 1
+        $(face + 'SizeRange').classList.toggle('single', single)
+        $(face + 'LeadingRange').classList.toggle('single', single)
+        const label = $(face + 'SizeRange')
+          .closest('fig-field')
+          .querySelector('.fig-field-label')
+        label.textContent = label.title = single ? 'Size' : 'Sizes'
+        ;['SizeMin', 'SizeMax', 'LeadingMin', 'LeadingMax'].forEach((k) => {
+          const el = $(face + k)
+          el.classList.toggle(
+            'invalid',
+            el.value.trim() !== '' &&
+              numberIn(el.value, k.indexOf('Size') === 0 ? SIZE_LIMITS : LEADING_LIMITS) ===
+                null,
+          )
+        })
+        reportHeight()
+      }
+
+      FACES.forEach((face) => {
+        ;['SizeMin', 'SizeMax'].forEach((k) => {
+          $(face + k).addEventListener('input', () => {
+            loadedSizes[face] = null
+            applyScaleShape(face)
+            paramsChanged(true)
+          })
+        })
+        ;['LeadingMin', 'LeadingMax'].forEach((k) => {
+          $(face + k).addEventListener('input', () => {
+            applyScaleShape(face)
+            paramsChanged(true)
+          })
+        })
+        $(face + 'Steps').addEventListener('change', () => {
+          loadedSizes[face] = null
+          applyScaleShape(face)
+          paramsChanged(true)
+        })
+      })
+
+      // The table of what each step is set at, and the built-in leading at
+      // each end as the placeholders. A step whose line height snaps to the
+      // same number of cells as the one before is flagged: the two read as
+      // nearly the same size.
+      function renderScales() {
+        FACES.forEach((face) => {
+          const rows = lastSpecimens.filter((s) => s.face === face)
+          const table = $(face + 'Specs')
+          if (!rows.length) {
+            table.innerHTML = ''
+            return
+          }
+          const cell = (text, cls, title) =>
+            '<span' +
+            (cls ? ' class="' + cls + '"' : '') +
+            (title ? ' title="' + title + '"' : '') +
+            '>' +
+            text +
+            '</span>'
+          let html = ['Size', 'Font', 'Cells', 'Lead', 'Track']
+            .map((t) => cell(t, 'head'))
+            .join('')
+          rows.forEach((s, i) => {
+            const clash = i > 0 && rows[i - 1].cells === s.cells
+            html +=
+              cell(round(s.pct, 1) + '<span class="dim">%</span>') +
+              cell(round(s.size, 1) + '<span class="dim">px</span>') +
+              cell(
+                String(s.cells),
+                clash ? 'warn' : '',
+                clash ? 'Same line height as the step above' : '',
+              ) +
+              cell(s.leading.toFixed(2)) +
+              cell(round(s.tracking, 1) + '<span class="dim">%</span>')
+          })
+          table.innerHTML = html
+          $(face + 'LeadingMin').placeholder = rows[0].autoLeading.toFixed(2)
+          $(face + 'LeadingMax').placeholder = rows[rows.length - 1].autoLeading.toFixed(2)
+        })
+        reportHeight()
+      }
+
+      function applyShowSpecimens() {
+        $('typeBody').hidden = !$('showSpecimens').checked
+        reportHeight()
+      }
+
       // Shows only the controls that belong to the active mode.
       function applyMode() {
         const mode = $('mode').value
@@ -1247,10 +1592,10 @@
         'sansFamily',
         'monoSizes',
         'sansSizes',
-        'monoLeading',
-        'sansLeading',
-        'monoTracking',
-        'sansTracking',
+        'monoLeadingMin',
+        'monoLeadingMax',
+        'sansLeadingMin',
+        'sansLeadingMax',
         'displayMode',
         'shownWidthPx',
         'printWidthMm',
@@ -1353,12 +1698,15 @@
           showSpecimens: $('showSpecimens').checked,
           monoFamily: $('monoFamily').value,
           sansFamily: $('sansFamily').value,
-          monoSizes: $('monoSizes').value,
-          sansSizes: $('sansSizes').value,
-          monoLeading: $('monoLeading').value,
-          sansLeading: $('sansLeading').value,
-          monoTracking: $('monoTracking').value,
-          sansTracking: $('sansTracking').value,
+          monoSizes: sizesParam('mono'),
+          sansSizes: sizesParam('sans'),
+          monoLeadingMin: $('monoLeadingMin').value.trim(),
+          // One step has no largest size to set.
+          monoLeadingMax:
+            $('monoSteps').value === 1 ? '' : $('monoLeadingMax').value.trim(),
+          sansLeadingMin: $('sansLeadingMin').value.trim(),
+          sansLeadingMax:
+            $('sansSteps').value === 1 ? '' : $('sansLeadingMax').value.trim(),
           displayMode: $('displayMode').value,
           shownWidthPx: $('shownWidthPx').value,
           printWidthMm: $('printWidthMm').value,
@@ -1402,10 +1750,10 @@
         sansFamily: "Suisse Int'l",
         monoSizes: '2',
         sansSizes: '6, 12, 24',
-        monoLeading: '2: 1.6, 12: 1.25',
-        sansLeading: '6: 1.22, 12: 1.09, 24: 1',
-        monoTracking: '4',
-        sansTracking: '',
+        monoLeadingMin: '',
+        monoLeadingMax: '',
+        sansLeadingMin: '',
+        sansLeadingMax: '',
         displayMode: 'Screen',
         shownWidthPx: 400,
         printWidthMm: 210,
@@ -1447,14 +1795,23 @@
         $('cellDensity').value = (p.cellDensity || 1) + 'x'
         $('showLines').checked = p.showLines
         $('showSpecimens').checked = p.showSpecimens
+        applyShowSpecimens()
         $('monoFamily').value = p.monoFamily
         $('sansFamily').value = p.sansFamily
-        $('monoSizes').value = p.monoSizes
-        $('sansSizes').value = p.sansSizes
-        $('monoLeading').value = p.monoLeading
-        $('sansLeading').value = p.sansLeading
-        $('monoTracking').value = p.monoTracking
-        $('sansTracking').value = p.sansTracking
+        loadScale(
+          'mono',
+          p.monoSizes,
+          PARAM_DEFAULTS.monoSizes,
+          p.monoLeadingMin,
+          p.monoLeadingMax,
+        )
+        loadScale(
+          'sans',
+          p.sansSizes,
+          PARAM_DEFAULTS.sansSizes,
+          p.sansLeadingMin,
+          p.sansLeadingMax,
+        )
         $('displayMode').value = p.displayMode
         $('shownWidthPx').value = p.shownWidthPx
         $('printWidthMm').value = p.printWidthMm
@@ -1538,6 +1895,7 @@
       $('pixelPerfect').addEventListener('change', applySnapTol)
       $('edgeCull').addEventListener('change', applyEdgeCull)
       $('displayMode').addEventListener('change', applyDisplayMode)
+      $('showSpecimens').addEventListener('change', applyShowSpecimens)
       $('cellColumns').addEventListener('change', () => {
         if (!suppressChange) cellColumnsRequest = $('cellColumns').value
       })
@@ -1571,12 +1929,6 @@
         'showSpecimens',
         'monoFamily',
         'sansFamily',
-        'monoSizes',
-        'sansSizes',
-        'monoLeading',
-        'sansLeading',
-        'monoTracking',
-        'sansTracking',
         'displayMode',
         'shownWidthPx',
         'printWidthMm',
@@ -1816,24 +2168,19 @@
           '">aspect Δ ' +
           px(Math.abs(p.deltaPct)) +
           '%</span>'
-        // Resulting font sizes for each specimen list, after the line
-        // height snaps to whole cells.
-        const sizes = (list) =>
-          list && list.length
-            ? list.map(px).join(' <span class="dim">&middot;</span> ') +
-              ' <span class="dim">px</span>'
-            : '—'
-        $('preview-monoSizes').innerHTML = sizes(p.monoFontSizes)
-        $('preview-sansSizes').innerHTML = sizes(p.sansFontSizes)
-        // The sans sizes as the optical curve sees them. A custom Sans
-        // track replaces that curve, so the scale then changes nothing.
+        lastSpecimens = p.specimens || []
+        renderScales()
+        // The sans sizes as the optical curve sees them.
         const scale = p.displayScale || 1
-        $('preview-display').innerHTML = !p.opticalTracking
-          ? '<span class="dim">Sans track overrides</span>'
-          : sizes((p.sansFontSizes || []).map((s) => Math.round(s * scale))) +
-            ' <span class="dim">&middot; &times;' +
+        const seen = lastSpecimens
+          .filter((s) => s.face === 'sans')
+          .map((s) => px(Math.round(s.size * scale)))
+        $('preview-display').innerHTML = seen.length
+          ? seen.join(' <span class="dim">&middot;</span> ') +
+            ' <span class="dim">px &middot; &times;' +
             Math.round(scale * 100) / 100 +
             '</span>'
+          : '—'
         // The margins as drawn, including any bleed from Pixel snap. One
         // column has no gutter to report.
         const marginL = numOr(p.effectiveMargin, p.marginPx)
@@ -1870,6 +2217,7 @@
       applyMode()
       applySnapTol()
       applyEdgeCull()
+      FACES.forEach(applyScaleShape)
       renderFrameFields()
       reportHeight()
     </script>

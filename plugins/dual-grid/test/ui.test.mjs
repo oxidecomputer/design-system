@@ -101,19 +101,19 @@ setTimeout(async () => {
       'fig-group headers rendered',
       [...doc.querySelectorAll('.fig-group-header')]
         .map((e) => e.textContent.trim())
-        .join('|') === 'Grid|Advanced|Frame',
+        .join('|') === 'Grid|Advanced|Type|Frame',
       [...doc.querySelectorAll('.fig-group-header')]
         .map((e) => e.textContent.trim())
         .join('|'),
     )
     check(
-      '43 fig-field labels',
-      doc.querySelectorAll('.fig-field-label').length === 43,
+      '41 fig-field labels',
+      doc.querySelectorAll('.fig-field-label').length === 41,
       doc.querySelectorAll('.fig-field-label').length,
     )
     check(
-      '6 sliders (columns, left/right margin, gutter cells, cell columns, aspect)',
-      doc.querySelectorAll('fig-slider input[type=range]').length === 6,
+      '8 sliders (columns, left/right margin, gutter cells, cell columns, aspect, 2 type steps)',
+      doc.querySelectorAll('fig-slider input[type=range]').length === 8,
       doc.querySelectorAll('fig-slider input[type=range]').length,
     )
     check(
@@ -125,6 +125,32 @@ setTimeout(async () => {
       '11 number inputs: 3 solver targets + snap/aspect tol. + edge cull + frame width/height + display width/print width/distance',
       doc.querySelectorAll('fig-input-number input').length === 11,
       doc.querySelectorAll('fig-input-number input').length,
+    )
+
+    console.log('--- sections and dependent fields ---')
+    check(
+      'sub-sections are titled Result, Cells, Lines, Mono, Sans, Optical tracking',
+      [...doc.querySelectorAll('.fig-sub-title')].map((e) => e.textContent).join('|') ===
+        'Result|Cells|Lines|Mono|Sans|Optical tracking',
+      [...doc.querySelectorAll('.fig-sub-title')].map((e) => e.textContent).join('|'),
+    )
+    check(
+      'fields that depend on the one above are nested under it',
+      [
+        'marginRightCells',
+        'snapTolerancePx',
+        'aspectTolPct',
+        'edgeCullPct',
+        'snapFontPx',
+        'shownWidthPx',
+        'printWidthMm',
+        'viewingDistanceCm',
+      ].every((id) => $(id).closest('fig-field').hasAttribute('nested')),
+    )
+    check(
+      '...and nothing else is',
+      doc.querySelectorAll('fig-field[nested]').length === 8,
+      doc.querySelectorAll('fig-field[nested]').length,
     )
 
     console.log('--- snapping sliders are not falsely editable ---')
@@ -149,31 +175,6 @@ setTimeout(async () => {
     check(
       'specimens switch present + on',
       $('showSpecimens') && $('showSpecimens').checked === true,
-    )
-    check(
-      'leading and tracking fields show the default curves',
-      $('monoLeading').value === '2: 1.6, 12: 1.25' &&
-        $('sansLeading').value === '6: 1.22, 12: 1.09, 24: 1' &&
-        $('monoTracking').value === '4' &&
-        $('sansTracking').value === '' &&
-        $('sansTracking').querySelector('input').placeholder === 'Optical, or 6: 2, 24: -2',
-    )
-    sent.length = 0
-    {
-      const input = $('sansLeading').querySelector('input')
-      input.value = '6: 1.5, 24: 1'
-      input.dispatchEvent(new w.Event('input', { bubbles: true }))
-      await sleep(DEBOUNCE_WAIT)
-    }
-    check(
-      'editing Sans leading reapplies with the new curve',
-      reapplies().some((x) => x.params.sansLeading === '6: 1.5, 24: 1'),
-      JSON.stringify(sent.map((x) => x.params && x.params.sansLeading)),
-    )
-    send({ type: 'params-change', params: { monoTracking: '6', sansTracking: '6: 1' } })
-    check(
-      'params from the plugin restore the tracking fields',
-      $('monoTracking').value === '6' && $('sansTracking').value === '6: 1',
     )
     check(
       'Snap font switch present + off by default',
@@ -816,20 +817,8 @@ setTimeout(async () => {
         columnWidth: 132,
         columnCells: 6,
         contentWidth: 1826,
-        monoFontSizes: [13.3],
-        sansFontSizes: [38.512, 86.4, 187.84],
       },
     })
-    check(
-      'mono sizes row shows the resulting font size',
-      /^13\.3\s*px$/.test($('preview-monoSizes').textContent.trim()),
-      $('preview-monoSizes').textContent,
-    )
-    check(
-      'sans sizes row lists each font size, rounded',
-      /^38\.51 · 86\.4 · 187\.84\s*px$/.test($('preview-sansSizes').textContent.trim()),
-      $('preview-sansSizes').textContent,
-    )
     check(
       'grid size row shows columns + cells, and not the frame size',
       /12 col/.test($('preview-size').textContent) &&
@@ -916,6 +905,7 @@ setTimeout(async () => {
         '/',
       ),
     )
+    const restoredPosts = sent.filter((x) => x.type === 'params-changed').length
     check(
       'all params restored',
       $('columnCount').value === 6 &&
@@ -927,8 +917,8 @@ setTimeout(async () => {
         $('edgeCullPct').value === 35 &&
         $('cellDensity').value === '2x' &&
         $('showLines').checked === false &&
-        $('monoSizes').value === '3' &&
-        $('sansSizes').value === '5, 10, 20',
+        getSentParams().monoSizes === '3' &&
+        getSentParams().sansSizes === '5, 10, 20',
       [
         $('columnCount').value,
         $('marginCells').value,
@@ -936,10 +926,7 @@ setTimeout(async () => {
         $('cellDensity').value,
       ].join(','),
     )
-    check(
-      'restore posts nothing',
-      sent.filter((x) => x.type === 'params-changed').length === 0,
-    )
+    check('restore posts nothing', restoredPosts === 0, restoredPosts)
     check(
       'restoring Pixel snap on reveals the tolerance field',
       !$('snapTolerancePx').closest('fig-field').hidden,
@@ -982,8 +969,8 @@ setTimeout(async () => {
     )
     check(
       'legacy/empty params fall back to the built-in specimen sizes',
-      $('monoSizes').value === '2' && $('sansSizes').value === '6, 12, 24',
-      [$('monoSizes').value, $('sansSizes').value].join(' / '),
+      getSentParams().monoSizes === '2' && getSentParams().sansSizes === '6, 12, 24',
+      [getSentParams().monoSizes, getSentParams().sansSizes].join(' / '),
     )
     check(
       'legacy/empty multiples fall back',
@@ -1135,12 +1122,12 @@ setTimeout(async () => {
           $('sansFamily').value === "Suisse Int'l",
         $('monoFamily').value + ' / ' + $('sansFamily').value,
       )
-      const adv = [...doc.querySelectorAll('fig-group')].find(
-        (g) => g.getAttribute('name') === 'Advanced',
+      const typeGroup = [...doc.querySelectorAll('fig-group')].find(
+        (g) => g.getAttribute('name') === 'Type',
       )
       check(
-        '...inside the Advanced group',
-        adv.contains($('monoFamily')) && adv.contains($('sansFamily')),
+        '...inside the Type group',
+        typeGroup.contains($('monoFamily')) && typeGroup.contains($('sansFamily')),
       )
       sent.length = 0
       const inp = $('monoFamily').querySelector('input')
@@ -1345,15 +1332,10 @@ setTimeout(async () => {
         header.getAttribute('aria-expanded'),
       )
       check(
-        'it holds the seven lesser-used controls',
-        [
-          'edgeCull',
-          'edgeCullPct',
-          'cellAspect',
-          'cellDensity',
-          'showLines',
-          'showSpecimens',
-        ].every((id) => adv.contains($(id))) && adv.contains($('preview-solved')),
+        'it holds the six lesser-used controls',
+        ['edgeCull', 'edgeCullPct', 'cellAspect', 'cellDensity', 'showLines'].every((id) =>
+          adv.contains($(id)),
+        ) && adv.contains($('preview-solved')),
         [
           'edgeCull',
           'edgeCullPct',
@@ -1361,7 +1343,6 @@ setTimeout(async () => {
           'cellAspect',
           'cellDensity',
           'showLines',
-          'showSpecimens',
         ]
           .filter((id) => !adv.contains($(id)))
           .join(','),
@@ -1505,6 +1486,179 @@ setTimeout(async () => {
       delete doc.execCommand
     }
 
+    console.log('\n=== type scales ===')
+    {
+      const val = (id) => $(id).value
+      const typeInto = async (id, value) => {
+        const el = $(id)
+        el.value = value
+        el.dispatchEvent(new w.Event('input', { bubbles: true }))
+        await commit(el)
+      }
+      const setSteps = async (face, n) => {
+        const range = $(face + 'Steps').querySelector('input[type=range]')
+        range.value = String(n)
+        range.dispatchEvent(new w.Event('input', { bubbles: true }))
+        await commit(range)
+      }
+      const last = () => {
+        const all = sent.filter((x) => x.type === 'params-changed')
+        return all.length ? all[all.length - 1].params : {}
+      }
+      send({ type: 'params-change', params: {} })
+      check(
+        'defaults: mono one step at 2%, sans 6–24% in 3 steps',
+        val('monoSizeMin') === '2' &&
+          $('monoSteps').value === 1 &&
+          val('sansSizeMin') === '6' &&
+          val('sansSizeMax') === '24' &&
+          $('sansSteps').value === 3,
+        [val('monoSizeMin'), val('sansSizeMin'), val('sansSizeMax'), $('sansSteps').value],
+      )
+      check(
+        'one step hides the second size and leading',
+        $('monoSizeRange').classList.contains('single') &&
+          $('monoLeadingRange').classList.contains('single') &&
+          !$('sansSizeRange').classList.contains('single'),
+      )
+      check(
+        'leading starts empty (built-in)',
+        ['monoLeadingMin', 'sansLeadingMin', 'sansLeadingMax'].every(
+          (id) => val(id) === '',
+        ),
+      )
+      check(
+        'each input names itself rather than borrowing the row label',
+        $('sansSizeMax').getAttribute('aria-label') ===
+          'Sans largest size, % of frame height' &&
+          !$('sansSizeMax').hasAttribute('aria-labelledby'),
+      )
+
+      sent.length = 0
+      await setSteps('sans', 5)
+      check(
+        'more steps fill in equal ratios between the ends',
+        last().sansSizes === '6, 8.5, 12, 17, 24',
+        last().sansSizes,
+      )
+      await typeInto('sansSizeMax', '48')
+      await setSteps('sans', 4)
+      check(
+        'changing an end rescales the steps between',
+        last().sansSizes === '6, 12, 24, 48',
+        last().sansSizes,
+      )
+      await typeInto('sansSizeMin', '200')
+      check(
+        'an out-of-range size is flagged, and the plugin gets its defaults',
+        $('sansSizeMin').classList.contains('invalid') && last().sansSizes === '',
+        last().sansSizes,
+      )
+      await typeInto('sansSizeMin', '6')
+      check('...and the flag clears', !$('sansSizeMin').classList.contains('invalid'))
+
+      sent.length = 0
+      await typeInto('sansLeadingMin', '1.4')
+      await sleep(DEBOUNCE_WAIT)
+      check(
+        'typing a leading end reapplies with it',
+        reapplies().some(
+          (x) => x.params.sansLeadingMin === '1.4' && x.params.sansLeadingMax === '',
+        ),
+        JSON.stringify(last()),
+      )
+      await typeInto('sansLeadingMax', '9')
+      check(
+        'an out-of-range leading is flagged',
+        $('sansLeadingMax').classList.contains('invalid'),
+      )
+      await typeInto('sansLeadingMax', '')
+      await typeInto('monoLeadingMax', '1.1')
+      check(
+        'a single-step family sends no largest-size leading',
+        last().monoLeadingMax === '',
+        last().monoLeadingMax,
+      )
+
+      // A stored list that isn't an equal-ratio scale is passed back
+      // untouched until the scale is edited.
+      send({
+        type: 'params-change',
+        params: { sansSizes: '5, 7, 20', sansLeadingMax: '0.95' },
+      })
+      check(
+        'a stored list sets the ends and step count',
+        val('sansSizeMin') === '5' &&
+          val('sansSizeMax') === '20' &&
+          $('sansSteps').value === 3 &&
+          val('sansLeadingMax') === '0.95',
+      )
+      check(
+        '...and is sent back unchanged while the scale is untouched',
+        getSentParams().sansSizes === '5, 7, 20',
+        getSentParams().sansSizes,
+      )
+      await setSteps('sans', 3)
+      check(
+        '...until a scale control is edited',
+        getSentParams().sansSizes === '5, 10, 20',
+        getSentParams().sansSizes,
+      )
+
+      const row = (face, pct, size, cells, leading, autoLeading, tracking) => ({
+        face,
+        pct,
+        size,
+        cells,
+        leading,
+        autoLeading,
+        tracking,
+      })
+      send({
+        type: 'action-state',
+        status: '',
+        preview: Object.assign({}, pvSolve, {
+          displayScale: 1,
+          specimens: [
+            row('mono', 2, 13.5, 0.5, 1.6, 1.6, 4),
+            row('sans', 6, 53.1, 3, 1.22, 1.22, -2.25),
+            row('sans', 7, 61.2, 3, 1.06, 1.18, -2.5),
+            row('sans', 24, 259.2, 12, 1, 1, -3.63),
+          ],
+        }),
+      })
+      const cells = (face) =>
+        [...$(face + 'Specs').querySelectorAll('span:not(.head)')]
+          .filter((e) => e.parentElement === $(face + 'Specs'))
+          .map((e) => e.textContent)
+      check(
+        'the table shows each step as set',
+        cells('sans').slice(0, 5).join('|') === '6%|53.1px|3|1.22|-2.2%' &&
+          cells('mono').join('|') === '2%|13.5px|0.5|1.60|4%',
+        cells('sans').slice(0, 5).join('|') + ' / ' + cells('mono').join('|'),
+      )
+      const clash = $('sansSpecs').querySelectorAll('.warn')
+      check(
+        'a step on the same line height as the one before is flagged',
+        clash.length === 1 && clash[0].textContent === '3',
+        clash.length,
+      )
+      check(
+        'the leading placeholders are the built-in values at the ends',
+        $('sansLeadingMin').placeholder === '1.22' &&
+          $('sansLeadingMax').placeholder === '1.00',
+        [$('sansLeadingMin').placeholder, $('sansLeadingMax').placeholder],
+      )
+      check('there is nothing to set for tracking', !doc.querySelector('[id*="Tracking"]'))
+
+      $('showSpecimens').querySelector('input').click()
+      check('turning specimens off hides the type settings', $('typeBody').hidden)
+      $('showSpecimens').querySelector('input').click()
+      check('...and on shows them again', !$('typeBody').hidden)
+      await sleep(DEBOUNCE_WAIT)
+      send({ type: 'params-change', params: {} })
+    }
+
     console.log('\n=== display scale ===')
     {
       const pick = async (value) => {
@@ -1564,22 +1718,26 @@ setTimeout(async () => {
         })
         return $('preview-display').textContent.replace(/\s+/g, ' ').trim()
       }
+      const sans = (pct, size) => ({
+        face: 'sans',
+        pct,
+        size,
+        cells: 1,
+        leading: 1,
+        autoLeading: 1,
+        tracking: 0,
+      })
       const text = readout({
-        sansFontSizes: [64.8, 129.6],
+        specimens: [sans(6, 64.8), sans(12, 129.6)],
         displayScale: 0.5,
-        opticalTracking: true,
       })
       check(
-        'the readout lists the seen sizes and the scale',
+        'the readout lists the sans sizes as seen, and the scale',
         text === '32 · 65 px · ×0.5',
         text,
       )
-      const over = readout({
-        sansFontSizes: [64.8],
-        displayScale: 0.5,
-        opticalTracking: false,
-      })
-      check('a custom Sans track says it overrides the scale', /overrides/.test(over), over)
+      const none = readout({ specimens: [], displayScale: 0.5 })
+      check('with no sans sizes it reads as a dash', none === '—', none)
     }
 
     console.log('\n=== fixes from the product description triage ===')
