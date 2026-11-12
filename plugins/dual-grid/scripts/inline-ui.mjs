@@ -20,5 +20,9 @@ const out = html.replace(
   MARKER,
   () => `<style>\n${css}\n</style>\n<script>\n${js}\n</script>`,
 )
-fs.writeFileSync(path.join(root, 'dist/ui.html'), out)
+// Written beside the panel and renamed over it, so Figma's hot reload never
+// reads a half-written file.
+const target = path.join(root, 'dist/ui.html')
+fs.writeFileSync(target + '.tmp', out)
+fs.renameSync(target + '.tmp', target)
 console.log(`dist/ui.html ${(out.length / 1024).toFixed(0)} kB`)
