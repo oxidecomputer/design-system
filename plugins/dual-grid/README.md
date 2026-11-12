@@ -321,17 +321,20 @@ Generated layers are unlocked children of the target frame:
   path, rather than one node per line. The **Grid lines** switch sets the container's
   `visible` property without rebuilding it. Columns are represented only by a Figma layout
   grid.
-- **Char grid**: `.` characters filling every cell, with font size calculated so each
-  character measures `u` and auto width produces the correct box.
+- **Char grid**: `.` characters, one per cell of the grid, with font size calculated so
+  each character measures `u` and auto width produces the correct box. The text sits in a
+  frame-sized `Char Grid` layer that clips it.
 - **Type specimens**: a `Type Specimens` frame with grid-aligned text down the left of the
   content area, toggled with the **Specimens** switch. See below.
 
 Lines on or beyond the frame boundary are culled. **Edge cull** also removes near-boundary
 interior lines; see Modes.
 
-The char grid and drawn lines extend in whole cells past the frame where needed to fill it
-without losing alignment. The overhang is clipped. `Grid Lines` clips its own content
-regardless of the target frame's clip setting.
+The char grid covers the grid's cells and nothing more: where a pixel-snapped cell leaves a
+sliver at an edge, the sliver gets no characters, as it gets no lines. The drawn lines are
+trimmed to the frame. Where the cells themselves run past the frame (rows overhang with Snap
+rows off), `Char Grid` and `Grid Lines` each clip their own content, regardless of the
+target frame's clip setting, so nothing shows or extends outside it.
 
 ### Layer reuse
 

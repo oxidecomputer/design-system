@@ -521,12 +521,14 @@ export function gridExtent(g: GridResult): GridExtent {
   }
 }
 
-// The cell grid as drawable line segments over the full-bleed extent. Density
-// subdivides (2, 3) or coarsens (0.5, 0.25) the cell. Lines on or beyond the
-// frame boundary are always omitted; edge cull additionally removes interior
-// lines within edgeCullPct of a step from the boundary, to avoid darkening the
-// frame edge. The percentage is capped at half a step so it can never reach
-// two adjacent lines.
+// The cell grid as drawable line segments, placed by the full-bleed extent and
+// trimmed to the frame: no segment runs past 0…width or 0…height, so a drawing
+// of them sits inside the frame whether or not it clips. Density subdivides
+// (2, 3) or coarsens (0.5, 0.25) the cell. Lines on or beyond the frame
+// boundary are always omitted; edge cull additionally removes interior lines
+// within edgeCullPct of a step from the boundary, to avoid darkening the frame
+// edge. The percentage is capped at half a step so it can never reach two
+// adjacent lines.
 export function gridLineSegments(
   g: GridResult,
   width: number,
@@ -540,8 +542,10 @@ export function gridLineSegments(
   const cull = Math.min(50, cullPct) / 100
 
   const ext = gridExtent(g)
-  const right = ext.startX + ext.width
-  const bottom = ext.startY + ext.height
+  const left = Math.max(0, ext.startX)
+  const top = Math.max(0, ext.startY)
+  const right = Math.min(width, ext.startX + ext.width)
+  const bottom = Math.min(height, ext.startY + ext.height)
 
   const stepX = g.u / d
   const stepY = g.cellH / d
@@ -559,13 +563,13 @@ export function gridLineSegments(
     const x = ext.startX + i * stepX
     if (x < EDGE_CULL_EPSILON || x > width - EDGE_CULL_EPSILON) continue
     if (cullOn && (x < tolX || width - x < tolX)) continue
-    segments.push([x, ext.startY, x, bottom])
+    segments.push([x, top, x, bottom])
   }
   for (let j = 0; j <= lastRow; j++) {
     const y = ext.startY + j * stepY
     if (y < EDGE_CULL_EPSILON || y > height - EDGE_CULL_EPSILON) continue
     if (cullOn && (y < tolY || height - y < tolY)) continue
-    segments.push([ext.startX, y, right, y])
+    segments.push([left, y, right, y])
   }
   return segments
 }

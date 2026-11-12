@@ -13,7 +13,6 @@ import {
   DEFAULT_EDGE_CULL_PCT,
   DEFAULT_SNAP_TOLERANCE_PX,
   DEFAULT_TARGET_CELL_COLUMNS,
-  gridExtent,
   gridLineSegments,
   parseAspect,
   snapLineHeight,
@@ -1037,6 +1036,8 @@ const CHAR_GRID_GLYPH = '.'
 const CHAR_GRID_NAME = 'Char Grid'
 const GRID_LINES_NAME = 'Grid Lines'
 const SPECIMENS_NAME = 'Type Specimens'
+// The types of the layers an older version made without marks, which are found
+// by name and type on a frame with no marked layers. Its char grid was text.
 const GENERATED_TYPES: Record<string, string> = {
   [CHAR_GRID_NAME]: 'TEXT',
   [GRID_LINES_NAME]: 'FRAME',
@@ -1062,6 +1063,7 @@ const SLOT_KEY = 'dualGridSlot'
 const LEGACY_SPECIMEN_NAME = /^(Mono|Sans) \d+(\.\d+)?%$/
 type Role =
   | 'charGrid'
+  | 'charGridText'
   | 'gridLines'
   | 'specimens'
   | 'lines'
@@ -1136,33 +1138,66 @@ async function ensureCharGrid(
   probe: FontProbe,
   existingId: string | null,
 ): Promise<string> {
-  let node = (await claimLayer(
+  // The characters can run past the frame: rows overhang with Snap rows off,
+  // and a coarse density rounds its count up. So they sit in a frame-sized
+  // layer that clips them, as the grid lines do, which keeps them inside the
+  // frame's bounds whatever the frame's own clip setting.
+  //
+  // A char grid that is text sitting directly in the frame is the unclipped
+  // layout. It is replaced: marked, or on a gridded frame with no marked layers
+  // (an older version's), where a text layer named "Char Grid" is the plugin's.
+  const legacy = !!getStoredData(frame) && !hasMarkedLayers(frame)
+  for (const child of frame.children.slice()) {
+    if (child.type !== 'TEXT') continue
+    const role = roleOf(child)
+    if (role === 'charGrid' || (legacy && role === '' && child.name === CHAR_GRID_NAME)) {
+      child.remove()
+    }
+  }
+
+  let clip = (await claimLayer(
     frame,
     CHAR_GRID_NAME,
-    'TEXT',
+    'FRAME',
     existingId,
     'charGrid',
-  )) as TextNode | null
+  )) as FrameNode | null
+  if (!clip) {
+    clip = figma.createFrame()
+    clip.name = CHAR_GRID_NAME
+    frame.appendChild(clip)
+    mark(clip, 'charGrid')
+  }
+  clip.fills = []
+  clip.clipsContent = true
+  clip.resize(frame.width, frame.height)
+  clip.x = 0
+  clip.y = 0
+
+  let node =
+    (clip.children.find((c) => c.type === 'TEXT' && roleOf(c) === 'charGridText') as
+      | TextNode
+      | undefined) || null
   if (!node) {
     node = figma.createText()
-    node.name = CHAR_GRID_NAME
-    frame.appendChild(node)
-    mark(node, 'charGrid')
+    node.name = 'Characters'
+    clip.appendChild(node)
+    mark(node, 'charGridText')
   }
 
   const fontName: FontName = { family: probe.family, style: probe.style }
   await figma.loadFontAsync(fontName)
   node.fontName = fontName
 
-  // Share the line grid's cell dimensions and extend past the frame as needed.
-  // Stretching letter spacing to fill the frame would misalign the characters.
-  const ext = gridExtent(g)
-  // One character per cell — so it subdivides (or coarsens) with the cell
-  // density too. Coarse densities can leave a fractional count; round up so
-  // the chars still cover the frame, and let the frame clip the overhang.
+  // One character per cell of the grid, and only its cells: the slivers a
+  // pixel-snapped cell leaves at the edges get no characters, as they get no
+  // lines (edge cull drops lines that close to the frame). Characters subdivide
+  // (or coarsen) with the cell density; a coarse density can leave a fractional
+  // count, rounded up and clipped. Stretching letter spacing to fill the frame
+  // would misalign the characters, so the cells' own size is kept.
   const d = clampDensity(p.cellDensity)
-  const cols = Math.ceil(ext.cols * d - 1e-9)
-  const rows = Math.ceil(ext.rows * d - 1e-9)
+  const cols = Math.ceil(g.N * d - 1e-9)
+  const rows = Math.ceil(g.rows * d - 1e-9)
   const cellW = g.u / d
 
   // Solve the size so one character advances exactly one cell.
@@ -1184,12 +1219,14 @@ async function ensureCharGrid(
   const wanted = new Array(rows).fill(rowLine).join('\n')
   if (node.characters !== wanted) node.characters = wanted
 
-  node.x = ext.startX
-  node.y = ext.startY
+  // Where the cells start. Rows that overhang (Snap rows off) start above the
+  // frame, and the clip crops them.
+  node.x = g.hRemainder / 2
+  node.y = g.rowOffset
 
   fillText(node, await swatchPaint(SWATCH_CHAR, COLOR_CHAR, node))
 
-  return node.id
+  return clip.id
 }
 
 // ---------------------------------------------------------------------------

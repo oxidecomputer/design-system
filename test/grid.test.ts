@@ -12,6 +12,7 @@ import {
   cellLadder,
   COLUMNS_WEIGHT,
   computeGrid,
+  gridExtent,
   gridLineSegments,
   GUTTER_WEIGHT,
   pickCellOption,
@@ -323,6 +324,35 @@ describe('gridLineSegments', () => {
         expect(y1).toBe(y2)
         expect(y1).toBeGreaterThan(0)
         expect(y1).toBeLessThan(1080)
+      }
+    }
+  })
+
+  it('trims every segment to the frame, even where the grid bleeds past it', () => {
+    // 4 columns, 49 cells of 22px, leave 2px across 1080: the extent adds a
+    // cell each side, 21px past the frame.
+    const bleed = computeGrid(
+      manual({
+        width: 1080,
+        height: 1080,
+        columns: 4,
+        targetCellColumns: 49,
+        pixelSnap: true,
+        snapTolerancePx: 0.1,
+      }),
+    )
+    expect(gridExtent(bleed).startX).toBeLessThan(0)
+    for (const grid of [g, bleed]) {
+      const w = grid === g ? 1920 : 1080
+      for (const [x1, y1, x2, y2] of gridLineSegments(grid, w, 1080, { edgeCull: false })) {
+        for (const x of [x1, x2]) {
+          expect(x).toBeGreaterThanOrEqual(0)
+          expect(x).toBeLessThanOrEqual(w)
+        }
+        for (const y of [y1, y2]) {
+          expect(y).toBeGreaterThanOrEqual(0)
+          expect(y).toBeLessThanOrEqual(1080)
+        }
       }
     }
   })

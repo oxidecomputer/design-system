@@ -597,6 +597,11 @@ const apply = async (w, h, over = {}) => {
   return { fr, pv: figma.ui._last.preview }
 }
 const layer = (fr, name) => fr.children.find((c) => c.name === name)
+// The char grid's text, inside the frame-sized layer that clips it.
+const charGrid = (fr) => {
+  const c = layer(fr, 'Char Grid')
+  return c && c.type === 'FRAME' ? c.children.find((t) => t.type === 'TEXT') : c
+}
 
 // The specimen text nodes in a Type Specimens container, top to bottom: each
 // sits in a block inside the Mono or Sans stack.
@@ -919,19 +924,19 @@ console.log('--- the tolerance-gated snap: whole pixels when cheap, exact otherw
     pv.rows === 24 && pv.cellH === 45,
     pv.rows + ' x ' + pv.cellH,
   )
-  // The chars share the snapped 22px cell — one extra bleed cell each side to
-  // cover the 3px remainder margins — and stay unstretched, so every dot sits
+  // The chars share the snapped 22px cell, one per cell of the grid and none in
+  // the 3px remainder at each edge, and stay unstretched, so every dot sits
   // exactly in its cell.
-  const cg = layer(fr, 'Char Grid')
+  const cg = charGrid(fr)
   const cols = cg.characters.split('\n')[0].length
   check(
     'the char grid keeps one 22px char per cell, unstretched',
-    cg.letterSpacing.value === 0 && cg.lineHeight.value === 45 && cols === 87 + 2,
+    cg.letterSpacing.value === 0 && cg.lineHeight.value === 45 && cols === 87,
     'ls=' + cg.letterSpacing.value + ' cols=' + cols,
   )
   check(
-    '...starting a whole bleed cell before the frame (3 - 22 = -19)',
-    Math.abs(cg.x - -19) < 1e-9 && cg.x + cols * pv.u >= 1920,
+    '...starting where the cells start, 3px in, and ending 3px short',
+    Math.abs(cg.x - 3) < 1e-9 && Math.abs(cg.x + cols * pv.u - 1917) < 1e-9,
     cg.x + ' .. ' + (cg.x + cols * pv.u),
   )
   // The drawn lines keep the same snapped 22px rhythm from the same origin, so
@@ -1049,7 +1054,7 @@ console.log('--- the tolerance-gated snap: whole pixels when cheap, exact otherw
     always.pv.u === 22 && Math.abs(always.pv.hRemainder - (1920 - 89 * 22)) < 1e-9,
     always.pv.u + ' bleed ' + always.pv.hRemainder,
   )
-  const acg = layer(always.fr, 'Char Grid')
+  const acg = charGrid(always.fr)
   const acols = acg.characters.split('\n')[0].length
   check(
     'a snap upward still covers the frame (chars overhang and clip)',
@@ -1087,7 +1092,7 @@ console.log('--- coarse densities (0.5x / 0.25x) stay in phase ---')
         Math.abs(lg.sectionSize - pv.u / d) < 1e-9,
       lg.alignment + ' count=' + lg.count + ' step=' + lg.sectionSize,
     )
-    const cg = layer(fr, 'Char Grid')
+    const cg = charGrid(fr)
     const cols = cg.characters.split('\n')[0].length
     check(
       `  one char per coarse cell, still covering the frame`,
@@ -1495,7 +1500,7 @@ for (const [w, h] of [
   [1440, 900],
 ]) {
   const { fr, pv } = await apply(w, h, { marginPx: 64, gutterPx: 24 })
-  const cg = layer(fr, 'Char Grid')
+  const cg = charGrid(fr)
   const cols = cg.characters.split('\n')[0].length
   check(
     `${w}: char grid covers full width`,
@@ -1714,6 +1719,77 @@ console.log('\n=== TYPE SPECIMENS ===')
     specimens(spec)
       .map((n) => lineTop(n).toFixed(0))
       .join(' < '),
+  )
+}
+
+console.log('--- the grid stays inside the frame where it bleeds past it ---')
+{
+  // 4 columns, 49 cells of 22px across 1080 leave 2px, a 1px sliver each side:
+  // the char grid and lines are laid out a cell past each edge to cover them.
+  const { fr, pv } = await apply(1080, 1080, {
+    columnCount: 4,
+    marginCells: 3,
+    gutterMultiple: 1,
+    cellColumns: 49,
+  })
+  fr.clipsContent = false
+  page.selection = [fr]
+  await uiHandler({
+    type: 'params-changed',
+    reapply: true,
+    params: { ...P, columnCount: 4, marginCells: 3, gutterMultiple: 1, cellColumns: 49 },
+  })
+  const clip = layer(fr, 'Char Grid')
+  const text = charGrid(fr)
+  const row = text.characters.split('\n')[0].length
+  check(
+    'the characters are the 49 cells, starting where they start, with none in the slivers',
+    row === 49 && Math.abs(text.x - 1) < 1e-9,
+    row + ' chars from x=' + text.x,
+  )
+  check(
+    'the char grid sits in a frame-sized layer that clips it, whatever the frame does',
+    clip.type === 'FRAME' &&
+      clip.clipsContent === true &&
+      clip.x === 0 &&
+      clip.y === 0 &&
+      clip.width === 1080 &&
+      clip.height === 1080 &&
+      text.parent === clip,
+  )
+  const vec = layer(fr, 'Grid Lines').children.find((c) => c.type === 'VECTOR')
+  const coords = [
+    ...vec.vectorPaths
+      .map((v) => v.data)
+      .join(' ')
+      .matchAll(/(-?[\d.]+)\s+(-?[\d.]+)/g),
+  ].map((m) => [+m[1] + vec.x, +m[2] + vec.y])
+  check(
+    'every grid line ends inside the frame',
+    coords.length > 0 &&
+      coords.every(
+        ([x, y]) => x >= -1e-6 && x <= 1080 + 1e-6 && y >= -1e-6 && y <= 1080 + 1e-6,
+      ),
+    Math.min(...coords.map((c) => c[0])).toFixed(1) +
+      '..' +
+      Math.max(...coords.map((c) => c[0])).toFixed(1),
+  )
+  check('(the cell grid behind them is 49 across)', pv.cols === 49, pv.cols)
+
+  // A char grid that is text sitting straight in the frame, as it used to be,
+  // is replaced by the clipped one.
+  const old = makeText()
+  old.name = 'Char Grid'
+  old.setPluginData('dualGridRole', 'charGrid')
+  old.characters = '...'
+  clip.remove()
+  fr.appendChild(old)
+  await uiHandler({ type: 'params-changed', reapply: true, params: P })
+  const grids = fr.children.filter((c) => c.name === 'Char Grid')
+  check(
+    'an unclipped char grid from before is replaced by the clipped one',
+    old.removed && grids.length === 1 && grids[0].type === 'FRAME' && grids[0].clipsContent,
+    grids.map((c) => c.type).join(','),
   )
 }
 
@@ -2159,12 +2235,12 @@ console.log('\n=== specimens stay inside the frame ===')
 console.log('\n=== CHAR GRID scales with cell density ===')
 {
   const base = await apply(1920, 1080, { cellDensity: 1 })
-  const cg1 = layer(base.fr, 'Char Grid')
+  const cg1 = charGrid(base.fr)
   const cols1 = cg1.characters.split('\n')[0].length,
     rows1 = cg1.characters.split('\n').length
   for (const d of [2, 3]) {
     const { fr, pv } = await apply(1920, 1080, { cellDensity: d })
-    const cg = layer(fr, 'Char Grid')
+    const cg = charGrid(fr)
     const cols = cg.characters.split('\n')[0].length,
       rows = cg.characters.split('\n').length
     check(
@@ -3008,7 +3084,7 @@ console.log('\n=== without the library, the palette falls back to hex ===')
         .join('')
     )
   }
-  const chars = () => fr.children.find((c) => c.name === 'Char Grid')
+  const chars = () => charGrid(fr)
   const stroke = () => {
     const c = layer(fr, 'Grid Lines').children[0].strokes[0].color
     return (
@@ -3094,7 +3170,7 @@ console.log('\n=== with the library, the palette binds to swatches ===')
   page.selection = [fr]
   await uiHandler({ type: 'action', action: 'apply', params: P })
   const bound = (paint) => paint && paint.boundVariables && paint.boundVariables.color.id
-  const chars = () => fr.children.find((c) => c.name === 'Char Grid')
+  const chars = () => charGrid(fr)
   const stroke = () => layer(fr, 'Grid Lines').children[0].strokes[0]
 
   check(
@@ -3260,7 +3336,7 @@ console.log('\n=== duplicated layers are reconciled, not multiplied ===')
     )
     check(
       '...and the char grid it updates is its own, not the stray',
-      own('Char Grid')[0].characters.length > 100 && stray.characters === '',
+      own('Char Grid')[0].children[0].characters.length > 100 && stray.characters === '',
     )
     await uiHandler({ type: 'action', action: 'remove', params: P })
     check(
@@ -3347,7 +3423,7 @@ console.log('\n=== selecting a child keeps the panel bound to its frame ===')
   page.selection = [fr]
   await uiHandler({ type: 'action', action: 'apply', params: P })
   const state = () => figma.ui._last
-  const chars = fr.children.find((c) => c.name === 'Char Grid')
+  const chars = charGrid(fr)
   const lines = layer(fr, 'Grid Lines')
   const spec = layer(fr, 'Type Specimens')
 
@@ -3442,7 +3518,7 @@ console.log('\n=== a live reapply updates in place, it does not recreate ===')
   page.selection = [fr]
   await uiHandler({ type: 'action', action: 'apply', params: { ...P } })
   const spec = () => layer(fr, 'Type Specimens')
-  const chars = () => fr.children.find((c) => c.name === 'Char Grid')
+  const chars = () => charGrid(fr)
 
   const idsBefore = specimens(spec()).map((n) => n.id)
   const charIdBefore = chars().id
@@ -3698,8 +3774,8 @@ console.log('\n=== font families come from the params ===')
   const { fr } = await apply(1920, 1080, { monoFamily: MONO })
   check(
     'the char grid uses the requested mono family',
-    layer(fr, 'Char Grid').fontName.family === MONO,
-    layer(fr, 'Char Grid').fontName.family,
+    charGrid(fr).fontName.family === MONO,
+    charGrid(fr).fontName.family,
   )
 
   // The probes are cached per frame, so a family change has to invalidate them
@@ -3731,7 +3807,7 @@ console.log('\n=== font families come from the params ===')
     second.state.fontProbe.family === 'Inter' && first.state.fontProbe.family === MONO,
     first.state.fontProbe.family + ' -> ' + second.state.fontProbe.family,
   )
-  const grid = layer(fr2, 'Char Grid')
+  const grid = charGrid(fr2)
   check(
     '...and the char grid follows it',
     grid.fontName.family === 'Inter',
@@ -3760,8 +3836,8 @@ console.log('\n=== font families come from the params ===')
   })
   check(
     'an uninstalled family falls back to an installed one',
-    !!layer(fr2, 'Char Grid').fontName.family,
-    layer(fr2, 'Char Grid').fontName.family,
+    !!charGrid(fr2).fontName.family,
+    charGrid(fr2).fontName.family,
   )
 }
 
