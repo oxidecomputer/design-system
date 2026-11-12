@@ -423,6 +423,14 @@
               <label>Whole px</label>
               <fig-switch id="snapFontPx"></fig-switch>
             </fig-field>
+            <!-- Saves each specimen as a local text style, in a folder named
+                 after the frame, and keeps the styles matching as the frame
+                 changes. Turning it off unlinks the specimens and leaves the
+                 styles. -->
+            <fig-field nested>
+              <label>Text styles</label>
+              <fig-switch id="textStyles"></fig-switch>
+            </fig-field>
             <!-- Family only; the style is resolved per family, since a family's
                  regular is not reliably named "Regular". Both fall back to any
                  installed mono / any regular. -->
@@ -916,6 +924,7 @@
           printWidthMm: num('printWidthMm'),
           viewingDistanceCm: num('viewingDistanceCm'),
           snapFontPx: $('snapFontPx').checked,
+          textStyles: $('textStyles').checked,
           // Always the user's own settings, never the mirrored size of a
           // selected frame — those fields are read-only while a frame is bound,
           // so reading them back would overwrite what the next Create frame
@@ -959,6 +968,7 @@
         printWidthMm: 210,
         viewingDistanceCm: 40,
         snapFontPx: false,
+        textStyles: false,
         frameWidth: 1920,
         frameAspect: '16:9',
         frameHeight: 1080,
@@ -1038,6 +1048,7 @@
         setValue('printWidthMm', p.printWidthMm)
         setValue('viewingDistanceCm', p.viewingDistanceCm)
         setChecked('snapFontPx', p.snapFontPx)
+        setChecked('textStyles', p.textStyles)
         ownFrame = {
           frameWidth: p.frameWidth,
           frameAspect: p.frameAspect,
@@ -1140,6 +1151,7 @@
         'showLines',
         'showSpecimens',
         'snapFontPx',
+        'textStyles',
         'monoFamily',
         'sansFamily',
         'monoSizeMin',

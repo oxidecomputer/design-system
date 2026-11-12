@@ -78,6 +78,37 @@ function absY(node) {
   for (let n = node; n && n !== page; n = n.parent) y += posY(n)
   return y
 }
+// The width a filling child gets: its auto layout parent's, inside the padding.
+const fillsParent = (n) =>
+  n.layoutSizingHorizontal === 'FILL' &&
+  n.parent &&
+  n.parent.layoutMode === 'VERTICAL' &&
+  n.layoutPositioning !== 'ABSOLUTE'
+const fillWidth = (n) =>
+  n.parent.width - (n.parent.paddingLeft || 0) - (n.parent.paddingRight || 0)
+
+// The lines a paragraph wraps to at a width, breaking between words as Figma
+// does, with the mock's advance of 0.6em per character. A word wider than the
+// line still takes a line of its own.
+function wrappedLines(text, fontSize, width) {
+  const advance = 0.6 * fontSize
+  let lines = 0
+  for (const paragraph of text.split('\n')) {
+    let used = 0
+    lines++
+    for (const word of paragraph.split(' ')) {
+      const w = word.length * advance
+      if (used > 0 && used + advance + w > width) {
+        lines++
+        used = w
+      } else {
+        used += (used > 0 ? advance : 0) + w
+      }
+    }
+  }
+  return lines
+}
+
 function hugHeight(f) {
   const kids = f.children.filter((c) => inFlow(f, c))
   const sum = kids.reduce((a, c) => a + c.height, 0)
@@ -93,6 +124,40 @@ function hugWidth(f) {
   return (
     (f.paddingLeft || 0) + Math.max(0, ...kids.map((c) => c.width)) + (f.paddingRight || 0)
   )
+}
+
+// Local text styles, as figma.createTextStyle makes them.
+const textStyles = []
+function makeTextStyle() {
+  const t = {
+    id: 'S:' + ++idc,
+    type: 'TEXT',
+    name: '',
+    removed: false,
+    fontName: null,
+    fontSize: 12,
+    lineHeight: { unit: 'AUTO' },
+    letterSpacing: { value: 0, unit: 'PERCENT' },
+    textCase: 'ORIGINAL',
+    leadingTrim: 'NONE',
+    _data: {},
+    getPluginData(k) {
+      return this._data[k] || ''
+    },
+    setPluginData(k, v) {
+      if (v === '') delete this._data[k]
+      else this._data[k] = v
+    },
+    // As in Figma, removing a style leaves text that used it with its values but
+    // no link.
+    remove() {
+      this.removed = true
+      textStyles.splice(textStyles.indexOf(this), 1)
+      for (const n of nodes) if (n._textStyleId === this.id) n._textStyleId = ''
+    },
+  }
+  textStyles.push(t)
+  return t
 }
 
 let uiHandler = null
@@ -116,6 +181,19 @@ function makeText() {
     textAlignVertical: null,
     textAutoResize: 'NONE',
     textCase: 'ORIGINAL',
+    // A linked text style. Under dynamic-page access the id is read-only and is
+    // set through setTextStyleIdAsync, as here.
+    _textStyleId: '',
+    get textStyleId() {
+      return this._textStyleId
+    },
+    set textStyleId(v) {
+      throw new Error('textStyleId is read-only with dynamic-page access')
+    },
+    async setTextStyleIdAsync(id) {
+      if (id && !textStyles.some((t) => t.id === id)) throw new Error('no such style ' + id)
+      this._textStyleId = id
+    },
     fills: [],
     // Whole-node ranges only: the plugin never styles part of a text node.
     setRangeFills(start, end, fills) {
@@ -134,16 +212,31 @@ function makeText() {
       if (v === '') delete this._data[k]
       else this._data[k] = v
     },
+    layoutSizingHorizontal: 'HUG',
+    // Filling wraps the text to the width it gets (see the height getter).
+    get _wraps() {
+      return this.textAutoResize === 'HEIGHT' && fillsParent(this)
+    },
     get width() {
       // Mock metrics: advance 60/100 units, bearings 8/100 (a plausible mono).
+      if (this._wraps) return fillWidth(this)
       if (this.textAutoResize === 'NONE' && this._resized) return this._resized[0]
       const longest = Math.max(...this.characters.split('\n').map((l) => l.length), 0)
       return (longest * 60 + 8) * (this.fontSize / 100)
     },
     leadingTrim: 'NONE',
     layoutPositioning: 'AUTO',
+    textTruncation: 'DISABLED',
+    maxLines: null,
     get height() {
-      const lines = this.characters.split('\n').length
+      const all = this._wraps
+        ? wrappedLines(this.characters, this.fontSize, this.width)
+        : this.characters.split('\n').length
+      // Clamped: past maxLines the text is cut off with an ellipsis.
+      const lines =
+        this.textTruncation === 'ENDING' && this.maxLines
+          ? Math.min(all, this.maxLines)
+          : all
       // AUTO -> the font's own (ascent+descent); Inter = 1.21em.
       const lh =
         this.lineHeight && this.lineHeight.value
@@ -196,7 +289,9 @@ function makeFrame(w, h) {
     parent: null,
     _w: w,
     _h: h,
+    layoutSizingHorizontal: 'FIXED',
     get width() {
+      if (fillsParent(this)) return fillWidth(this)
       return this.layoutMode === 'VERTICAL' && this.counterAxisSizingMode === 'AUTO'
         ? hugWidth(this)
         : this._w
@@ -345,6 +440,8 @@ const figma = {
     notices.push({ msg, opts })
   },
   createText: makeText,
+  createTextStyle: makeTextStyle,
+  getLocalTextStylesAsync: async () => textStyles.slice(),
   createFrame: () => makeFrame(100, 100),
   createVector: () => {
     const v = {
@@ -421,20 +518,18 @@ const SPECIMEN_RATIOS = {
   'Sans 24%': 0.24,
 }
 
-// Specimen line heights, written independently of main.ts: under four cells
-// they snap to quarter cells (minimum a quarter cell), from four up to whole
-// cells.
-const QUARTER_CELL_BELOW = 4
+// Specimen line heights, written independently of main.ts: thirds of a cell
+// under four cells (the shortest a third), whole cells from four up.
+const stepFor = (cells) => (cells < 4 ? 1 / 3 : 1)
 const specimenCells = (askedPx, cellH) => {
   const exact = askedPx / cellH
-  return exact < QUARTER_CELL_BELOW
-    ? Math.max(0.25, Math.round(exact * 4) / 4)
-    : Math.max(1, Math.round(exact))
+  const step = stepFor(exact)
+  return Math.max(1 / 3, Math.round(exact / step) * step)
 }
-// Whole cells, or quarter cells for lines under the threshold.
+// On the step for its length: no ½, ¼ or 4⅓ cells.
 const onCellStep = (lineHeight, cellH) => {
   const cells = lineHeight / cellH
-  const step = cells < QUARTER_CELL_BELOW ? 0.25 : 1
+  const step = stepFor(cells)
   return Math.abs(cells / step - Math.round(cells / step)) < 1e-6
 }
 
@@ -543,6 +638,26 @@ check(
   frame0.width === 1920 && frame0.height === 1080,
   frame0.width + 'x' + frame0.height,
 )
+check(
+  'the new frame gets an Oxide-style name: finish-metal',
+  /^[a-z]+-[a-z]+$/.test(frame0.name) && frame0.name !== 'Dual Grid Frame',
+  frame0.name,
+)
+{
+  // Drawn from the names not in use, so frames made in a row never repeat one.
+  const made = []
+  for (let i = 0; i < 30; i++) {
+    page.selection = []
+    await uiHandler({ type: 'action', action: 'create', params: P })
+    made.push(page.children[page.children.length - 1].name)
+  }
+  check(
+    '...and frames made in a row never share a name',
+    new Set(made).size === 30 && made.every((n) => /^[a-z]+-[a-z]+$/.test(n)),
+    made.slice(0, 6).join(', '),
+  )
+  made.forEach(() => page.children.pop().remove())
+}
 check('3 layout grids', frame0.layoutGrids.length === 3)
 check(
   'every grid has gutterSize',
@@ -1488,7 +1603,7 @@ console.log('\n=== TYPE SPECIMENS ===')
     JSON.stringify(mono.letterSpacing),
   )
   check(
-    'mono line height snaps to quarter cells (it is under four cells)',
+    'mono line height snaps to quarter cells (it is under one cell)',
     onCellStep(mono.lineHeight.value, pv.cellH),
     (mono.lineHeight.value / pv.cellH).toFixed(4) + ' cells',
   )
@@ -1536,7 +1651,7 @@ console.log('\n=== TYPE SPECIMENS ===')
       check(`sans ${ratio * 100}% is not uppercased`, n.textCase === 'ORIGINAL')
       check(
         `sans ${ratio * 100}% font size is a proportion of its line box`,
-        n.fontSize < n.lineHeight.value * 1.01 && n.fontSize > 0,
+        n.fontSize <= n.lineHeight.value / 0.9 + 1e-9 && n.fontSize > 0,
         n.fontSize.toFixed(2) + ' of ' + n.lineHeight.value.toFixed(2),
       )
     })
@@ -1602,6 +1717,35 @@ console.log('\n=== TYPE SPECIMENS ===')
   )
 }
 
+console.log('--- sans placeholders use the Oxide words ---')
+{
+  const { fr } = await apply(1920, 1080)
+  const text = (name) =>
+    specimens(layer(fr, 'Type Specimens')).find((n) => n.name === name).characters
+  const word = '[a-z]+'
+  check(
+    'a display size gets a metal',
+    new RegExp(`^[A-Z]${word}$`).test(text('Sans 24%')),
+    text('Sans 24%'),
+  )
+  check(
+    'a middle size gets a finish and a metal',
+    new RegExp(`^[A-Z]${word} ${word}$`).test(text('Sans 12%')),
+    text('Sans 12%'),
+  )
+  check(
+    'a small size gets a short run of them',
+    new RegExp(`^[A-Z]${word} ${word}, ${word} ${word} and ${word} ${word}$`).test(
+      text('Sans 6%'),
+    ),
+    text('Sans 6%'),
+  )
+  check(
+    'none mention percentages',
+    specimens(layer(fr, 'Type Specimens')).every((n) => !/percent|%/.test(n.characters)),
+  )
+}
+
 console.log('--- specimens toggle ---')
 {
   const { fr } = await apply(1920, 1080)
@@ -1629,11 +1773,46 @@ console.log('--- specimens toggle ---')
   )
 }
 
+console.log('--- line heights: thirds under four cells, then whole ---')
+{
+  // 45px cells: 1% to 30% of 1080 asks for 0.24 to 7.2 cells.
+  const seen = []
+  const lists = [
+    '1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5',
+    '5, 5.5, 6, 6.5, 7, 7.5, 8, 9',
+    '10, 11, 12, 13, 14, 15',
+    // Alone, so they fit the frame.
+    '20',
+    '30',
+  ]
+  for (const sansSizes of lists) {
+    const { fr, pv } = await apply(1920, 1080, { sansSizes })
+    for (const n of specimens(layer(fr, 'Type Specimens'))) {
+      if (/^Sans/.test(n.name)) seen.push(n.lineHeight.value / pv.cellH)
+    }
+  }
+  const bad = seen.filter((c) => !onCellStep(c, 1))
+  check(
+    'every line height is on the step for its length',
+    seen.length > 15 && bad.length === 0,
+    'bad: ' +
+      bad.map((c) => c.toFixed(2)).join(',') +
+      ' of ' +
+      [...new Set(seen.map((c) => c.toFixed(2)))].join(','),
+  )
+  check(
+    '...thirds below four cells, past one cell too, and whole cells from four',
+    seen.some((c) => c > 1 && c < 4 && Math.abs(c - Math.round(c)) > 1e-6) &&
+      seen.some((c) => c >= 4) &&
+      seen.every((c) => Math.abs(c * 3 - Math.round(c * 3)) < 1e-6),
+  )
+}
+
 console.log('--- sizes that snap to one line height share their type ---')
 {
-  // All round to half a cell (22.5px) on this 45px-cell grid: 0.44–0.53 cells
-  // round to the nearest quarter, 0.5.
-  const sizes = ['2', '2.1', '2.2']
+  // All round to two thirds of a cell (30px) on this 45px-cell grid: 0.6–0.72
+  // cells round to the nearest third, ⅔.
+  const sizes = ['2.5', '2.8', '3']
   const runs = []
   for (const m of sizes) {
     const { fr, pv } = await apply(1920, 1080, { monoSizes: m, sansSizes: m })
@@ -1657,13 +1836,14 @@ console.log('--- sizes that snap to one line height share their type ---')
       .map((r) => r.mono.fontSize.toFixed(2) + '/' + r.sans.fontSize.toFixed(2))
       .join(','),
   )
-  const { fr: up } = await apply(1920, 1080, { monoSizes: '3', sansSizes: '3' })
-  const [mono3] = specimens(layer(up, 'Type Specimens'))
+  const { fr: up } = await apply(1920, 1080, { monoSizes: '4', sansSizes: '4' })
+  const [mono4] = specimens(layer(up, 'Type Specimens'))
   check(
-    'a size a quarter cell up is a step larger',
-    lh(mono3) === lh(runs[0].mono) + runs[0].cellH / 4 &&
-      mono3.fontSize > runs[0].mono.fontSize,
-    lh(mono3) + ' / ' + mono3.fontSize.toFixed(2),
+    'a size a step up, from two thirds of a cell to one, is larger',
+    Math.abs(lh(mono4) - runs[0].cellH) < 1e-9 &&
+      Math.abs(lh(runs[0].mono) - (runs[0].cellH * 2) / 3) < 1e-9 &&
+      mono4.fontSize > runs[0].mono.fontSize,
+    lh(mono4) + ' / ' + mono4.fontSize.toFixed(2),
   )
 }
 
@@ -1737,13 +1917,19 @@ console.log('--- leading and tracking follow the design system at the size seen 
     near(base['Mono 2%'].fontSize, base['Mono 2%'].lineHeight.value / 1.4),
     base['Mono 2%'].fontSize.toFixed(2),
   )
-  // On the frame's own screen the sans sizes are 60–270px, where the fit is at
-  // or near its 0.9 floor. Leading under 1 would overlap the specimen above,
-  // so the type fills its line box instead.
+  // On the frame's own screen the sans sizes are 60–300px, where the fit falls
+  // to its 0.9 floor: display type is set tighter than 1.0, as the design
+  // system's hero is, and each larger step is no looser than the one before.
+  const leadingOf = (n) => n.lineHeight.value / n.fontSize
   check(
-    'display type never goes below leading 1.0',
-    sans.every((name) => base[name].fontSize <= base[name].lineHeight.value + 1e-9) &&
-      near(base['Sans 24%'].fontSize, base['Sans 24%'].lineHeight.value),
+    "display type tightens to the design system's 0.9",
+    close(leadingOf(base['Sans 24%']), 0.9) &&
+      sans.every(
+        (name, i) =>
+          i === 0 || leadingOf(base[name]) <= leadingOf(base[sans[i - 1]]) + 1e-9,
+      ) &&
+      leadingOf(base['Sans 6%']) > leadingOf(base['Sans 24%']),
+    sans.map((name) => leadingOf(base[name]).toFixed(3)).join(' > '),
   )
   // Seen tiny, leading tops out at the design system's loosest, 137.5%.
   const tiny = await specimensWith({ displayMode: 'Custom', shownWidthPx: 20 })
@@ -1887,10 +2073,10 @@ console.log('--- Snap font rounds font sizes, not line heights ---')
   })
   const after = specimens(layer(fr, 'Type Specimens'))
   check(
-    'on: every font size is a whole pixel, nearest without passing the line height',
+    'on: every font size is the nearest whole pixel',
     after.every((n) => {
       const b = before.find((x) => x.name === n.name)
-      const want = Math.min(Math.round(b.fontSize), Math.floor(b.lineHeight + 1e-9))
+      const want = Math.round(b.fontSize)
       return b && Number.isInteger(n.fontSize) && n.fontSize === want
     }),
     after.map((n) => n.fontSize).join(','),
@@ -1913,23 +2099,22 @@ console.log('--- Snap font rounds font sizes, not line heights ---')
   )
   check('same specimen layers reused', after.length === before.length)
 
-  // 2.5% of 1080 is 27px, which snaps to a half-cell line (22.5px). Seen ten
-  // times larger, its leading is the design system's tightest, 0.9, so the font
-  // is capped at 22.5px; rounding that up to 23 would pass the line height, so
-  // it rounds down instead.
-  const { fr: capFr } = await apply(1920, 1080, {
+  // 2.5% of 1080 is 27px, 0.6 cells, which snaps to two thirds of a cell
+  // (30px). Seen ten times larger, its leading is the design system's
+  // tightest, 0.9: 33px type in a 30px line, which a single line allows.
+  const { fr: tightFr } = await apply(1920, 1080, {
     sansSizes: '2.5',
     displayMode: 'Custom',
     shownWidthPx: 19200,
     snapFontPx: true,
   })
-  const capped = specimens(layer(capFr, 'Type Specimens')).find(
+  const tight = specimens(layer(tightFr, 'Type Specimens')).find(
     (n) => n.name === 'Sans 2.5%',
   )
   check(
-    'on: rounds down rather than past the line height',
-    !!capped && capped.fontSize === 22 && capped.lineHeight.value === 22.5,
-    capped && capped.fontSize + ' in ' + capped.lineHeight.value,
+    'on: type tighter than its line still rounds to the nearest pixel',
+    !!tight && tight.fontSize === 33 && Math.abs(tight.lineHeight.value - 30) < 1e-9,
+    tight && tight.fontSize + ' in ' + tight.lineHeight.value,
   )
 }
 
@@ -2077,10 +2262,10 @@ console.log('\n=== specimens are laid out with auto layout ===')
     blocks.map((b) => (b.height / pv.cellH).toFixed(3)).join(','),
   )
   check(
-    "...so each specimen's baseline is its block's bottom line",
+    "...and each specimen's first baseline is whole cells below its block's top",
     blocks.every((b) => {
       const n = b.children[0]
-      return Math.abs(absY(n) + n.height - (absY(b) + b.height)) < 1e-6
+      return whole(baselineOf(n) + absY(frameOf(n)) - absY(b))
     }),
   )
   check(
@@ -2109,6 +2294,56 @@ console.log('\n=== specimens are laid out with auto layout ===')
   check(
     '...and its text survives',
     twelve.characters === 'Two\nlines' && specimens(spec).includes(twelve),
+  )
+
+  // Specimens fill the content width between the grid's margins and wrap there.
+  const contentLeft = pv.effectiveMargin
+  const contentRight = 1920 - pv.effectiveMarginRight
+  check(
+    'specimens fill the width between the margins',
+    specimens(spec).every(
+      (n) =>
+        Math.abs(relX(n) - contentLeft) < 1e-6 &&
+        Math.abs(relX(n) + n.width - contentRight) < 1e-6,
+    ),
+    specimens(spec)
+      .map((n) => relX(n).toFixed(0) + '–' + (relX(n) + n.width).toFixed(0))
+      .join(', ') +
+      ' vs ' +
+      contentLeft.toFixed(0) +
+      '–' +
+      contentRight.toFixed(0),
+  )
+  const wide = specimens(spec).find((n) => n.name === 'Sans 24%')
+  wide.characters = 'Anodized cobalt, brushed titanium and tempered zirconium'
+  await uiHandler({ type: 'params-changed', reapply: true, params: P })
+  const wideLines =
+    Math.round((wide.height - 0.72 * wide.fontSize) / wide.lineHeight.value) + 1
+  check(
+    'text too long for the width is held to one line, ending in an ellipsis',
+    wideLines === 1 &&
+      wide.textTruncation === 'ENDING' &&
+      wide.maxLines === 1 &&
+      relX(wide) + wide.width <= contentRight + 1e-6,
+    wideLines + ' lines',
+  )
+  wide.characters = 'Typed\nover two lines'
+  await uiHandler({ type: 'params-changed', reapply: true, params: P })
+  check(
+    '...as is text typed onto a second line',
+    Math.abs(wide.height - 0.72 * wide.fontSize) < 1e-6,
+  )
+  check(
+    'its block stays whole cells',
+    whole(wide.parent.height),
+    (wide.parent.height / pv.cellH).toFixed(3) + ' cells',
+  )
+  check(
+    '...so every baseline stays on a cell line',
+    specimens(spec).every(onLine),
+    specimens(spec)
+      .map((n) => ((baselineOf(n) - pv.rowOffset) / pv.cellH).toFixed(3))
+      .join(','),
   )
 
   // Anything the user adds keeps its position instead of joining the column.
@@ -2147,6 +2382,172 @@ console.log('--- a frame from the previous layout is converted in place ---')
     '...keeping their text',
     after[1].characters === 'Kept' &&
       spec.children.every((c) => c.getPluginData('dualGridRole') === 'specimenStack'),
+  )
+}
+
+console.log('\n=== text styles ===')
+{
+  const reapplyTo = async (fr, over) => {
+    page.selection = [fr]
+    await uiHandler({ type: 'params-changed', reapply: true, params: { ...P, ...over } })
+  }
+  const ownStyles = (fr) =>
+    textStyles.filter((t) => t.getPluginData('dualGridFrame') === fr.id)
+  const styleOf = (n) => textStyles.find((t) => t.id === n.textStyleId)
+
+  const before = textStyles.length
+  const { fr } = await apply(1920, 1080)
+  fr.name = 'Poster'
+  check('off by default: no styles are made', textStyles.length === before)
+
+  await reapplyTo(fr, { textStyles: true })
+  const texts = () => specimens(layer(fr, 'Type Specimens'))
+  check(
+    'turning it on makes one style per specimen, and links each',
+    ownStyles(fr).length === texts().length &&
+      texts().every((n) => styleOf(n) && ownStyles(fr).includes(styleOf(n))),
+    ownStyles(fr).length + ' styles for ' + texts().length + ' specimens',
+  )
+  check(
+    'each is named after the frame, family and size: md in the middle',
+    texts()
+      .map((n) => styleOf(n).name)
+      .join() === 'Poster/mono/md,Poster/sans/sm,Poster/sans/md,Poster/sans/lg',
+    ownStyles(fr)
+      .map((t) => t.name)
+      .join(', '),
+  )
+  const same = (n) => {
+    const t = styleOf(n)
+    return (
+      t.fontName.family === n.fontName.family &&
+      t.fontName.style === n.fontName.style &&
+      t.fontSize === n.fontSize &&
+      t.lineHeight.value === n.lineHeight.value &&
+      t.letterSpacing.value === n.letterSpacing.value &&
+      t.textCase === n.textCase &&
+      t.leadingTrim === 'CAP_HEIGHT'
+    )
+  }
+  check("...holding the specimen's type", texts().every(same))
+
+  // Labels run out from md as far as the steps need.
+  const labelsFor = async (sansSizes) => {
+    await reapplyTo(fr, { textStyles: true, sansSizes })
+    return texts()
+      .filter((n) => /^Sans/.test(n.name))
+      .map((n) => styleOf(n).name.split('/').pop())
+      .join(' ')
+  }
+  const eight = await labelsFor('2, 3, 4, 6, 8, 11, 16, 22')
+  check('eight steps run from 2xs to 3xl', eight === '2xs xs sm md lg xl 2xl 3xl', eight)
+  const two = await labelsFor('6, 24')
+  check('two steps are md and lg', two === 'md lg', two)
+  const one = await labelsFor('12')
+  check('one step is md', one === 'md', one)
+  const sizesMoved = await labelsFor('7, 14, 28')
+  check('moving the sizes keeps the names', sizesMoved === 'sm md lg', sizesMoved)
+  await reapplyTo(fr, { textStyles: true, sansSizes: '6, 12, 24' })
+
+  const ids = ownStyles(fr).map((t) => t.id)
+  fr.resize(1920, 1440)
+  fr.name = 'Poster large'
+  await reapplyTo(fr, { textStyles: true, frameAspect: 'Custom' })
+  check(
+    'reapplying updates the same styles in place',
+    ownStyles(fr)
+      .map((t) => t.id)
+      .join() === ids.join() && texts().every(same),
+  )
+  check(
+    '...and renames them when the frame is renamed',
+    ownStyles(fr).every((t) => t.name.startsWith('Poster large/')),
+  )
+
+  await reapplyTo(fr, { textStyles: true, sansSizes: '6, 12' })
+  check(
+    'a specimen that goes away takes its style with it',
+    ownStyles(fr).length === texts().length && texts().every(same),
+    ownStyles(fr).length + ' styles for ' + texts().length + ' specimens',
+  )
+
+  // Copy the frame the way Figma does: same plugin data, fresh layers.
+  const copy = makeFrame(1920, 1440)
+  copy.name = 'Copy'
+  page.appendChild(copy)
+  copy.setPluginData('dualGrid', fr.getPluginData('dualGrid'))
+  const origStyles = ownStyles(fr).map((t) => [t.id, t.fontSize, t.name].join())
+  page.selection = [copy]
+  await uiHandler({ type: 'action', action: 'apply', params: { ...P, textStyles: true } })
+  check(
+    "a copied frame makes its own styles, leaving the original's alone",
+    ownStyles(copy).length === specimens(layer(copy, 'Type Specimens')).length &&
+      ownStyles(copy).every((t) => t.name.startsWith('Copy/')) &&
+      ownStyles(fr)
+        .map((t) => [t.id, t.fontSize, t.name].join())
+        .join() === origStyles.join(),
+  )
+
+  // Figma's duplicate keeps the copy's text linked to the original's styles.
+  // Linking the copy's specimens back to them stands in for that.
+  const linkToOriginal = async () => {
+    const theirs = specimens(layer(fr, 'Type Specimens'))
+    const mine = specimens(layer(copy, 'Type Specimens'))
+    for (let i = 0; i < mine.length; i++) {
+      await mine[i].setTextStyleIdAsync(theirs[i % theirs.length].textStyleId)
+    }
+  }
+  const originalNow = () =>
+    ownStyles(fr)
+      .map((t) => [t.id, t.fontSize, t.name].join())
+      .join()
+  await linkToOriginal()
+  const origBefore = originalNow()
+  page.selection = [copy]
+  await uiHandler({
+    type: 'params-changed',
+    reapply: true,
+    params: { ...P, textStyles: true, sansSizes: '8, 16' },
+  })
+  check(
+    "editing a duplicate relinks its specimens to its own styles, the original's untouched",
+    specimens(layer(copy, 'Type Specimens')).every((n) =>
+      ownStyles(copy).some((t) => t.id === n.textStyleId),
+    ) && originalNow() === origBefore,
+  )
+  await linkToOriginal()
+  await uiHandler({
+    type: 'params-changed',
+    reapply: true,
+    params: { ...P, textStyles: false, sansSizes: '8, 16' },
+  })
+  check(
+    "...and with styles off, unlinks them from the original's",
+    specimens(layer(copy, 'Type Specimens')).every((n) => n.textStyleId === '') &&
+      originalNow() === origBefore,
+    specimens(layer(copy, 'Type Specimens'))
+      .map((n) => n.textStyleId || '-')
+      .join(','),
+  )
+  // A style the user applied themselves is theirs to keep.
+  const theirs = makeTextStyle()
+  const firstCopy = specimens(layer(copy, 'Type Specimens'))[0]
+  await firstCopy.setTextStyleIdAsync(theirs.id)
+  await uiHandler({
+    type: 'params-changed',
+    reapply: true,
+    params: { ...P, textStyles: false, sansSizes: '8, 16' },
+  })
+  check(
+    "a user's own style on a specimen is left linked",
+    firstCopy.textStyleId === theirs.id,
+  )
+
+  const kept = ownStyles(fr).length
+  await reapplyTo(fr, { textStyles: false, sansSizes: '6, 12' })
+  check(
+    'turning it off unlinks the specimens and keeps the styles',
+    texts().every((n) => n.textStyleId === '') && ownStyles(fr).length === kept,
   )
 }
 
@@ -3427,14 +3828,14 @@ for (const [w, h] of [
       n.lineHeight.value.toFixed(2),
     )
     check(`  snapped to a cell step`, onCellStep(n.lineHeight.value, pv.cellH))
-    // Within half a step: an eighth of a cell under the threshold, half a cell
-    // above it. Below an eighth of a cell the quarter-cell floor takes over.
+    // Within half a step of the ask: a sixth of a cell under four cells, half a
+    // cell above. Below a third of a cell the third-cell floor takes over.
     const asked = h * ratios[n.name]
-    const tol = (asked / pv.cellH < QUARTER_CELL_BELOW ? 0.125 : 0.5) * pv.cellH
+    const tol = (stepFor(asked / pv.cellH) / 2) * pv.cellH
     check(
-      `  within half a step of the requested proportion (or clamped to a quarter cell)`,
+      `  within half a step of the requested proportion (or clamped to a third of a cell)`,
       Math.abs(n.lineHeight.value - asked) <= tol + 1e-6 ||
-        (asked < pv.cellH / 4 && Math.abs(n.lineHeight.value - pv.cellH / 4) < 1e-9),
+        (asked < pv.cellH / 3 && Math.abs(n.lineHeight.value - pv.cellH / 3) < 1e-9),
       'off by ' +
         Math.abs(n.lineHeight.value - asked).toFixed(2) +
         'px, cellH=' +

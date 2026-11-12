@@ -187,6 +187,7 @@ setTimeout(async () => {
       'aspectTolPct',
       'edgeCullPct',
       'snapFontPx',
+      'textStyles',
       'shownWidthPx',
       'printWidthMm',
       'viewingDistanceCm',
@@ -575,6 +576,19 @@ setTimeout(async () => {
         JSON.stringify(d),
       )
     }
+
+    console.log('\n=== text styles ===')
+    check('Text styles starts off', $('textStyles').checked === false)
+    sent.length = 0
+    await flip('textStyles')
+    check(
+      'turning it on writes it to the frame',
+      reapplies().some((m) => m.params.textStyles === true),
+    )
+    send({ type: 'params-change', params: { textStyles: true } })
+    check("a frame's saved setting is restored", $('textStyles').checked === true)
+    send({ type: 'params-change', params: {} })
+    check('...and an absent one is off', $('textStyles').checked === false)
 
     console.log('\n=== font families ===')
     sent.length = 0

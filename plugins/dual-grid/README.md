@@ -283,6 +283,12 @@ This also prevents **Apply grids** from treating the generated `Grid Lines` and
 While a gridded frame is selected, editing a **Grid** parameter reapplies it automatically.
 **New frame** parameters (width and aspect) only affect **Create frame**.
 
+A created frame is named in the manner of Heroku's placeholder app names, but Oxide's: a
+metalworking finish and a metal that forms an oxide, such as `anodized-cobalt`. The name
+also heads the frame's text-style folder, so it is drawn from the 225 names not already used
+by a frame on the page; only when all are taken does it get a number, as Figma numbers
+copies.
+
 ### Copy Mitos config
 
 The secondary footer button serialises the previewed grid as JSON and copies it to the
@@ -352,6 +358,10 @@ Layers and their contents are updated in place:
   layer is renamed to match. Reapplying changes size, leading, tracking and position, but
   preserves edited text. Specimens that no longer fit or are no longer requested are
   removed.
+- A new sans specimen's placeholder uses the Oxide words that name new frames, sized to
+  its block: a metal for display sizes ("Zinc"), a finish and a metal for middle sizes
+  ("Brushed copper"), and a short run for small ones ("Galvanized magnesium, anodized
+  iron and tempered tin"). Mono shows its font name and digits.
 
 Applies run through a single queue to prevent overlapping updates from creating duplicate
 layers before IDs have been stored. The test suite does not currently reproduce this race.
@@ -362,8 +372,8 @@ Each specimen's line height is a proportion of the frame height, rounded to cell
 baselines align to cell lines. The font size fills the rounded line height at the design
 system's leading for that size (below), so every specimen is set at exactly that leading,
 and sizes move in the rounding's steps: two sizes that round to the same line height give
-the same type. Font size is capped at the line height, so leading never drops below 1.0×:
-display sizes, where the design system asks for less, fill their line box.
+the same type. Display sizes are set tighter than 1.0, down to the design system's 0.9, as
+its hero is; each specimen is a single line, so there is no second line to collide with.
 
 The **Type** group sets each family as a scale. **Sizes** gives the smallest and largest
 line height as a percentage of frame height, and **Steps** how many specimens run between
@@ -394,6 +404,25 @@ after the line height snaps to cells, so it can differ from the fit. A step that
 the same number of cells as the one before is flagged in red, since the two will look nearly
 the same size.
 
+### Text styles
+
+**Text styles** (under Specimens, off by default) saves each specimen as a local text style
+and links the specimen to it. The style holds the font, size, line height, letter spacing,
+case and cap-height leading trim; fills aren't part of a text style, so the specimen keeps
+its colour. Styles are named `<frame name>/<family>/<size>`, such as
+`anodized-cobalt/sans/lg`, so each frame's styles sit in their own folder. Sizes are
+t-shirt labels for the step's place in its family, centred on `md` and running out as far
+as the steps need: one step is `md`, three are `sm md lg`, and eight run from `2xs` to `3xl`
+(an even count leans to the large side). Changing a size keeps its name; adding or removing
+a step re-centres the labels.
+
+Every reapply updates the styles in place, so text elsewhere in the file that uses them
+follows the frame. Renaming the frame renames its styles on the next reapply. A specimen
+that goes away, with fewer steps or no room, takes its style with it; text that used it
+keeps its values. Each style records the frame it belongs to, so a duplicated frame makes
+its own styles rather than rewriting the original's. Turning the switch off unlinks the
+specimens and leaves the styles, and **Remove grids** leaves them too.
+
 ### Display scale
 
 Both curves were tuned on a laptop screen, so they describe type by how large it looks
@@ -415,13 +444,15 @@ visual angle: a laptop CSS px is about 1/125 in seen from about 22 in, or 1/2750
 radian. An A1 poster (594mm) read from 3m appears 544px wide; A4 (210mm) at 40cm appears
 1444px wide. **Reads as** shows the sans sizes as the curve sees them, and `k`.
 
-**Whole px** rounds each font size to the nearest whole pixel (minimum 1px), rounding down
-where rounding up would pass the line height. Line heights are unaffected.
+**Whole px** rounds each font size to the nearest whole pixel (minimum 1px). Line heights
+are unaffected.
 
-Line heights under four cells snap to quarter cells, so a short line can be 0.75 or 1.25
-cells rather than jumping between whole cells. Each specimen still occupies whole cells in
-the stack, so its baseline lands on a cell line; only a wrapped second line would fall on a
-quarter-cell line.
+Line heights under four cells snap to thirds of a cell, the shortest a third, and from four
+cells up to whole cells: ⅓, ⅔, 1, 1⅓, 1⅔, 2 … 3⅔, 4, 5 and so on. Three lines of any third
+add up to whole cells, so text set in these styles comes back onto a cell line every three
+lines; from four cells up, a whole cell is a small enough share of the line to read as
+even. Each specimen still occupies whole cells in the stack, so its baseline lands on a cell
+line.
 
 Sizing relative to the frame keeps the type scale largely independent of cell size. Doubling
 frame height roughly doubles the type; changing cell size affects only the rounding, which
@@ -429,13 +460,15 @@ stays within half a step of the requested line height.
 
 `Type Specimens` is a vertical auto layout frame the size of the target frame, holding a
 `Mono` stack and a `Sans` stack with space between them, so mono sits at the top and sans
-at the bottom. Each specimen is a text layer in its own block, a hugging auto layout frame.
-The text uses Figma's cap-height leading trim, so its box runs from cap top to baseline.
-Each block's top padding is its cells less the measured cap height, so every block is a
-whole number of cells tall and the specimen's baseline is the block's bottom edge. Because
-everything stacks in whole cells, every baseline lands on a cell line. A second line typed
-into a specimen grows its block by one line height, which is also a cell step, and the
-stack moves to fit.
+at the bottom. Each specimen is a text layer in its own block, an auto layout frame that
+hugs its height and fills the width between the grid's margins, as do the stacks and the
+text. The text is clamped to one line (Figma's line clamp: `maxLines` 1, truncated with an
+ellipsis), so text longer than the content width, or typed onto a second line, is cut off
+at the content edge rather than wrapping. It uses Figma's cap-height leading trim, so its
+box runs from cap top to baseline. Each block's top padding is its cells less the measured
+cap height, so every block is a whole number of cells tall and the specimen's baseline is
+the block's bottom edge. Because everything stacks in whole cells, every baseline lands on
+a cell line.
 
 The column's top padding is the row offset plus one cell. Its bottom padding puts the
 bottom of the sans stack on a cell line, above the largest sans specimen's measured

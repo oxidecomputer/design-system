@@ -71,6 +71,9 @@ interface Params {
   // Round specimen font sizes to whole pixels. Line heights stay on cell steps,
   // which may be fractional, so baselines remain on the grid.
   snapFontPx: boolean
+  // Save each specimen as a local text style and keep it in step with the frame
+  // (see syncTextStyles).
+  textStyles: boolean
   // Leading and tracking have no settings: both follow the design system's type
   // scale at the size the type is seen (see opticalLeading, opticalTrackingPct).
   // How large the frame appears to its reader; see displayScaleOf. Shown width
@@ -209,6 +212,23 @@ interface SpecimenSpec {
   // slot, so text typed into the third sans specimen stays with the third one
   // whatever its size becomes.
   slot: string
+  // Its size label within the family, such as "md" (see sizeLabel); names its
+  // text style.
+  label: string
+}
+
+// T-shirt size labels for a family's steps, smallest first, centred on "md" and
+// running out both ways as far as the steps need: … 3xs, 2xs, xs, sm, md, lg,
+// xl, 2xl, 3xl … One step is "md", three are "sm md lg", eight "2xs" to "3xl".
+// The label follows the step's place in the scale, not its size, so changing
+// a size keeps its name; adding or removing a step re-centres them.
+function sizeLabel(index: number, count: number): string {
+  const offset = index - Math.floor((count - 1) / 2)
+  if (offset === 0) return 'md'
+  if (offset === -1) return 'sm'
+  if (offset === 1) return 'lg'
+  const reach = Math.abs(offset) - 1 // 1 → xs / xl, 2 → 2xs / 2xl, …
+  return (reach > 1 ? reach : '') + (offset < 0 ? 'xs' : 'xl')
 }
 
 // Mono is set uppercase at a flat 4%, per the design system's mono scale. Sans
@@ -231,19 +251,63 @@ function parseSizesPct(raw: string | undefined, fallback: string): number[] {
     .slice(0, MAX_SPECIMENS)
 }
 
-// Placeholder text sized to the block it fills — display sizes get a word,
-// small sizes a sentence. Only written on creation, so anything typed over it
-// survives reapplies.
+// Oxide's words for placeholders: metalworking finishes and metals that form
+// an oxide. They name new frames (see newFrameName) and fill the sans
+// specimens.
+const OXIDE_FINISHES = [
+  'anodized',
+  'annealed',
+  'brushed',
+  'burnished',
+  'cast',
+  'etched',
+  'forged',
+  'galvanized',
+  'machined',
+  'milled',
+  'oxidized',
+  'polished',
+  'sintered',
+  'tempered',
+  'quenched',
+]
+const OXIDE_METALS = [
+  'aluminium',
+  'chromium',
+  'cobalt',
+  'copper',
+  'hafnium',
+  'iron',
+  'magnesium',
+  'manganese',
+  'nickel',
+  'niobium',
+  'tantalum',
+  'tin',
+  'titanium',
+  'zinc',
+  'zirconium',
+]
+
+const pickWord = (list: string[]) => list[Math.floor(Math.random() * list.length)]
+const capitalized = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
+
+// Placeholder text sized to the block it fills: display sizes get a metal,
+// middle sizes a finish and a metal, small sizes a short run of them, such as
+// "Tempered cobalt, milled tin and etched nickel". Only written on creation, so
+// anything typed over it survives reapplies.
 function sansSpecimenText(pct: number): string {
-  if (pct >= 16) return 'Display'
-  if (pct >= 8) return `${pct} percent`
-  return `${pct} percent of the height`
+  const pair = () => `${pickWord(OXIDE_FINISHES)} ${pickWord(OXIDE_METALS)}`
+  if (pct >= 16) return capitalized(pickWord(OXIDE_METALS))
+  if (pct >= 8) return capitalized(pair())
+  return capitalized(`${pair()}, ${pair()} and ${pair()}`)
 }
 
 function specimensOf(p: Params): SpecimenSpec[] {
   const family = (face: 'mono' | 'sans', sizes: number[]): SpecimenSpec[] =>
     sizes.map((pct, i) => ({
       slot: `${face}:${i}`,
+      label: sizeLabel(i, sizes.length),
       name: `${face === 'mono' ? 'Mono' : 'Sans'} ${pct}%`,
       face,
       pct,
@@ -283,32 +347,33 @@ function trackingOf(face: 'mono' | 'sans', fontSize: number, displayScale: numbe
 
 interface SizedSpecimen {
   spec: SpecimenSpec
-  cells: number // line height in cells; a multiple of 0.25 below QUARTER_CELL_BELOW
+  cells: number // line height in cells; see snapSpecimenLineHeight for the steps
   rows: number // whole cells the specimen occupies in the stack
   fontSize: number
 }
 
-// Line heights shorter than this many cells snap to quarter cells instead of
-// whole ones. The font size follows the snapped line height, so the step sets
-// how far apart neighbouring sizes land: a whole cell is a large share of a
-// short line (1 → 2 cells doubles the type), a quarter cell a quarter of that.
-// Above it, a cell is a small enough share that whole cells read as even. The
-// stack still advances in whole cells (see `rows`), so every baseline stays on
-// a cell line; only a second line of wrapped text would fall on a quarter-cell
-// line.
-const QUARTER_CELL_BELOW = 4
+// Line heights under four cells snap to thirds of a cell, the shortest a
+// third, and from four up to whole cells: ⅓, ⅔, 1, 1⅓, 1⅔, 2 … 3⅔, 4, 5 …
+// Three lines of any third add up to whole cells, so text set in these styles
+// comes back onto a cell line every three lines. The font size follows the
+// snapped line height, so the step sets how far apart neighbouring sizes land;
+// a whole cell is a large share of a short line (1 → 2 cells doubles the type),
+// but from four cells up whole cells read as even. The stack still advances in
+// whole cells (see `rows`), so every baseline stays on a cell line.
+const THIRD_CELL_BELOW = 4
 
 function snapSpecimenLineHeight(g: GridResult, target: number): number {
   const exact = target / g.cellH
-  if (exact < QUARTER_CELL_BELOW) return Math.max(0.25, Math.round(exact * 4) / 4)
+  if (exact < THIRD_CELL_BELOW) return Math.max(1 / 3, Math.round(exact * 3) / 3)
   return snapLineHeight(g, target).cells
 }
 
 // Size each specimen from the frame height. The line height snaps to cells
 // (see snapSpecimenLineHeight), and the font fills the snapped line height at
 // the design system's leading, so every specimen is set at exactly that leading;
-// sizes move in the snap's steps. Font size is capped at the line height so
-// leading never goes below 1.0, where text would overlap the specimen above.
+// sizes move in the snap's steps. Display sizes go below 1.0, to the design
+// system's 0.9, as its hero does: specimens are a single line (see place), so
+// there is no second line for a tight line height to overlap.
 function sizeSpecimens(
   p: Params,
   g: GridResult,
@@ -320,15 +385,9 @@ function sizeSpecimens(
     const target = frameHeight * spec.heightRatio
     const cells = snapSpecimenLineHeight(g, target)
     const lineHeight = cells * g.cellH
-    const raw = Math.min(
-      fontSizeForLineBox(spec.face, lineHeight, displayScale),
-      lineHeight,
-    )
-    // Rounded down where rounding up would pass the cap. At least 1px, so a
-    // tiny specimen never rounds to an invalid size of 0.
-    const fontSize = snapFont
-      ? Math.max(1, Math.min(Math.round(raw), Math.floor(lineHeight + 1e-9)))
-      : raw
+    const raw = fontSizeForLineBox(spec.face, lineHeight, displayScale)
+    // At least 1px, so a tiny specimen never rounds to an invalid size of 0.
+    const fontSize = snapFont ? Math.max(1, Math.round(raw)) : raw
     return { spec, cells, rows: Math.ceil(cells), fontSize }
   })
 }
@@ -370,6 +429,7 @@ const DEFAULT_PARAMS: Params = {
   monoSizes: '2',
   sansSizes: '6, 12, 24',
   snapFontPx: false,
+  textStyles: false,
   displayMode: 'Screen',
   shownWidthPx: DEFAULT_SHOWN_WIDTH_PX,
   // A4 read in the hand.
@@ -1231,6 +1291,61 @@ async function ensureGridLines(
 // Type specimens
 // ---------------------------------------------------------------------------
 
+// ----- text styles ---------------------------------------------------------
+// With Text styles on, each specimen is linked to a local text style that the
+// plugin keeps matching it. A style belongs to one frame and one slot, recorded
+// on the style, so a duplicated frame (whose layers keep the original's plugin
+// data) makes its own styles instead of rewriting the original's. Styles are
+// named "<frame name>/<family>/<size label>", such as "anodized-cobalt/sans/lg",
+// so each frame's sit in their own folder.
+const STYLE_FRAME_KEY = 'dualGridFrame'
+
+// This frame's styles, by specimen slot, and the ids of every style the plugin
+// made for any frame. A duplicated frame's specimens start out linked to the
+// original's styles, which they must not keep (see ensureSpecimens).
+interface FrameStyles {
+  own: Map<string, TextStyle>
+  pluginIds: Set<string>
+}
+async function frameTextStyles(frame: FrameNode): Promise<FrameStyles> {
+  const own = new Map<string, TextStyle>()
+  const pluginIds = new Set<string>()
+  for (const style of await figma.getLocalTextStylesAsync()) {
+    const owner = style.getPluginData(STYLE_FRAME_KEY)
+    if (!owner) continue
+    pluginIds.add(style.id)
+    if (owner === frame.id) own.set(style.getPluginData(SLOT_KEY), style)
+  }
+  return { own, pluginIds }
+}
+
+// Writes a specimen's type into its style, making the style if it has none,
+// and links the specimen to it. Fills aren't part of a text style, so the
+// specimen keeps its colour binding.
+async function syncTextStyle(
+  styles: Map<string, TextStyle>,
+  frame: FrameNode,
+  node: TextNode,
+  spec: SpecimenSpec,
+): Promise<void> {
+  const slot = spec.slot
+  let style = styles.get(slot)
+  if (!style) {
+    style = figma.createTextStyle()
+    style.setPluginData(STYLE_FRAME_KEY, frame.id)
+    style.setPluginData(SLOT_KEY, slot)
+    styles.set(slot, style)
+  }
+  style.name = `${frame.name}/${spec.face}/${spec.label}`
+  style.fontName = node.fontName as FontName
+  style.fontSize = node.fontSize as number
+  style.lineHeight = node.lineHeight as LineHeight
+  style.letterSpacing = node.letterSpacing as LetterSpacing
+  style.textCase = node.textCase as TextCase
+  style.leadingTrim = node.leadingTrim as LeadingTrim
+  if (node.textStyleId !== style.id) await node.setTextStyleIdAsync(style.id)
+}
+
 // A stack of text set to the grid: line height is a whole multiple of the cell
 // height and every baseline lands on a cell line. Mono is uppercase at a flat 4%;
 // sans uses the design system's optical tracking curve.
@@ -1285,6 +1400,9 @@ async function ensureSpecimens(
   await figma.loadFontAsync(sansFont)
 
   const textPaint = await swatchPaint(SWATCH_TEXT, COLOR_TEXT, container)
+  const keepStyles = flag(p.textStyles, DEFAULT_PARAMS.textStyles)
+  const { own: styles, pluginIds: pluginStyleIds } = await frameTextStyles(frame)
+  const usedStyleSlots = new Set<string>()
   const displayScale = displayScaleOf(p, frame.width)
   const sized = sizeSpecimens(p, g, frame.height, displayScale)
 
@@ -1340,8 +1458,10 @@ async function ensureSpecimens(
   // The column's padding puts the mono stack's top and the sans stack's bottom
   // on cell lines. The row offset centres the cells in the frame, so it is part
   // of both; the frame's leftover below the last row is part of the bottom.
+  // The side padding is the grid's margins, so specimens, which fill the
+  // column's width, end at the content edge.
   container.paddingLeft = g.effectiveMargin
-  container.paddingRight = 0
+  container.paddingRight = Math.max(0, g.effectiveMarginRight)
   container.paddingTop = g.rowOffset + SPECIMEN_START_CELL * g.cellH
   container.paddingBottom = Math.max(
     0,
@@ -1430,15 +1550,18 @@ async function ensureSpecimens(
     plainColumn(stack)
     stack.paddingTop = 0
     container.insertChild(index, stack)
+    // Filling, not hugging, so the specimens inside can fill it. Set once
+    // the stack is in the column: only an auto layout child can fill.
+    stack.layoutSizingHorizontal = 'FILL'
     return stack
   }
   const monoStack = stackFor('mono', 0)
   const sansStack = stackFor('sans', 1)
 
   // A block is the specimen's whole cells: its top on a cell line, and the text
-  // trimmed to cap height at its bottom, so the text's bottom edge — the first
-  // baseline — is the block's bottom line. Extra lines typed into a specimen
-  // grow the block by whole line heights, which are cell steps too.
+  // trimmed to cap height at its bottom, so the text's bottom edge, its
+  // baseline, is the block's bottom line. The text is held to one line,
+  // truncated at the content edge, so a block is always `rows` cells tall.
   const place = async (
     { spec, cells: mult, rows, fontSize }: SizedSpecimen,
     stack: FrameNode,
@@ -1476,6 +1599,7 @@ async function ensureSpecimens(
     block.name = spec.name
     plainColumn(block)
     stack.insertChild(index, block)
+    block.layoutSizingHorizontal = 'FILL'
     if (node.parent !== block) block.appendChild(node)
 
     // Only reassigned when it differs: setting fontName re-shapes the text.
@@ -1486,8 +1610,14 @@ async function ensureSpecimens(
       (current as FontName).style === font.style
     if (!sameFont) node.fontName = font
 
-    node.textAutoResize = 'WIDTH_AND_HEIGHT'
+    // The text fills its block's width and is clamped to one line, ending in an
+    // ellipsis where it runs past the content edge. One line keeps every block
+    // its whole cells, and lets display leading go tighter than 1.0.
     node.layoutPositioning = 'AUTO'
+    node.textAutoResize = 'HEIGHT'
+    node.layoutSizingHorizontal = 'FILL'
+    node.textTruncation = 'ENDING'
+    node.maxLines = 1
     node.fontSize = fontSize
     node.lineHeight = { value: lineHeight, unit: 'PIXELS' }
     node.leadingTrim = 'CAP_HEIGHT'
@@ -1498,6 +1628,20 @@ async function ensureSpecimens(
     node.textCase = isMono ? 'UPPER' : 'ORIGINAL'
     fillText(node, textPaint)
 
+    // With styles on, the specimen is linked to this frame's style for its slot.
+    // With them off, it is unlinked from any style the plugin made, this
+    // frame's or, on a duplicated frame, the original's; it keeps the values
+    // just set. A style the user applied themselves is left alone.
+    if (keepStyles) {
+      await syncTextStyle(styles, frame, node, spec)
+      usedStyleSlots.add(spec.slot)
+    } else if (
+      typeof node.textStyleId === 'string' &&
+      pluginStyleIds.has(node.textStyleId)
+    ) {
+      await node.setTextStyleIdAsync('')
+    }
+
     const capHeight = await measureCapHeight(font, fontSize, lineHeight)
     block.paddingTop = Math.max(0, rows * g.cellH - capHeight)
   }
@@ -1506,9 +1650,16 @@ async function ensureSpecimens(
   for (let i = 0; i < sansItems.length; i++) await place(sansItems[i], sansStack, i)
 
   // Remove the plugin's specimens that are no longer used, with their blocks,
-  // and any block left without its text.
+  // and any block left without its text. While styles are kept, a specimen's
+  // style goes with it; text elsewhere that used it keeps its values. With
+  // styles off they are left for the user to keep or delete.
   bySlot.forEach((node) => node.remove())
   byLegacyName.forEach((node) => node.remove())
+  if (keepStyles) {
+    styles.forEach((style, slot) => {
+      if (!usedStyleSlots.has(slot)) style.remove()
+    })
+  }
   for (const stack of [monoStack, sansStack]) {
     for (const child of stack.children.slice()) {
       if (roleOf(child) !== 'specimenBlock') continue
@@ -1646,12 +1797,34 @@ function frameWidthOf(p: Params): number {
   return Math.max(1, Math.round(positiveOr(p.frameWidth, DEFAULT_PARAMS.frameWidth)))
 }
 
+// A new frame's name, in the manner of Heroku's placeholder app names but
+// Oxide's: a finish and a metal from the Oxide words, such as
+// "anodized-cobalt". The name also heads the frame's text-style folder (see
+// syncTextStyle), so frames need telling apart: the name is drawn from the 225
+// not already used by a frame on the page.
+function newFrameName(): string {
+  const taken = new Set(figma.currentPage.children.map((n) => n.name))
+  const free: string[] = []
+  for (const finish of OXIDE_FINISHES) {
+    for (const metal of OXIDE_METALS) {
+      if (!taken.has(`${finish}-${metal}`)) free.push(`${finish}-${metal}`)
+    }
+  }
+  if (free.length) return free[Math.floor(Math.random() * free.length)]
+  // Every name is in use on this page: number a random one, as Figma numbers
+  // copies.
+  const base = `${pickWord(OXIDE_FINISHES)}-${pickWord(OXIDE_METALS)}`
+  let n = 2
+  while (taken.has(`${base} ${n}`)) n++
+  return `${base} ${n}`
+}
+
 async function createFrame(p: Params): Promise<FrameNode> {
   const W = frameWidthOf(p)
   const H = frameHeightOf(p, W)
 
   const frame = figma.createFrame()
-  frame.name = 'Dual Grid Frame'
+  frame.name = newFrameName()
   frame.resize(W, H)
   frame.fills = [await swatchPaint(SWATCH_BG, COLOR_BG, frame)]
 
