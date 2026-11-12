@@ -422,18 +422,19 @@ const SPECIMEN_RATIOS = {
 }
 
 // Specimen line heights, written independently of main.ts: under four cells
-// they snap to half cells (minimum half a cell), from four up to whole cells.
-const HALF_CELL_BELOW = 4
+// they snap to quarter cells (minimum a quarter cell), from four up to whole
+// cells.
+const QUARTER_CELL_BELOW = 4
 const specimenCells = (askedPx, cellH) => {
   const exact = askedPx / cellH
-  return exact < HALF_CELL_BELOW
-    ? Math.max(0.5, Math.round(exact * 2) / 2)
+  return exact < QUARTER_CELL_BELOW
+    ? Math.max(0.25, Math.round(exact * 4) / 4)
     : Math.max(1, Math.round(exact))
 }
-// Whole cells, or half cells for lines under the threshold.
+// Whole cells, or quarter cells for lines under the threshold.
 const onCellStep = (lineHeight, cellH) => {
   const cells = lineHeight / cellH
-  const step = cells < HALF_CELL_BELOW ? 0.5 : 1
+  const step = cells < QUARTER_CELL_BELOW ? 0.25 : 1
   return Math.abs(cells / step - Math.round(cells / step)) < 1e-6
 }
 
@@ -1487,7 +1488,7 @@ console.log('\n=== TYPE SPECIMENS ===')
     JSON.stringify(mono.letterSpacing),
   )
   check(
-    'mono line height snaps to half cells (it is under four cells)',
+    'mono line height snaps to quarter cells (it is under four cells)',
     onCellStep(mono.lineHeight.value, pv.cellH),
     (mono.lineHeight.value / pv.cellH).toFixed(4) + ' cells',
   )
@@ -1498,8 +1499,8 @@ console.log('\n=== TYPE SPECIMENS ===')
     mono.lineHeight.value.toFixed(2) + ' (2% of 1080 = 21.6)',
   )
   check(
-    'mono font size is a proportion of the requested line height',
-    Math.abs(mono.fontSize - Math.min((1080 * 0.02) / 1.4, mono.lineHeight.value)) < 1e-9 &&
+    'mono font size fills its snapped line height at 140%',
+    Math.abs(mono.fontSize - mono.lineHeight.value / 1.4) < 1e-9 &&
       mono.fontSize <= mono.lineHeight.value,
     mono.fontSize.toFixed(2),
   )
@@ -1628,10 +1629,11 @@ console.log('--- specimens toggle ---')
   )
 }
 
-console.log('--- fractional sizes change the type within one cell count ---')
+console.log('--- sizes that snap to one line height share their type ---')
 {
-  // All round to half a cell (22.5px) on this 45px-cell grid.
-  const sizes = ['1.8', '2', '2.2', '2.4']
+  // All round to half a cell (22.5px) on this 45px-cell grid: 0.44–0.53 cells
+  // round to the nearest quarter, 0.5.
+  const sizes = ['2', '2.1', '2.2']
   const runs = []
   for (const m of sizes) {
     const { fr, pv } = await apply(1920, 1080, { monoSizes: m, sansSizes: m })
@@ -1645,20 +1647,23 @@ console.log('--- fractional sizes change the type within one cell count ---')
     runs.map((r) => lh(r.mono) + '/' + lh(r.sans)).join(','),
   )
   check(
-    'mono font size still grows with each step',
-    runs.every((r, i) => i === 0 || r.mono.fontSize > runs[i - 1].mono.fontSize),
-    runs.map((r) => r.mono.fontSize.toFixed(2)).join(','),
-  )
-  check(
-    'sans font size grows until it reaches the line height, never past it',
+    '...and so one font size, set at the leading for it',
     runs.every(
-      (r, i) =>
-        r.sans.fontSize <= lh(r.sans) + 1e-9 &&
-        (i === 0 ||
-          r.sans.fontSize > runs[i - 1].sans.fontSize ||
-          Math.abs(r.sans.fontSize - lh(r.sans)) < 1e-9),
+      (r) =>
+        r.mono.fontSize === runs[0].mono.fontSize &&
+        r.sans.fontSize === runs[0].sans.fontSize,
     ),
-    runs.map((r) => r.sans.fontSize.toFixed(2) + '/' + lh(r.sans)).join(','),
+    runs
+      .map((r) => r.mono.fontSize.toFixed(2) + '/' + r.sans.fontSize.toFixed(2))
+      .join(','),
+  )
+  const { fr: up } = await apply(1920, 1080, { monoSizes: '3', sansSizes: '3' })
+  const [mono3] = specimens(layer(up, 'Type Specimens'))
+  check(
+    'a size a quarter cell up is a step larger',
+    lh(mono3) === lh(runs[0].mono) + runs[0].cellH / 4 &&
+      mono3.fontSize > runs[0].mono.fontSize,
+    lh(mono3) + ' / ' + mono3.fontSize.toFixed(2),
   )
 }
 
@@ -1716,9 +1721,9 @@ console.log('--- leading and tracking follow the design system at the size seen 
     'sans fills its line box at the leading for the size it is seen',
     sans.every((name) => {
       const n = shown[name]
-      const box = (1080 * Number(name.match(/[\d.]+/)[0])) / 100
       return (
-        close(n.fontSize * fitted(n.fontSize * k), box) && n.fontSize < n.lineHeight.value
+        close(n.fontSize * fitted(n.fontSize * k), n.lineHeight.value) &&
+        n.fontSize < n.lineHeight.value
       )
     }),
     sans.map((name) => (shown[name].fontSize * k).toFixed(1) + 'px').join(', '),
@@ -1729,10 +1734,7 @@ console.log('--- leading and tracking follow the design system at the size seen 
   )
   check(
     "mono is set at the design system's 140%",
-    near(
-      base['Mono 2%'].fontSize,
-      Math.min((1080 * 0.02) / 1.4, base['Mono 2%'].lineHeight.value),
-    ),
+    near(base['Mono 2%'].fontSize, base['Mono 2%'].lineHeight.value / 1.4),
     base['Mono 2%'].fontSize.toFixed(2),
   )
   // On the frame's own screen the sans sizes are 60–270px, where the fit is at
@@ -1747,7 +1749,7 @@ console.log('--- leading and tracking follow the design system at the size seen 
   const tiny = await specimensWith({ displayMode: 'Custom', shownWidthPx: 20 })
   check(
     "leading stays within the design system's range",
-    close(tiny['Sans 6%'].fontSize, (1080 * 0.06) / 1.375),
+    close(tiny['Sans 6%'].fontSize, tiny['Sans 6%'].lineHeight.value / 1.375),
     tiny['Sans 6%'].fontSize.toFixed(3),
   )
   const stale = await specimensWith({
@@ -3425,14 +3427,14 @@ for (const [w, h] of [
       n.lineHeight.value.toFixed(2),
     )
     check(`  snapped to a cell step`, onCellStep(n.lineHeight.value, pv.cellH))
-    // Within half a step: a quarter cell under the threshold, half a cell
-    // above it. Below a quarter cell the half-cell floor takes over.
+    // Within half a step: an eighth of a cell under the threshold, half a cell
+    // above it. Below an eighth of a cell the quarter-cell floor takes over.
     const asked = h * ratios[n.name]
-    const tol = (asked / pv.cellH < HALF_CELL_BELOW ? 0.25 : 0.5) * pv.cellH
+    const tol = (asked / pv.cellH < QUARTER_CELL_BELOW ? 0.125 : 0.5) * pv.cellH
     check(
-      `  within half a step of the requested proportion (or clamped to half a cell)`,
+      `  within half a step of the requested proportion (or clamped to a quarter cell)`,
       Math.abs(n.lineHeight.value - asked) <= tol + 1e-6 ||
-        (asked < pv.cellH / 2 && Math.abs(n.lineHeight.value - pv.cellH / 2) < 1e-9),
+        (asked < pv.cellH / 4 && Math.abs(n.lineHeight.value - pv.cellH / 4) < 1e-9),
       'off by ' +
         Math.abs(n.lineHeight.value - asked).toFixed(2) +
         'px, cellH=' +

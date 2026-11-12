@@ -283,31 +283,32 @@ function trackingOf(face: 'mono' | 'sans', fontSize: number, displayScale: numbe
 
 interface SizedSpecimen {
   spec: SpecimenSpec
-  cells: number // line height in cells; a multiple of 0.5 below HALF_CELL_BELOW
+  cells: number // line height in cells; a multiple of 0.25 below QUARTER_CELL_BELOW
   rows: number // whole cells the specimen occupies in the stack
   fontSize: number
 }
 
-// Line heights shorter than this many cells snap to half cells instead of
-// whole ones. A whole-cell step is a large share of a short line, so 1 → 2
-// cells doubles the leading; half steps halve that jump. Above it, a cell is a
-// small enough share that whole cells read as even. The stack still advances
-// in whole cells (see `rows`), so every baseline stays on a cell line; only a
-// second line of wrapped text would fall on a half-cell line.
-const HALF_CELL_BELOW = 4
+// Line heights shorter than this many cells snap to quarter cells instead of
+// whole ones. The font size follows the snapped line height, so the step sets
+// how far apart neighbouring sizes land: a whole cell is a large share of a
+// short line (1 → 2 cells doubles the type), a quarter cell a quarter of that.
+// Above it, a cell is a small enough share that whole cells read as even. The
+// stack still advances in whole cells (see `rows`), so every baseline stays on
+// a cell line; only a second line of wrapped text would fall on a quarter-cell
+// line.
+const QUARTER_CELL_BELOW = 4
 
 function snapSpecimenLineHeight(g: GridResult, target: number): number {
   const exact = target / g.cellH
-  if (exact < HALF_CELL_BELOW) return Math.max(0.5, Math.round(exact * 2) / 2)
+  if (exact < QUARTER_CELL_BELOW) return Math.max(0.25, Math.round(exact * 4) / 4)
   return snapLineHeight(g, target).cells
 }
 
 // Size each specimen from the frame height. The line height snaps to cells
-// (see snapSpecimenLineHeight). Font size fills the requested line height at
-// the design system's leading, rather than the snapped one, so fractional
-// percentages still change the type when they round to the same number of
-// cells. It is capped at the line height so leading never goes below 1.0, where
-// text would overlap the specimen above.
+// (see snapSpecimenLineHeight), and the font fills the snapped line height at
+// the design system's leading, so every specimen is set at exactly that leading;
+// sizes move in the snap's steps. Font size is capped at the line height so
+// leading never goes below 1.0, where text would overlap the specimen above.
 function sizeSpecimens(
   p: Params,
   g: GridResult,
@@ -319,7 +320,10 @@ function sizeSpecimens(
     const target = frameHeight * spec.heightRatio
     const cells = snapSpecimenLineHeight(g, target)
     const lineHeight = cells * g.cellH
-    const raw = Math.min(fontSizeForLineBox(spec.face, target, displayScale), lineHeight)
+    const raw = Math.min(
+      fontSizeForLineBox(spec.face, lineHeight, displayScale),
+      lineHeight,
+    )
     // Rounded down where rounding up would pass the cap. At least 1px, so a
     // tiny specimen never rounds to an invalid size of 0.
     const fontSize = snapFont

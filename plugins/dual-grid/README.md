@@ -358,13 +358,12 @@ layers before IDs have been stored. The test suite does not currently reproduce 
 
 ## Type specimens
 
-Each specimen's line height is a proportion of the frame height, rounded to a whole multiple
-of cell height so baselines align to cell lines. The font size fills the requested line
-height, before rounding, at the design system's leading for that size (below). Because font
-size uses the requested height, fractional percentages such as `2.5` change the type even
-when they round to the same number of cells. Font size is capped at the snapped line height,
-so leading never drops below 1.0×: display sizes, where the design system asks for less,
-fill their line box.
+Each specimen's line height is a proportion of the frame height, rounded to cell steps so
+baselines align to cell lines. The font size fills the rounded line height at the design
+system's leading for that size (below), so every specimen is set at exactly that leading,
+and sizes move in the rounding's steps: two sizes that round to the same line height give
+the same type. Font size is capped at the line height, so leading never drops below 1.0×:
+display sizes, where the design system asks for less, fill their line box.
 
 The **Type** group sets each family as a scale. **Sizes** gives the smallest and largest
 line height as a percentage of frame height, and **Steps** how many specimens run between
@@ -408,7 +407,7 @@ size within its line box. Mono ignores it.
 | Seen on | Appears as                            | 1080px frame |
 | ------- | ------------------------------------- | ------------ |
 | Screen  | the frame width                       | ×1           |
-| Custom  | **Shown width**                       | —            |
+| Custom  | **Width**                             | —            |
 | Print   | 2750 × **Print width** ÷ **Distance** | —            |
 
 Screen means the frame is seen at its own pixel size, as a web page is. Print converts by
@@ -419,14 +418,14 @@ radian. An A1 poster (594mm) read from 3m appears 544px wide; A4 (210mm) at 40cm
 **Whole px** rounds each font size to the nearest whole pixel (minimum 1px), rounding down
 where rounding up would pass the line height. Line heights are unaffected.
 
-Line heights under four cells snap to half cells, so a short line can be 1.5 or 2.5 cells
-rather than jumping between whole cells. Each specimen still occupies whole cells in the
-stack, so its baseline lands on a cell line; only a wrapped second line would fall on a
-half-cell line.
+Line heights under four cells snap to quarter cells, so a short line can be 0.75 or 1.25
+cells rather than jumping between whole cells. Each specimen still occupies whole cells in
+the stack, so its baseline lands on a cell line; only a wrapped second line would fall on a
+quarter-cell line.
 
 Sizing relative to the frame keeps the type scale largely independent of cell size. Doubling
 frame height roughly doubles the type; changing cell size affects only the rounding, which
-stays within half a cell of the requested line height.
+stays within half a step of the requested line height.
 
 `Type Specimens` is a vertical auto layout frame the size of the target frame, holding a
 `Mono` stack and a `Sans` stack with space between them, so mono sits at the top and sans

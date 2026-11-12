@@ -67,13 +67,23 @@
         display: none !important;
       }
 
-      /* A group inside a group is a sub-section: every one gets the divider
-         above it (FigUI3 draws it only between sibling groups), and a quieter
-         title than its parent so the two levels read apart. */
+      /* A group inside a group is a sub-section. Its divider is inset to the
+         fields' margins, so it reads as part of the parent group rather than a
+         new one (top-level groups keep FigUI3's full-width rule), and its title
+         is quieter than its parent's. */
       fig-group fig-group {
-        box-shadow: inset 0 1px 0 0 var(--dg-rule);
+        position: relative;
+        box-shadow: none;
         margin-top: var(--spacer-2);
         padding-bottom: 0;
+      }
+      fig-group fig-group::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: var(--spacer-3);
+        right: var(--spacer-3);
+        border-top: 1px solid var(--dg-rule);
       }
       fig-group fig-group > fig-header > h3 {
         color: var(--dg-dim);
@@ -190,6 +200,9 @@
   </head>
   <body>
     <div id="plugin-root">
+      <!-- Pixel fields set units-disallow="" so they show their px: FigUI3 hides
+           px by default, as Figma does, but here pixels sit beside %, mm and cm
+           values and cell counts, so the unit is worth saying. -->
       <fig-content>
         <fig-group name="Grid">
           <fig-field>
@@ -248,12 +261,26 @@
           </fig-field>
           <fig-field data-mode="Solve">
             <label>Margin</label>
-            <fig-input-number id="targetMarginPx" value="50" min="0" units="px" full>
+            <fig-input-number
+              id="targetMarginPx"
+              value="50"
+              min="0"
+              units="px"
+              units-disallow=""
+              full
+            >
             </fig-input-number>
           </fig-field>
           <fig-field data-mode="Solve">
             <label>Gutter</label>
-            <fig-input-number id="targetGutterPx" value="20" min="1" units="px" full>
+            <fig-input-number
+              id="targetGutterPx"
+              value="20"
+              min="1"
+              units="px"
+              units-disallow=""
+              full
+            >
             </fig-input-number>
           </fig-field>
           <!-- The reachable counts, which the plugin sends with each state update. -->
@@ -288,6 +315,7 @@
               max="0.5"
               step="0.05"
               units="px"
+              units-disallow=""
               full
             ></fig-input-number>
           </fig-field>
@@ -501,8 +529,15 @@
                 </fig-dropdown>
               </fig-field>
               <fig-field id="shownWidthField" nested hidden>
-                <label>Shown width</label>
-                <fig-input-number id="shownWidthPx" value="400" min="1" units="px" full>
+                <label>Width</label>
+                <fig-input-number
+                  id="shownWidthPx"
+                  value="400"
+                  min="1"
+                  units="px"
+                  units-disallow=""
+                  full
+                >
                 </fig-input-number>
               </fig-field>
               <fig-field id="printWidthField" nested hidden>
@@ -538,14 +573,28 @@
           </fig-field>
           <fig-field>
             <label>Width</label>
-            <fig-input-number id="frameWidth" value="1920" min="1" units="px" full>
+            <fig-input-number
+              id="frameWidth"
+              value="1920"
+              min="1"
+              units="px"
+              units-disallow=""
+              full
+            >
             </fig-input-number>
           </fig-field>
           <!-- Only meaningful when the aspect is Custom; otherwise the height is
                derived, and shown only to mirror a selection. -->
           <fig-field id="frameHeightField" hidden>
             <label>Height</label>
-            <fig-input-number id="frameHeight" value="1080" min="1" units="px" full>
+            <fig-input-number
+              id="frameHeight"
+              value="1080"
+              min="1"
+              units="px"
+              units-disallow=""
+              full
+            >
             </fig-input-number>
           </fig-field>
         </fig-group>
