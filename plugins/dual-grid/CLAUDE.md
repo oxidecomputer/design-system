@@ -19,7 +19,7 @@ probing, `buildLayoutGrids`).
 cd plugins/dual-grid
 npm install
 npm run build         # tsc --noEmit typecheck, then vite bundle → dist/main.js
-npm run dev           # nodemon: rebuild on .ts change
+npm run dev           # nodemon: rebuild on .ts, .js or .html change
 ```
 
 Load in Figma via **Plugins → Development → Import plugin from manifest…**. `dist/` is
@@ -27,15 +27,29 @@ gitignored, so a fresh clone must be built before Figma can run it.
 
 ## Structure
 
-`manifest.json` points at `dist/main.js` (the sandbox) and `ui.html` (the iframe panel). The
+`manifest.json` points at `dist/main.js` (the sandbox) and `dist/ui.html` (the iframe panel). The
 plugin and panel communicate through `postMessage`:
 
 - **UI → plugin**: `parent.postMessage({ pluginMessage: {...} }, '*')`
 - **plugin → UI**: `figma.ui.postMessage({...})`, received as `event.data.pluginMessage`
 
-`ui.html` contains inline CSS and JS, with no bundler or dependencies. Don't add a build
-step for it. The iframe is sandboxed without an origin, so accessing `window.localStorage`
-throws. Keep its shim at the start of `<head>`.
+The panel is built from [FigUI3](https://github.com/rogie/figui3) (`@rogieking/figui3`,
+pinned to an exact version). Figma loads the panel from one HTML file, so `npm run build`
+bundles FigUI3's script and stylesheet (`vite.ui.config.ts`, entry `src/ui/figui3.js`) and
+`scripts/inline-ui.mjs` writes them into `ui.html` at its `<!-- figui3 -->` marker, producing
+`dist/ui.html`. Edit `ui.html`; never `dist/ui.html`. The entry imports FigUI3's source
+`fig.js`, not `dist/fig.js`: the package marks only the source as having side effects, so
+the dist import is tree-shaken to nothing.
+
+Use FigUI3's controls the way it intends rather than recreating custom ones: `fig-field`
+with a child `<label>`, nested `fig-group`s for sub-sections, `fig-dropdown` for fixed lists,
+`fig-segmented-control`, `fig-button`. Their values are strings, so the panel converts with
+`num()`. Set values through the `value` attribute (`setValue()`): `fig-input-number` ignores
+a value assigned as a property. Controls emit `input` while being used and `change` when
+committed; the panel previews on `input` and writes to the document on `change`.
+
+The iframe is sandboxed without an origin, so accessing `window.localStorage` throws. Keep
+its shim at the start of `<head>`.
 
 `vite.config.ts` targets `es2018`: Figma's plugin engine rejects optional catch binding
 (`catch {}`) and other newer syntax. Don't raise it.
@@ -66,7 +80,7 @@ throws. Keep its shim at the start of `<head>`.
 
 ## Testing
 
-About 650 plugin and 150 panel assertions. The tests are plain Node scripts that print
+About 730 plugin and 110 panel assertions. The tests are plain Node scripts that print
 `PASS`/`FAIL` and exit non-zero on failure.
 
 ```sh
@@ -84,13 +98,15 @@ Editing `src/` and running `test:plugin` alone tests the old code.
    It drives the captured `figma.ui.onmessage` handler and asserts on the nodes produced and
    the `action-state` posted back. Several suites calculate expected results with an
    independent brute-force search to check the solver and its weighting.
-2. Panel: loads `ui.html` in `jsdom` with `runScripts: 'dangerously'`, stubs
+2. Panel: loads the built `dist/ui.html` in `jsdom` with `runScripts: 'dangerously'`, stubs
    `ResizeObserver` and `getBoundingClientRect` (jsdom has no layout), and captures
-   `parent.postMessage`.
+   `parent.postMessage`. Controls are driven through FigUI3's inner elements (the range
+   inside a slider, the select inside a dropdown). jsdom's cascade is unreliable with
+   FigUI3's stylesheet loaded, so check visibility through `hidden`, not computed style.
 
 When adding a parameter, update `Params` and `DEFAULT_PARAMS` in `main.ts`, `PARAM_DEFAULTS`
-/ `GRID_PARAM_IDS` / `getPanelParams` / `setPanelParams` in `ui.html`, and the `P` object
-plus the control-count assertions in the tests.
+/ `getPanelParams` / `setPanelParams` and the list of live controls in `ui.html`, and the `P`
+object in the plugin tests.
 
 Test limitations and checks:
 
@@ -128,6 +144,5 @@ See `README.md` for the derivation and examples.
   `clipsContent` so this holds regardless of the target frame.
 - Every generated layer is found by ID from `pluginData` and updated in place. Per-frame
   state also caches the font probes, so reapplying creates no temp nodes.
-- `ui.html` implements the `<fig-*>` controls as custom elements. The switch's checkbox must
-  cover the whole control or clicks hit an inert `<span>`. `emit()` must call
-  `stopPropagation()` on the inner native event to prevent duplicate handler calls.
+- `fig-dropdown` keeps its `<select>` as a light-DOM child beside the options. Replace
+  only the `<option>` children when the list changes, then call its `slotChange()`.
