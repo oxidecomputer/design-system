@@ -1,0 +1,169 @@
+/*
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, you can obtain one at https://mozilla.org/MPL/2.0/.
+ *
+ * Copyright Oxide Computer Company
+ */
+
+/* Pele diagrams; theme switches via tokens without re-rendering */
+.pele-container {
+  --pele-bg: var(--surface-default);
+  --pele-fg: var(--content-default);
+  --pele-muted: var(--content-secondary);
+  --pele-line: var(--content-tertiary);
+  --pele-surface: var(--surface-raise);
+  --pele-surface-alt: var(--surface-secondary);
+  --pele-border: var(--stroke-default);
+  --pele-accent: var(--content-accent);
+  --pele-critical: var(--content-destructive);
+  --pele-error: var(--content-error);
+
+  /* fixed hues rather than accent, which varies per colour theme */
+  --pele-series-1: var(--content-success);
+  --pele-series-2: var(--content-info);
+  --pele-series-3: var(--content-notice);
+  --pele-series-4: var(--content-accent-alt);
+  --pele-series-5: var(--content-destructive);
+  --pele-series-6: var(--content-info-tertiary);
+  --pele-series-7: var(--content-notice-tertiary);
+  --pele-series-8: var(--content-accent-alt-tertiary);
+
+  --pele-font: var(--font-sans);
+  --pele-font-mono: var(--font-mono);
+  /* SuisseIntl only ships 400/500; avoid faux bold */
+  --pele-title-weight: 500;
+  --pele-heading-weight: 500;
+  --pele-bold-weight: 500;
+  --pele-radius: var(--radius-md);
+
+  /* bottom-right so zoom controls clear the Show Source button */
+  --pele-zoom-top: auto;
+  --pele-zoom-right: calc(var(--spacing) * 2);
+  --pele-zoom-bottom: calc(var(--spacing) * 2);
+  --pele-zoom-left: auto;
+
+  white-space: normal;
+}
+
+/* Diagram look: muted lines, quiet labels, semantic node tags via `:::name` */
+.pele-container {
+  --pele-line: var(--content-quaternary);
+  --pele-border: var(--stroke-default);
+  --pele-radius: var(--radius-sm);
+
+  /* leave Pele's series colours (mindmap, timeline, treemap...) alone; :where
+     keeps specificity low so tones below still win */
+  .pele-node
+    > :is(rect, polygon, path, circle, ellipse):where(
+      :not([fill*='--pele-series'], [stroke*='--pele-series'])
+    ) {
+    fill: var(--surface-raise);
+    stroke: var(--stroke-secondary);
+  }
+  /* bg-filled labels sit on a solid series fill */
+  .pele-node .pele-label:where(:not([fill='var(--_bg)'])) {
+    fill: var(--content-default);
+  }
+  .pele-edge > path:not(.pele-marker) {
+    stroke-width: 1px;
+  }
+  .pele-edge-dots {
+    fill: var(--pele-line);
+  }
+  .pele-edge-label text {
+    fill: var(--content-tertiary);
+    font-size: 13px;
+  }
+  /* bg-coloured stroke widens the label chip by half its width on each side */
+  .pele-edge-label rect {
+    stroke: var(--pele-bg);
+    stroke-width: 12px;
+    stroke-linejoin: round;
+  }
+  .pele-cluster > rect:where(:not([fill*='--pele-series'])) {
+    fill: var(--surface-raise);
+    fill-opacity: 0.35;
+    stroke: var(--stroke-secondary);
+  }
+  .pele-cluster-label {
+    fill: var(--content-secondary);
+  }
+
+  /* decisions are always purple, as in the reference diagrams */
+  .pele-shape-diam > polygon {
+    fill: var(--surface-accent-alt);
+    stroke: none;
+  }
+  .pele-shape-diam .pele-label {
+    fill: var(--content-accent-alt);
+  }
+
+  /* roles inferred from diagram structure (see diagram/roles.ts) */
+  .pele-role-optional > :is(rect, polygon, path) {
+    fill: none;
+    stroke: var(--stroke-tertiary);
+  }
+  .pele-role-optional .pele-label {
+    fill: var(--content-tertiary);
+  }
+  .pele-role-entry > :is(rect, polygon, path) {
+    fill: var(--surface-tertiary);
+  }
+
+  /* tones: inferred, or authored `:::success` etc. for domain state */
+  :is(.success, .pele-role-good, .pele-role-focus) {
+    /* no --surface-success token; 200 is the step the other surfaces use */
+    --tone-surface: var(--theme-success-200);
+    --tone-stroke: var(--stroke-success-tertiary);
+    --tone-content: var(--content-success);
+  }
+  :is(.destructive, .pele-role-bad) {
+    --tone-surface: var(--surface-destructive);
+    --tone-stroke: var(--stroke-destructive-tertiary);
+    --tone-content: var(--content-destructive);
+  }
+  .notice {
+    --tone-surface: var(--surface-notice);
+    --tone-stroke: var(--stroke-notice-tertiary);
+    --tone-content: var(--content-notice);
+  }
+  .info {
+    --tone-surface: var(--surface-info);
+    --tone-stroke: var(--stroke-info-tertiary);
+    --tone-content: var(--content-info);
+  }
+  :is(
+    .success,
+    .destructive,
+    .notice,
+    .info,
+    .pele-role-good,
+    .pele-role-bad,
+    .pele-role-focus
+  ) {
+    > :is(rect, polygon, path) {
+      fill: var(--tone-surface);
+      stroke: var(--tone-stroke);
+    }
+    .pele-label {
+      fill: var(--tone-content);
+    }
+  }
+
+  /* sequence */
+  .pele-lifeline {
+    stroke: var(--stroke-default);
+  }
+  .pele-activation {
+    fill: var(--surface-tertiary);
+    stroke: none;
+  }
+  .pele-note rect {
+    fill: var(--surface-notice);
+    stroke: var(--stroke-notice-tertiary);
+  }
+  .pele-note .pele-label {
+    fill: var(--content-notice);
+  }
+}

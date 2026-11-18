@@ -13,6 +13,9 @@ import { useState } from 'react'
 import { Badge, Button, Checkbox, Spinner, Tabs } from '../components/src/ui'
 import { AsciiDocShowcase } from './AsciiDocShowcase'
 import { CodeBlock } from './CodeBlock'
+import { DiagramShowcase } from './DiagramShowcase'
+import { PeleExamplesShowcase } from './PeleExamplesShowcase'
+import { RfdDiagramShowcase } from './RfdDiagramShowcase'
 import { TypographyShowcase } from './TypographyShowcase'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -389,7 +392,9 @@ const headerToggleClass = 'text-mono-sm hover:bg-hover rounded-md px-3 py-1.5'
 
 export default function App() {
   const [mode, setMode] = useState<'dark' | 'light'>('dark')
-  const [view, setView] = useState<'components' | 'typography' | 'asciidoc'>('components')
+  const [view, setView] = useState<
+    'components' | 'typography' | 'asciidoc' | 'diagrams' | 'rfd-diagrams' | 'pele-examples'
+  >('components')
 
   return (
     <div className={mode === 'light' ? 'light' : undefined} data-theme={mode}>
@@ -414,6 +419,24 @@ export default function App() {
             >
               AsciiDoc
             </button>
+            <button
+              onClick={() => setView('diagrams')}
+              className={`${headerToggleClass} ${view === 'diagrams' && 'text-raise'}`}
+            >
+              Diagrams
+            </button>
+            <button
+              onClick={() => setView('rfd-diagrams')}
+              className={`${headerToggleClass} ${view === 'rfd-diagrams' && 'text-raise'}`}
+            >
+              RFD Diagrams
+            </button>
+            <button
+              onClick={() => setView('pele-examples')}
+              className={`${headerToggleClass} ${view === 'pele-examples' && 'text-raise'}`}
+            >
+              Pele Examples
+            </button>
           </div>
           <div className="flex gap-px">
             <button
@@ -437,6 +460,9 @@ export default function App() {
         )}
         {view === 'typography' && <TypographyShowcase />}
         {view === 'asciidoc' && <AsciiDocShowcase />}
+        {view === 'diagrams' && <DiagramShowcase />}
+        {view === 'rfd-diagrams' && <RfdDiagramShowcase />}
+        {view === 'pele-examples' && <PeleExamplesShowcase />}
       </div>
     </div>
   )

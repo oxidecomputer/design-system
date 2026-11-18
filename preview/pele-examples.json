@@ -1,0 +1,234 @@
+[
+  {
+    "type": "Block",
+    "source": "block\n  blockArrowId<[\"Label\"]>(right)\n  blockArrowId2<[\"Label\"]>(left)\n  blockArrowId3<[\"Label\"]>(up)\n  blockArrowId4<[\"Label\"]>(down)\n  blockArrowId5<[\"Label\"]>(x)\n  blockArrowId6<[\"Label\"]>(y)\n  blockArrowId7<[\"Label\"]>(x, down)"
+  },
+  {
+    "type": "Block",
+    "source": "block\n  columns 3\n  a:3\n  block:group1:2\n    columns 2\n    h i j k\n  end\n  g\n  block:group2:3\n    %% columns auto (default)\n    l m n o p q r\n  end"
+  },
+  {
+    "type": "C4",
+    "source": "    C4Component\n    title Component diagram for Internet Banking System - API Application\n\n    Container(spa, \"Single Page Application\", \"javascript and angular\", \"Provides all the internet banking functionality to customers via their web browser.\")\n    Container(ma, \"Mobile App\", \"Xamarin\", \"Provides a limited subset to the internet banking functionality to customers via their mobile device.\")\n    ContainerDb(db, \"Database\", \"Relational Database Schema\", \"Stores user registration information, hashed authentication credentials, access logs, etc.\")\n    System_Ext(mbs, \"Mainframe Banking System\", \"Stores all of the core banking information about customers, accounts, transactions, etc.\")\n\n    Container_Boundary(api, \"API Application\") {\n        Component(sign, \"Sign In Controller\", \"MVC Rest Controller\", \"Allows users to sign in to the internet banking system\")\n        Component(accounts, \"Accounts Summary Controller\", \"MVC Rest Controller\", \"Provides customers with a summary of their bank accounts\")\n        Component(security, \"Security Component\", \"Spring Bean\", \"Provides functionality related to singing in, changing passwords, etc.\")\n        Component(mbsfacade, \"Mainframe Banking System Facade\", \"Spring Bean\", \"A facade onto the mainframe banking system.\")\n\n        Rel(sign, security, \"Uses\")\n        Rel(accounts, mbsfacade, \"Uses\")\n        Rel(security, db, \"Read & write to\", \"JDBC\")\n        Rel(mbsfacade, mbs, \"Uses\", \"XML/HTTPS\")\n    }\n\n    Rel_Back(spa, sign, \"Uses\", \"JSON/HTTPS\")\n    Rel(spa, accounts, \"Uses\", \"JSON/HTTPS\")\n\n    Rel(ma, sign, \"Uses\", \"JSON/HTTPS\")\n    Rel(ma, accounts, \"Uses\", \"JSON/HTTPS\")\n\n    UpdateRelStyle(spa, sign, $offsetY=\"-40\")\n    UpdateRelStyle(spa, accounts, $offsetX=\"40\", $offsetY=\"40\")\n\n    UpdateRelStyle(ma, sign, $offsetX=\"-90\", $offsetY=\"40\")\n    UpdateRelStyle(ma, accounts, $offsetY=\"-40\")\n\n        UpdateRelStyle(sign, security, $offsetX=\"-160\", $offsetY=\"10\")\n        UpdateRelStyle(accounts, mbsfacade, $offsetX=\"140\", $offsetY=\"10\")\n        UpdateRelStyle(security, db, $offsetY=\"-40\")\n        UpdateRelStyle(mbsfacade, mbs, $offsetY=\"-40\")"
+  },
+  {
+    "type": "Class",
+    "source": "---\nconfig:\n  class:\n    hierarchicalNamespaces: false\n---\nclassDiagram\n    namespace Earth.Volcano.Summit {\n        class Crater {\n            +erupt()\n        }\n    }\n    namespace Earth.Volcano.Slope {\n        class LavaFlow {\n            +buildLand()\n        }\n    }\n    namespace Earth {\n        class Hotspot {\n            +meltRock()\n        }\n    }\n    Hotspot --> Crater : feeds\n    Hotspot --> LavaFlow : feeds"
+  },
+  {
+    "type": "Class",
+    "source": "---\ntitle: Reef animal example\n---\nclassDiagram\n    note \"From Turtle till Whale\"\n    Animal <|-- Turtle\n    note for Turtle \"can swim<br>can dive<br>can nest on beaches<br>can live for decades\"\n    Animal <|-- Shark\n    Animal <|-- Whale\n    Animal : +int age\n    Animal : +String name\n    Animal: +isMammal()\n    Animal: +migrate()\n    class Turtle{\n        +String shellColor\n        +swim()\n        +nest()\n    }\n    class Shark{\n        -int sizeInFeet\n        -canHunt()\n    }\n    class Whale{\n        +bool is_humpback\n        +sing()\n    }"
+  },
+  {
+    "type": "Entity relationship",
+    "source": "erDiagram\n    subgraph title1\n        CUSTOMER\n        CUSTOMER {\n            string name\n            string custNumber\n            string sector\n        }\n    end\n    subgraph title2\n        CAR ||--o{ NAMED-DRIVER : allows\n        subgraph title3\n            PERSON\n            PERSON {\n                string firstName\n                string lastName\n                int age\n            }\n        end\n    end"
+  },
+  {
+    "type": "Entity relationship",
+    "source": "erDiagram\n    CAR ||--o{ NAMED-DRIVER : allows\n    CAR {\n        string registrationNumber PK\n        string make\n        string model\n        string[] parts\n    }\n    PERSON ||--o{ NAMED-DRIVER : is\n    PERSON {\n        string driversLicense PK \"The license #\"\n        string(99) firstName \"Only 99 characters are allowed\"\n        string lastName\n        string phone UK\n        int age\n    }\n    NAMED-DRIVER {\n        string carRegistrationNumber PK, FK\n        string driverLicense PK, FK\n    }\n    MANUFACTURER only one to zero or more CAR : makes"
+  },
+  {
+    "type": "Event modeling",
+    "source": "eventmodeling\n\ntimeframe 01 ui CartUI\ntimeframe 02 command AddItem [[AddItem01]]\ntimeframe 03 event ItemAdded [[ItemAdded]]\ntimeframe 04 command AddItem [[AddItem02]]\ntimeframe 05 event ItemAdded [[ItemAdded]]\n\ndata AddItem01 {\n  description: 'john'\n  image: 'avatar_john'\n  price: 20.4\n}\n\ndata AddItem02 {\n  description: 'jack'\n  image: 'avatar_jack'\n  price: 12.5\n}\n\ndata ItemAdded {\n  description: string\n  image: string\n  price: number\n}"
+  },
+  {
+    "type": "Event modeling",
+    "source": "eventmodeling\n\ntimeframe 01 ui CartUI\ntimeframe 02 command AddItem\ntimeframe 03 event ItemAdded\n\nresetframe 04 event External.InventoryChanged\ntimeframe 05 processor InventoryProcessor\ntimeframe 06 command ChangeInventory\ntimeframe 07 event Cart.InventoryChanged"
+  },
+  {
+    "type": "Flowchart",
+    "source": "flowchart LR\n    subgraph subgraph1\n        direction TB\n        top1[top] --> bottom1[bottom]\n    end\n    subgraph subgraph2\n        direction TB\n        top2[top] --> bottom2[bottom]\n    end\n    %% ^ These subgraphs are identical, except for the links to them:\n\n    %% Link *to* subgraph1: subgraph1 direction is maintained\n    outside --> subgraph1\n    %% Link *within* subgraph2:\n    %% subgraph2 inherits the direction of the top-level graph (LR)\n    outside ---> top2"
+  },
+  {
+    "type": "Flowchart",
+    "source": "---\nconfig:\n  theme: default\n  look: classic\n  layout: dagre\n---\nflowchart LR\n  subgraph Client\n    UI[Web app]\n    Cache[(Local cache)]\n  end\n  subgraph Services\n    API[API gateway]\n    Auth[Auth service]\n    Orders[Order service]\n  end\n  subgraph Storage\n    DB[(Orders DB)]\n  end\n  UI --> API\n  UI --> Cache\n  API --> Auth\n  API --> Orders\n  Orders --> DB\n  Auth -. token .-> UI"
+  },
+  {
+    "type": "Gantt",
+    "source": "gantt\n    title Git Issues - days since last update\n    dateFormat X\n    axisFormat %s\n    section Issue19062\n    71   : 0, 71\n    section Issue19401\n    36   : 0, 36\n    section Issue193\n    34   : 0, 34\n    section Issue7441\n    9    : 0, 9\n    section Issue1300\n    5    : 0, 5"
+  },
+  {
+    "type": "Gantt",
+    "source": "gantt\n    title A Gantt Diagram\n    %% This is a comment\n    dateFormat YYYY-MM-DD\n    section Section\n        A task          :a1, 2014-01-01, 30d\n        Another task    :after a1, 20d\n    section Another\n        Task in Another :2014-01-12, 12d\n        another task    :24d"
+  },
+  {
+    "type": "Git graph",
+    "source": "    gitGraph\n        commit id: \"ZERO\"\n        branch develop\n        branch release\n        commit id:\"A\"\n        checkout main\n        commit id:\"ONE\"\n        checkout develop\n        commit id:\"B\"\n        checkout main\n        merge develop id:\"MERGE\"\n        commit id:\"TWO\"\n        checkout release\n        cherry-pick id:\"MERGE\" parent:\"B\"\n        commit id:\"THREE\"\n        checkout develop\n        commit id:\"C\""
+  },
+  {
+    "type": "Git graph",
+    "source": "---\nconfig:\n  logLevel: 'debug'\n  theme: 'neutral'\n---\n      gitGraph\n        commit\n        branch hotfix\n        checkout hotfix\n        commit\n        branch develop\n        checkout develop\n        commit id:\"ash\" tag:\"abc\"\n        branch featureB\n        checkout featureB\n        commit type:HIGHLIGHT\n        checkout main\n        checkout hotfix\n        commit type:NORMAL\n        checkout develop\n        commit type:REVERSE\n        checkout featureB\n        commit\n        checkout main\n        merge hotfix\n        checkout featureB\n        commit\n        checkout develop\n        branch featureA\n        commit\n        checkout develop\n        merge hotfix\n        checkout featureA\n        commit\n        checkout featureB\n        commit\n        checkout develop\n        merge featureA\n        branch release\n        checkout release\n        commit\n        checkout main\n        commit\n        checkout release\n        merge main\n        checkout develop\n        merge release"
+  },
+  {
+    "type": "Kanban",
+    "source": "kanban\ntodo[Todo]\n  id3[Update Database Function]@{ ticket: MC-2037, assigned: 'knsv', priority: 'High' }"
+  },
+  {
+    "type": "Kanban",
+    "source": "---\nconfig:\n  kanban:\n    ticketBaseUrl: 'https://mermaidchart.atlassian.net/browse/#TICKET#'\n---\nkanban\n  Todo\n    [Create Documentation]\n    docs[Create Blog about the new diagram]\n  [In progress]\n    id6[Create renderer so that it works in all cases. We also add some extra text here for testing purposes. And some more just for the extra flare.]\n  id9[Ready for deploy]\n    id8[Design grammar]@{ assigned: 'knsv' }\n  id10[Ready for test]\n    id4[Create parsing tests]@{ ticket: MC-2038, assigned: 'K.Sveidqvist', priority: 'High' }\n    id66[last item]@{ priority: 'Very Low', assigned: 'knsv' }\n  id11[Done]\n    id5[define getData]\n    id2[Title of diagram is more than 100 chars when user duplicates diagram with 100 char]@{ ticket: MC-2036, priority: 'Very High'}\n    id3[Update DB function]@{ ticket: MC-2037, assigned: knsv, priority: 'High' }\n\n  id12[Can't reproduce]\n    id3[Weird flickering in Firefox]"
+  },
+  {
+    "type": "Mindmap",
+    "source": "mindmap\n  root((Hawaiʻi))\n    History\n      Old legends\n      ::icon(fa fa-book)\n      Voyaging\n        Polynesian navigators who sailed by the stars\n    Nature\n      Mountains<br/>and volcanoes\n      Ocean life\n        Reef\n            Sea turtles\n            Monk seals\n            Parrotfish\n    Culture\n      Hula and lei\n      ʻUkulele"
+  },
+  {
+    "type": "Mindmap",
+    "source": "mindmap\n    id1[\"`**Pele** is the\ngoddess of volcanoes\nUnicode works too: 🌋`\"]\n      id2[\"`She lives in **the** crater of Kīlauea... a *very old story* that is still told today`\"]\n      id3[Lava builds new land]"
+  },
+  {
+    "type": "Packet",
+    "source": "---\ntitle: \"TCP Packet\"\n---\npacket\n0-15: \"Source Port\"\n16-31: \"Destination Port\"\n32-63: \"Sequence Number\"\n64-95: \"Acknowledgment Number\"\n96-99: \"Data Offset\"\n100-105: \"Reserved\"\n106: \"URG\"\n107: \"ACK\"\n108: \"PSH\"\n109: \"RST\"\n110: \"SYN\"\n111: \"FIN\"\n112-127: \"Window\"\n128-143: \"Checksum\"\n144-159: \"Urgent Pointer\"\n160-191: \"(Options and Padding)\"\n192-255: \"Data (variable length)\""
+  },
+  {
+    "type": "Packet",
+    "source": "---\nconfig:\n  packet:\n    showBits: true\n    bitOrder: descending\n    bitsPerRow: 16\n---\npacket\n0-7: \"DATA\"\n8-11: \"TYPE\"\n12: \"EN\"\n13-15: \"RESERVED\""
+  },
+  {
+    "type": "Pie",
+    "source": "pie title Fish caught by the crew\n    \"ʻAhi\" : 386\n    \"Mahimahi\" : 85\n    \"Ono\" : 15"
+  },
+  {
+    "type": "Quadrant chart",
+    "source": "quadrantChart\n    title Reach and engagement of campaigns\n    x-axis Low Reach --> High Reach\n    y-axis Low Engagement --> High Engagement\n    quadrant-1 We should expand\n    quadrant-2 Need to promote\n    quadrant-3 Re-evaluate\n    quadrant-4 May be improved\n    Campaign A: [0.3, 0.6]\n    Campaign B: [0.45, 0.23]\n    Campaign C: [0.57, 0.69]\n    Campaign D: [0.78, 0.34]\n    Campaign E: [0.40, 0.34]\n    Campaign F: [0.35, 0.78]"
+  },
+  {
+    "type": "Requirement",
+    "source": "---\nconfig:\n  theme: default\n  look: classic\n  layout: dagre\n---\nrequirementDiagram\n  requirement checkout_req {\n    id: 1\n    text: Orders must be payable online.\n    risk: high\n    verifymethod: test\n  }\n  functionalRequirement payment_req {\n    id: 1.1\n    text: Card payments must be authorized.\n    risk: high\n    verifymethod: test\n  }\n  element checkout_service {\n    type: service\n  }\n  checkout_req - contains -> payment_req\n  checkout_service - satisfies -> payment_req"
+  },
+  {
+    "type": "Requirement",
+    "source": "requirementDiagram\n\ndirection LR\n\nrequirement test_req {\n    id: 1\n    text: the test text.\n    risk: high\n    verifymethod: test\n}\n\nelement test_entity {\n    type: simulation\n}\n\ntest_entity - satisfies -> test_req"
+  },
+  {
+    "type": "Sankey",
+    "source": "---\nconfig:\n  sankey:\n    showValues: false\n    nodeWidth: 15\n    nodePadding: 20\n---\nsankey\n\nElectricity grid,Heating and cooling - homes,113.726\nElectricity grid,Industry,342.165\nElectricity grid,Losses,56.691"
+  },
+  {
+    "type": "Sankey",
+    "source": "sankey\n\n%% source,target,value\nElectricity grid,Over generation / exports,104.453\nElectricity grid,Heating and cooling - homes,113.726\nElectricity grid,H2 conversion,27.14"
+  },
+  {
+    "type": "Sequence",
+    "source": "---\nconfig:\n  theme: default\n  look: classic\n---\nsequenceDiagram\n  autonumber\n  actor Customer\n  participant Web as Web app\n  participant API as API gateway\n  participant Bank\n  Customer->>Web: Place order\n  Web->>API: POST /orders\n  activate API\n  API->>Bank: Authorize payment\n  Bank-->>API: Approved\n  API-->>Web: 201 Created\n  deactivate API\n  Web-->>Customer: Order confirmed\n  Note over Customer,Bank: One order, one transaction"
+  },
+  {
+    "type": "Sequence",
+    "source": "sequenceDiagram\n    participant Alice\n    participant John\n    link Alice: Dashboard @ https://dashboard.contoso.com/alice\n    link Alice: Wiki @ https://wiki.contoso.com/alice\n    link John: Dashboard @ https://dashboard.contoso.com/john\n    link John: Wiki @ https://wiki.contoso.com/john\n    Alice->>John: Hello John, how are you?\n    John-->>Alice: Great!\n    Alice-)John: See you later!"
+  },
+  {
+    "type": "State",
+    "source": "---\nconfig:\n  theme: default\n  look: classic\n  layout: dagre\n---\nstateDiagram-v2\n  [*] --> Draft\n  Draft --> Submitted : submit\n  state Review {\n    [*] --> Screening\n    Screening --> Decision\n  }\n  Submitted --> Review\n  Review --> Published : approved\n  Review --> Draft : rejected\n  Published --> [*]"
+  },
+  {
+    "type": "State",
+    "source": "stateDiagram-v2\n    [*] --> Active\n\n    state Active {\n        [*] --> NumLockOff\n        NumLockOff --> NumLockOn : EvNumLockPressed\n        NumLockOn --> NumLockOff : EvNumLockPressed\n        --\n        [*] --> CapsLockOff\n        CapsLockOff --> CapsLockOn : EvCapsLockPressed\n        CapsLockOn --> CapsLockOff : EvCapsLockPressed\n        --\n        [*] --> ScrollLockOff\n        ScrollLockOff --> ScrollLockOn : EvScrollLockPressed\n        ScrollLockOn --> ScrollLockOff : EvScrollLockPressed\n    }"
+  },
+  {
+    "type": "Timeline",
+    "source": "timeline\n    title Timeline of the Hawaiian Islands\n    section Older islands\n        Kauaʻi : 5 million years old, Canyons, Sea <br>cliffs\n        Oʻahu : 3 million years old, Diamond Head, Surf breaks\n        Molokaʻi : 2 million years old, Fishponds, Tall cliffs\n    section Younger islands\n        Maui : 1 million years old, Haleakalā, Whale watching\n        Hawaiʻi : Still growing, Mauna Kea, Kīlauea"
+  },
+  {
+    "type": "Timeline",
+    "source": "timeline\n        title Hawaiʻi's History Timeline\n        section Voyagers\n          1000 AD : Polynesian voyagers reach Hawaiʻi in sailing canoes\n          1778 : Captain Cook lands on Kauaʻi.<br> Islanders and Europeans meet for the first time.\n        section Kingdom\n          1810 : King Kamehameha unites the islands. <br>They are ruled as one kingdom for the first time.\n                  : Ships from around the world stop to trade.\n          1882 : ʻIolani Palace is completed in Honolulu.<br> It soon has electric lights and telephones.\n                  : Most people in the kingdom can read and write."
+  },
+  {
+    "type": "User journey",
+    "source": "journey\n    title My working day\n    section Go to work\n      Make tea: 5: Me\n      Go upstairs: 3: Me\n      Do work: 1: Me, Cat\n    section Go home\n      Go downstairs: 5: Me\n      Sit down: 5: Me"
+  },
+  {
+    "type": "XY chart",
+    "source": "xychart\n    title \"Ocean Temperature\"\n    x-axis [jan, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec]\n    y-axis \"Temperature (in °F)\" 74 --> 82\n    bar [76.3, 75.9, 76.0, 76.7, 77.8, 78.9, 79.9, 80.7, 81.1, 80.5, 79.1, 77.4]\n    line [76.3, 75.9, 76.0, 76.7, 77.8, 78.9, 79.9, 80.7, 81.1, 80.5, 79.1, 77.4]"
+  },
+  {
+    "type": "XY chart",
+    "source": "---\nconfig:\n    xyChart:\n        showDataLabel: true\n        showDataLabelOutsideBar: true\n---\nxychart\n    title \"Animals seen in reef survey of 2025\"\n    x-axis [turtles, eels, tangs, wrasses, \"parrot fish\", other]\n    y-axis \"Number of Animals\" 0 --> 30\n    bar [12,2,20,25,17,24]"
+  },
+  {
+    "type": "Agentflow",
+    "source": "agentflow-beta TB\n  flow intake[\"Intake\"]\n    receive[\"Receive request\"]@{ shape: input }\n  end\n\n  flow processing[\"Processing\"]\n    validate[\"Validate\"]@{ shape: task }\n    enrich[\"Enrich\"]@{ shape: task }\n    validate --> enrich\n  end\n  processing@{ view: \"collapsed\" }\n\n  flow output[\"Output\"]\n    publish[\"Publish\"]@{ shape: action }\n  end\n\n  receive --> validate\n  enrich --> publish"
+  },
+  {
+    "type": "Agentflow",
+    "source": "agentflow-beta TB\n  connector llm[\"LLM API\"]\n  llm@{ protocol: \"http\", endpoint: \"https://api.example.com/chat\" }\n\n  flow coffee_team[\"Coffee Team\"]\n    city[\"city\"]@{ shape: input, value: \"Stockholm\" }\n\n    flow researcher[\"Researcher\"]\n      research[\"research_location\"]@{ shape: tool, params: \"city :: String\", returns: \"Report\" }\n      write[\"write_copy\"]@{ shape: tool, connectorRef: \"llm.chat\", returns: \"CoffeeCopy\" }\n      city --> research --> write\n    end\n    researcher@{ instruction: \"Research the city and draft English coffee copy citing sources.\" }\n\n    flow designer[\"Designer\"]\n      render[\"generate_html\"]@{ shape: tool, connectorRef: \"llm.chat\", returns: \"String\" }\n      brand[\"Nordic Brand Guide\"]@{ shape: refdoc }\n      render -.- brand\n    end\n\n    researcher --> designer\n  end"
+  },
+  {
+    "type": "Architecture",
+    "source": "architecture-beta\n    service left_disk(disk)[Disk]\n    service top_disk(disk)[Disk]\n    service bottom_disk(disk)[Disk]\n    service top_gateway(internet)[Gateway]\n    service bottom_gateway(internet)[Gateway]\n    junction junctionCenter\n    junction junctionRight\n\n    left_disk:R -- L:junctionCenter\n    top_disk:B -- T:junctionCenter\n    bottom_disk:T -- B:junctionCenter\n    junctionCenter:R -- L:junctionRight\n    top_gateway:B -- T:junctionRight\n    bottom_gateway:T -- B:junctionRight"
+  },
+  {
+    "type": "Architecture",
+    "source": "architecture-beta\n    group sources(cloud)[Sources]\n        service src_a(server)[Source A] in sources\n        service src_b(server)[Source B] in sources\n        service src_c(server)[Source C] in sources\n\n    group storage(database)[Storage]\n        service db_one(database)[DB One] in storage\n        service db_two(database)[DB Two] in storage\n        service db_three(database)[DB Three] in storage\n\n    group output(disk)[Output]\n        service brief(disk)[Brief] in output\n        service analyst(server)[Analyst] in output\n        service delivery(cloud)[Delivery] in output\n\n    src_a:B --> T:db_one\n    src_b:B --> T:db_two\n    src_c:B --> T:db_three\n    db_two:B --> T:brief\n    brief:R --> L:analyst\n    analyst:R --> L:delivery\n\n    align row src_a src_b src_c\n    align row db_one db_two db_three\n    align row brief analyst delivery\n\n    align column src_a db_one\n    align column src_b db_two brief\n    align column src_c db_three"
+  },
+  {
+    "type": "Cynefin",
+    "source": "cynefin-beta\n  title Strategy Categorization\n\n  complex\n    \"Market research\"\n\n  complicated\n    \"Competitive analysis\"\n\n  clear\n    \"Standard pricing\"\n\n  chaotic\n    \"Crisis management\"\n\n  complex --> complicated : \"Pattern identified\"\n  complicated --> clear : \"Best practice codified\"\n  clear --> chaotic : \"Complacency\"\n  chaotic --> complex : \"Stabilized\""
+  },
+  {
+    "type": "Ishikawa",
+    "source": "ishikawa-beta\n    Blurry Photo\n    Process\n        Out of focus\n        Shutter speed too slow\n        Protective film not removed\n        Beautification filter applied\n    User\n        Shaky hands\n    Equipment\n        LENS\n            Inappropriate lens\n            Damaged lens\n            Dirty lens\n        SENSOR\n            Damaged sensor\n            Dirty sensor\n    Environment\n        Subject moved too quickly\n        Too dark"
+  },
+  {
+    "type": "Radar",
+    "source": "radar-beta\n  title Restaurant Comparison\n  axis food[\"Food Quality\"], service[\"Service\"], price[\"Price\"]\n  axis ambiance[\"Ambiance\"]\n\n  curve a[\"Restaurant A\"]{4, 3, 2, 4}\n  curve b[\"Restaurant B\"]{3, 4, 3, 3}\n  curve c[\"Restaurant C\"]{2, 3, 4, 2}\n  curve d[\"Restaurant D\"]{2, 2, 4, 3}\n\n  graticule polygon\n  max 5"
+  },
+  {
+    "type": "Radar",
+    "source": "---\ntitle: \"Grades\"\n---\nradar-beta\n  axis m[\"Math\"], s[\"Science\"], e[\"English\"]\n  axis h[\"History\"], g[\"Geography\"], a[\"Art\"]\n  curve a[\"Alice\"]{85, 90, 80, 70, 75, 90}\n  curve b[\"Bob\"]{70, 75, 85, 80, 90, 85}\n\n  max 100\n  min 0"
+  },
+  {
+    "type": "Railroad",
+    "source": "railroad-ebnf-beta\ntitle \"Arithmetic Expression Grammar\"\n\nexpression = term ( ( \"+\" | \"-\" ) term )* ;\nterm = factor ( ( \"*\" | \"/\" ) factor )* ;\nfactor = number | \"(\" expression \")\" ;\nnumber = digit+ ;\ndigit = \"0\" | \"1\" | \"2\" | \"3\" | \"4\" | \"5\" | \"6\" | \"7\" | \"8\" | \"9\" ;"
+  },
+  {
+    "type": "Railroad",
+    "source": "railroad-beta\ntitle Expression Grammar\n\nexpression = sequence(\n    nonterminal(\"term\"),\n    zeroOrMore(sequence(\n        choice(terminal(\"+\"), terminal(\"-\")),\n        nonterminal(\"term\")\n    ))\n) ;\nterm = sequence(\n    nonterminal(\"factor\"),\n    zeroOrMore(sequence(\n        choice(terminal(\"*\"), terminal(\"/\")),\n        nonterminal(\"factor\")\n    ))\n) ;\nfactor = choice(\n    nonterminal(\"number\"),\n    sequence(terminal(\"(\"), nonterminal(\"expression\"), terminal(\")\"))\n) ;\nnumber = oneOrMore(nonterminal(\"digit\")) ;\ndigit = choice(terminal(\"0\"), terminal(\"1\"), terminal(\"2\"), terminal(\"3\"), terminal(\"4\"), terminal(\"5\"), terminal(\"6\"), terminal(\"7\"), terminal(\"8\"), terminal(\"9\")) ;"
+  },
+  {
+    "type": "Swimlane",
+    "source": "swimlane-beta LR\n  subgraph Customer\n    request[Request service]\n    receive[Receive update]\n  end\n\n  subgraph Support\n    triage[Triage request]\n    answer[Send answer]\n  end\n\n  subgraph Engineering\n    investigate[Investigate issue]\n    fix[Prepare fix]\n  end\n\n  request --> triage\n  triage -->|Known issue| answer\n  triage -->|Needs code change| investigate\n  investigate --> fix --> answer\n  answer --> receive"
+  },
+  {
+    "type": "Swimlane",
+    "source": "swimlane-beta LR\n  subgraph Applicant\n    apply[Submit application]\n    sign[Sign agreement]\n  end\n\n  subgraph Reviewer\n    screen[Screen application]\n    decide{Approved?}\n  end\n\n  subgraph System\n    create[Create account]\n    notify[Send welcome email]\n  end\n\n  apply -->|Application received| screen\n  screen --> decide\n  decide -->|Approved| create --> notify --> sign\n  decide -->|Needs changes| apply"
+  },
+  {
+    "type": "Tree view",
+    "source": "---\nconfig:\n  treeView:\n    showIcons: true\n    defaultIconPack: material-icon-theme\n    filenameIcons:\n      Dockerfile: docker\n    extensionIcons:\n      .ts: typescript\n      .tsx: react-ts\n      .txt: none\n---\ntreeView-beta\n    src/\n        App.tsx\n        utils.ts\n    Dockerfile\n    notes.txt\n    README.md"
+  },
+  {
+    "type": "Tree view",
+    "source": "treeView-beta\n    my-project/\n        src/\n            App.tsx :::highlight icon(logos:react) ## main component\n            index.js ## entry point\n        .env ## environment variables\n        Dockerfile\n        package.json"
+  },
+  {
+    "type": "Treemap",
+    "source": "---\nconfig:\n  treemap:\n    valueFormat: '$0,0'\n---\ntreemap-beta\n\"Budget\"\n    \"Operations\"\n        \"Salaries\": 700000\n        \"Equipment\": 200000\n        \"Supplies\": 100000\n    \"Marketing\"\n        \"Advertising\": 400000\n        \"Events\": 100000"
+  },
+  {
+    "type": "Treemap",
+    "source": "treemap-beta\n\"Products\"\n    \"Electronics\"\n        \"Phones\": 50\n        \"Computers\": 30\n        \"Accessories\": 20\n    \"Clothing\"\n        \"Men's\": 40\n        \"Women's\": 40"
+  },
+  {
+    "type": "Use case",
+    "source": "---\nconfig:\n  usecase:\n    actorFontSize: 16\n    actorFontFamily: Arial\n    actorFontWeight: bold\n    usecaseFontSize: 14\n    usecaseFontFamily: Georgia\n    usecaseFontWeight: normal\n    nodeSpacing: 60\n    rankSpacing: 70\n    diagramPadding: 24\n    colorScheme: role\n    useMaxWidth: false\n---\nusecase-beta\ndirection LR\nactor Customer\nBrowse(\"Browse catalog\")\nCustomer --> Browse"
+  },
+  {
+    "type": "Use case",
+    "source": "---\nconfig:\n  theme: default\n  look: classic\n  layout: dagre\n---\nusecase-beta\ndirection LR\nactor Customer\nactor Support\nsystemBoundary Storefront\n  Browse(\"Browse catalog\")\n  Checkout(\"Checkout\")\nend\nsystemBoundary Fulfilment\n  Track(\"Track delivery\")\nend\nCustomer --> Browse\nCustomer --> Checkout\nCustomer --> Track\nSupport --> Track\nCheckout ..> : include Browse"
+  },
+  {
+    "type": "Venn",
+    "source": "---\nconfig:\n  theme: default\n  look: classic\n---\nvenn-beta\n  title What makes a good feature\n  set Desirable\n  set Feasible\n  set Viable\n  union Desirable,Feasible[\"Buildable\"]\n  union Feasible,Viable[\"Sustainable\"]\n  union Desirable,Viable[\"Marketable\"]\n  union Desirable,Feasible,Viable[\"Ship it\"]"
+  },
+  {
+    "type": "Venn",
+    "source": "venn-beta\n  set A[\"Frontend\"]\n    text A1[\"React\"]\n    text A2[\"Design Systems\"]\n  set B[\"Backend\"]\n    text B1[\"API\"]\n  union A,B[\"Shared\"]\n    text AB1[\"OpenAPI\"]"
+  },
+  {
+    "type": "Wardley map",
+    "source": "wardley-beta\ntitle Tea Shop Value Chain\n\nanchor Business [0.95, 0.63]\ncomponent Cup of Tea [0.79, 0.61]\ncomponent Tea [0.63, 0.81]\ncomponent Hot Water [0.52, 0.80]\ncomponent Kettle [0.43, 0.35]\ncomponent Power [0.10, 0.70]\n\nBusiness -> Cup of Tea\nCup of Tea -> Tea\nCup of Tea -> Hot Water\nHot Water -> Kettle\nKettle -> Power\n\nevolve Kettle 0.62\nevolve Power 0.89\n\nnote \"Standardizing power allows Kettles to evolve faster\" [0.30, 0.49]"
+  },
+  {
+    "type": "Wardley map",
+    "source": "wardley-beta\ntitle Sourcing Strategy\n\nanchor Customer [0.80, 0.95]\ncomponent Custom App [0.45, 0.85] (build)\ncomponent Off-the-shelf Tool [0.85, 0.65] (buy)\ncomponent Managed Service [0.60, 0.40] (outsource)\ncomponent Cloud Platform [0.95, 0.25] (market)\n\nCustomer -> Custom App\nCustom App -> Off-the-shelf Tool\nCustom App -> Managed Service\nOff-the-shelf Tool -> Cloud Platform"
+  }
+]

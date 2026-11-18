@@ -12,6 +12,7 @@ export default defineConfig({
   entry: [
     'components/src/asciidoc/index.tsx',
     'components/src/capsize/index.ts',
+    'components/src/diagram/index.ts',
     'components/src/grid/index.ts',
     'components/src/syntax/index.ts',
     'components/src/ui/index.ts',

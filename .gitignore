@@ -43,3 +43,6 @@ components/dist
 /color-gen/dist
 
 /preview/dist
+
+# Internal RFD content; see scripts/fetch-rfd-diagrams.ts
+/preview/rfd-diagrams.json

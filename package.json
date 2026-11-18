@@ -9,6 +9,7 @@
     "./components/*.css": "./dist/*.css",
     "./asciidoc": "./dist/components/src/asciidoc/index.js",
     "./capsize": "./dist/components/src/capsize/index.js",
+    "./diagram": "./dist/components/src/diagram/index.js",
     "./grid": "./dist/components/src/grid/index.js",
     "./syntax": "./dist/components/src/syntax/index.js",
     "./ui": "./dist/components/src/ui/index.js",
@@ -32,7 +33,8 @@
     "token-sync:dev": "npm --prefix plugins/token-sync run dev",
     "token-sync:build": "npm --prefix plugins/token-sync run build",
     "design-md": "node scripts/design-md.mjs",
-    "design-md:check": "node scripts/design-md.mjs --check"
+    "design-md:check": "node scripts/design-md.mjs --check",
+    "fetch-rfd-diagrams": "tsx scripts/fetch-rfd-diagrams.ts"
   },
   "author": "Oxide Computer Company <bots@oxidecomputer.com>",
   "license": "MPL 2.0",
@@ -81,6 +83,7 @@
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-tabs": "^1.1.13",
     "classnames": "^2.5.1",
+    "pele": "^1.12.0",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "shiki": "^4.4.3"
   },

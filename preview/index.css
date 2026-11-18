@@ -18,6 +18,7 @@
 @import '../components/src/assets/spinner.css';
 @import '../components/src/assets/tabs.css';
 @import '../components/src/assets/asciidoc.css';
+@import '../components/src/assets/diagram.css';
 
 @source '../components';
 @custom-variant light (&:where([data-theme=light], [data-theme=light] *));
