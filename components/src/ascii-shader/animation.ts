@@ -134,9 +134,19 @@ export function createAnimation(
   let needsRender = false
   let rafId: number | null = null
   let warnedInvalidGrid = false
-  // Re-measure before the next render: a late web font, a resize (font-size
-  // media queries), or a fontWeight change.
+  // Re-measure before the next render: a late web font or a fontWeight
+  // change.
   let metricsDirty = true
+  // The element resized (or a font loaded): re-check font and grid before the
+  // next tick, and render only if what the program sees changed. A
+  // content-sized element resizes as its text changes, so rendering on every
+  // resize re-ran stateful programs and could feed back into itself.
+  let layoutDirty = false
+  // Computed font the metrics were measured with; a resize only re-measures
+  // when this changed (e.g. a font-size media query).
+  let measuredFont = ''
+  // Grid, size and cell metrics of the last render.
+  let renderedLayout = ''
   // Border-box size from the ResizeObserver; null → read layout per frame.
   let observedSize: { width: number; height: number } | null = null
 
@@ -209,25 +219,29 @@ export function createAnimation(
       ? new ResizeObserver((entries) => {
           const entry = entries[entries.length - 1]
           const box = entry.borderBoxSize?.[0]
-          if (box) {
-            observedSize = { width: box.inlineSize, height: box.blockSize }
-          } else {
-            const rect = element.getBoundingClientRect()
-            observedSize = { width: rect.width, height: rect.height }
+          const size = box
+            ? { width: box.inlineSize, height: box.blockSize }
+            : element.getBoundingClientRect()
+          if (observedSize?.width === size.width && observedSize.height === size.height) {
+            return
           }
-          invalidateMetrics()
+          observedSize = { width: size.width, height: size.height }
+          requestLayout()
         })
       : null
   resizeObserver?.observe(element)
 
   // A face that finishes loading after boot changes the metrics.
   const fontSet = typeof document !== 'undefined' ? document.fonts : undefined
-  const handleFontsLoaded = () => invalidateMetrics()
+  const handleFontsLoaded = () => {
+    metricsDirty = true
+    requestLayout()
+  }
   fontSet?.addEventListener?.('loadingdone', handleFontsLoaded)
 
-  function invalidateMetrics() {
-    metricsDirty = true
-    requestRender()
+  function requestLayout() {
+    layoutDirty = true
+    if (metrics) schedule()
   }
 
   function requestRender() {
@@ -300,8 +314,10 @@ export function createAnimation(
     const due = playing && elapsed >= interval
 
     if (!due && !needsRender) {
-      if (playing) schedule()
-      return
+      if (!(layoutDirty && layoutChanged())) {
+        if (playing) schedule()
+        return
+      }
     }
 
     if (due) {
@@ -422,14 +438,33 @@ export function createAnimation(
   }
 
   function ensureMetrics() {
+    if (layoutDirty) {
+      layoutDirty = false
+      // Style read only (no layout): a resize alone doesn't change the cell
+      // size, so skip the probe measurement unless the font changed.
+      if (!metricsDirty && computedFont() !== measuredFont) metricsDirty = true
+    }
     if (!metricsDirty && metrics) return
     metrics = calcMetrics(element, settings.fontWeight)
+    measuredFont = computedFont()
     metricsDirty = false
+  }
+
+  function computedFont(): string {
+    const s = getComputedStyle(element)
+    return `${s.fontStyle} ${s.fontWeight} ${s.fontSize}/${s.lineHeight} ${s.fontFamily}`
+  }
+
+  /** After a resize: would a render now see a different grid or metrics? */
+  function layoutChanged(): boolean {
+    ensureMetrics()
+    return layoutKey(snapshot()) !== renderedLayout
   }
 
   function render(cursor: Cursor) {
     ensureMetrics()
     const context = snapshot()
+    renderedLayout = layoutKey(context)
     normalizeBuffer(context)
 
     if (typeof program.pre === 'function') {
@@ -605,6 +640,11 @@ function resolveRenderer(settings: ResolvedSettings): Renderer {
     throw new Error('ascii-shader: renderer "canvas" requires a <canvas> element')
   }
   return kind === 'canvas' ? createCanvasRenderer() : createTextRenderer()
+}
+
+function layoutKey(context: Context): string {
+  const m = context.metrics
+  return `${context.cols}x${context.rows} ${context.width}x${context.height} ${m.cellWidth}x${m.lineHeight} ${m.fontSize} ${m.fontFamily}`
 }
 
 /** ms per frame; `fps <= 0` is uncapped (a frame every rAF tick). */

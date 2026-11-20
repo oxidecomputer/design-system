@@ -800,6 +800,64 @@ describe('layout and fonts', () => {
     expect(disconnected).toBe(true)
   })
 
+  test('a resize that leaves the grid and font unchanged does not re-run the program', async () => {
+    // A content-sized element (flex item, max-content) resizes when its
+    // text changes; re-rendering on that advanced stateful programs and
+    // could loop.
+    let resize: ResizeObserverCallback = () => {}
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(cb: ResizeObserverCallback) {
+          resize = cb
+        }
+        observe() {}
+        disconnect() {}
+      }
+    )
+    const fire = (inlineSize: number, blockSize: number) =>
+      resize(
+        [
+          { borderBoxSize: [{ inlineSize, blockSize }] },
+        ] as unknown as ResizeObserverEntry[],
+        {} as ResizeObserver
+      )
+    const styleSpy = vi.spyOn(window, 'getComputedStyle')
+
+    let renders = 0
+    const animation = animate(
+      { pre: () => void renders++, main: () => '.' },
+      { cols: 4, rows: 2, autoplay: false }
+    )
+    await boot(animation)
+    expect(renders).toBe(1)
+
+    fire(100, 40)
+    tick(0)
+    fire(101, 40)
+    tick(0)
+    fire(101, 40)
+    tick(0)
+    expect(renders).toBe(1)
+    const metrics = animation.getMetrics()
+
+    // A font-size change (e.g. a media query) arrives as a resize too.
+    element.style.fontSize = '20px'
+    fire(120, 48)
+    tick(0)
+    expect(renders).toBe(2)
+    expect(animation.getMetrics()?.fontSize).toBe(20)
+    expect(animation.getMetrics()).not.toBe(metrics)
+
+    // No resize: no style reads at all on later frames.
+    styleSpy.mockClear()
+    animation.play()
+    tick(1000)
+    tick(1000)
+    expect(renders).toBe(4)
+    expect(styleSpy).not.toHaveBeenCalled()
+  })
+
   test('requests the element font, and re-measures when a font loads late', async () => {
     const fonts = Object.assign(new EventTarget(), {
       ready: Promise.resolve(),

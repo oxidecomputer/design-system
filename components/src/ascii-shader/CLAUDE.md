@@ -92,7 +92,11 @@ These are deliberate changes from play.core and the two forks. Don't regress the
   `fontWeight` patches re-measure metrics; DOM line height is the measured
   pitch of a 100×10 probe block (not computed `line-height`); a
   ResizeObserver replaces per-frame `getBoundingClientRect` and re-lays out
-  paused animations; `pointercancel` releases, pointer capture on down, event
+  paused animations — but a resize only re-renders if the grid, element size
+  or cell metrics the program would see changed (font re-measured only if
+  the computed font changed). Rendering on every resize re-ran stateful
+  programs while paused and fed back on content-sized elements (the text
+  resizes the `<pre>`); `pointercancel` releases, pointer capture on down, event
   queue capped at 64; kerning/ligatures off; canvas text uses the DOM's
   centered font-box baseline, integer line height, and pixel-snapped
   backgrounds. Not taken: v2's API (`main(coord, context)`, Buffer class),
