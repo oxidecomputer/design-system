@@ -8,8 +8,13 @@
  */
 import { afterEach, describe, expect, test, vi } from 'vitest'
 
-import { createCanvasRenderer } from '../src/renderers/canvas.js'
-import type { Cell, Context, Metrics, ResolvedSettings } from '../src/types.js'
+import { createCanvasRenderer } from '../../components/src/ascii-shader/renderers/canvas'
+import type {
+  Cell,
+  Context,
+  Metrics,
+  ResolvedSettings,
+} from '../../components/src/ascii-shader/types'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -43,7 +48,7 @@ function fakeContext(fontBox?: { ascent: number; descent: number }) {
         : { width: 8 },
   }
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
-    ctx as unknown as CanvasRenderingContext2D
+    ctx as unknown as CanvasRenderingContext2D,
   )
   return calls
 }
@@ -96,7 +101,7 @@ describe('canvas renderer', () => {
         { char: ' ', backgroundColor: 'red' },
       ],
       3,
-      1
+      1,
     )
     const rects = calls.filter((c) => c.op === 'fillRect').map((c) => c.args)
     expect(rects).toEqual([

@@ -7,8 +7,10 @@
  */
 import { useEffect, useRef } from 'react'
 
-import { createAnimation, type AsciiAnimation } from './animation.js'
-import type { Program } from './types.js'
+// Aliased: the component below shares the controller type's name, which
+// the declaration bundler (rollup-plugin-dts) can't parse.
+import { createAnimation, type AsciiAnimation as Controller } from './animation'
+import type { Program } from './types'
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 const prefersReducedMotion = () =>
@@ -34,7 +36,7 @@ export interface AsciiAnimationProps {
   /** Passed to every program hook. */
   userData?: unknown
   /** Controller after mount (seek, events, export). */
-  onReady?: (animation: AsciiAnimation) => void
+  onReady?: (animation: Controller) => void
 }
 
 /**
@@ -58,7 +60,7 @@ export function AsciiAnimation({
 }: AsciiAnimationProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const elementRef = useRef<HTMLElement>(null)
-  const animationRef = useRef<AsciiAnimation | null>(null)
+  const animationRef = useRef<Controller | null>(null)
   // Observer may undo its own pause, but not a controller pause or `loop: false`.
   const startedByObserverRef = useRef(false)
   const pausedByObserverRef = useRef(false)
@@ -81,7 +83,7 @@ export function AsciiAnimation({
         autoplay: !playOnVisible,
         reducedMotion: prefersReducedMotion(),
       },
-      userData
+      userData,
     )
     animationRef.current = animation
     startedByObserverRef.current = false
@@ -92,7 +94,7 @@ export function AsciiAnimation({
       animation.dispose()
       animationRef.current = null
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Deliberately keyed on program/renderer only (see above).
   }, [program, renderer])
 
   useEffect(() => {
@@ -137,7 +139,7 @@ export function AsciiAnimation({
           animation.pause()
         }
       },
-      { threshold: [0, visibleThreshold, 1] }
+      { threshold: [0, visibleThreshold, 1] },
     )
     observer.observe(container)
     return () => observer.disconnect()
@@ -149,7 +151,6 @@ export function AsciiAnimation({
   const showSpacer = !isCanvas && !!gridCols && !!gridRows
 
   // Output is an image of text, not an <img>.
-  /* oxlint-disable jsx-a11y/prefer-tag-over-role */
   return (
     <div
       ref={containerRef}

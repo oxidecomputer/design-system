@@ -7,7 +7,7 @@
  */
 import { describe, expect, test } from 'vitest'
 
-import { FPSMeter } from '../src/fps.js'
+import { FPSMeter } from '../../components/src/ascii-shader/fps'
 
 describe('FPSMeter', () => {
   test('reports 0 until the first full window has elapsed', () => {

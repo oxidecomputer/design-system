@@ -6,8 +6,8 @@
  * Modified from https://github.com/ertdfgcvb/play.core
  * Copyright ertdfgcvb (Andreas Gysin)
  */
-import { get2dContext } from './color.js'
-import type { Metrics } from './types.js'
+import { get2dContext } from './color'
+import type { Metrics } from './types'
 
 /**
  * Resolve once the element's font is actually usable for measurement.
@@ -20,7 +20,7 @@ import type { Metrics } from './types.js'
  */
 export async function waitForFonts(
   el?: HTMLElement,
-  fontWeight?: string | number
+  fontWeight?: string | number,
 ): Promise<void> {
   if (typeof document === 'undefined' || !document.fonts) return
   if (el) {

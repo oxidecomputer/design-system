@@ -5,14 +5,14 @@
  *
  * Copyright Oxide Computer Company
  */
-export { createAnimation, type AsciiAnimation, type AnimationEvent } from './animation.js'
-export { createTextRenderer } from './renderers/text.js'
-export { createCanvasRenderer } from './renderers/canvas.js'
-export { calcMetrics, waitForFonts } from './metrics.js'
-export { nextFrame, clampFrame } from './clock.js'
-export { FPSMeter } from './fps.js'
-export { resolveColor, clearResolvedColorCache, get2dContext } from './color.js'
-export { getContent, getColoredRows, type ColoredSegment } from './buffer-text.js'
+export { createAnimation, type AsciiAnimation, type AnimationEvent } from './animation'
+export { createTextRenderer } from './renderers/text'
+export { createCanvasRenderer } from './renderers/canvas'
+export { calcMetrics, waitForFonts } from './metrics'
+export { nextFrame, clampFrame } from './clock'
+export { FPSMeter } from './fps'
+export { resolveColor, clearResolvedColorCache, get2dContext } from './color'
+export { getContent, getColoredRows, type ColoredSegment } from './buffer-text'
 export {
   type Cell,
   type Context,
@@ -22,4 +22,4 @@ export {
   type Renderer,
   type ResolvedSettings,
   type Settings,
-} from './types.js'
+} from './types'

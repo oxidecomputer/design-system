@@ -8,8 +8,11 @@
  */
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
-import { createAnimation, type AsciiAnimation } from '../src/animation.js'
-import type { Context, Program, Settings } from '../src/types.js'
+import {
+  createAnimation,
+  type AsciiAnimation,
+} from '../../components/src/ascii-shader/animation'
+import type { Context, Program, Settings } from '../../components/src/ascii-shader/types'
 
 /**
  * Deterministic rAF + clock harness. The engine schedules everything through
@@ -114,7 +117,7 @@ describe('boot', () => {
           expect(context.rows).toBe(2)
         },
       },
-      base
+      base,
     )
     await boot(animation)
     expect(bootLength).toBe(8)
@@ -246,7 +249,7 @@ describe('playback', () => {
           lastTime = context.time
         },
       },
-      base
+      base,
     )
     await boot(animation)
     expect(lastTime).toBe(0)
@@ -278,7 +281,7 @@ describe('playback', () => {
           lastTime = context.time
         },
       },
-      base // fps 10 → 100ms interval
+      base, // fps 10 → 100ms interval
     )
     await boot(animation)
     animation.play()
@@ -482,7 +485,7 @@ describe('program hooks and userData', () => {
         post: (_c, _cursor, _b, userData) => calls.push(`post:${userData.marker}`),
       },
       base,
-      data
+      data,
     )
     await boot(animation)
     expect(calls).toEqual(['pre:a', 'main', 'post:a'])
@@ -493,7 +496,7 @@ describe('program hooks and userData', () => {
     const animation = animate(
       { post: (_c, _cursor, _b, userData) => seen.push(userData.marker) },
       base,
-      { marker: 'first' }
+      { marker: 'first' },
     )
     await boot(animation)
     animation.setUserData({ marker: 'second' })
@@ -510,7 +513,7 @@ describe('program hooks and userData', () => {
         pointerUp: () => hooks.push('up'),
         pointerMove: () => hooks.push('move'),
       },
-      { ...base, autoplay: true }
+      { ...base, autoplay: true },
     )
     await boot(animation)
 
@@ -532,7 +535,7 @@ describe('dispose', () => {
     let cleaned = false
     const animation = animate(
       { main: () => '#', cleanup: () => (cleaned = true) },
-      { ...base, autoplay: true }
+      { ...base, autoplay: true },
     )
     await boot(animation)
     expect(animation.text()).toBe('####\n####')
@@ -593,7 +596,7 @@ describe('uncapped fps', () => {
       {
         ...base,
         fps: 0,
-      }
+      },
     )
     await boot(timed)
     timed.play()
@@ -627,7 +630,7 @@ describe('program errors', () => {
           return String(context.frame)
         },
       },
-      base
+      base,
     )
     const events: string[] = []
     animation.on('pause', () => events.push('pause'))
@@ -669,7 +672,7 @@ describe('cell content', () => {
         main: (_p, context) =>
           context.frame === 0 ? { char: 'a', color: 'red', fontWeight: 700 } : 'b',
       },
-      base
+      base,
     )
     await boot(animation)
     expect(animation.getBuffer()[0]).toMatchObject({ char: 'a', color: 'red' })
@@ -690,7 +693,7 @@ describe('cell content', () => {
           if (context.frame === 0) Object.assign(buffer[0], { char: 'x', color: 'red' })
         },
       },
-      base
+      base,
     )
     await boot(animation)
     animation.seek(1)
@@ -708,7 +711,7 @@ describe('pointer input', () => {
         pointerUp: () => hooks.push('up'),
         post: (_c, cursor) => (pressed = cursor.pressed),
       },
-      base
+      base,
     )
     await boot(animation)
     element.dispatchEvent(new Event('pointerdown'))
@@ -774,14 +777,14 @@ describe('layout and fonts', () => {
         disconnect() {
           disconnected = true
         }
-      }
+      },
     )
     const fire = (inlineSize: number, blockSize: number) =>
       resize(
         [
           { borderBoxSize: [{ inlineSize, blockSize }] },
         ] as unknown as ResizeObserverEntry[],
-        {} as ResizeObserver
+        {} as ResizeObserver,
       )
 
     // jsdom metrics: cellWidth 16 × 0.6 = 9.6 (no layout), lineHeight 20.
@@ -813,21 +816,21 @@ describe('layout and fonts', () => {
         }
         observe() {}
         disconnect() {}
-      }
+      },
     )
     const fire = (inlineSize: number, blockSize: number) =>
       resize(
         [
           { borderBoxSize: [{ inlineSize, blockSize }] },
         ] as unknown as ResizeObserverEntry[],
-        {} as ResizeObserver
+        {} as ResizeObserver,
       )
     const styleSpy = vi.spyOn(window, 'getComputedStyle')
 
     let renders = 0
     const animation = animate(
       { pre: () => void renders++, main: () => '.' },
-      { cols: 4, rows: 2, autoplay: false }
+      { cols: 4, rows: 2, autoplay: false },
     )
     await boot(animation)
     expect(renders).toBe(1)
@@ -869,7 +872,7 @@ describe('layout and fonts', () => {
       const animation = animate({}, { ...base, fontWeight: 600 })
       await boot(animation)
       expect(fonts.load).toHaveBeenCalledWith(
-        expect.stringMatching(/600 16px "?Brand Mono"?$/)
+        expect.stringMatching(/600 16px "?Brand Mono"?$/),
       )
       expect(animation.getMetrics()?.fontSize).toBe(16)
 
@@ -884,7 +887,6 @@ describe('layout and fonts', () => {
       tick(0)
       expect(animation.getMetrics()?.fontSize).toBe(20)
     } finally {
-      // oxlint-disable-next-line typescript/no-dynamic-delete
       delete (document as { fonts?: unknown }).fonts
     }
   })

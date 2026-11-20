@@ -8,7 +8,11 @@
  */
 import { afterEach, describe, expect, test } from 'vitest'
 
-import { clearResolvedColorCache, cssColorValue, resolveColor } from '../src/color.js'
+import {
+  clearResolvedColorCache,
+  cssColorValue,
+  resolveColor,
+} from '../../components/src/ascii-shader/color'
 
 afterEach(() => {
   clearResolvedColorCache()

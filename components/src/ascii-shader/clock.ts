@@ -16,7 +16,7 @@
 export function nextFrame(
   frame: number,
   frames: number | undefined,
-  loop: boolean
+  loop: boolean,
 ): { frame: number; ended: boolean } {
   if (frames === undefined || frames <= 0) return { frame: frame + 1, ended: false }
   if (frame < frames - 1) return { frame: frame + 1, ended: false }

@@ -94,7 +94,7 @@ export interface Context {
  * `userData` is `any` on purpose: programs declare their own shape, and
  * `unknown` would force a cast in every hook.
  */
-/* oxlint-disable typescript/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface Program {
   settings?: Partial<Omit<Settings, 'element' | 'renderer'>>
   boot?: (context: Context, buffer: Cell[], userData: any) => void
@@ -104,14 +104,14 @@ export interface Program {
     context: Context,
     cursor: Cursor,
     buffer: Cell[],
-    userData: any
+    userData: any,
   ) => Cell | string | undefined
   post?: (context: Context, cursor: Cursor, buffer: Cell[], userData: any) => void
   cleanup?: () => void
   /** pointerMove / pointerDown / pointerUp (also on pointercancel). */
   [key: string]: any
 }
-/* oxlint-enable typescript/no-explicit-any */
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export interface Renderer {
   render(context: Context, buffer: Cell[]): void

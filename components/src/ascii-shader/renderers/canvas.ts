@@ -5,14 +5,8 @@
  *
  * Copyright Oxide Computer Company
  */
-import { get2dContext, resolveColor } from '../color.js'
-import {
-  invariant,
-  type Cell,
-  type Context,
-  type Metrics,
-  type Renderer,
-} from '../types.js'
+import { get2dContext, resolveColor } from '../color'
+import { invariant, type Cell, type Context, type Metrics, type Renderer } from '../types'
 
 /**
  * Canvas renderer. Sizes the canvas to the grid (+ padding), renders on a
@@ -70,7 +64,7 @@ export function createCanvasRenderer(): Renderer {
       m.lineHeight <= 0
     ) {
       console.error(
-        `ascii-shader: invalid dimensions or metrics: ${context.cols} x ${context.rows}`
+        `ascii-shader: invalid dimensions or metrics: ${context.cols} x ${context.rows}`,
       )
       return
     }
@@ -171,7 +165,7 @@ export function createCanvasRenderer(): Renderer {
  */
 function centeredBaseline(
   ctx: CanvasRenderingContext2D,
-  lineHeight: number
+  lineHeight: number,
 ): number | null {
   const tm = ctx.measureText('X')
   const ascent = tm.fontBoundingBoxAscent

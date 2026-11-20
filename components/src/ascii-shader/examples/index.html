@@ -1,11 +1,10 @@
 <!doctype html>
 <!--
-  Run `npm run examples` (builds, then serves the repo root) and open
-  http://localhost:3000/examples/
+  Run `npm run ascii-shader:examples` (builds, then serves the repo root) and
+  open http://localhost:3000/components/src/ascii-shader/examples/
 
-  The page imports from ../dist/, so the server root must be the REPO ROOT,
-  not this examples/ directory — serving examples/ directly 404s on
-  dist/index.js.
+  The page imports the built module from dist/, so the server root must be
+  the REPO ROOT — serving this directory directly 404s on the import.
 
   The programs below are adapted from play.core demos
   (https://github.com/ertdfgcvb/play.core, Apache-2.0, Copyright ertdfgcvb /
@@ -92,7 +91,7 @@
     </section>
 
     <script type="module">
-      import { createAnimation } from '../dist/index.js'
+      import { createAnimation } from '../../../../dist/components/src/ascii-shader/index.js'
 
       const { sin, cos, atan2, sqrt, floor, round, abs, min, max, pow, PI } = Math
       const TAU = PI * 2
@@ -365,7 +364,7 @@
         canvas = createAnimation(
           program,
           { element: canvasTarget, ...grid, color: '#000' },
-          {}
+          {},
         )
 
         const frames = text.getSettings().frames

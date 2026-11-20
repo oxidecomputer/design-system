@@ -68,7 +68,7 @@ export function clearResolvedColorCache(): void {
  */
 export function get2dContext(
   canvas: HTMLCanvasElement,
-  options?: CanvasRenderingContext2DSettings
+  options?: CanvasRenderingContext2DSettings,
 ): CanvasRenderingContext2D | null {
   try {
     return canvas.getContext('2d', { colorSpace: 'display-p3', ...options })

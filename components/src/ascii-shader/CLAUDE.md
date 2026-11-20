@@ -1,29 +1,36 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for working on the ascii-shader module of `@oxide/design-system`. It
+ships as the `./ascii-shader` and `./ascii-shader/react` subpath exports. It was
+imported with full history from the former `oxidecomputer/ascii-shader` repo.
 
 ## Commands
 
+Run from the design-system repo root:
+
 ```sh
-npm install
-npm run build          # tsc -p tsconfig.build.json → dist/
-npm run examples       # build and server examples
-npm run check          # typecheck only (tsc --noEmit)
-npm test               # run all tests (vitest)
-npx vitest run tests/clock.test.ts   # run a single test file
-npm run lint           # oxlint --type-aware
-npm run fmt            # oxfmt (fmt:check to verify)
+npm run build                                   # tsup → dist/ (all modules)
+npm run tsc                                     # typecheck
+npm test -- --run test/ascii-shader             # this module's tests (vitest)
+npx vitest --config test/vitest.config.ts run test/ascii-shader/clock.test.ts
+npm run lint                                    # eslint
+npx prettier --check .                          # formatting
+npm run ascii-shader:examples                   # build and serve the examples page
 ```
+
+Imports within the module are relative and extensionless (repo convention).
+Tests live in `test/ascii-shader/` and opt into jsdom per file with
+`// @vitest-environment jsdom`.
 
 ## What this is
 
-An ASCII animation engine: a user-supplied "program" runs once per grid cell per frame, like a fragment shader over characters. Derived from play.core, merging two internal Oxide forks (mitos's engine/canvas renderer + the oxide.computer website's DOM text renderer) with the playback loop rewritten. Zero runtime dependencies; React is an optional peer dep for `@oxide/ascii-shader/react`.
+An ASCII animation engine: a user-supplied "program" runs once per grid cell per frame, like a fragment shader over characters. Derived from play.core, merging two internal Oxide forks (mitos's engine/canvas renderer + the oxide.computer website's DOM text renderer) with the playback loop rewritten. Zero runtime dependencies; The React wrapper is the separate `@oxide/design-system/ascii-shader/react` entry, so the core entry never imports React.
 
 ## Architecture
 
-- `src/animation.ts` — the core. `createAnimation(program, settings, userData?)` owns a single cancellable rAF loop, the frame clock, the cell buffer, pointer events, and a small event emitter (`boot`/`frame`/`play`/`pause`/`ended`). Everything else is a leaf module it composes: `clock.ts` (frame advance/clamp), `fps.ts`, `metrics.ts` (font measurement + `waitForFonts`), `color.ts`, `buffer-text.ts` (plain-text/colored-row export).
-- `src/renderers/` — `text.ts` renders into a `<pre>` (row-diffed against a back-buffer, same-styled runs coalesced into spans, HTML-escaped); `canvas.ts` renders on a Display P3 context and resolves CSS-variable colors. The renderer is inferred from the element (`<pre>` → text, `<canvas>` → canvas) or supplied as a custom `{ render(context, buffer) }`.
-- `src/react.tsx` — `AsciiAnimation` wrapper: IntersectionObserver-gated playback, `prefers-reduced-motion` → `settings.reducedMotion`, a spacer `<pre>` to avoid boot-time layout shift. Grid/fps prop changes go through `updateSettings` without re-booting; only a `program` change recreates the animation.
+- `animation.ts` — the core. `createAnimation(program, settings, userData?)` owns a single cancellable rAF loop, the frame clock, the cell buffer, pointer events, and a small event emitter (`boot`/`frame`/`play`/`pause`/`ended`). Everything else is a leaf module it composes: `clock.ts` (frame advance/clamp), `fps.ts`, `metrics.ts` (font measurement + `waitForFonts`), `color.ts`, `buffer-text.ts` (plain-text/colored-row export).
+- `renderers/` — `text.ts` renders into a `<pre>` (row-diffed against a back-buffer, same-styled runs coalesced into spans, rows patched in place); `canvas.ts` renders on a Display P3 context and resolves CSS-variable colors. The renderer is inferred from the element (`<pre>` → text, `<canvas>` → canvas) or supplied as a custom `{ render(context, buffer) }`.
+- `react.tsx` — `AsciiAnimation` wrapper (imports the controller type as `Controller`: the same-named type and component break tsup's declaration bundling): IntersectionObserver-gated playback, `prefers-reduced-motion` → `settings.reducedMotion`, a spacer `<pre>` to avoid boot-time layout shift. Grid/fps prop changes go through `updateSettings` without re-booting; only a `program` change recreates the animation.
 - Programs are module-level singletons — per-instance state belongs in `userData` (passed to every hook), not module-scope variables. Settings precedence: defaults < run settings < `program.settings`.
 
 ## Playback audit — differences from the source forks
@@ -107,4 +114,4 @@ These are deliberate changes from play.core and the two forks. Don't regress the
 
 ## Licensing
 
-Dual-licensed: MPL-2.0 generally, but files derived from play.core (`animation.ts`, `metrics.ts`, `fps.ts`, `renderers/text.ts`) stay under Apache-2.0 (Copyright ertdfgcvb). Keep the existing per-file license headers intact and use the matching header in any new file split out from those modules.
+Dual-licensed: MPL-2.0 generally, but files derived from play.core (`animation.ts`, `metrics.ts`, `fps.ts`, `renderers/text.ts`) stay under Apache-2.0 (Copyright ertdfgcvb). Keep the existing per-file license headers intact and use the matching header in any new file split out from those modules. The repo's license-eye check enforces MPL headers, so a new Apache file also needs a `paths-ignore` entry in `.licenserc.yaml`; `LICENSE-APACHE` here carries the license text.

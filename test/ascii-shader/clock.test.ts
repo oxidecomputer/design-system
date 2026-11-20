@@ -7,7 +7,7 @@
  */
 import { describe, expect, test } from 'vitest'
 
-import { clampFrame, nextFrame } from '../src/clock.js'
+import { clampFrame, nextFrame } from '../../components/src/ascii-shader/clock'
 
 describe('nextFrame', () => {
   test('advances endlessly when no loop length is set', () => {

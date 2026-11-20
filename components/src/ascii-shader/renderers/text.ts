@@ -6,8 +6,8 @@
  * Modified from https://github.com/ertdfgcvb/play.core
  * Copyright ertdfgcvb (Andreas Gysin)
  */
-import { cssColorValue } from '../color.js'
-import type { Cell, Context, Renderer } from '../types.js'
+import { cssColorValue } from '../color'
+import type { Cell, Context, Renderer } from '../types'
 
 /**
  * DOM text renderer: one block-level <span> per row inside the target element
@@ -133,7 +133,7 @@ export function createTextRenderer(): Renderer {
     offs: number,
     defaultColor: string | undefined,
     defaultBackground: string | undefined,
-    defaultWeight: string | number | undefined
+    defaultWeight: string | number | undefined,
   ) {
     let node = row.firstChild
     let i = 0
@@ -187,7 +187,7 @@ export function createTextRenderer(): Renderer {
       const css = runStyle(
         head.color === defaultColor ? undefined : head.color,
         head.backgroundColor === defaultBackground ? undefined : head.backgroundColor,
-        head.fontWeight === defaultWeight ? undefined : head.fontWeight
+        head.fontWeight === defaultWeight ? undefined : head.fontWeight,
       )
       if (spanStyles.get(span) !== css) {
         if (css) span.setAttribute('style', css)
@@ -238,7 +238,7 @@ function setNodeText(el: HTMLElement, text: string): void {
 function runStyle(
   color: string | undefined,
   background: string | undefined,
-  weight: string | number | undefined
+  weight: string | number | undefined,
 ): string {
   let css = ''
   if (color) css += `color:${cssColorValue(color)};`

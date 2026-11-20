@@ -8,7 +8,7 @@
  */
 import { afterEach, describe, expect, test, vi } from 'vitest'
 
-import { calcMetrics } from '../src/metrics.js'
+import { calcMetrics } from '../../components/src/ascii-shader/metrics'
 
 afterEach(() => {
   document.body.innerHTML = ''
@@ -54,7 +54,7 @@ describe('calcMetrics (canvas)', () => {
       measureText: (s: string) => ({ width: s.length * 7.5 }),
     }
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
-      ctx as unknown as CanvasRenderingContext2D
+      ctx as unknown as CanvasRenderingContext2D,
     )
     const canvas = document.createElement('canvas')
     canvas.style.cssText = 'font-size: 13px; line-height: 17.4px; font-family: mono'

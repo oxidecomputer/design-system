@@ -1,4 +1,4 @@
-# ascii-shader
+# ascii-shader (`@oxide/design-system/ascii-shader`)
 
 ASCII animation engine: a program runs once per grid cell per frame, like a
 fragment shader over characters. Derived from
@@ -11,13 +11,13 @@ two internal forks:
 - the **DOM text renderer** from the oxide.computer website fork
   (row-diffed, span-run-coalesced, real selectable text).
 
-Zero runtime dependencies. React is an optional peer dependency for the
-`@oxide/ascii-shader/react` wrapper.
+Zero runtime dependencies. The React wrapper ships separately as
+`@oxide/design-system/ascii-shader/react`, so the core entry pulls in no React.
 
 ## Quick start
 
 ```ts
-import { createAnimation } from '@oxide/ascii-shader'
+import { createAnimation } from '@oxide/design-system/ascii-shader'
 
 // A program is a plain object (usually an imported module).
 const program = {
@@ -117,7 +117,7 @@ Export helpers: `getContent(buffer, cols, rows)` for plain text and
 ## React
 
 ```tsx
-import { AsciiAnimation } from '@oxide/ascii-shader/react'
+import { AsciiAnimation } from '@oxide/design-system/ascii-shader/react'
 import * as program from './programs/wave'
 ;<AsciiAnimation
   program={program}
@@ -138,19 +138,22 @@ a `program` change recreates the animation.
 
 ## Development
 
+From the design-system repo root:
+
 ```sh
-npm install
-npm run build   # tsc → dist/
-npm test        # unit tests for the pure modules (vitest)
-npm run lint    # oxlint (type-aware)
-npm run fmt     # oxfmt
+npm run build                          # tsup → dist/components/src/ascii-shader/
+npm test -- --run test/ascii-shader    # this module's tests (vitest, jsdom)
+npm run lint                           # eslint
+npm run ascii-shader:examples          # build, then serve the repo root
 ```
 
-`examples/index.html` exercises both renderers and the playback API — build,
-then serve the repo root.
+`examples/index.html` exercises both renderers and the playback API; open
+`/components/src/ascii-shader/examples/` on the served root.
 
 ## License
 
 MPL-2.0, except files derived from play.core (`animation.ts`, `metrics.ts`,
 `fps.ts`, `renderers/text.ts`), which remain under the Apache License 2.0 —
-Copyright ertdfgcvb (Andreas Gysin).
+Copyright ertdfgcvb (Andreas Gysin). See `LICENSE-APACHE` in this directory.
+Those files keep their Apache headers and are exempt from the repo's MPL
+header check (`.licenserc.yaml`).

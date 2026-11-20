@@ -7,8 +7,8 @@
  */
 import { describe, expect, test } from 'vitest'
 
-import { getColoredRows, getContent } from '../src/buffer-text.js'
-import type { Cell } from '../src/types.js'
+import { getColoredRows, getContent } from '../../components/src/ascii-shader/buffer-text'
+import type { Cell } from '../../components/src/ascii-shader/types'
 
 const cells = (chars: string, color?: string): Cell[] =>
   chars.split('').map((char) => (color ? { char, color } : { char }))

@@ -6,12 +6,12 @@
  * Modified from https://github.com/ertdfgcvb/play.core
  * Copyright ertdfgcvb (Andreas Gysin)
  */
-import { getContent } from './buffer-text.js'
-import { clampFrame, nextFrame } from './clock.js'
-import { FPSMeter } from './fps.js'
-import { calcMetrics, waitForFonts } from './metrics.js'
-import { createCanvasRenderer } from './renderers/canvas.js'
-import { createTextRenderer } from './renderers/text.js'
+import { getContent } from './buffer-text'
+import { clampFrame, nextFrame } from './clock'
+import { FPSMeter } from './fps'
+import { calcMetrics, waitForFonts } from './metrics'
+import { createCanvasRenderer } from './renderers/canvas'
+import { createTextRenderer } from './renderers/text'
 import type {
   Cell,
   Context,
@@ -21,7 +21,7 @@ import type {
   Renderer,
   ResolvedSettings,
   Settings,
-} from './types.js'
+} from './types'
 
 const defaultSettings = {
   fps: 30,
@@ -100,7 +100,7 @@ export interface AsciiAnimation {
 export function createAnimation(
   program: Program,
   runSettings: Settings,
-  initialUserData: unknown = {}
+  initialUserData: unknown = {},
 ): AsciiAnimation {
   let userData = initialUserData
   const element = runSettings.element
@@ -482,7 +482,7 @@ export function createAnimation(
             context,
             cursor,
             buffer,
-            userData
+            userData,
           )
           // The return replaces the cell's content (a style from an earlier
           // frame must not stick), but the object is reused: renderers clone

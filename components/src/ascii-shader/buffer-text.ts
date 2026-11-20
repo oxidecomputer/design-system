@@ -5,7 +5,7 @@
  *
  * Copyright Oxide Computer Company
  */
-import type { Cell } from './types.js'
+import type { Cell } from './types'
 
 /**
  * Format a flat cell buffer into newline-separated text laid out as a
@@ -39,7 +39,7 @@ export const getColoredRows = (
   buffer: Cell[],
   cols: number,
   rows: number,
-  defaultColor: string
+  defaultColor: string,
 ): ColoredSegment[][] => {
   const result: ColoredSegment[][] = []
 

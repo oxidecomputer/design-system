@@ -8,8 +8,12 @@
  */
 import { beforeEach, describe, expect, test } from 'vitest'
 
-import { createTextRenderer } from '../src/renderers/text.js'
-import type { Cell, Context, ResolvedSettings } from '../src/types.js'
+import { createTextRenderer } from '../../components/src/ascii-shader/renderers/text'
+import type {
+  Cell,
+  Context,
+  ResolvedSettings,
+} from '../../components/src/ascii-shader/types'
 
 let element: HTMLPreElement
 
@@ -21,7 +25,7 @@ beforeEach(() => {
 function makeContext(
   cols: number,
   rows: number,
-  settings: Partial<ResolvedSettings> = {}
+  settings: Partial<ResolvedSettings> = {},
 ): Context {
   return Object.freeze({
     frame: 0,
@@ -183,7 +187,7 @@ describe('createTextRenderer', () => {
     const renderer = createTextRenderer()
     renderer.render(
       makeContext(2, 1, { color: 'white', backgroundColor: 'black' }),
-      cells('ab')
+      cells('ab'),
     )
     expect(element.style.color).toBe('white')
     expect(element.style.background).toBe('black')
@@ -279,7 +283,7 @@ describe('createTextRenderer', () => {
     ]
     renderer.render(makeContext(5, 1, { color: 'white' }), buffer)
     expect(element.children[0].innerHTML).toBe(
-      'a&lt;<span style="color:red;">b</span><span>c</span><span>d</span>'
+      'a&lt;<span style="color:red;">b</span><span>c</span><span>d</span>',
     )
   })
 })
