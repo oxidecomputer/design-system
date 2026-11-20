@@ -144,11 +144,12 @@ From the design-system repo root:
 npm run build                          # tsup → dist/components/src/ascii-shader/
 npm test -- --run test/ascii-shader    # this module's tests (vitest, jsdom)
 npm run lint                           # eslint
-npm run ascii-shader:examples          # build, then serve the repo root
+npm run ascii-shader:examples          # Vite dev server for the examples page
 ```
 
-`examples/index.html` exercises both renderers and the playback API; open
-`/components/src/ascii-shader/examples/` on the served root.
+`examples/index.html` exercises both renderers and the playback API. It's served at
+the root of the dev server and imports the TypeScript source directly, so no build is
+needed and edits reload.
 
 ## License
 

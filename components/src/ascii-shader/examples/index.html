@@ -1,10 +1,8 @@
 <!doctype html>
 <!--
-  Run `npm run ascii-shader:examples` (builds, then serves the repo root) and
-  open http://localhost:3000/components/src/ascii-shader/examples/
-
-  The page imports the built module from dist/, so the server root must be
-  the REPO ROOT — serving this directory directly 404s on the import.
+  Run `npm run ascii-shader:examples` from the repo root: Vite serves this
+  page at / and compiles the module's TypeScript source on the fly (no build
+  step; edits reload).
 
   The programs below are adapted from play.core demos
   (https://github.com/ertdfgcvb/play.core, Apache-2.0, Copyright ertdfgcvb /
@@ -91,7 +89,7 @@
     </section>
 
     <script type="module">
-      import { createAnimation } from '../../../../dist/components/src/ascii-shader/index.js'
+      import { createAnimation } from '../index.ts'
 
       const { sin, cos, atan2, sqrt, floor, round, abs, min, max, pow, PI } = Math
       const TAU = PI * 2

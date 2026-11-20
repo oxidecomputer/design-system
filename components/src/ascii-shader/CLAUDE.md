@@ -15,7 +15,7 @@ npm test -- --run test/ascii-shader             # this module's tests (vitest)
 npx vitest --config test/vitest.config.ts run test/ascii-shader/clock.test.ts
 npm run lint                                    # eslint
 npx prettier --check .                          # formatting
-npm run ascii-shader:examples                   # build and serve the examples page
+npm run ascii-shader:examples                   # examples page at / (Vite, from source)
 ```
 
 Imports within the module are relative and extensionless (repo convention).

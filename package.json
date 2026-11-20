@@ -29,7 +29,7 @@
     "color-gen:dev": "vite --config color-gen/vite.config.ts color-gen",
     "color-gen:apply": "tsx color-gen/apply-colors.ts",
     "preview:dev": "vite --config preview/vite.config.ts",
-    "ascii-shader:examples": "npm run build && npx serve .",
+    "ascii-shader:examples": "vite components/src/ascii-shader/examples",
     "dual-grid:build": "npm --prefix plugins/dual-grid run build",
     "dual-grid:test": "npm --prefix plugins/dual-grid run test",
     "token-sync:dev": "npm --prefix plugins/token-sync run dev",
