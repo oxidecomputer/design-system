@@ -16,8 +16,16 @@ import type { Cell, Context, Renderer } from '../types.js'
  *
  * Work avoidance, in order: rows whose cells are unchanged since the last
  * frame are skipped entirely (back-buffer diff); within a dirty row,
- * consecutive same-styled cells coalesce into one span; styles equal to the
+ * consecutive same-styled cells coalesce into one run (a leading run with no
+ * style set is a bare Text node, later runs are spans); styles equal to the
  * settings defaults are elided so the common case is a bare <span>.
+ *
+ * Rows are patched in place, never rebuilt with innerHTML: run spans and their
+ * Text nodes are reused slot by slot, a span's style attribute is written only
+ * when that slot's style changed, and text goes through Text.data. That skips
+ * the HTML parser, the style recalc of freshly created elements, and the DOM
+ * node churn (garbage) of re-parsing every dirty row every frame — and cell
+ * content can never become markup, so nothing needs escaping.
  */
 export function createTextRenderer(): Renderer {
   const backBuffer: Cell[] = []
@@ -25,10 +33,15 @@ export function createTextRenderer(): Renderer {
   let element: HTMLElement | null = null
   let appliedColor = ''
   let appliedBackground = ''
+  // The style key each run span was last written with. Keyed on the node, not
+  // the slot, so a span replaced from outside is simply rewritten.
+  let spanStyles = new WeakMap<Element, string>()
 
   function render(context: Context, buffer: Cell[]): void {
-    if (element !== context.settings.element) {
-      element = context.settings.element
+    const settings = context.settings
+    if (element !== settings.element) {
+      if (element) release(element)
+      element = settings.element
       // A stray non-element child (placeholder text, whitespace, comments)
       // would shift every row's index.
       element.textContent = ''
@@ -37,13 +50,13 @@ export function createTextRenderer(): Renderer {
 
     // Cells matching the settings defaults are elided to bare spans, so the
     // defaults go on the element itself.
-    const baseColor = context.settings.color ? cssColorValue(context.settings.color) : ''
+    const baseColor = settings.color ? cssColorValue(settings.color) : ''
     if (baseColor !== appliedColor) {
       appliedColor = baseColor
       element.style.color = baseColor
     }
-    const baseBackground = context.settings.backgroundColor
-      ? cssColorValue(context.settings.backgroundColor)
+    const baseBackground = settings.backgroundColor
+      ? cssColorValue(settings.backgroundColor)
       : ''
     if (baseBackground !== appliedBackground) {
       appliedBackground = baseBackground
@@ -66,9 +79,13 @@ export function createTextRenderer(): Renderer {
       if (lastChild) element.removeChild(lastChild)
     }
 
-    // Rows are written as one innerHTML string each — measurably faster than
-    // building spans via createElement.
-    for (let j = 0; j < rows; j++) {
+    const defaultColor = settings.color
+    const defaultBackground = settings.backgroundColor
+    const defaultWeight = settings.fontWeight
+
+    // children, not childNodes: only elements count as rows.
+    let row = element.firstElementChild as HTMLElement
+    for (let j = 0; j < rows; j++, row = row.nextElementSibling as HTMLElement) {
       const offs = j * cols
 
       let rowNeedsUpdate = false
@@ -96,86 +113,146 @@ export function createTextRenderer(): Renderer {
         }
       }
 
-      if (rowNeedsUpdate === false) continue
-
-      let html = ''
-      let prevCell: Cell = { char: '' }
-      let tagIsOpen = false
-
-      for (let i = 0; i < cols; i++) {
-        const currCell = buffer[i + offs]
-
-        if (!isSameCellStyle(currCell, prevCell)) {
-          if (tagIsOpen) html += '</span>'
-
-          const c = currCell.color === context.settings.color ? null : currCell.color
-          const b =
-            currCell.backgroundColor === context.settings.backgroundColor
-              ? null
-              : currCell.backgroundColor
-          const w =
-            currCell.fontWeight === context.settings.fontWeight ? null : currCell.fontWeight
-
-          let css = ''
-          if (c) css += `color:${cssColorValue(c)};`
-          if (b) css += `background:${cssColorValue(b)};`
-          if (w) css += `font-weight:${w};`
-          if (css) css = ` style="${css}"`
-          html += `<span${css}>`
-          tagIsOpen = true
-        }
-        html += escapeChar(currCell.char)
-        prevCell = currCell
+      if (rowNeedsUpdate) {
+        renderRow(row, buffer, offs, defaultColor, defaultBackground, defaultWeight)
       }
-      if (tagIsOpen) {
-        html += '</span>'
-      }
-
-      // children, not childNodes: only elements count as rows.
-      const childNode = element.children[j] as HTMLSpanElement
-      childNode.innerHTML = html
     }
   }
 
-  function dispose() {
-    if (element) {
-      element.innerHTML = ''
-      // A later animation reusing this element would otherwise inherit the
-      // base colors, since it only writes colors its own settings define.
-      if (appliedColor) element.style.color = ''
-      if (appliedBackground) element.style.background = ''
+  /**
+   * Patch one row to: an optional leading Text node (the run of cells with no
+   * style set at all), then one span per run. This is exactly the markup the
+   * innerHTML renderer produced — kept deliberately, since Chromium positions
+   * glyphs differently (sub-pixel) when the same text is split differently
+   * across nodes. Runs break on the raw cell style, not the elided one, for
+   * the same reason.
+   */
+  function renderRow(
+    row: HTMLElement,
+    buffer: Cell[],
+    offs: number,
+    defaultColor: string | undefined,
+    defaultBackground: string | undefined,
+    defaultWeight: string | number | undefined
+  ) {
+    let node = row.firstChild
+    let i = 0
+    while (i < cols) {
+      const head = buffer[i + offs]
+      let text = head.char || ' '
+      const start = i
+      i++
+      while (i < cols) {
+        const cell = buffer[i + offs]
+        if (
+          cell.color !== head.color ||
+          cell.backgroundColor !== head.backgroundColor ||
+          cell.fontWeight !== head.fontWeight
+        ) {
+          break
+        }
+        text += cell.char || ' '
+        i++
+      }
+
+      const bare =
+        start === 0 &&
+        head.color === undefined &&
+        head.backgroundColor === undefined &&
+        head.fontWeight === undefined
+
+      if (bare) {
+        if (node && node.nodeType === Node.TEXT_NODE) {
+          if ((node as Text).data !== text) (node as Text).data = text
+        } else {
+          row.insertBefore(document.createTextNode(text), node)
+          continue
+        }
+        node = node.nextSibling
+        continue
+      }
+
+      // Anything but a span here (a leading Text node the row no longer has,
+      // or outside edits) is dropped.
+      while (node && node.nodeName !== 'SPAN') {
+        const next = node.nextSibling
+        row.removeChild(node)
+        node = next
+      }
+      let span = node as HTMLElement | null
+      if (!span) {
+        span = document.createElement('span')
+        row.appendChild(span)
+      }
+      const css = runStyle(
+        head.color === defaultColor ? undefined : head.color,
+        head.backgroundColor === defaultBackground ? undefined : head.backgroundColor,
+        head.fontWeight === defaultWeight ? undefined : head.fontWeight
+      )
+      if (spanStyles.get(span) !== css) {
+        if (css) span.setAttribute('style', css)
+        else span.removeAttribute('style')
+        spanStyles.set(span, css)
+      }
+      setNodeText(span, text)
+      node = span.nextSibling
     }
+    // Fewer runs than last time.
+    while (node) {
+      const next = node.nextSibling
+      row.removeChild(node)
+      node = next
+    }
+  }
+
+  function release(el: HTMLElement) {
+    el.textContent = ''
+    // A later animation reusing this element would otherwise inherit the
+    // base colors, since it only writes colors its own settings define.
+    if (appliedColor) el.style.color = ''
+    if (appliedBackground) el.style.background = ''
+  }
+
+  function dispose() {
+    if (element) release(element)
+    element = null
     appliedColor = ''
     appliedBackground = ''
+    spanStyles = new WeakMap()
     backBuffer.length = 0
   }
 
   return { render, dispose }
 }
 
-const ESCAPE_RE = /[&<>]/g
-const ESCAPES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;' }
-
-// Cells can hold any string; unescaped & < > would corrupt the row's
-// innerHTML (or inject live markup from untrusted cell content).
-function escapeChar(char: string | undefined): string {
-  if (!char) return ' '
-  if (char === '&') return '&amp;'
-  if (char === '<') return '&lt;'
-  if (char === '>') return '&gt;'
-  if (char.length === 1) return char
-  return char.replace(ESCAPE_RE, (c) => ESCAPES[c])
+/** Make `el`'s content exactly one Text node holding `text`. */
+function setNodeText(el: HTMLElement, text: string): void {
+  const node = el.firstChild
+  if (node && node.nodeType === Node.TEXT_NODE && node === el.lastChild) {
+    if ((node as Text).data !== text) (node as Text).data = text
+  } else {
+    el.textContent = text
+  }
 }
 
-function isSameCell(cellA: Cell | undefined, cellB: Cell | undefined): boolean {
-  if (typeof cellA !== 'object' || cellA === null) return false
-  if (typeof cellB !== 'object' || cellB === null) return false
-  return cellA.char === cellB.char && isSameCellStyle(cellA, cellB)
+function runStyle(
+  color: string | undefined,
+  background: string | undefined,
+  weight: string | number | undefined
+): string {
+  let css = ''
+  if (color) css += `color:${cssColorValue(color)};`
+  if (background) css += `background:${cssColorValue(background)};`
+  if (weight) css += `font-weight:${weight};`
+  return css
 }
 
-function isSameCellStyle(cellA: Cell, cellB: Cell): boolean {
-  if (cellA?.fontWeight !== cellB?.fontWeight) return false
-  if (cellA?.color !== cellB?.color) return false
-  if (cellA?.backgroundColor !== cellB?.backgroundColor) return false
-  return true
+function isSameCell(cellA: Cell, cellB: Cell | undefined): boolean {
+  return (
+    cellB !== undefined &&
+    cellA.char === cellB.char &&
+    cellA.fontWeight === cellB.fontWeight &&
+    cellA.color === cellB.color &&
+    cellA.backgroundColor === cellB.backgroundColor
+  )
 }

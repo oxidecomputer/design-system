@@ -71,9 +71,18 @@ These are deliberate changes from play.core and the two forks. Don't regress the
   color resolution, and the Safari `fonts.ready` + 3×rAF boot workaround
   (mitos's hex→display-p3 promotion of sRGB colors was dropped — authors write
   `oklch()`/`color(display-p3 …)` directly when they want wide gamut).
-- **Kept from the website fork**: the row-diffing text renderer, now with
-  HTML-escaping of `& < >` (previously those characters corrupted a row's
-  markup) and native CSS-variable pass-through.
+- **Kept from the website fork**: the row-diffing text renderer and native
+  CSS-variable pass-through. Its per-row `innerHTML` rebuild (which also
+  corrupted rows containing `& < >`) is replaced by in-place patching: run
+  spans and Text nodes are reused, a span's style attribute is written only
+  when its style changes, text goes through `Text.data`. Measured vs
+  innerHTML (120×40): −60–70% style recalc, 2–2.5× less DOM-node garbage on
+  styled output, −2–15% main-thread time per frame in Chromium, −7–23% in
+  WebKit. Don't reintroduce innerHTML in the hot path. The markup must stay
+  identical to what the innerHTML version produced (leading unstyled run as
+  a bare Text node, runs split on the _raw_ cell style): Chromium positions
+  glyphs sub-pixel differently when the same text is split differently
+  across nodes. Pixel-diffed identical in Chromium and WebKit.
 - **Ported from play.core v2 (Nov 2026)**: a program/handler that throws
   pauses (emits `'pause'`, `reportError`) instead of killing the rAF chain
   with `playing` stuck true; `fps <= 0` is uncapped (was `1000/0` → frozen);

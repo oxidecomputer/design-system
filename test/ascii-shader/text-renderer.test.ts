@@ -198,4 +198,88 @@ describe('createTextRenderer', () => {
     expect(element.style.color).toBe('')
     expect(element.style.background).toBe('')
   })
+  test('patches rows in place: run spans and text nodes are reused across frames', () => {
+    const renderer = createTextRenderer()
+    const buffer = [...cells('aa', { color: 'red' }), ...cells('bb', { color: 'blue' })]
+    renderer.render(makeContext(4, 1), buffer)
+    const [s0, s1] = element.children[0].querySelectorAll('span')
+    const t0 = s0.firstChild
+
+    buffer[0].char = 'X'
+    buffer[3].color = 'green'
+    renderer.render(makeContext(4, 1), buffer)
+
+    const spans = element.children[0].querySelectorAll('span')
+    expect(spans.length).toBe(3)
+    expect(spans[0]).toBe(s0)
+    expect(spans[0].firstChild).toBe(t0)
+    expect(spans[1]).toBe(s1)
+    expect(element.textContent).toBe('Xabb')
+    expect(spans[1].style.color).toBe('blue')
+    expect(spans[2].style.color).toBe('green')
+  })
+
+  test('a row of unstyled cells is a single text node', () => {
+    const renderer = createTextRenderer()
+    renderer.render(makeContext(3, 1, { color: 'red' }), cells('abc'))
+
+    const row = element.children[0]
+    expect(row.childNodes.length).toBe(1)
+    expect(row.firstChild?.nodeType).toBe(Node.TEXT_NODE)
+    expect(row.textContent).toBe('abc')
+  })
+
+  test('rows switch cleanly between plain and styled', () => {
+    const renderer = createTextRenderer()
+    const buffer = cells('abc')
+    renderer.render(makeContext(3, 1), buffer)
+
+    buffer[1].color = 'red'
+    renderer.render(makeContext(3, 1), buffer)
+    const row = element.children[0]
+    expect([...row.childNodes].map((n) => n.nodeName)).toEqual(['#text', 'SPAN', 'SPAN'])
+    expect(row.textContent).toBe('abc')
+
+    buffer[0].color = 'blue'
+    renderer.render(makeContext(3, 1), buffer)
+    expect([...row.childNodes].map((n) => n.nodeName)).toEqual(['SPAN', 'SPAN', 'SPAN'])
+    expect(row.textContent).toBe('abc')
+    buffer[0].color = undefined
+
+    buffer[1].color = undefined
+    renderer.render(makeContext(3, 1), buffer)
+    expect(row.childNodes.length).toBe(1)
+    expect(row.firstChild?.nodeType).toBe(Node.TEXT_NODE)
+    expect(row.textContent).toBe('abc')
+  })
+
+  test('removes a run style once the run returns to the default', () => {
+    const renderer = createTextRenderer()
+    const buffer = [...cells('a', { color: 'red' }), ...cells('b', { color: 'blue' })]
+    renderer.render(makeContext(2, 1, { color: 'red' }), buffer)
+    let spans = element.children[0].querySelectorAll('span')
+    expect(spans[0].getAttribute('style')).toBeNull()
+
+    buffer[1].color = 'red'
+    renderer.render(makeContext(2, 1, { color: 'red' }), buffer)
+    spans = element.children[0].querySelectorAll('span')
+    expect(spans.length).toBe(1)
+    expect(spans[0].getAttribute('style')).toBeNull()
+    expect(element.textContent).toBe('ab')
+  })
+
+  test('produces the same markup the innerHTML renderer did', () => {
+    const renderer = createTextRenderer()
+    const buffer: Cell[] = [
+      { char: 'a' },
+      { char: '<' },
+      { char: 'b', color: 'red' },
+      { char: 'c', color: 'white' },
+      { char: 'd' },
+    ]
+    renderer.render(makeContext(5, 1, { color: 'white' }), buffer)
+    expect(element.children[0].innerHTML).toBe(
+      'a&lt;<span style="color:red;">b</span><span>c</span><span>d</span>'
+    )
+  })
 })
