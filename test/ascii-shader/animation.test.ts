@@ -575,3 +575,259 @@ describe('events', () => {
     expect(frames).toEqual([1])
   })
 })
+
+describe('uncapped fps', () => {
+  test('fps 0 advances a frame on every tick and accumulates elapsed time', async () => {
+    const { program, renders } = frameStamp()
+    const animation = animate(program, { ...base, fps: 0 })
+    await boot(animation)
+    animation.play()
+    tick(7)
+    tick(9)
+    tick(16)
+    expect(renders).toEqual([0, 1, 2, 3])
+
+    let time = -1
+    const timed = animate(
+      { main: (_p, context) => ((time = context.time), '.') },
+      {
+        ...base,
+        fps: 0,
+      }
+    )
+    await boot(timed)
+    timed.play()
+    tick(7)
+    tick(9)
+    expect(time).toBe(16)
+  })
+
+  test('updateSettings({ fps: 0 }) uncaps a running animation', async () => {
+    const { program, renders } = frameStamp()
+    const animation = animate(program, base)
+    await boot(animation)
+    animation.play()
+    animation.updateSettings({ fps: 0 })
+    tick(1)
+    tick(1)
+    expect(renders.length).toBeGreaterThanOrEqual(3)
+    expect(renders.slice(-2)).toEqual([1, 2])
+  })
+})
+
+describe('program errors', () => {
+  test('a throwing program pauses playback and reports; play() resumes', async () => {
+    const reported: unknown[] = []
+    vi.stubGlobal('reportError', (error: unknown) => reported.push(error))
+    let shouldThrow = false
+    const animation = animate(
+      {
+        main: (_p, context) => {
+          if (shouldThrow) throw new Error('boom')
+          return String(context.frame)
+        },
+      },
+      base
+    )
+    const events: string[] = []
+    animation.on('pause', () => events.push('pause'))
+    await boot(animation)
+    animation.play()
+
+    shouldThrow = true
+    tick(100)
+    expect(animation.playing).toBe(false)
+    expect(events).toEqual(['pause'])
+    expect(reported).toHaveLength(1)
+    expect((reported[0] as Error).message).toBe('boom')
+    expect(rafQueue.size).toBe(0)
+
+    shouldThrow = false
+    animation.play()
+    expect(animation.playing).toBe(true)
+    tick(100)
+    expect(animation.frame).toBeGreaterThan(1)
+  })
+
+  test('a throwing frame handler is caught the same way', async () => {
+    vi.stubGlobal('reportError', () => {})
+    const animation = animate({}, base)
+    await boot(animation)
+    animation.on('frame', () => {
+      throw new Error('handler')
+    })
+    animation.play()
+    tick(100)
+    expect(animation.playing).toBe(false)
+  })
+})
+
+describe('cell content', () => {
+  test("main's return replaces styles from earlier frames", async () => {
+    const animation = animate(
+      {
+        main: (_p, context) =>
+          context.frame === 0 ? { char: 'a', color: 'red', fontWeight: 700 } : 'b',
+      },
+      base
+    )
+    await boot(animation)
+    expect(animation.getBuffer()[0]).toMatchObject({ char: 'a', color: 'red' })
+
+    animation.seek(1)
+    tick(0)
+    const cell = animation.getBuffer()[0]
+    expect(cell.char).toBe('b')
+    expect(cell.color).toBeUndefined()
+    expect(cell.fontWeight).toBeUndefined()
+    expect(element.innerHTML).not.toContain('red')
+  })
+
+  test('without main, cells written in pre persist across frames', async () => {
+    const animation = animate(
+      {
+        pre: (context, _cursor, buffer) => {
+          if (context.frame === 0) Object.assign(buffer[0], { char: 'x', color: 'red' })
+        },
+      },
+      base
+    )
+    await boot(animation)
+    animation.seek(1)
+    tick(0)
+    expect(animation.getBuffer()[0]).toMatchObject({ char: 'x', color: 'red' })
+  })
+})
+
+describe('pointer input', () => {
+  test('pointercancel releases a press', async () => {
+    let pressed: boolean | undefined
+    const hooks: string[] = []
+    const animation = animate(
+      {
+        pointerUp: () => hooks.push('up'),
+        post: (_c, cursor) => (pressed = cursor.pressed),
+      },
+      base
+    )
+    await boot(animation)
+    element.dispatchEvent(new Event('pointerdown'))
+    window.dispatchEvent(new Event('pointercancel'))
+    animation.seek(1)
+    tick(0)
+    expect(pressed).toBe(false)
+    expect(hooks).toEqual(['up'])
+  })
+
+  test('pointerdown captures the pointer', async () => {
+    const capture = vi.fn()
+    element.setPointerCapture = capture
+    const animation = animate({}, base)
+    await boot(animation)
+    const down = new Event('pointerdown')
+    Object.assign(down, { pointerId: 7 })
+    element.dispatchEvent(down)
+    expect(capture).toHaveBeenCalledWith(7)
+  })
+
+  test('a capture failure does not drop the press', async () => {
+    element.setPointerCapture = () => {
+      throw new DOMException('no pointer', 'NotFoundError')
+    }
+    let pressed = false
+    const animation = animate({ post: (_c, cursor) => (pressed = cursor.pressed) }, base)
+    await boot(animation)
+    element.dispatchEvent(new Event('pointerdown'))
+    animation.seek(1)
+    tick(0)
+    expect(pressed).toBe(true)
+  })
+
+  test('the event queue is bounded while paused', async () => {
+    let downs = 0
+    const animation = animate({ pointerDown: () => downs++ }, base)
+    await boot(animation)
+    for (let i = 0; i < 500; i++) element.dispatchEvent(new Event('pointerdown'))
+    animation.seek(1)
+    tick(0)
+    expect(downs).toBe(64)
+  })
+})
+
+describe('layout and fonts', () => {
+  test('disables kerning and ligatures on the element', () => {
+    animate({}, base)
+    expect(element.style.fontKerning).toBe('none')
+    expect(element.style.fontVariantLigatures).toBe('none')
+  })
+
+  test('re-lays out on resize while paused, without per-frame layout reads', async () => {
+    let resize: ResizeObserverCallback = () => {}
+    let disconnected = false
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(cb: ResizeObserverCallback) {
+          resize = cb
+        }
+        observe() {}
+        disconnect() {
+          disconnected = true
+        }
+      }
+    )
+    const fire = (inlineSize: number, blockSize: number) =>
+      resize(
+        [
+          { borderBoxSize: [{ inlineSize, blockSize }] },
+        ] as unknown as ResizeObserverEntry[],
+        {} as ResizeObserver
+      )
+
+    // jsdom metrics: cellWidth 16 × 0.6 = 9.6 (no layout), lineHeight 20.
+    const rectSpy = vi.spyOn(element, 'getBoundingClientRect')
+    const animation = animate({ main: () => '.' }, { fps: 10, autoplay: false })
+    fire(192, 40)
+    await boot(animation)
+    expect(animation.text()).toBe('.'.repeat(20) + '\n' + '.'.repeat(20))
+
+    fire(96, 60)
+    tick(0)
+    expect(animation.text()).toBe(['..........', '..........', '..........'].join('\n'))
+    expect(rectSpy).not.toHaveBeenCalled()
+
+    animation.dispose()
+    expect(disconnected).toBe(true)
+  })
+
+  test('requests the element font, and re-measures when a font loads late', async () => {
+    const fonts = Object.assign(new EventTarget(), {
+      ready: Promise.resolve(),
+      load: vi.fn(() => Promise.resolve([])),
+    })
+    Object.defineProperty(document, 'fonts', { value: fonts, configurable: true })
+    try {
+      element.style.fontFamily = 'Brand Mono'
+      const animation = animate({}, { ...base, fontWeight: 600 })
+      await boot(animation)
+      expect(fonts.load).toHaveBeenCalledWith(
+        expect.stringMatching(/600 16px "?Brand Mono"?$/)
+      )
+      expect(animation.getMetrics()?.fontSize).toBe(16)
+
+      element.style.fontSize = '20px'
+      fonts.dispatchEvent(new Event('loadingdone'))
+      tick(0)
+      expect(animation.getMetrics()?.fontSize).toBe(20)
+
+      animation.dispose()
+      element.style.fontSize = '24px'
+      fonts.dispatchEvent(new Event('loadingdone'))
+      tick(0)
+      expect(animation.getMetrics()?.fontSize).toBe(20)
+    } finally {
+      // oxlint-disable-next-line typescript/no-dynamic-delete
+      delete (document as { fonts?: unknown }).fonts
+    }
+  })
+})

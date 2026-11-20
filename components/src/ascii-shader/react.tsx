@@ -159,7 +159,18 @@ export function AsciiAnimation({
       style={{ display: 'grid' }}
     >
       {showSpacer && (
-        <pre aria-hidden style={{ gridArea: '1 / 1', visibility: 'hidden', margin: 0 }}>
+        <pre
+          aria-hidden
+          style={{
+            gridArea: '1 / 1',
+            visibility: 'hidden',
+            margin: 0,
+            // Match the engine's styles on the real <pre> so the sizes agree.
+            fontStretch: 'normal',
+            fontKerning: 'none',
+            fontVariantLigatures: 'none',
+          }}
+        >
           {('.'.repeat(gridCols) + '\n').repeat(gridRows).trimEnd()}
         </pre>
       )}

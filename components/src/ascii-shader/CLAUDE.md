@@ -62,9 +62,9 @@ These are deliberate changes from play.core and the two forks. Don't regress the
 - **`dispose()` cleans up fully**: cancels the pending rAF, removes the
   pointer listeners (the website fork leaked them), and clears the renderer's
   DOM.
-- **Layout reads only when needed**: the per-frame `getBoundingClientRect()`
-  is skipped when `cols`/`rows` are pinned, and the canvas bitmap is not
-  reallocated every frame.
+- **Layout reads only when needed**: element size comes from a
+  ResizeObserver (per-frame `getBoundingClientRect()` only where it's
+  unavailable), and the canvas bitmap is not reallocated every frame.
 - **Kept from mitos**: `renderFrame(n)` synchronous export rendering, frame
   increment _after_ render (frame 0 renders first), `maxFrames`→`frames`
   wrap-around, buffer sanity clamps, the Display P3 canvas context + CSS-var
@@ -74,6 +74,20 @@ These are deliberate changes from play.core and the two forks. Don't regress the
 - **Kept from the website fork**: the row-diffing text renderer, now with
   HTML-escaping of `& < >` (previously those characters corrupted a row's
   markup) and native CSS-variable pass-through.
+- **Ported from play.core v2 (Nov 2026)**: a program/handler that throws
+  pauses (emits `'pause'`, `reportError`) instead of killing the rAF chain
+  with `playing` stuck true; `fps <= 0` is uncapped (was `1000/0` → frozen);
+  `main`'s return replaces the cell's styles rather than merging (stale
+  colors used to stick); the element's face is requested with
+  `document.fonts.load` before `fonts.ready`, and `loadingdone` / resize /
+  `fontWeight` patches re-measure metrics; DOM line height is the measured
+  pitch of a 100×10 probe block (not computed `line-height`); a
+  ResizeObserver replaces per-frame `getBoundingClientRect` and re-lays out
+  paused animations; `pointercancel` releases, pointer capture on down, event
+  queue capped at 64; kerning/ligatures off; canvas text uses the DOM's
+  centered font-box baseline, integer line height, and pixel-snapped
+  backgrounds. Not taken: v2's API (`main(coord, context)`, Buffer class),
+  raw-dt `time`, CSS-sized canvas.
 - Dead settings from both forks (`allowSelect`, `restoreState`,
   `renderer: string` on a single-renderer build, unused `cycle`) were dropped;
   `reducedMotion` stays because programs branch on it.

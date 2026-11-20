@@ -6,7 +6,13 @@
  * Copyright Oxide Computer Company
  */
 import { get2dContext, resolveColor } from '../color.js'
-import { invariant, type Cell, type Context, type Renderer } from '../types.js'
+import {
+  invariant,
+  type Cell,
+  type Context,
+  type Metrics,
+  type Renderer,
+} from '../types.js'
 
 /**
  * Canvas renderer. Sizes the canvas to the grid (+ padding), renders on a
@@ -21,6 +27,9 @@ export function createCanvasRenderer(): Renderer {
   let appliedScale = 0
   let boundCanvas: HTMLCanvasElement | null = null
   let boundCtx: CanvasRenderingContext2D | null = null
+  // Baseline offset within a line, recomputed when the metrics change.
+  let baselineFor: Metrics | null = null
+  let baseline: number | null = null
   // One-entry cache: resolveColor scans strings, and same-colored runs are
   // the common case.
   let lastRawColor = ''
@@ -93,9 +102,21 @@ export function createCanvasRenderer(): Renderer {
 
     ctx.save()
     ctx.scale(scale, scale)
-    ctx.textBaseline = 'top'
+
+    if (baselineFor !== m) {
+      baselineFor = m
+      ctx.font = `${baseWeight} ${m.fontSize}px ${m.fontFamily}`
+      baseline = centeredBaseline(ctx, m.lineHeight)
+    }
+    // Same vertical placement as the DOM: the font box centered in the line.
+    ctx.textBaseline = baseline === null ? 'middle' : 'alphabetic'
+    const baselineY = baseline ?? m.lineHeight / 2
 
     // Touch fillStyle/font only when they change between cells.
+    // Cell backgrounds snap to whole pixels on the x axis (rows already are),
+    // so adjacent fills meet without hairline seams.
+    const bgWidth = Math.ceil(m.cellWidth)
+
     let currentColor = ''
     let currentWeight = ''
     const setColor = (color: string) => {
@@ -119,7 +140,7 @@ export function createCanvasRenderer(): Renderer {
 
         if (cell?.backgroundColor && cell.backgroundColor !== settings.backgroundColor) {
           setColor(resolveCellColor(cell.backgroundColor))
-          ctx.fillRect(x, y, m.cellWidth, m.lineHeight)
+          ctx.fillRect(Math.round(x), y, bgWidth, m.lineHeight)
         }
 
         const char = cell?.char
@@ -127,7 +148,7 @@ export function createCanvasRenderer(): Renderer {
 
         setWeight(cell?.fontWeight != null ? String(cell.fontWeight) : baseWeight)
         setColor(cell?.color ? resolveCellColor(cell.color) : textColor)
-        ctx.fillText(char, x, y)
+        ctx.fillText(char, x, y + baselineY)
       }
     }
 
@@ -142,4 +163,19 @@ export function createCanvasRenderer(): Renderer {
   }
 
   return { render, dispose }
+}
+
+/**
+ * Alphabetic baseline that centers the font's ascent + descent box in the
+ * line, as CSS does; null where font bounding-box metrics are unsupported.
+ */
+function centeredBaseline(
+  ctx: CanvasRenderingContext2D,
+  lineHeight: number
+): number | null {
+  const tm = ctx.measureText('X')
+  const ascent = tm.fontBoundingBoxAscent
+  const descent = tm.fontBoundingBoxDescent
+  if (!(ascent >= 0 && descent >= 0)) return null
+  return (lineHeight - ascent - descent) / 2 + ascent
 }

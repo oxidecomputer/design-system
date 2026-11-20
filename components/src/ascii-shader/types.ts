@@ -40,7 +40,7 @@ export interface Settings {
   cols?: number
   /** Omit to derive from the element's height. */
   rows?: number
-  /** Default 30. */
+  /** Default 30. `0` (or less) is uncapped: a frame every rAF tick. */
   fps?: number
   /** Loop length in frames. Omit for endless. */
   frames?: number
@@ -88,8 +88,8 @@ export interface Context {
 }
 
 /**
- * `main` runs once per cell per frame; its return is merged into the cell
- * (a string sets `char`).
+ * `main` runs once per cell per frame; its return replaces the cell's content
+ * (a string sets `char` and clears any style from earlier frames).
  *
  * `userData` is `any` on purpose: programs declare their own shape, and
  * `unknown` would force a cast in every hook.
@@ -108,7 +108,7 @@ export interface Program {
   ) => Cell | string | undefined
   post?: (context: Context, cursor: Cursor, buffer: Cell[], userData: any) => void
   cleanup?: () => void
-  /** pointerMove / pointerDown / pointerUp. */
+  /** pointerMove / pointerDown / pointerUp (also on pointercancel). */
   [key: string]: any
 }
 /* oxlint-enable typescript/no-explicit-any */

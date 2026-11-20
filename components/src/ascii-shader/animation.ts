@@ -42,6 +42,9 @@ const EMPTY_CURSOR: Cursor = {
 
 const MAX_CELLS = 10_000_000
 
+// Bounded: nothing drains the queue while paused.
+const MAX_QUEUED_EVENTS = 64
+
 export type AnimationEvent = 'boot' | 'frame' | 'play' | 'pause' | 'ended'
 
 export interface AsciiAnimation {
@@ -71,7 +74,11 @@ export interface AsciiAnimation {
    * on the next render; undefined values are ignored.
    */
   updateSettings(patch: Partial<Omit<Settings, 'element' | 'renderer'>>): void
-  /** Subscribe; returns unsubscribe. */
+  /**
+   * Subscribe; returns unsubscribe. A program (or `'frame'` handler) that
+   * throws pauses playback, emits `'pause'`, and the error goes to
+   * `reportError`; `play()` resumes.
+   */
   on(event: AnimationEvent, handler: (frame: number) => void): () => void
   getBuffer(): Cell[]
   getMetrics(): Metrics | null
@@ -121,12 +128,17 @@ export function createAnimation(
   let playing = false
   let frame = 0
   let playTime = 0
-  let interval = 1000 / settings.fps
+  let interval = frameInterval(settings.fps)
   let lastTick = 0
   // Seek / settings change: render without advancing the frame.
   let needsRender = false
   let rafId: number | null = null
   let warnedInvalidGrid = false
+  // Re-measure before the next render: a late web font, a resize (font-size
+  // media queries), or a fontWeight change.
+  let metricsDirty = true
+  // Border-box size from the ResizeObserver; null → read layout per frame.
+  let observedSize: { width: number; height: number } | null = null
 
   const eventQueue: string[] = []
   const listeners = new Map<AnimationEvent, Set<(frame: number) => void>>()
@@ -145,24 +157,35 @@ export function createAnimation(
     ppressed: false,
   }
 
+  const queueEvent = (type: string) => {
+    if (eventQueue.length >= MAX_QUEUED_EVENTS) eventQueue.shift()
+    eventQueue.push(type)
+  }
   const handlePointerMove = (e: PointerEvent) => {
     pointer.clientX = e.clientX
     pointer.clientY = e.clientY
     pointer.moved = true
     // Coalesce moves: same sampled cursor within a frame.
     if (eventQueue[eventQueue.length - 1] !== 'pointerMove') {
-      eventQueue.push('pointerMove')
+      queueEvent('pointerMove')
     }
   }
-  const handlePointerDown = () => {
+  const handlePointerDown = (e: PointerEvent) => {
     pointer.pressed = true
-    eventQueue.push('pointerDown')
+    // Moves keep arriving while a drag leaves the element.
+    try {
+      element.setPointerCapture?.(e.pointerId)
+    } catch {
+      // Synthetic events carry no active pointer id.
+    }
+    queueEvent('pointerDown')
   }
   // Window, not element: a press ending outside would leave pressed stuck.
+  // pointercancel (touch scroll, gesture) ends the press too.
   const handlePointerUp = () => {
     if (!pointer.pressed) return
     pointer.pressed = false
-    eventQueue.push('pointerUp')
+    queueEvent('pointerUp')
   }
 
   const pointerUpTarget: EventTarget = typeof window !== 'undefined' ? window : element
@@ -170,18 +193,56 @@ export function createAnimation(
   element.addEventListener('pointermove', handlePointerMove)
   element.addEventListener('pointerdown', handlePointerDown)
   pointerUpTarget.addEventListener('pointerup', handlePointerUp)
+  pointerUpTarget.addEventListener('pointercancel', handlePointerUp)
 
   const removePointerListeners = () => {
     element.removeEventListener('pointermove', handlePointerMove)
     element.removeEventListener('pointerdown', handlePointerDown)
     pointerUpTarget.removeEventListener('pointerup', handlePointerUp)
+    pointerUpTarget.removeEventListener('pointercancel', handlePointerUp)
+  }
+
+  // Re-layout on resize without a per-frame layout read, including while
+  // paused.
+  const resizeObserver =
+    typeof ResizeObserver === 'function'
+      ? new ResizeObserver((entries) => {
+          const entry = entries[entries.length - 1]
+          const box = entry.borderBoxSize?.[0]
+          if (box) {
+            observedSize = { width: box.inlineSize, height: box.blockSize }
+          } else {
+            const rect = element.getBoundingClientRect()
+            observedSize = { width: rect.width, height: rect.height }
+          }
+          invalidateMetrics()
+        })
+      : null
+  resizeObserver?.observe(element)
+
+  // A face that finishes loading after boot changes the metrics.
+  const fontSet = typeof document !== 'undefined' ? document.fonts : undefined
+  const handleFontsLoaded = () => invalidateMetrics()
+  fontSet?.addEventListener?.('loadingdone', handleFontsLoaded)
+
+  function invalidateMetrics() {
+    metricsDirty = true
+    requestRender()
+  }
+
+  function requestRender() {
+    needsRender = true
+    if (metrics) schedule()
   }
 
   element.style.fontStretch = 'normal'
+  // Kerning and ligatures pull runs of text off the grid.
+  element.style.fontKerning = 'none'
+  element.style.fontVariantLigatures = 'none'
 
-  const ready = waitForFonts().then(() => {
+  const ready = waitForFonts(element, settings.fontWeight).then(() => {
     if (disposed) return
-    metrics = calcMetrics(element, settings.fontWeight)
+    ensureMetrics()
     const context = snapshot()
     normalizeBuffer(context)
     if (typeof program.boot === 'function') {
@@ -216,7 +277,25 @@ export function createAnimation(
   function loop(t: number) {
     rafId = null
     if (disposed || !metrics) return
+    try {
+      advance(t)
+    } catch (error) {
+      fail(error)
+    }
+  }
 
+  // An exception would otherwise kill the rAF chain with `playing` still
+  // true, leaving play() a no-op.
+  function fail(error: unknown) {
+    if (playing) {
+      playing = false
+      emit('pause')
+    }
+    if (typeof reportError === 'function') reportError(error)
+    else console.error(error)
+  }
+
+  function advance(t: number) {
     const elapsed = t - lastTick
     const due = playing && elapsed >= interval
 
@@ -226,7 +305,9 @@ export function createAnimation(
     }
 
     if (due) {
-      lastTick = t - (elapsed % interval) // keep the beat, absorb drift
+      // Keep the beat, absorb drift. Uncapped (interval 0): every tick.
+      const beat = interval > 0 ? elapsed - (elapsed % interval) : elapsed
+      lastTick = t - (elapsed - beat)
 
       const next = nextFrame(frame, settings.frames, settings.loop)
       if (next.ended) {
@@ -238,7 +319,7 @@ export function createAnimation(
       } else {
         // Beat time only (not elapsed % interval, which lastTick already kept).
         // Cap 1s so a backgrounded tab doesn't jump.
-        playTime += Math.min(elapsed - (elapsed % interval), 1000)
+        playTime += Math.min(beat, 1000)
         fpsMeter.update(t)
         frame = next.frame
       }
@@ -289,7 +370,7 @@ export function createAnimation(
       width = c * m.cellWidth
       height = r * m.lineHeight
     } else {
-      const rect = element.getBoundingClientRect()
+      const rect = observedSize ?? element.getBoundingClientRect()
       // Canvas is sized to grid + padding; subtract it or the derived grid
       // grows by a cell each frame once padding exceeds a cell.
       const pad = element.nodeName === 'CANVAS' ? 2 * (settings.padding || 0) : 0
@@ -340,7 +421,14 @@ export function createAnimation(
     }
   }
 
+  function ensureMetrics() {
+    if (!metricsDirty && metrics) return
+    metrics = calcMetrics(element, settings.fontWeight)
+    metricsDirty = false
+  }
+
   function render(cursor: Cursor) {
+    ensureMetrics()
     const context = snapshot()
     normalizeBuffer(context)
 
@@ -361,7 +449,12 @@ export function createAnimation(
             buffer,
             userData
           )
-          // In-place merge; renderers clone if they need a snapshot.
+          // The return replaces the cell's content (a style from an earlier
+          // frame must not stick), but the object is reused: renderers clone
+          // if they need a snapshot.
+          cell.color = undefined
+          cell.backgroundColor = undefined
+          cell.fontWeight = undefined
           if (typeof out === 'object' && out !== null) {
             Object.assign(cell, out)
           } else {
@@ -433,12 +526,13 @@ export function createAnimation(
         ;(settings as unknown as Record<string, unknown>)[key] = value
       }
     }
-    interval = 1000 / settings.fps
+    interval = frameInterval(settings.fps)
     if (settings.frames !== undefined) {
       frame = clampFrame(frame, settings.frames)
     }
-    needsRender = true
-    if (metrics) schedule()
+    // The canvas measures cells at the draw weight.
+    if (patch.fontWeight !== undefined) metricsDirty = true
+    requestRender()
   }
 
   function emit(event: AnimationEvent) {
@@ -465,6 +559,8 @@ export function createAnimation(
     playing = false
     unschedule()
     removePointerListeners()
+    resizeObserver?.disconnect()
+    fontSet?.removeEventListener?.('loadingdone', handleFontsLoaded)
     renderer.dispose?.()
     if (typeof program.cleanup === 'function') {
       program.cleanup()
@@ -509,6 +605,11 @@ function resolveRenderer(settings: ResolvedSettings): Renderer {
     throw new Error('ascii-shader: renderer "canvas" requires a <canvas> element')
   }
   return kind === 'canvas' ? createCanvasRenderer() : createTextRenderer()
+}
+
+/** ms per frame; `fps <= 0` is uncapped (a frame every rAF tick). */
+function frameInterval(fps: number): number {
+  return fps > 0 ? 1000 / fps : 0
 }
 
 function stripUndefined<T extends object>(obj: T | undefined): Partial<T> {

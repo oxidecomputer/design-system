@@ -53,8 +53,10 @@ A program exports any of:
 | `cleanup`                                   | on `dispose()`                 | `()`                                                         |
 
 `main` returns a string (the character) or a `Cell`
-(`{ char, color?, backgroundColor?, fontWeight? }`), merged into the existing
-cell. `context` is a frozen per-frame snapshot:
+(`{ char, color?, backgroundColor?, fontWeight? }`), which replaces the cell's
+content — a style returned on one frame doesn't stick to the next. (Without a
+`main`, cells written in `pre` persist across frames.) A program that throws
+pauses playback and the error goes to `reportError`; `play()` resumes. `context` is a frozen per-frame snapshot:
 `{ frame, time, cols, rows, metrics, width, height, settings, runtime: { fps } }`.
 
 **Animate with `context.frame`, not `context.time`** — the frame counter
@@ -87,7 +89,7 @@ at runtime via `updateSettings` (e.g. a smaller mobile grid).
 | `dispose()`                                                 | Cancels the loop, removes pointer listeners, releases the renderer.                                                              |
 
 Key settings: `element` (required), `cols`/`rows` (omit to derive from element
-size), `fps` (default 30), `frames` (loop length; omit for endless), `loop`
+size), `fps` (default 30; `0` is uncapped, a frame per rAF tick), `frames` (loop length; omit for endless), `loop`
 (default true; false pauses on the last frame and emits `'ended'`), `autoplay`
 (default true), `renderer` (`'text' | 'canvas'` or a custom
 `{ render(context, buffer) }`, default inferred from the element), `color`,
