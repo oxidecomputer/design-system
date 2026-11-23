@@ -127,6 +127,20 @@ content: [
 ],
 ```
 
+### ASCII animation (`@oxide/design-system/ascii-shader`)
+
+An ASCII animation engine: a program runs once per grid cell per frame, like a fragment
+shader over characters, rendered into a `<pre>` (real, selectable text) or a `<canvas>`. No
+runtime dependencies; the React wrapper is a separate entry.
+
+```ts
+import { createAnimation } from '@oxide/design-system/ascii-shader'
+import { AsciiAnimation } from '@oxide/design-system/ascii-shader/react'
+```
+
+See `components/src/ascii-shader/README.md` for the program model and API. Derived from
+play.core: four of its files are Apache-2.0 rather than MPL-2.0 (listed in that README).
+
 ### Grid math (`@oxide/design-system/grid`)
 
 The maths behind the dual-grid Figma plugin: computes an ASCII cell grid aligned with a

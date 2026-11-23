@@ -1,0 +1,398 @@
+<!doctype html>
+<!--
+  Run `npm run ascii-shader:examples` from the repo root: Vite serves this
+  page at / and compiles the module's TypeScript source on the fly (no build
+  step; edits reload).
+
+  The programs below are adapted from play.core demos
+  (https://github.com/ertdfgcvb/play.core, Apache-2.0, Copyright ertdfgcvb /
+  Andreas Gysin), ported to this library's program shape: module helpers
+  inlined, per-instance state moved into userData, and Sin Sin made
+  frame-driven so it loops deterministically and can be scrubbed.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>ascii-shader examples</title>
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: #fff;
+        color: #000;
+        font:
+          14px/18px ui-monospace,
+          'SF Mono',
+          Menlo,
+          monospace;
+      }
+      p,
+      .controls {
+        margin: 0 0 1.5rem;
+      }
+      .controls .inputs {
+        display: flex;
+        margin-bottom: 0.5rem;
+      }
+      .controls .inputs input {
+        flex: 1;
+        margin-left: 0.5rem;
+      }
+      pre {
+        /* fit the grid instead of filling the page width */
+        width: max-content;
+        font: inherit;
+        margin: 0 0 1.5rem;
+      }
+      canvas {
+        display: block;
+        font: inherit;
+        margin: 0 0 1.5rem;
+      }
+      button,
+      select,
+      input {
+        font: inherit;
+      }
+      section {
+        padding: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="controls">
+      <div class="inputs">
+        <select id="program-select"></select>
+        <input id="scrub" type="range" min="0" max="0" value="0" hidden />
+      </div>
+      <div>
+        <button id="toggle">pause</button>
+        <span id="frame-label">0</span>
+      </div>
+    </section>
+
+    <hr />
+
+    <section>
+      <p>text renderer</p>
+      <pre id="text-target"></pre>
+    </section>
+
+    <hr />
+
+    <section>
+      <p>canvas renderer</p>
+      <canvas id="canvas-target"></canvas>
+    </section>
+
+    <script type="module">
+      import { createAnimation } from '../index.ts'
+
+      const { sin, cos, atan2, sqrt, floor, round, abs, min, max, pow, PI } = Math
+      const TAU = PI * 2
+
+      // -- Shared helpers (inlined from play.core's num.js) ---------------------
+
+      const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v)
+      const map = (v, inA, inB, outA, outB) =>
+        outA + ((outB - outA) * (v - inA)) / (inB - inA)
+      const mix = (a, b, t) => a * (1 - t) + b * t
+      const smoothstep = (edge0, edge1, t) => {
+        const x = clamp((t - edge0) / (edge1 - edge0), 0, 1)
+        return x * x * (3 - 2 * x)
+      }
+      // Random int between a and b, inclusive
+      const rndi = (a, b = 0) => {
+        if (a > b) [a, b] = [b, a]
+        return floor(a + Math.random() * (b - a + 1))
+      }
+
+      // Value noise:
+      // https://www.scratchapixel.com/lessons/procedural-generation-virtual-worlds/procedural-patterns-noise-part-1
+      function valueNoise() {
+        const tableSize = 256
+        const r = new Array(tableSize)
+        const permutationTable = new Array(tableSize * 2)
+        for (let k = 0; k < tableSize; k++) {
+          r[k] = Math.random()
+          permutationTable[k] = k
+        }
+        for (let k = 0; k < tableSize; k++) {
+          const i = floor(Math.random() * tableSize)
+          ;[permutationTable[k], permutationTable[i]] = [
+            permutationTable[i],
+            permutationTable[k],
+          ]
+          permutationTable[k + tableSize] = permutationTable[k]
+        }
+        return function (px, py) {
+          const xi = floor(px)
+          const yi = floor(py)
+          const tx = px - xi
+          const ty = py - yi
+          const rx0 = xi % tableSize
+          const rx1 = (rx0 + 1) % tableSize
+          const ry0 = yi % tableSize
+          const ry1 = (ry0 + 1) % tableSize
+          const c00 = r[permutationTable[permutationTable[rx0] + ry0]]
+          const c10 = r[permutationTable[permutationTable[rx1] + ry0]]
+          const c01 = r[permutationTable[permutationTable[rx0] + ry1]]
+          const c11 = r[permutationTable[permutationTable[rx1] + ry1]]
+          const sx = smoothstep(0, 1, tx)
+          const sy = smoothstep(0, 1, ty)
+          const nx0 = mix(c00, c10, sx)
+          const nx1 = mix(c01, c11, sx)
+          return mix(nx0, nx1, sy)
+        }
+      }
+
+      // -- Sin Sin (play.core demos/sinsin_wave.js, by ertdfgcvb) ---------------
+      // Made frame-driven: t sweeps 0..TAU over `frames`, and every term is
+      // 2π-periodic in t, so the loop is seamless and seekable.
+
+      const sinsinPattern = '┌┘└┐╰╮╭╯'
+
+      const sinsin = {
+        settings: { fps: 30, frames: 240 },
+        main({ x, y }, context) {
+          const t = (context.frame / context.settings.frames) * TAU
+          const o = sin(y * x * sin(t) * 0.003 + y * 0.01 + t) * 20
+          const i = round(abs(x + y + o)) % sinsinPattern.length
+          return sinsinPattern[i]
+        },
+      }
+
+      // -- Spiral (play.core demos/spiral.js, by ertdfgcvb) ---------------------
+      // A Shadertoy port, inspired by https://www.shadertoy.com/view/XdSGzR
+
+      const spiralDensity = '▅▃▁?ab012:. '
+
+      const spiral = {
+        settings: { fps: 60 },
+        main({ x, y }, context) {
+          const t = context.time * 0.0006
+          const m = min(context.cols, context.rows)
+          const a = context.metrics.aspect
+
+          const stx = ((2 * (x - context.cols / 2)) / m) * a
+          const sty = (2 * (y - context.rows / 2)) / m
+
+          const radius = sqrt(stx * stx + sty * sty)
+          const rot = 0.03 * TAU * t
+          const turn = atan2(sty, stx) / TAU + rot
+
+          const nSub = 1.5
+          const turnSub = (nSub * turn) % nSub
+
+          const k = 0.1 * sin(3 * t)
+          const s = k * sin(50 * (pow(radius, 0.1) - 0.4 * t))
+          const turnSine = turnSub + s
+
+          const iTurn = floor((spiralDensity.length * turnSine) % spiralDensity.length)
+          const iRadius = floor(1.5 / pow(radius * 0.5, 0.6) + 5 * t)
+          const idx = abs(iTurn + iRadius) % spiralDensity.length
+
+          return spiralDensity[idx]
+        },
+      }
+
+      // -- Doom Flame (play.core demos/doom_flame.js, by ertdfgcvb) -------------
+      // The oldschool flame effect. The original kept its heat buffer in module
+      // scope; here it lives in userData so each instance burns independently.
+      // Press/drag the pointer to spawn flames.
+
+      const flameChars = '...::/\\/\\/\\+=*abcdef01XYZ#'
+
+      const doomFlame = {
+        settings: { fps: 30, backgroundColor: 'black', color: 'white' },
+        boot(context, buffer, data) {
+          data.cols = 0
+          data.rows = 0
+          data.heat = []
+          data.noise = valueNoise()
+        },
+        pre(context, cursor, buffer, data) {
+          // Detect resize (and reset the heat buffer, in case)
+          if (data.cols !== context.cols || data.rows !== context.rows) {
+            data.cols = context.cols
+            data.rows = context.rows
+            data.heat.length = context.cols * context.rows
+            data.heat.fill(0)
+          }
+          const { cols, rows, heat } = data
+
+          if (!cursor.pressed) {
+            // Fill the floor with some noise
+            const t = context.time * 0.0015
+            const last = cols * (rows - 1)
+            for (let i = 0; i < cols; i++) {
+              const val = floor(map(data.noise(i * 0.05, t), 0, 1, 5, 40))
+              heat[last + i] = min(val, heat[last + i] + 2)
+            }
+          } else {
+            const cx = clamp(floor(cursor.x), 0, cols - 1)
+            const cy = clamp(floor(cursor.y), 0, rows - 1)
+            heat[cx + cy * cols] = rndi(5, 50)
+          }
+
+          // Propagate towards the ceiling with some randomness
+          for (let i = 0; i < heat.length; i++) {
+            const row = floor(i / cols)
+            const col = i % cols
+            const dest = row * cols + clamp(col + rndi(-1, 1), 0, cols - 1)
+            const src = min(rows - 1, row + 1) * cols + col
+            heat[dest] = max(0, heat[src] - rndi(0, 2))
+          }
+        },
+        main({ index }, context, cursor, buffer, data) {
+          const u = data.heat[index]
+          if (u === 0) return ' '
+          return {
+            char: flameChars[clamp(u, 0, flameChars.length - 1)],
+            fontWeight: u > 20 ? 700 : 100,
+          }
+        },
+      }
+
+      // -- Donut (play.core demos/donut.js, by ertdfgcvb) -----------------------
+      // Ported from a1k0n's donut demo:
+      // https://www.a1k0n.net/2011/07/20/donut-math.html
+      // Writes directly into the frame buffer from pre() — no main() at all.
+      // The fixed scale of the original is derived from the grid here so the
+      // torus fits any cols × rows.
+
+      const donut = {
+        settings: { fps: 60, backgroundColor: 'whitesmoke', color: 'black' },
+        pre(context, cursor, buffer) {
+          const A = context.time * 0.0015
+          const B = context.time * 0.0017
+
+          const width = context.cols
+          const height = context.rows
+          const centerX = width / 2
+          const centerY = height / 2
+          const scaleX = min(width, height / context.metrics.aspect) / 3
+          const scaleY = scaleX * context.metrics.aspect
+
+          const cA = cos(A)
+          const sA = sin(A)
+          const cB = cos(B)
+          const sB = sin(B)
+
+          // Clear the char buffer and the z buffer
+          const z = []
+          const num = width * height
+          for (let k = 0; k < num; k++) {
+            buffer[k].char = ' '
+            z[k] = 0
+          }
+
+          // Theta (j) goes around the cross-sectional circle of the torus,
+          // phi (i) around its center of revolution.
+          for (let j = 0; j < TAU; j += 0.05) {
+            const ct = cos(j)
+            const st = sin(j)
+            for (let i = 0; i < TAU; i += 0.01) {
+              const sp = sin(i)
+              const cp = cos(i)
+
+              const h = ct + 2 // R1 + R2*cos(theta)
+              const D = 1 / (sp * h * sA + st * cA + 5) // 1/z
+              const t = sp * h * cA - st * sA
+
+              const x = 0 | (centerX + scaleX * D * (cp * h * cB - t * sB))
+              const y = 0 | (centerY + scaleY * D * (cp * h * sB + t * cB))
+              const o = x + width * y
+
+              // Luminance, range 0..11 (8 * sqrt(2) = 11.3)
+              const N =
+                0 |
+                (8 *
+                  ((st * sA - sp * ct * cA) * cB - sp * ct * sA - st * cA - cp * ct * sB))
+              if (y < height && y >= 0 && x >= 0 && x < width && D > z[o]) {
+                z[o] = D
+                buffer[o].char = '.,-~:;=!*#$@'[N > 0 ? N : 0]
+              }
+            }
+          }
+        },
+      }
+
+      // -- Page wiring ----------------------------------------------------------
+
+      const programs = {
+        'Sin Sin': sinsin,
+        Spiral: spiral,
+        'Doom Flame': doomFlame,
+        Donut: donut,
+      }
+
+      const select = document.getElementById('program-select')
+      const toggle = document.getElementById('toggle')
+      const scrub = document.getElementById('scrub')
+      const label = document.getElementById('frame-label')
+      const textTarget = document.getElementById('text-target')
+      const canvasTarget = document.getElementById('canvas-target')
+
+      for (const name of Object.keys(programs)) {
+        const option = document.createElement('option')
+        option.value = name
+        option.textContent = name
+        select.appendChild(option)
+      }
+
+      const grid = { cols: 72, rows: 24 }
+      let text = null
+      let canvas = null
+      let offFrame = null
+
+      function mount(name) {
+        text?.dispose()
+        canvas?.dispose()
+        offFrame?.()
+
+        const program = programs[name]
+
+        // The same program object drives both renderers at once — programs are
+        // stateless singletons, so each instance gets its own userData ({}).
+        text = createAnimation(program, { element: textTarget, ...grid }, {})
+        canvas = createAnimation(
+          program,
+          { element: canvasTarget, ...grid, color: '#000' },
+          {},
+        )
+
+        const frames = text.getSettings().frames
+        scrub.hidden = frames === undefined
+        if (frames !== undefined) scrub.max = String(frames - 1)
+        toggle.textContent = 'pause'
+
+        offFrame = text.on('frame', (frame) => {
+          scrub.value = frame
+          label.textContent = String(frame)
+        })
+      }
+
+      toggle.addEventListener('click', () => {
+        const playing = !text.playing
+        text.toggle(playing)
+        canvas.toggle(playing)
+        toggle.textContent = playing ? 'pause' : 'play'
+      })
+
+      scrub.addEventListener('input', () => {
+        text.pause()
+        canvas.pause()
+        toggle.textContent = 'play'
+        text.seek(Number(scrub.value))
+        canvas.seek(Number(scrub.value))
+      })
+
+      select.addEventListener('change', () => mount(select.value))
+      mount(select.value)
+    </script>
+  </body>
+</html>

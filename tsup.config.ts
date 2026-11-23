@@ -10,6 +10,8 @@ import { defineConfig } from 'tsup'
 export default defineConfig({
   publicDir: 'components/src/assets/',
   entry: [
+    'components/src/ascii-shader/index.ts',
+    'components/src/ascii-shader/react.tsx',
     'components/src/asciidoc/index.tsx',
     'components/src/capsize/index.ts',
     'components/src/grid/index.ts',
