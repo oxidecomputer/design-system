@@ -12,6 +12,7 @@ import {
   cellLadder,
   COLUMNS_WEIGHT,
   computeGrid,
+  gridExtent,
   gridLineSegments,
   GUTTER_WEIGHT,
   pickCellOption,
@@ -222,16 +223,37 @@ describe('computeGrid', () => {
     expect(exact.rowOffset).toBeLessThanOrEqual(0)
   })
 
-  it('pixel snap with aspect tolerance finds an integer row height', () => {
+  it('pixel snap with aspect tolerance finds whole-pixel rows that fill the height', () => {
     const g = computeGrid(manual({ pixelSnap: true, aspectTolerancePct: 5 }))
-    // 24 rows of 45px would fill 1080 exactly, but its aspect error against the
-    // snapped 22px cell ties the natural count's (43/44 vs 45/44), and ties go
-    // to the natural row count: 25 rows of 43px, remainder split top/bottom.
-    expect(Number.isInteger(g.cellH)).toBe(true)
-    expect(g.rows).toBe(25)
-    expect(g.cellH).toBe(43)
-    expect(g.vRemainder).toBeCloseTo(1080 - 25 * 43, 9)
+    // The natural 25 rows round to 43px and leave 5px. 24 rows of 45px fill
+    // 1080 exactly, at the same aspect error against the snapped 22px cell
+    // (45/44 vs 43/44), so they win.
+    expect(g.rows).toBe(24)
+    expect(g.cellH).toBe(45)
+    expect(g.vRemainder).toBeCloseTo(0, 9)
     expect(Math.abs(g.deltaPct)).toBeLessThanOrEqual(5)
+  })
+
+  it('with no exact fit in the aspect band, takes the closest whole-pixel fit', () => {
+    // 1440x900 at ~89 cells: u = 16, so rows aim for 32px. No whole-pixel
+    // divisor of 900 lies within 5% of that; 29 rows of 31px leave 1px.
+    const g = computeGrid(
+      manual({
+        width: 1440,
+        height: 900,
+        targetCellColumns: 89,
+        pixelSnap: true,
+        aspectTolerancePct: 5,
+      }),
+    )
+    expect(g.u).toBe(16)
+    expect(Number.isInteger(g.cellH)).toBe(true)
+    for (let r = Math.ceil(900 / (32 * 1.05)); r <= Math.floor(900 / (32 * 0.95)); r++) {
+      const h = Math.round(900 / r)
+      if (Math.abs(h / 32 - 1) > 0.05) continue
+      expect(Math.abs(g.vRemainder)).toBeLessThanOrEqual(Math.abs(900 - r * h) + 1e-9)
+    }
+    expect(Math.abs(g.vRemainder)).toBe(1)
   })
 
   it('zero aspect tolerance keeps the natural row count', () => {
@@ -302,6 +324,35 @@ describe('gridLineSegments', () => {
         expect(y1).toBe(y2)
         expect(y1).toBeGreaterThan(0)
         expect(y1).toBeLessThan(1080)
+      }
+    }
+  })
+
+  it('trims every segment to the frame, even where the grid bleeds past it', () => {
+    // 4 columns, 49 cells of 22px, leave 2px across 1080: the extent adds a
+    // cell each side, 21px past the frame.
+    const bleed = computeGrid(
+      manual({
+        width: 1080,
+        height: 1080,
+        columns: 4,
+        targetCellColumns: 49,
+        pixelSnap: true,
+        snapTolerancePx: 0.1,
+      }),
+    )
+    expect(gridExtent(bleed).startX).toBeLessThan(0)
+    for (const grid of [g, bleed]) {
+      const w = grid === g ? 1920 : 1080
+      for (const [x1, y1, x2, y2] of gridLineSegments(grid, w, 1080, { edgeCull: false })) {
+        for (const x of [x1, x2]) {
+          expect(x).toBeGreaterThanOrEqual(0)
+          expect(x).toBeLessThanOrEqual(w)
+        }
+        for (const y of [y1, y2]) {
+          expect(y).toBeGreaterThanOrEqual(0)
+          expect(y).toBeLessThanOrEqual(1080)
+        }
       }
     }
   })
