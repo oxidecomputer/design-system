@@ -41,8 +41,9 @@ const Section = ({ node }: { node: SectionBlock }) => {
   const level = node.level
   let title: JSX.Element | string = ''
 
-  let sectNum = node.num
-  sectNum = sectNum && sectNum[0] === '.' ? '' : sectNum
+  // Unnumbered sections get a numeral starting with '.'. Leave the attribute
+  // off entirely so `[data-sectnum]` in the CSS only matches numbered headings.
+  const sectNum = node.num && !node.num.startsWith('.') ? node.num : undefined
 
   // Captioned titles (appendices, etc.) arrive as an HTML string; everything
   // else comes from the inline AST. Either way, strip any links from the title
