@@ -33,6 +33,7 @@ export function createTextRenderer(): Renderer {
   let element: HTMLElement | null = null
   let appliedColor = ''
   let appliedBackground = ''
+  let appliedWeight = ''
   // The style key each run span was last written with. Keyed on the node, not
   // the slot, so a span replaced from outside is simply rewritten.
   let spanStyles = new WeakMap<Element, string>()
@@ -49,11 +50,13 @@ export function createTextRenderer(): Renderer {
     }
 
     // Cells matching the settings defaults are elided to bare spans, so the
-    // defaults go on the element itself.
+    // defaults go on the element itself. Rows were elided against the old
+    // defaults, so a change redraws every row.
     const baseColor = settings.color ? cssColorValue(settings.color) : ''
     if (baseColor !== appliedColor) {
       appliedColor = baseColor
       element.style.color = baseColor
+      backBuffer.length = 0
     }
     const baseBackground = settings.backgroundColor
       ? cssColorValue(settings.backgroundColor)
@@ -61,6 +64,13 @@ export function createTextRenderer(): Renderer {
     if (baseBackground !== appliedBackground) {
       appliedBackground = baseBackground
       element.style.background = baseBackground
+      backBuffer.length = 0
+    }
+    const baseWeight = settings.fontWeight ? String(settings.fontWeight) : ''
+    if (baseWeight !== appliedWeight) {
+      appliedWeight = baseWeight
+      element.style.fontWeight = baseWeight
+      backBuffer.length = 0
     }
 
     if (context.rows !== rows || context.cols !== cols) {
@@ -208,16 +218,18 @@ export function createTextRenderer(): Renderer {
   function release(el: HTMLElement) {
     el.textContent = ''
     // A later animation reusing this element would otherwise inherit the
-    // base colors, since it only writes colors its own settings define.
+    // base styles, since it only writes styles its own settings define.
     if (appliedColor) el.style.color = ''
     if (appliedBackground) el.style.background = ''
+    if (appliedWeight) el.style.fontWeight = ''
+    appliedColor = ''
+    appliedBackground = ''
+    appliedWeight = ''
   }
 
   function dispose() {
     if (element) release(element)
     element = null
-    appliedColor = ''
-    appliedBackground = ''
     spanStyles = new WeakMap()
     backBuffer.length = 0
   }

@@ -23,8 +23,10 @@ import type {
   Settings,
 } from './types'
 
+export const DEFAULT_FPS = 30
+
 const defaultSettings = {
-  fps: 30,
+  fps: DEFAULT_FPS,
   loop: true,
   autoplay: true,
   reducedMotion: false,
@@ -41,6 +43,11 @@ const EMPTY_CURSOR: Cursor = {
 }
 
 const MAX_CELLS = 10_000_000
+
+// Browsers snap layout sizes to sub-pixel units (1/64px in Chromium/WebKit),
+// so a canvas sized to exactly `cols * cellWidth` can measure a hair short.
+// Without slack, flooring that loses a column per resize.
+const LAYOUT_EPSILON = 0.1
 
 // Bounded: nothing drains the queue while paused.
 const MAX_QUEUED_EVENTS = 64
@@ -352,8 +359,10 @@ export function createAnimation(
     const m = metrics!
     if (pointer.moved) {
       const rect = element.getBoundingClientRect()
-      pointer.x = pointer.clientX - rect.left
-      pointer.y = pointer.clientY - rect.top
+      // Canvas cell (0, 0) is drawn at (padding, padding).
+      const pad = canvasPadding()
+      pointer.x = pointer.clientX - rect.left - pad
+      pointer.y = pointer.clientY - rect.top - pad
       pointer.moved = false
     }
     const cursor = {
@@ -389,9 +398,9 @@ export function createAnimation(
       const rect = observedSize ?? element.getBoundingClientRect()
       // Canvas is sized to grid + padding; subtract it or the derived grid
       // grows by a cell each frame once padding exceeds a cell.
-      const pad = element.nodeName === 'CANVAS' ? 2 * (settings.padding || 0) : 0
-      c = settings.cols || Math.floor((rect.width - pad) / m.cellWidth)
-      r = settings.rows || Math.floor((rect.height - pad) / m.lineHeight)
+      const pad = 2 * canvasPadding()
+      c = settings.cols || Math.floor((rect.width - pad + LAYOUT_EPSILON) / m.cellWidth)
+      r = settings.rows || Math.floor((rect.height - pad + LAYOUT_EPSILON) / m.lineHeight)
       width = rect.width
       height = rect.height
     }
@@ -421,6 +430,11 @@ export function createAnimation(
       settings,
       runtime: Object.freeze({ fps: fpsMeter.fps }),
     })
+  }
+
+  /** CSS pixels around the grid; only the canvas renderer draws padding. */
+  function canvasPadding(): number {
+    return element.nodeName === 'CANVAS' ? settings.padding || 0 : 0
   }
 
   function normalizeBuffer(context: Context) {

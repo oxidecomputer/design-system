@@ -9,7 +9,11 @@ import { useEffect, useRef } from 'react'
 
 // Aliased: the component below shares the controller type's name, which
 // the declaration bundler (rollup-plugin-dts) can't parse.
-import { createAnimation, type AsciiAnimation as Controller } from './animation'
+import {
+  createAnimation,
+  DEFAULT_FPS,
+  type AsciiAnimation as Controller,
+} from './animation'
 import type { Program } from './types'
 
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
@@ -66,7 +70,8 @@ export function AsciiAnimation({
   const pausedByObserverRef = useRef(false)
 
   // Recreate only when program or renderer changes; other props go through
-  // updateSettings below.
+  // updateSettings below. Effects that configure the controller list
+  // program/renderer as deps so they re-apply to a recreated one.
   useEffect(() => {
     const element = elementRef.current
     if (!element) return
@@ -101,9 +106,18 @@ export function AsciiAnimation({
     animationRef.current?.setUserData(userData)
   }, [userData])
 
+  // Props override the program's settings. A removed prop falls back to the
+  // program's value, then the engine default (0 = follow the element for
+  // cols/rows, endless for frames), since updateSettings ignores undefined.
   useEffect(() => {
-    animationRef.current?.updateSettings({ cols, rows, fps, frames })
-  }, [cols, rows, fps, frames])
+    const s = program.settings
+    animationRef.current?.updateSettings({
+      cols: cols ?? s?.cols ?? 0,
+      rows: rows ?? s?.rows ?? 0,
+      fps: fps ?? s?.fps ?? DEFAULT_FPS,
+      frames: frames ?? s?.frames ?? 0,
+    })
+  }, [program, renderer, cols, rows, fps, frames])
 
   useEffect(() => {
     if (typeof matchMedia === 'undefined') return
@@ -141,9 +155,11 @@ export function AsciiAnimation({
       },
       { threshold: [0, visibleThreshold, 1] },
     )
+    // observe() reports the current intersection, so a recreated controller
+    // that's already on screen starts playing.
     observer.observe(container)
     return () => observer.disconnect()
-  }, [playOnVisible, visibleThreshold])
+  }, [program, renderer, playOnVisible, visibleThreshold])
 
   const gridCols = cols ?? program.settings?.cols
   const gridRows = rows ?? program.settings?.rows
